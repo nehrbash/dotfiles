@@ -1,0 +1,64 @@
+#! /bin/bash
+
+
+alias pacman-update='sudo pacman-mirrors --geoip'
+alias l='exa -lFh --icons'
+alias ll='exa -l --icons'
+alias ls='exa --icons'           # just so I don't break scripts
+# ls, the common ones I use a lot shortened for rapid fire usage
+alias la='exa -lFha --icons'   #long list,show almost all,show type,human readable
+alias lr='exa -tRFh --icons'   #sorted by date,recursive,show type,human readable
+alias lt='ls -ltFh --color=auto'   #long list,sorted by date,show type,human readable
+alias ldot='exa -ld .* --icons'
+alias lS='ls -1FSsh --color=auto'
+alias lart='ls -1Fcart --color=auto'
+alias lrt='ls -1Fcrt --color=auto'
+alias zshrc='${=EDITOR} ~/.zshrc' # Quick access to the ~/.zshrc file
+alias t='tail -f'
+# Command line head / tail shortcuts
+alias -g H='| head'
+alias -g T='| tail'
+alias -g G='| grep'
+alias -g L="| less"
+alias -g M="| most"
+alias -g LL="2>&1 | less"
+alias -g CA="2>&1 | cat -A"
+alias -g NE="2> /dev/null"
+alias -g NUL="> /dev/null 2>&1"
+alias -g P="2>&1| pygmentize -l pytb"
+alias dud='du -d 1 -h'
+alias duf='du -sh *'
+alias fd='find . -type d -name'
+alias ff='find . -type f -name'
+alias h='history'
+alias hgrep="fc -El 0 | grep"
+alias help='man'
+alias p='ps -f'
+alias sortnr='sort -n -r'
+alias unexport='unset'
+alias open='xdg-open 2>/dev/null'
+alias rm="rm -i"
+alias cp='cp -i'
+alias mv="mv -i"
+alias em='emacsclient -nw -a "emacs" 2>/dev/null'
+alias startem='emacs --daemon &'
+alias music='ncmpcpp'
+# HPC
+alias ksh='/usr/local/krb5/bin/kshell'
+alias kinit='/usr/local/krb5/bin/kinit stephenn@HPCMP.HPC.MIL'
+alias tunnel='/usr/local/ossh/bin/ssh -L 9998:98.102.168.34:4345  -N stephenn@mustang.afrl.hpc.mil -f'
+alias go-penny='ssh 127.0.0.1 -p 9998 -i ~/.ssh/penny_id_rsa'
+alias copy-penny='sftp 127.0.0.1 -p 9998 -i ~/.ssh/penny_id_rsa'
+alias go-mustang='/usr/local/ossh/bin/ssh stephenn@mustang.afrl.hpc.mil'
+alias copy-mustang='/usr/local/ossh/bin/sftp stephenn@mustang.afrl.hpc.mil'
+# pies
+alias matrix='ncmatrix'
+alias clock='tty-clock -c  -n -D'
+# disocrd theme reload
+alias wal-discord='~/.local/src/pywal-discord/pywal-discord -t abou'
+# track dote files
+alias config='/usr/bin/git --git-dir=$HOME/.dotfiles/ --work-tree=$HOME'
+
+
+alias pi='ssh pi@192.168.200.159'
+alias pi-copy='sftp pi@192.168.200.159'

@@ -1,0 +1,8 @@
+[Desktop Entry]
+Name=Emacs Client
+Exec=emacsclient -c %u
+Icon=emacs-icon
+Type=Application
+Terminal=false
+# MimeType=application/pdf;
+# MimeType=inode/directory;
