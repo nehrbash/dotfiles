@@ -1,5 +1,0 @@
-#! /bin/sh
-export XDG_CURRENT_DESKTOP=kde
-export DESKTOP_SESSION=kde
-
-/usr/bin/latte-dock

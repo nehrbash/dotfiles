@@ -104,7 +104,6 @@
                 "exec": "~/bin/pomodoro",
                 "exec-if": "pgrep emacs 2> /dev/null",
                 "on-click": "emacsclient -a emacs --eval '(emacs-agenda)'", // launch agenda to choose time
-                "signal": 8
     },
     "custom/powermenu": {
                 "format": "",

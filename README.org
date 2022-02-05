@@ -1,20 +1,27 @@
 #+TITLE:My Setup
 #+PROPERTY: header-args:sh :tangle ~/bin/install
 
-Here are my notes on how I set up my system. This was a afterthough so I am sure this is missing quite a lot. Here is my current wallpaper [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][wallpaper]] and I am using GNU Stow to keep track of my dotfiles.
+Here are my notes on how I set up my system. This was a afterthough so I am sure this is missing quite a lot.
 
-* My Setup                                                                      :TOC:
+- [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][wallpaper]]
+- [[Emacs.org][Emacs]]
+- sway
+- Arch
+
+* Instructions                                                                  :TOC:
 - [[#install-paru][Install Paru]]
 - [[#spicetify][Spicetify]]
-- [[#setting-xdg-defaults-to-emacs][Setting XDG Defaults to Emacs]]
+- [[#emacs][Emacs]]
+  - [[#setting-xdg-defaults-to-emacs][Setting XDG Defaults to Emacs]]
+  - [[#set-up-org-agenda-and-roam][set up org agenda and Roam]]
 - [[#installed-packages][Installed packages]]
+- [[#my-dots][My dots]]
 
 * Install Paru
 
   https://github.com/Morganamilo/paru#installation
 
 #+begin_src sh
-
 #! /bin/bash
 sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
@@ -36,7 +43,10 @@ spicetify apply
 spicetify config color_scheme Purple
 #+end_src
 
-* Setting XDG Defaults to Emacs
+* Emacs
+My Emacs config can be found in Emacs.org. I use *emacs-gcc-wayland-devel-bin* and be warned it takes a hot sec to build all the packages.
+
+** Setting XDG Defaults to Emacs
 
 https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mode-in-emacs
 
@@ -44,6 +54,15 @@ https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mo
 xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory
 #+end_src
+
+** set up org agenda and Roam
+
+#+begin_src sh
+mkdir -p ~/doc
+echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
+mkdir -p ~/doc/Roam/Journal
+#+end_src
+
 
 * Installed packages
 
@@ -227,6 +246,7 @@ paru -Qqe
 | spicetify-themes-git          |
 | spotify                       |
 | steam                         |
+| stow                          |
 | sudo                          |
 | sway                          |
 | swayidle                      |
@@ -320,3 +340,9 @@ paru -Qqe
 | zsh-completions               |
 | zsh-history-substring-search  |
 | zsh-syntax-highlighting       |
+
+* My dots
+
+#+begin_src sh
+  stow .
+#+end_src
