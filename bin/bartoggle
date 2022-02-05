@@ -1,0 +1,15 @@
+#!/bin/bash
+
+if ! pgrep -f waybar &> /dev/null 2>&1;
+then
+	waybar &
+    swaymsg gaps inner all set 24
+    swaymsg gaps outer all set 24
+
+else
+    pkill waybar
+    swaymsg gaps inner all set 0
+    swaymsg gaps outer all set 0
+fi
+
+

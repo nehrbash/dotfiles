@@ -1,0 +1,30 @@
+#! /bin/bash
+
+pidFile=/tmp/sidbar.pid
+maxTime=$((SECONDS+10))
+ read pid < "$pidFile"
+
+if (( $pid > 0 ))
+then                            # kill if clicked multiple times
+    ~/bin/eww close-all
+    echo -1 > "$pidFile"
+else
+    ~/bin/eww open-many weather_side time_side smol_calendar player_side sys_side sliders_side &
+    pid="$!"
+    echo $pid > "$pidFile"
+
+
+    # while [ $SECONDS -lt $maxTime ] ; do
+    #     winid=$(wmctrl -lp | awk '$5 ~ /Network/ {print $1}')
+    #     [[ -z "${winid}" ]] || break
+    # done
+
+    # # kill if loses focus
+    # while [[ "$(xdotool getwindowfocus getwindowname)" == 'Network Connections' ]]; do
+    #     :
+    # done
+
+    # kill -15 $pid
+    # echo -1 > "$pidFile"
+
+fi

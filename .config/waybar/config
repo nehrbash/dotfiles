@@ -1,0 +1,153 @@
+{
+    // Basic config
+    "layer": "bottom",
+    "position": "bottom",
+    "height": 70,
+    "output": "DP-1",
+    "margin-top": -15,
+    "margin-bottom": 15,
+    "margin-right": 200,
+    "margin-left": 200,
+
+    // Modules 
+    "modules-left": ["custom/startmenu", "custom/d", "clock", "custom/d", "custom/pomodoro", "custom/spotify"],
+    "modules-center": ["sway/workspaces"],
+    "modules-right": ["tray", "sway/mode", "custom/d", "pulseaudio", "network", "inhibitor", "custom/notification", "custom/d", "custom/powermenu"],
+
+    // Modules configuration
+    "custom/d": {
+        "format": "|",
+        "tooltip": false
+    },
+    "sway/mode": {
+                   "format": "  {}  ",
+                   "max-length": 50,
+
+    },
+    "tray": {
+               "icon-size": 24,
+               "spacing": 15
+    },
+    "inhibitor": {
+                "format": "{icon}",
+                "format-icons": {
+                    "activated": "",
+                    "deactivated": ""
+                }
+    },
+    "sway/workspaces": {
+        "disable-scroll": true,
+        "all-outputs": true,
+        "format": "{icon}",
+        "format-icons": {
+            "1": "",
+            "2": "",
+            "3": "",
+            "4": "",
+            "5": "",
+            "7": "",
+            "8": "",
+            "6": "",
+            "9": "",
+            "urgent": "",
+            "default": ""
+        },
+        "persistent_workspaces": {
+            "1": [],
+            "2": [],
+            "3": [],
+            "4": [],
+            "5": [],
+            "6": [],
+            "7": [],
+            "8": [],
+            "9": []
+        }
+    },
+    "custom/notification": {
+    "tooltip": false,
+    "format": " {icon} ",
+    "format-icons": {
+      "notification": "<span foreground='red'><sup></sup></span>",
+      "none": "",
+      "dnd-notification": "<span foreground='red'><sup></sup></span>",
+      "dnd-none": ""
+    },
+    "return-type": "json",
+    "exec-if": "which swaync-client",
+    "exec": "swaync-client -swb",
+    "on-click": "swaync-client -t -sw",
+    "on-click-right": "swaync-client -d -sw",
+    "escape": true
+    },
+    "mpd": {
+        "format": "<span>{stateIcon} </span> ",
+        "format-disconnected": "<span color=\"#bf616a\"> </span> ",
+        "format-stopped": "<span color=\"#bf616a\"> </span> ",
+        "tooltip": false,
+        "interval": 1,
+        "state-icons": {
+            "paused": "<span color=\"#d08770\"></span>",
+            "playing": "<span color=\"#a3be8c\"></span>",
+        }
+    },
+   "custom/spotify": {
+                "format": "  {}",
+                "max-length": 40,
+                "exec": "$HOME/bin/mediaplayer.sh 2> /dev/null", // Script in resources folder
+                "exec-if": "pgrep spotify",
+                "return-type": "json"
+    },
+    "custom/pomodoro": {
+                "format": " {}",
+                "interval": 1,
+                "exec": "~/bin/pomodoro",
+                "exec-if": "pgrep emacs 2> /dev/null",
+                "on-click": "emacsclient -a emacs --eval '(emacs-agenda)'", // launch agenda to choose time
+                "signal": 8
+    },
+    "custom/powermenu": {
+                "format": "",
+                "on-click": "~/bin/powermenu.sh",
+                "signal": 8,
+                "tooltip": false
+    },
+    "custom/startmenu": {
+                "format": "  ",
+                "on-click": "~/bin/startmenu",
+                "signal": 8,
+                "tooltip": false
+    },
+    "clock": {
+        "interval": 1,
+        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
+        "format": "<span color=\"#88c0d0\"></span> {:%D %I:%M}",
+    },
+    "network": {
+                "interface": "wlp2s0",
+                "format": "{ifname}",
+                "format-wifi": "  ",
+                "format-ethernet": "{ifname}  ",
+                "format-disconnected": "", //An empty format will hide the module.
+                "format-disconnected": " ",
+                "tooltip-format": "{ifname}",
+                "tooltip-format-wifi": "{essid} ({signalStrength}%)  ",
+                "tooltip-format-ethernet": "{ifname}  ",
+                "tooltip-format-disconnected": "Disconnected",
+                "max-length": 50,
+                "interval": 15
+    },
+    "pulseaudio": {
+        "format": "<span color=\"#88c0d0\">{icon} </span>{format_source}",
+        "format-muted": "<span color=\"#d08770\"> 婢 </span>{format_source}",
+        "format-source": "<span color=\"#88c0d0\">  </span>",
+        "format-source-muted": "<span color=\"#d08770\">  </span>",
+        "format-icons": {
+            "headset": "",
+            "default": ["", ""]
+        },
+        "on-click": "amixer set Master toggle && amixer set Capture toggle",
+        "on-click-right": "amixer set Capture toggle",
+        "on-click-middle": "alacritty --class floating -e pulsemixer",
+    }
+}

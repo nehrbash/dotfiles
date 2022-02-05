@@ -1,0 +1,4 @@
+#!/bin/bash
+
+nwg-drawer -c 8\
+           -is 84\

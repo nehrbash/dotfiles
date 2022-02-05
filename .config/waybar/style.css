@@ -1,0 +1,98 @@
+* {
+    border: 0;
+    font-family: Cozette;
+    font-size: 22px;
+    min-height: 0;
+}
+
+window#waybar {
+    background: transparent;
+    color: #bbc2cf;
+}
+
+window#waybar:first-child > box {
+    margin-top: 0px;
+    padding: 8px 20px 8px 20px;
+    border-radius: 35px 35px 35px 35px;
+    background-color: #282c34;
+    border: 4px solid #c678dd;
+
+}
+
+#workspaces* {
+    font-size: 36px;
+}
+#workspaces button {
+    padding: 0 20px;
+    background: transparent;
+    color: #4c566a;
+}
+
+#workspaces button:hover {
+    box-shadow: inherit;
+    text-shadow: inherit;
+    color: #d8dee9;
+}
+
+#workspaces button.focused {
+    color: #a9a1e1;
+}
+
+#custom-d, #clock, #pulseaudio {
+    padding: 0 7px;
+    margin: 2px 0px;
+}
+
+#mpd {
+    margin: 0;
+}
+
+#pulseaudio {
+  margin-right: -7px;
+}
+
+#custom-d {
+    color: #4c566a;
+}
+
+#custom-pomodoro {
+    color: #ECBE7B;
+    margin-right: 5px;
+}
+
+#custom-powermenu {
+    font-size: 32px;
+    color: #ff6655;
+    margin-right: 5px;
+    margin-bottom: -3px;
+}
+
+#custom-spotify {
+    color: #99bb66;
+    margin-right: 5px;
+    margin-bottom: -3px;
+}
+
+
+#network {
+    color: #99bb66;
+}
+#inhibitor {
+    color: #dd8844;
+}
+
+#mode {
+    /* border-radius: 20px 20px 20px 20px; */
+    background-color: #a9a1e1;
+    color: #282c34;
+    margin-right: 5px;
+    margin-left: 5px;
+    margin-bottom: -20px;
+    margin-top: -8px;
+    padding-bottom: 8px;
+    font-size: 32px;
+}
+
+#custom-notification {
+  font-family: "NotoSansMono Nerd Font";
+}

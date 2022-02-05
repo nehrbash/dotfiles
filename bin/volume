@@ -1,0 +1,29 @@
+#! /bin/bash
+
+up=false
+down=false
+mute=false
+switch=false
+
+while getopts u:a:f: flag
+do
+    case "${flag}" in
+        u) up=ture;;
+        d) down=true;;
+        m) mute=true;;
+        s) switch=true;;
+    esac
+done
+
+pulseaudio-control next-sink
+
+
+
+# 🔇
+# 128263
+# 🔈
+# 128264
+# 🔉
+# 128265
+# 🔊
+# 128266

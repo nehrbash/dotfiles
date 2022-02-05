@@ -1,0 +1,5 @@
+#! /bin/bash
+
+pkill xmonad
+pkill tint2
+pkill emacs

@@ -1,0 +1,16 @@
+#!/bin/bash
+
+#!/bin/sh
+printf "%s" "$SEP1"
+if [ -z "$(pgrep xautolock)" ]
+then
+	~/bin/lock.sh &
+	notify-send "Inhibitor" "Deactivated"
+    else
+    pkill xautolock && xset s 0
+    notify-send "Inhibitor" "Activated"
+    
+
+fi
+
+

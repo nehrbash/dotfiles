@@ -1,0 +1,322 @@
+#+TITLE:My Setup
+#+PROPERTY: header-args:sh :tangle ~/bin/install
+
+Here are my notes on how I set up my system. This was a afterthough so I am sure this is missing quite a lot. Here is my current wallpaper [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][wallpaper]] and I am using GNU Stow to keep track of my dotfiles.
+
+* My Setup                                                                      :TOC:
+- [[#install-paru][Install Paru]]
+- [[#spicetify][Spicetify]]
+- [[#setting-xdg-defaults-to-emacs][Setting XDG Defaults to Emacs]]
+- [[#installed-packages][Installed packages]]
+
+* Install Paru
+
+  https://github.com/Morganamilo/paru#installation
+
+#+begin_src sh
+
+#! /bin/bash
+sudo pacman -S --needed base-devel
+git clone https://aur.archlinux.org/paru.git
+cd paru
+makepkg -si
+#+end_src
+
+* Spicetify
+
+#+begin_src sh
+cd "$(dirname "$(spicetify -c)")/Themes/Dribbblish"
+mkdir -p ../../Extensions
+cp dribbblish.js ../../Extensions/.
+spicetify config extensions dribbblish.js
+spicetify config current_theme Dribbblish color_scheme base
+spicetify config inject_css 1 replace_colors 1 overwrite_assets 1
+spicetify apply
+
+spicetify config color_scheme Purple
+#+end_src
+
+* Setting XDG Defaults to Emacs
+
+https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mode-in-emacs
+
+#+begin_src sh
+xdg-mime default emacsclient.desktop application/pdf
+xdg-mime default emacsclient.desktop inode/directory
+#+end_src
+
+* Installed packages
+
+#+begin_src sh
+paru -Qqe
+#+end_src
+
+#+RESULTS:
+| ack                           |
+| acpi                          |
+| adobe-source-sans-fonts       |
+| alac-git                      |
+| alacritty                     |
+| alsa-utils                    |
+| appmenu-gtk-module            |
+| aspell-en                     |
+| autoconf                      |
+| automake                      |
+| base                          |
+| bear                          |
+| betterdiscordctl-git          |
+| betterlockscreen              |
+| bind                          |
+| bison                         |
+| blender                       |
+| bumblebee                     |
+| candy-icons-git               |
+| cava                          |
+| code                          |
+| color-scripts-git             |
+| cronie                        |
+| dhclient                      |
+| dhcpcd                        |
+| dialog                        |
+| discord                       |
+| dmenu                         |
+| docker                        |
+| downgrade                     |
+| dpkg                          |
+| dunst                         |
+| efibootmgr                    |
+| emacs-gcc-wayland-devel-bin   |
+| etcher-bin                    |
+| eww-wayland-git               |
+| exa                           |
+| fakeroot                      |
+| fbrokendesktop                |
+| feh                           |
+| flameshot                     |
+| flex                          |
+| fluent-reader                 |
+| fonts-et-book                 |
+| gcc7                          |
+| gimp                          |
+| git                           |
+| glava                         |
+| gmrun                         |
+| gnome-keyring                 |
+| gnu-netcat                    |
+| gotop-git                     |
+| graphviz                      |
+| greetd                        |
+| greetd-wlgreet                |
+| grim                          |
+| groff                         |
+| grub                          |
+| gst-libav                     |
+| hexchat                       |
+| htop                          |
+| i3-gaps-rounded-git           |
+| i3lock-fancy-git              |
+| ifplugd                       |
+| imv                           |
+| inetutils                     |
+| inkscape                      |
+| intel-gpu-tools               |
+| jp-bin                        |
+| jq                            |
+| latte-dock                    |
+| lib32-giflib                  |
+| lib32-gnutls                  |
+| lib32-gst-plugins-base-libs   |
+| lib32-gtk3                    |
+| lib32-libgcrypt               |
+| lib32-libjpeg-turbo           |
+| lib32-libpng                  |
+| lib32-libpulse                |
+| lib32-libva                   |
+| lib32-libxcomposite           |
+| lib32-libxinerama             |
+| lib32-libxslt                 |
+| lib32-mpg123                  |
+| lib32-nvidia-utils            |
+| lib32-ocl-icd                 |
+| lib32-openal                  |
+| lib32-v4l-utils               |
+| libnvidia-container-bin       |
+| libnvidia-container-tools-bin |
+| libreoffice-still             |
+| libvterm                      |
+| linux                         |
+| linux-firmware                |
+| linux-headers                 |
+| logisim-evolution             |
+| lutris                        |
+| lxappearance-gtk3             |
+| m4                            |
+| maim                          |
+| make                          |
+| masterpdfeditor-free          |
+| mate-power-manager            |
+| media-control-indicator-git   |
+| messages-bin                  |
+| microsoft-edge-beta-bin       |
+| mpd                           |
+| mpvpaper                      |
+| mysql++                       |
+| mysql-python                  |
+| mysql-workbench               |
+| nano                          |
+| ncmatrix                      |
+| ncmpcpp                       |
+| neofetch                      |
+| net-tools                     |
+| netctl                        |
+| network-manager-applet        |
+| networkmanager-dmenu-git      |
+| nitrogen                      |
+| nodejs                        |
+| noto-fonts-emoji              |
+| nvidia-container-runtime      |
+| nvidia-dkms                   |
+| nvidia-docker                 |
+| nvidia-settings               |
+| nwg-drawer                    |
+| nwg-menu                      |
+| obsidian                      |
+| openconnect                   |
+| openjdk8-src                  |
+| os-prober                     |
+| pacman-contrib                |
+| paru                          |
+| pavucontrol                   |
+| perl-anyevent-i3              |
+| perl-file-mimeinfo            |
+| picom-ibhagwan-git            |
+| pkgconf                       |
+| playerctl                     |
+| polybar                       |
+| portaudio                     |
+| pulseaudio-alsa               |
+| pulseaudio-control            |
+| pulseeffects-legacy           |
+| pulsemixer                    |
+| pyside2                       |
+| python-cairo                  |
+| python-future                 |
+| python-gobject                |
+| python-mysql-connector        |
+| python-mysqlclient            |
+| python-pip                    |
+| python-pyalsa                 |
+| python-pytorch                |
+| python-pyusb                  |
+| python-pywal                  |
+| python-yaml                   |
+| qt5ct                         |
+| qtile                         |
+| reflector                     |
+| rofi                          |
+| rofi-greenclip                |
+| rsync                         |
+| rxvt-unicode                  |
+| screenkey                     |
+| scrot                         |
+| sddm                          |
+| simplescreenrecorder          |
+| singularity-container         |
+| slurp                         |
+| spicetify-cli-git             |
+| spicetify-themes-git          |
+| spotify                       |
+| steam                         |
+| sudo                          |
+| sway                          |
+| swayidle                      |
+| swaylock                      |
+| swaylock-fancy-git            |
+| swaync-git                    |
+| teams                         |
+| texlive-bibtexextra           |
+| texlive-core                  |
+| texlive-fontsextra            |
+| texlive-formatsextra          |
+| texlive-games                 |
+| texlive-humanities            |
+| texlive-latexextra            |
+| texlive-music                 |
+| texlive-pictures              |
+| texlive-pstricks              |
+| texlive-publishers            |
+| texlive-science               |
+| the_silver_searcher           |
+| thunar                        |
+| thunar-archive-plugin         |
+| tigervnc                      |
+| timidity++                    |
+| trash-cli                     |
+| ttf-font-awesome              |
+| ttf-linux-libertine           |
+| ttf-nerd-fonts-symbols        |
+| ttf-roboto-mono               |
+| ttf-segoewp                   |
+| ttf-symbola-free              |
+| tty-clock                     |
+| tty-clock-tomato              |
+| unicode                       |
+| update-grub                   |
+| virtualbox                    |
+| virtualbox-guest-utils        |
+| vlc                           |
+| waybar-git                    |
+| wget                          |
+| wine-staging                  |
+| wl-clipboard                  |
+| wlogout                       |
+| wlr-randr                     |
+| wmctrl                        |
+| xautolock                     |
+| xclip                         |
+| xdotool                       |
+| xf86-video-intel              |
+| xf86-video-nouveau            |
+| xf86-video-vesa               |
+| xfce4-notifyd                 |
+| xorg-docs                     |
+| xorg-fonts-100dpi             |
+| xorg-fonts-75dpi              |
+| xorg-iceauth                  |
+| xorg-server-devel             |
+| xorg-server-xephyr            |
+| xorg-server-xnest             |
+| xorg-server-xvfb              |
+| xorg-sessreg                  |
+| xorg-smproxy                  |
+| xorg-x11perf                  |
+| xorg-xbacklight               |
+| xorg-xcmsdb                   |
+| xorg-xcursorgen               |
+| xorg-xdpyinfo                 |
+| xorg-xdriinfo                 |
+| xorg-xev                      |
+| xorg-xgamma                   |
+| xorg-xhost                    |
+| xorg-xinput                   |
+| xorg-xkbevd                   |
+| xorg-xkbutils                 |
+| xorg-xkill                    |
+| xorg-xlsatoms                 |
+| xorg-xlsclients               |
+| xorg-xmodmap                  |
+| xorg-xpr                      |
+| xorg-xrandr                   |
+| xorg-xrefresh                 |
+| xorg-xvinfo                   |
+| xorg-xwd                      |
+| xorg-xwininfo                 |
+| xorg-xwud                     |
+| xtoolwait-git                 |
+| zoom                          |
+| zsa-wally                     |
+| zsh                           |
+| zsh-autosuggestions           |
+| zsh-completions               |
+| zsh-history-substring-search  |
+| zsh-syntax-highlighting       |

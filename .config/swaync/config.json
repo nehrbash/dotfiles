@@ -1,0 +1,14 @@
+{
+    "positionX": "right",
+    "positionY": "top",
+    "timeout": 10,
+    "timeout-low": 5,
+    "timeout-critical": 0,
+    "notification-window-width": 500,
+    "keyboard-shortcuts": true,
+    "image-visibility": "always",
+    "transition-time": 200,
+    "hide-on-clear": true,
+    "control-center-margin-bottom": 70,
+    "control-center-margin-top": 70
+}

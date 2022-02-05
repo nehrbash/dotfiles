@@ -1,0 +1,68 @@
+env:
+  TERM: xterm-256color
+
+window:
+  padding:
+    x: 25
+    y: 40
+  dynamic_padding: true
+  title: Alacritty
+  class:
+    instance: Alacritty
+    general: Alacritty
+  opacity: 0.98
+scrolling:
+  history: 5000
+font:
+  normal:
+    family: Source Code Pro
+    style: Regular
+  bold:
+    family: Source Code Pro Black
+    style: Bold
+  italic:
+    family: Source Code Pro Italic
+    style: Italic
+  bold_italic:
+    family: Source Code Pro Bold Italic
+    style: Bold Italic
+  size: 16.0
+  offset:
+    x: 0
+    y: 0
+draw_bold_text_with_bright_colors: true
+colors:
+  primary:
+    background: '#282c34'
+    foreground: '#bbc2cf'
+    dim_foreground: '#9a9a9a'
+    bright_foreground: '#e6efff'
+  normal:
+    black:   '#1B2229'
+    red:     '#ff6c6b'
+    green:   '#98be65'
+    yellow:  '#ECBE7B'
+    blue:    '#51afef'
+    magenta: '#c678dd'
+    cyan:    '#46D9FF'
+    white:   '#DFDFDF'
+  bright:
+    black:   '#3e4e5e'
+    red:     '#ff8988'
+    green:   '#acca83'
+    yellow:  '#efcb95'
+    blue:    '#73bff2'
+    magenta: '#d193e3'
+    cyan:    '#6ae0ff'
+    white:   '#e5e5e5'
+  dim:
+    black:   '#12171c'
+    red:     '#ff4846'
+    green:   '#8ab550'
+    yellow:  '#e7ae5b'
+    blue:    '#33a1ec'
+    magenta: '#ba5cd6'
+    cyan:    '#25d2ff'
+    white:   '#c8c8c8'
+cursor:
+  style: Beam
