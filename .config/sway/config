@@ -20,6 +20,8 @@ exec swaync
 
 # Toggle control center
 bindsym $mod+u exec swaync-client -t -sw
+# easyeffects sound manager
+exec_always easyeffects com.github.wwmm.easyeffects --gapplication-service
 
 # menu
 set $menu "~/bin/startmenu"
@@ -263,6 +265,7 @@ for_window [class="Spotify"] opacity .9
 for_window [title="emacs-run-launcher"] floating enabled
 for_window [title="emacs-agenda"] floating enabled
 for_window [app_id="floating"] floating enabled
+for_window [title="EasyEffects"] floating enabled; move position 2514 989; resize set 1002 1042
 
 #
 # gaps!
