@@ -1,6 +1,6 @@
 #!/bin/bash
 
-nwg-menu -ml 265\
+nwg-menu -ml 290\
          -mb 11\
          -isl 42\
          -iss 24

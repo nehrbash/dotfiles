@@ -61,8 +61,8 @@ window#waybar:first-child > box {
 }
 
 #custom-powermenu {
-    font-size: 32px;
-    color: #ff6655;
+    font-size: 36px;
+    color: #ff6c6b;
     margin-right: 5px;
     margin-bottom: -3px;
 }
@@ -95,4 +95,9 @@ window#waybar:first-child > box {
 
 #custom-notification {
   font-family: "NotoSansMono Nerd Font";
+}
+
+#custom-startmenu {
+    font-size: 36;
+    margin-bottom: -3px;
 }

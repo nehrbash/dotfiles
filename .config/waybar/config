@@ -120,7 +120,7 @@
     "clock": {
         "interval": 1,
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format": "<span color=\"#88c0d0\"></span> {:%D %I:%M}",
+        "format": "<span color=\"#88c0d0\"></span> {:%I:%M %p}",
     },
     "network": {
                 "interface": "wlp2s0",

@@ -28,6 +28,9 @@ set $launcher "~/bin/launcher"
 # menu resident in memory
 exec_always nwg-drawer -r
 
+# weather and calendar on desktop
+exec nwg-wrapper -s date-wttr.sh -r 1800000 -c date-wttr.css -p left -ml 50 -a start -mt 45
+
 #
 ### Output configuration
 #
@@ -206,7 +209,7 @@ mode "Launch" {
         bindsym d exec --no-startup-id xdg-open ~/ ; mode "default"
         bindsym t exec --no-startup-id emacsclient -a "emacs" --eval '(emacs-agenda)' ; mode "default"
         bindsym n exec --no-startup-id emacsclient -c -a "emacs" ; mode "default"
-        bindsym 6 exec --no-startup-id emacsclient -c -a "emacs" ~/doc/Emacs2.org ; mode "default"
+        bindsym 6 exec --no-startup-id emacsclient -c -a "emacs" ~/.dotfiles/Emacs.org ; mode "default"
         bindsym 7 exec --no-startup-id emacsclient -c -a "emacs" ~/.config/sway/config ; mode "default"
         bindsym w exec --no-startup-id microsoft-edge-beta; mode "default"
         bindsym s exec --no-startup-id spotify; mode "default"
@@ -245,11 +248,12 @@ for_window [title="^Edge$"] move to workspace 2
 assign [class="Spotify"] 9
 assign [class="discord"] 3
 assign [class="Messages"] 3
-exec microsoft-edge-beta
+
 exec waybar
 exec emacs --daemon
 exec discord
-exec spotify
+exec swaymsg 'workspace 9;exec spotify'
+exec swaymsg 'workspace 2;exec microsoft-edge-beta'
 exec /opt/Messages/Messages
 
 for_window [title="ORUI"] opacity .9
