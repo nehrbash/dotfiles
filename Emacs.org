@@ -80,6 +80,7 @@
   - [[#lsp-ui][LSP-UI]]
   - [[#go][Go]]
   - [[#c][C++]]
+  - [[#rust][Rust]]
   - [[#python][Python]]
   - [[#haskell][Haskell]]
   - [[#csv][CSV]]
@@ -609,8 +610,11 @@ I don't know if this is necessary in Emacs 28 but I'm keeping it.
 #+end_src
 
 * Dired
+
+Need to revisit now that I am using dirvish.
   
 #+begin_src emacs-lisp
+(straight-use-package 'dirvish)
 (use-package dired
   :straight (:type built-in)
   :defer 1
@@ -2260,8 +2264,9 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 ** Org Screenshot
 
 #+BEGIN_SRC emacs-lisp
-  (use-package org-attach-screenshot
-    :straight t)
+(use-package org-attach-screenshot
+  :config
+  (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area") )
 #+END_SRC
 
 ** PDF Tools
@@ -2442,6 +2447,9 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   ;; uncomment to enable gopls http debug server
   ;; :custom (lsp-gopls-server-args '("-debug" "127.0.0.1:0"))
   :commands (lsp lsp-deferred)
+  :custom
+  (lsp-idle-delay 0.6)
+  (lsp-rust-analyzer-server-display-inlay-hints t)
   :config (progn
             ;; use flycheck, not flymake
             (setq lsp-prefer-flymake nil)))
@@ -2459,6 +2467,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (lsp-ui-doc-delay 2 )
   (lsp-headerline-breadcrumb-enable nil)
   (lsp-eldoc-enable-hover nil)
+  (lsp-ui-peek-always-show t)
+  (lsp-ui-sideline-show-hover t)
   :hook (lsp-mode . lsp-ui-mode))
 #+end_src
 
@@ -2484,19 +2494,53 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    https://github.com/MaskRay/ccls/wiki/Build
 
 #+begin_src emacs-lisp
-  (use-package ccls
-    :straight t
-    :config
-    (setq ccls-executable "ccls")
-    (setq lsp-prefer-flymake nil)
-    (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
-    :hook ((c-mode c++-mode objc-mode) .
-           (lambda () (require 'ccls) (lsp))))
-  ;; (defun lsp-cpp-install-save-hooks ()
-  ;;         (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  ;;         (add-hook 'before-save-hook #'lsp-organize-imports t t))
-  ;; (ad
-  ;; d-hook 'cc-mode-hook #'lsp-cpp-install-save-hooks)
+(use-package ccls
+  :straight t
+  :config
+  (setq ccls-executable "ccls")
+  (setq lsp-prefer-flymake nil)
+  (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
+  :hook ((c-mode c++-mode objc-mode) .
+         (lambda () (require 'ccls) (lsp))))
+(defun lsp-cpp-install-save-hooks ()
+  (add-hook 'before-save-hook #'lsp-format-buffer t t)
+  (add-hook 'before-save-hook #'lsp-organize-imports t t))
+(add-hook 'cc-mode-hook #'lsp-cpp-install-save-hooks)
+#+end_src
+
+** Rust
+
+Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
+
+#+begin_src emacs-lisp
+(use-package rustic
+  :ensure
+  :bind (:map rustic-mode-map
+              ("M-j" . lsp-ui-imenu)
+              ("M-?" . lsp-find-references)
+              ("C-c C-c l" . flycheck-list-errors)
+              ("C-c C-c a" . lsp-execute-code-action)
+              ("C-c C-c r" . lsp-rename)
+              ("C-c C-c q" . lsp-workspace-restart)
+              ("C-c C-c Q" . lsp-workspace-shutdown)
+              ("C-c C-c s" . lsp-rust-analyzer-status))
+  :config
+  ;; uncomment for less flashiness
+  ;; (setq lsp-eldoc-hook nil)
+  ;; (setq lsp-enable-symbol-highlighting nil)
+  ;; (setq lsp-signature-auto-activate nil)
+
+  ;; comment to disable rustfmt on save
+  (setq rustic-format-on-save t)
+  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
+
+(defun rk/rustic-mode-hook ()
+  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
+  ;; save rust buffers that are not file visiting. Once
+  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
+  ;; no longer be necessary.
+  (when buffer-file-name
+    (setq-local buffer-save-without-query t)))
 #+end_src
 
 ** Python

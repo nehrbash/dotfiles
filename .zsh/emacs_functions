@@ -1,11 +1,18 @@
-#! .zshrc
+#!/bin/bash
 
-
-# reset emacs daemon
-restartem () {
-    emacsclient -e '(save-buffers-kill-emacs)'
-    sleep 1
-    emacs --daemon &
+# start stop reset emacs daemon
+function restartem () {
+    emacsclient -e '(client-save-kill-emacs)'
+    emacs --daemon > /dev/null 2>&1 &
+}
+function stopem () {
+    emacsclient -e '(client-save-kill-emacs)'
+}
+function startem () {
+    emacs --daemon > /dev/null 2>&1 &
+}
+function killem () {
+    pkill emacs
 }
 
 # for emacs vterm

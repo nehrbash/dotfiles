@@ -165,6 +165,9 @@ exec swayidle -w \
 
     # Move focus to the parent container
     bindsym $mod+a focus parent
+
+    # keep window when switching
+    bindsym $mod+Shift+s sticky toggle
 #
 # Scratchpad:
 #
@@ -172,7 +175,7 @@ exec swayidle -w \
     # You can send windows there and get them back later.
 
     # Move the currently focused window to the scratchpad
-    bindsym $mod+Shift+g move scratchpad
+    bindsym $mod+Shift+g move scratchpad; sticky enable
 
     # Show the next scratchpad window or hide the focused scratchpad window.
     # If there are multiple scratchpad windows, this command cycles through them.
@@ -207,20 +210,27 @@ mode "resize" {
 bindsym $mod+F1 mode "Launch"
 mode "Launch" {
         bindsym a exec $menu; mode "default"
-        bindsym r exec --no-startup-id "emacsclient -u -e '(org-roam-ui-mode t)' & microsoft-edge-beta -app=http://localhost:35901/" ; mode "default"
         bindsym d exec --no-startup-id xdg-open ~/ ; mode "default"
-        bindsym t exec --no-startup-id emacsclient -a "emacs" --eval '(emacs-agenda)' ; mode "default"
-        bindsym n exec --no-startup-id emacsclient -c -a "emacs" ; mode "default"
-        bindsym 6 exec --no-startup-id emacsclient -c -a "emacs" ~/.dotfiles/Emacs.org ; mode "default"
-        bindsym 7 exec --no-startup-id emacsclient -c -a "emacs" ~/.config/sway/config ; mode "default"
         bindsym w exec --no-startup-id microsoft-edge-beta; mode "default"
         bindsym s exec --no-startup-id spotify; mode "default"
-        bindsym c exec --no-startup-id discord ; mode "default"
-        bindsym p exec --no-startup-id alacritty --class floating -e pulsemixer ; mode "default"
-        bindsym f exec --no-startup-id  ~/.local/bin/files.sh ; mode "default"
+        bindsym c exec --no-startup-id discord; mode "default"
+        bindsym p exec ~/bin/volume; mode "default"
+
+        # emacs things
+        bindsym t exec --no-startup-id emacsclient -a "emacs" --eval '(emacs-agenda)' ; mode "default"
+        bindsym n exec --no-startup-id emacsclient -c -a "emacs" ; mode "default"
         bindsym Space exec --no-startup-id emacsclient -c -a "emacs" --eval '(multi-vterm)' ; mode "default"
+        bindsym r exec --no-startup-id "emacsclient -u -e '(org-roam-ui-mode t)' & microsoft-edge-beta -app=http://localhost:35901/" ; mode "default"
+
+        # files
+        bindsym 6 exec --no-startup-id emacsclient -c -a "emacs" ~/.dotfiles/Emacs.org; mode "default"
+        bindsym 7 exec --no-startup-id emacsclient -c -a "emacs" ~/.config/sway/config; mode "default"
+        bindsym 8 exec --no-startup-id emacsclient -c -a "emacs" ~/.dotfiles/README.org; mode "default"
+
+        # make other modes still work
         bindsym o mode "mode_opacity"
         bindsym g mode "$mode_gaps"
+
         # exit
         bindsym Return mode "default"
         bindsym Escape mode "default"

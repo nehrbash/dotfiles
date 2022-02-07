@@ -1,13 +1,18 @@
 #+TITLE:My Setup
 #+PROPERTY: header-args:sh :tangle ~/bin/install
 
-Here are my notes on how I set up my system. This was a afterthough so I am sure this is missing quite a lot.
+Here are my notes on how I set up my system.
 
 - [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][wallpaper]]
 - [[Emacs.org][Emacs]]
 - sway
 - Arch
-
+- pipewire
+- nwg-shell (menu, drawer, wrapper)
+- waybar
+- easyeffects
+- File Manager: Dirvish (Emacs)
+- PDF Viewer: pdf-tools (Emacs)
 * Instructions                                                                  :TOC:
 - [[#install-paru][Install Paru]]
 - [[#spicetify][Spicetify]]
@@ -62,7 +67,6 @@ mkdir -p ~/doc
 echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
 mkdir -p ~/doc/Roam/Journal
 #+end_src
-
 
 * Installed packages
 
