@@ -16,10 +16,11 @@ set $mon1 DP-1
 set $mon2 eDP-1
 
 # Notification Daemon
-exec swaync
+exec_always swaync
 
 # Toggle control center
-bindsym $mod+u exec swaync-client -t -sw
+bindsym $mod+y exec swaync-client -t -sw
+
 # easyeffects sound manager
 exec_always easyeffects com.github.wwmm.easyeffects --gapplication-service
 
@@ -27,11 +28,8 @@ exec_always easyeffects com.github.wwmm.easyeffects --gapplication-service
 set $menu "~/bin/startmenu"
 set $launcher "~/bin/launcher"
 
-# menu resident in memory
-exec_always nwg-drawer -r
-
 # weather and calendar on desktop
-exec nwg-wrapper -s date-wttr.sh -r 1800000 -c date-wttr.css -p left -ml 50 -a start -mt 45
+exec_always ~/bin/weather &
 
 #
 ### Output configuration
@@ -52,7 +50,8 @@ output $mon2 disable {
 ### Idle configuration
 #
 exec swayidle -w \
-         timeout 300 'swaylock-fancy -c 000000' \
+         timeout 275 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
+         timeout 15 'swaylock-fancy -c 000000' \
          timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
          before-sleep 'swaylock-fancy -f -c 000000'
 
@@ -68,8 +67,8 @@ exec swayidle -w \
     bindsym $mod+x kill
 
     # Start your launcher
-    bindsym $mod+slash exec $menu
-    bindsym $mod+l exec $launcher
+    bindsym $mod+semicolon  exec $menu
+    bindsym $mod+u exec $launcher
 
     # Drag floating windows by holding down $mod and left mouse button.
     # Resize them with right mouse button + $mod.
@@ -88,7 +87,10 @@ exec swayidle -w \
     bindsym $mod+z exec ~/bin/bartoggle
 
     # printscreen copy section to clipboard
-    bindsym Print exec /usr/share/sway/scripts/grimshot copy area
+    bindsym Print exec /usr/share/sway/scripts/grimshot --notify copy area
+
+    # left eye candy bar
+    bindsym $mod+l exec ~/bin/eww_left
 #
 # Moving around:
 #
@@ -217,8 +219,8 @@ mode "Launch" {
         bindsym p exec ~/bin/volume; mode "default"
 
         # emacs things
-        bindsym t exec --no-startup-id emacsclient -a "emacs" --eval '(emacs-agenda)' ; mode "default"
-        bindsym n exec --no-startup-id emacsclient -c -a "emacs" ; mode "default"
+        bindsym t exec --no-startup-id emacsclient -n -a "emacs" --eval '(emacs-agenda)' ; mode "default"
+        bindsym n exec --no-startup-id emacsclient -c -n -a "emacs" ; mode "default"
         bindsym Space exec --no-startup-id emacsclient -c -a "emacs" --eval '(multi-vterm)' ; mode "default"
         bindsym r exec --no-startup-id "emacsclient -u -e '(org-roam-ui-mode t)' & microsoft-edge-beta -app=http://localhost:35901/" ; mode "default"
 
@@ -344,7 +346,6 @@ bindsym XF86AudioMute exec --no-startup-id amixer -q set Master toggle
 # touchpad on and off controller on laptop with Fn+<touchpad control functional key>
 # bindsym XF86TouchpadOn exec --no-startup-id synclient Touchpadoff=0
 # bindsym XF86TouchpadOff exec --no-startup-id synclient Touchpadoff=1
-
 
 # Media player controls
 bindsym XF86AudioPlay exec playerctl play-pause -p spotify

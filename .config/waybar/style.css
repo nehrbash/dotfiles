@@ -38,7 +38,7 @@ window#waybar:first-child > box {
     color: #a9a1e1;
 }
 
-#custom-d, #clock, #pulseaudio {
+#clock, #pulseaudio {
     padding: 0 7px;
     margin: 2px 0px;
 }
@@ -52,7 +52,11 @@ window#waybar:first-child > box {
 }
 
 #custom-d {
+    padding: 7px;
+    margin-top: -20px;
+    margin-bottom: -10px;
     color: #4c566a;
+    font-size: 42px;
 }
 
 #custom-pomodoro {
@@ -99,5 +103,5 @@ window#waybar:first-child > box {
 
 #custom-startmenu {
     font-size: 36;
-    margin-bottom: -3px;
+    margin-bottom: -1px;
 }

@@ -39,7 +39,7 @@
   background: black;
   color: @fg;
   text-shadow: none;
-  padding: 4px 1px;
+  padding: 2px 4px;
   box-shadow: 0px 2px 4px 2px @shadow-color;
   border-radius: 100%;
 }
@@ -152,10 +152,8 @@
 .control-center {
   background: rgba(40, 44, 52, 0.95);
   border-radius: 100px 0px 0px 100px;
-  border: 20px solid #c678dd;
+  border: 8px solid #c678dd;
   border-right: 0;
-  border-top: 6px solid #c678dd;
-  border-bottom: 8px solid #c678dd;
 }
 .control-center-list {
   background: transparent;

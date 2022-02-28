@@ -9,9 +9,9 @@
     "margin-right": 200,
     "margin-left": 200,
 
-    // Modules 
-    "modules-left": ["custom/startmenu", "custom/d", "clock", "custom/d", "custom/pomodoro", "custom/spotify"],
-    "modules-center": ["sway/workspaces"],
+    // Modules
+    "modules-left": ["clock", "custom/d", "custom/pomodoro", "custom/spotify"],
+    "modules-center": ["custom/startmenu", "custom/d", "sway/workspaces"],
     "modules-right": ["tray", "sway/mode", "custom/d", "pulseaudio", "network", "inhibitor", "custom/notification", "custom/d", "custom/powermenu"],
 
     // Modules configuration
@@ -112,7 +112,7 @@
                 "tooltip": false
     },
     "custom/startmenu": {
-                "format": "  ",
+                "format": "  ",
                 "on-click": "~/bin/startmenu",
                 "signal": 8,
                 "tooltip": false

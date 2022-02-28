@@ -1,4 +1,14 @@
 #!/bin/bash
 
-nwg-drawer -c 8\
-           -is 84\
+
+if ! pgrep -f nwg-drawer &> /dev/null 2>&1;
+then
+    nwg-drawer -c 6\
+           -ml 940\
+           -mr 940\
+           -mb 1600\
+           -nofs\
+           -r
+else
+    nwg-drawer
+fi

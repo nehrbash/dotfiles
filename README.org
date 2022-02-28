@@ -21,6 +21,10 @@ Here are my notes on how I set up my system.
   - [[#set-up-org-agenda-and-roam][set up org agenda and Roam]]
 - [[#installed-packages][Installed packages]]
 - [[#my-dots][My dots]]
+- [[#sway][Sway]]
+- [[#crontab][Crontab]]
+  - [[#eww][Eww]]
+  - [[#health][Health]]
 
 * Install Paru
 
@@ -349,4 +353,29 @@ paru -Qqe
 
 #+begin_src sh
   stow .
+#+end_src
+
+* Sway
+because I have nvidia gpu edit */usr/share/wayland-sessions/sway.desktop* and add the --unsupported-gpu flag to the exec command.
+
+* Crontab
+** Eww
+
+using wayland only package. edit *crontab -e* to add the following.
+used these configs to make mine
+- https://github.com/Axarva/dotfiles-2.0
+- https://github.com/saimoomedits/eww-widgets
+
+#+begin_src bash
+
+0,30 * * * * /home/{Your-username}/.config/eww/scripts/getweather
+@reboot /home/{Your-username}/.config/eww/scripts/getquotes
+#+end_src
+
+** Health
+notifications to fix posture and eyes.
+
+#+begin_src bash
+*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/bin/notieye
+*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/bin/notipose
 #+end_src

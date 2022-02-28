@@ -41,7 +41,7 @@ alias rm="rm -i"
 alias cp='cp -i'
 alias mv="mv -i"
 alias em='emacsclient -nw -a "emacs" 2>/dev/null'
-alias startem='emacs --daemon &'
+alias emw='emacsclient -c -a "emacs" 2>/dev/null'
 alias music='ncmpcpp'
 # HPC
 alias ksh='/usr/local/krb5/bin/kshell'
