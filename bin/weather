@@ -1,0 +1,13 @@
+#!/bin/bash
+
+# try to only run one instance
+
+if ! pgrep -f nwg-wrapper &> /dev/null 2>&1;
+then
+    nwg-wrapper -s date-wttr.sh \
+                -r 1800000 -c date-wttr.css\
+                -p left\
+                -ml 50\
+                -a start\
+                -mt 45
+fi
