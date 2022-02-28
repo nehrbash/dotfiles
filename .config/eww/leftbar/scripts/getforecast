@@ -1,0 +1,144 @@
+#!/bin/bash
+
+tmp_weather="/tmp/sway/weather"
+
+tmp_forecast_0_icon=$tmp_weather/forecast-0-icon
+tmp_forecast_1_icon=$tmp_weather/forecast-1-icon
+tmp_forecast_0_min=$tmp_weather/forecast-0-min
+tmp_forecast_0_max=$tmp_weather/forecast-0-max
+tmp_forecast_1_min=$tmp_weather/forecast-1-min
+tmp_forecast_1_max=$tmp_weather/forecast-1-max
+tmp_forecast_0_date=$tmp_weather/forecast-0-date
+tmp_forecast_1_date=$tmp_weather/forecast-1-date
+tmp_forecast_0_state=$tmp_weather/forecast-0-state
+tmp_forecast_1_state=$tmp_weather/forecast-1-state
+
+if [ ! -d $tmp_weather ]; then
+        mkdir -p $tmp_weather
+fi
+
+declare -A weatherCode
+weatherCode["113"]="Sunny"
+weatherCode["116"]="PartlyCloudy"
+weatherCode["119"]="Cloudy"
+weatherCode["122"]="VeryCloudy"
+weatherCode["143"]="Fog"
+weatherCode["176"]="LightShowers"
+weatherCode["179"]="LightSleetShowers"
+weatherCode["182"]="LightSleet"
+weatherCode["185"]="LightSleet"
+weatherCode["200"]="ThunderyShowers"
+weatherCode["227"]="LightSnow"
+weatherCode["230"]="HeavySnow"
+weatherCode["248"]="Fog"
+weatherCode["260"]="Fog"
+weatherCode["263"]="LightShowers"
+weatherCode["266"]="LightRain"
+weatherCode["281"]="LightSleet"
+weatherCode["284"]="LightSleet"
+weatherCode["293"]="LightRain"
+weatherCode["296"]="LightRain"
+weatherCode["299"]="HeavyShowers"
+weatherCode["302"]="HeavyRain"
+weatherCode["305"]="HeavyShowers"
+weatherCode["308"]="HeavyRain"
+weatherCode["311"]="LightSleet"
+weatherCode["314"]="LightSleet"
+weatherCode["317"]="LightSleet"
+weatherCode["320"]="LightSnow"
+weatherCode["323"]="LightSnowShowers"
+weatherCode["326"]="LightSnowShowers"
+weatherCode["329"]="HeavySnow"
+weatherCode["332"]="HeavySnow"
+weatherCode["335"]="HeavySnowShowers"
+weatherCode["338"]="HeavySnow"
+weatherCode["350"]="LightSleet"
+weatherCode["353"]="LightShowers"
+weatherCode["356"]="HeavyShowers"
+weatherCode["359"]="HeavyRain"
+weatherCode["362"]="LightSleetShowers"
+weatherCode["365"]="LightSleetShowers"
+weatherCode["368"]="LightSnowShowers"
+weatherCode["371"]="HeavySnowShowers"
+weatherCode["374"]="LightSleetShowers"
+weatherCode["377"]="LightSleet"
+weatherCode["386"]="ThunderyShowers"
+weatherCode["389"]="ThunderyHeavyRain"
+weatherCode["392"]="ThunderySnowShowers"
+weatherCode["395"]="HeavySnowShowers"
+
+declare -A weatherSymbol
+weatherSymbol["Unknown"]=✨
+weatherSymbol["Cloudy"]=☁️
+weatherSymbol["Fog"]=🌫
+weatherSymbol["HeavyRain"]=🌧
+weatherSymbol["HeavyShowers"]=🌧
+weatherSymbol["HeavySnow"]=❄️
+weatherSymbol["HeavySnowShowers"]=❄️
+weatherSymbol["LightRain"]=🌦
+weatherSymbol["LightShowers"]=🌦
+weatherSymbol["LightSleet"]=🌧
+weatherSymbol["LightSleetShowers"]=🌧
+weatherSymbol["LightSnow"]=🌨
+weatherSymbol["LightSnowShowers"]=🌨
+weatherSymbol["PartlyCloudy"]=⛅️
+weatherSymbol["Sunny"]=☀️
+weatherSymbol["ThunderyHeavyRain"]=🌩
+weatherSymbol["ThunderyShowers"]=⛈
+weatherSymbol["ThunderySnowShowers"]=⛈
+weatherSymbol["VeryCloudy"]=☁️
+
+weather=$(curl 'wttr.in/?format=j1')
+
+if [ ! -z "$weather" ]; then
+
+    # tomorrow
+    forecast_0_date=$(echo "$weather" | jq -r ".weather[1].date")
+    forecast_0_state=$(echo "$weather" | jq -r ".weather[1].hourly[0].weatherDesc[0].value")
+    forecast_0_max=$(echo "$weather" | jq -r ".weather[1].maxtempF")
+    forecast_0_min=$(echo "$weather" | jq -r ".weather[1].mintempF")
+    forecast_0_code=$(echo "$weather" | jq -r ".weather[1].hourly[0].weatherCode")
+    weath=${weatherCode["$forecast_0_code"]}
+    forecast_0_emoji=${weatherSymbol["$weath"]}
+
+    if [ -z "$forecast_0_emoji" ]; then
+        forecast_0_emoji="✨"
+    fi
+
+    # tomorrow x2
+    forecast_1_date=$(echo "$weather" | jq -r ".weather[2].date")
+    forecast_1_state=$(echo "$weather" | jq -r ".weather[2].hourly[0].weatherDesc[0].value")
+    forecast_1_max=$(echo "$weather" | jq -r ".weather[2].maxtempF")
+    forecast_1_min=$(echo "$weather" | jq -r ".weather[2].mintempF")
+    forecast_1_code=$(echo "$weather" | jq -r ".weather[2].hourly[0].weatherCode")
+    weath=${weatherCode["$forecast_1_code"]}
+    forecast_1_emoji=${weatherSymbol["$weath"]}
+
+    if [ -z "$forecast_1_emoji" ]; then
+        forecast_1_emoji=✨
+    fi
+
+    echo "$forecast_0_emoji" >  $tmp_forecast_0_icon
+    echo "$forecast_1_emoji" >  $tmp_forecast_1_icon
+    echo "$forecast_0_min""°F" > $tmp_forecast_0_min
+    echo "$forecast_0_max""°F" > $tmp_forecast_0_max
+    echo "$forecast_1_min""°F" > $tmp_forecast_1_min
+    echo "$forecast_1_max""°F" > $tmp_forecast_1_max
+    echo "$forecast_0_date" >  $tmp_forecast_0_date
+    echo "$forecast_1_date" >  $tmp_forecast_1_date
+    echo "$forecast_0_state" >  $tmp_forecast_0_state
+    echo "$forecast_1_state" >  $tmp_forecast_1_state
+else
+    # defaults
+    echo "✨" >  $tmp_forecast_0_icon
+    echo "✨" >  $tmp_forecast_1_icon
+    echo "-""°F" > $tmp_forecast_0_min
+    echo "-""°F" > $tmp_forecast_0_max
+    echo "-""°F" > $tmp_forecast_1_min
+    echo "-""°F" > $tmp_forecast_1_max
+    echo "" >  $tmp_forecast_0_date
+    echo "" >  $tmp_forecast_1_date
+    echo "Unavailable" >  $tmp_forecast_0_state
+    echo "Unavailable" >  $tmp_forecast_1_state
+fi
+

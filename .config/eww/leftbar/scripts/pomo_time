@@ -1,0 +1,15 @@
+#! /bin/bash
+
+
+emtime=$(emacsclient -e '(snehrbass/org-pomodoro-time)' 2> /dev/null)
+if [ -z "${emtime}" ];
+then
+   emtime=0
+else
+   emtime=$(echo $emtime | cut -d '"' -f 2)
+fi
+
+min=$(bc <<< "$emtime/60")
+sec=$(bc <<< "$emtime%60")
+
+printf "%02d:%02d" $min $sec
