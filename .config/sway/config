@@ -86,8 +86,44 @@ exec swayidle -w \
     # togggle bottom bar
     bindsym $mod+z exec ~/bin/bartoggle
 
-    # printscreen copy section to clipboard
-    bindsym Print exec /usr/share/sway/scripts/grimshot --notify copy area
+    # printscreen tools
+    set $snippet Snippet: (s) save, (c) copy
+    set $snippet_save Save: (a) area, (s) screen, (w) window, (o) output
+    set $snippet_copy Copy: (a) area, (s) screen, (w) window, (o) output
+    bindsym Print mode "$snippet"
+mode "$snippet" {
+        bindsym s mode "$snippet_save"
+        bindsym c mode "$snippet_copy"
+
+        bindsym Return mode "default"
+        bindsym Escape mode "default"
+        bindsym q mode "default"
+        bindsym Control+g mode "default"
+    }
+
+mode "$snippet_save" {
+     bindsym a exec /usr/share/sway/scripts/grimshot --notify save area ; mode "default"
+     bindsym s exec /usr/share/sway/scripts/grimshot --notify save screen ; mode "default"
+     bindsym w exec /usr/share/sway/scripts/grimshot --notify save window ; mode "default"
+     bindsym o exec /usr/share/sway/scripts/grimshot --notify save output ; mode "default"
+
+     bindsym Return mode "default"
+     bindsym Escape mode "default"
+     bindsym q mode "default"
+     bindsym Control+g mode "default"
+}
+
+mode "$snippet_copy" {
+     bindsym a exec /usr/share/sway/scripts/grimshot --notify copy area ; mode "default"
+     bindsym s exec /usr/share/sway/scripts/grimshot --notify copy screen ; mode "default"
+     bindsym w exec /usr/share/sway/scripts/grimshot --notify copy window ; mode "default"
+     bindsym o exec /usr/share/sway/scripts/grimshot --notify copy output ; mode "default"
+
+     bindsym Return mode "default"
+     bindsym Escape mode "default"
+     bindsym q mode "default"
+     bindsym Control+g mode "default"
+}
 
     # left eye candy bar
     bindsym $mod+l exec ~/bin/eww_left
