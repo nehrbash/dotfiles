@@ -38,10 +38,17 @@ output * bg ~/Downloads/mountains-1412683.svg fill
 #
 # Displays
 #
+# output $mon1 {
+#   resolution 3840x2160 position 0,0
+# }
+
+# gaming rez until I can build my own system.
 output $mon1 {
-  resolution 3840x2160 position 0,0
+  resolution 1920x1080 position 0,0
 }
+
 output $mon2 disable {
+# output $mon1 {
   resolution 1920x1080 position 3840,1080
 }
 
@@ -306,6 +313,7 @@ exec swaymsg 'workspace 9;exec spotify'
 exec swaymsg 'workspace 2;exec microsoft-edge-beta'
 exec /opt/Messages/Messages
 
+for_window [urgent="latest"] focus
 for_window [title="ORUI"] opacity .9
 for_window [class="Messages"] opacity .9
 for_window [class="discord"] opacity .9

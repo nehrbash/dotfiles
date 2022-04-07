@@ -106,7 +106,7 @@
                 "on-click": "emacsclient -a emacs --eval '(emacs-agenda)'", // launch agenda to choose time
     },
     "custom/powermenu": {
-                "format": "",
+                "format": "  ",
                 "on-click": "~/bin/powermenu.sh",
                 "signal": 8,
                 "tooltip": false
@@ -123,18 +123,18 @@
         "format": "<span color=\"#88c0d0\"></span> {:%I:%M %p}",
     },
     "network": {
-                "interface": "wlp2s0",
+                // "interface": "wlp2s0",
                 "format": "{ifname}",
                 "format-wifi": "  ",
                 "format-ethernet": "{ifname}  ",
-                "format-disconnected": "", //An empty format will hide the module.
-                "format-disconnected": " ",
+                "format-disconnected": "  ",
                 "tooltip-format": "{ifname}",
                 "tooltip-format-wifi": "{essid} ({signalStrength}%)  ",
                 "tooltip-format-ethernet": "{ifname}  ",
                 "tooltip-format-disconnected": "Disconnected",
                 "max-length": 50,
-                "interval": 15
+                "interval": 15,
+                "on-click-right": "alacritty -e nmtui"
     },
     "pulseaudio": {
         "format": "<span color=\"#88c0d0\">{icon} </span>{format_source}",

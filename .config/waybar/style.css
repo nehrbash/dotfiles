@@ -65,10 +65,11 @@ window#waybar:first-child > box {
 }
 
 #custom-powermenu {
-    font-size: 36px;
-    color: #ff6c6b;
-    margin-right: 5px;
-    margin-bottom: -3px;
+    font-family: Source Code Pro;
+    font-size: 40px;
+    /* color: #ff6c6b; */
+    /* margin-right: 5px; */
+    /* margin-bottom: -3px; */
 }
 
 #custom-spotify {
