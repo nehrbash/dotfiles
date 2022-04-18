@@ -1,6 +1,6 @@
 * {
     border: 0;
-    font-family: Cozette;
+    font-family: Cozette, FontAwesome;
     font-size: 22px;
     min-height: 0;
 }
@@ -20,6 +20,7 @@ window#waybar:first-child > box {
 }
 
 #workspaces* {
+    font-family: SourceCode;
     font-size: 36px;
 }
 #workspaces button {
@@ -41,10 +42,8 @@ window#waybar:first-child > box {
 #clock, #pulseaudio {
     padding: 0 7px;
     margin: 2px 0px;
-}
-
-#mpd {
-    margin: 0;
+    color: #88c0d0;
+    font-size: 24px;
 }
 
 #pulseaudio {
@@ -65,11 +64,10 @@ window#waybar:first-child > box {
 }
 
 #custom-powermenu {
-    font-family: Source Code Pro;
     font-size: 40px;
-    /* color: #ff6c6b; */
-    /* margin-right: 5px; */
-    /* margin-bottom: -3px; */
+    color: #ff6c6b;
+    margin-right:  -10px;
+    margin-bottom: -2px;
 }
 
 #custom-spotify {
@@ -103,6 +101,5 @@ window#waybar:first-child > box {
 }
 
 #custom-startmenu {
-    font-size: 36;
-    margin-bottom: -1px;
+    font-size: 32px;
 }

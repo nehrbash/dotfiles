@@ -3,7 +3,7 @@
     "layer": "bottom",
     "position": "bottom",
     "height": 70,
-    "output": "DP-1",
+    // "output": "DP-1",
     "margin-top": -15,
     "margin-bottom": 15,
     "margin-right": 200,
@@ -80,17 +80,6 @@
     "on-click-right": "swaync-client -d -sw",
     "escape": true
     },
-    "mpd": {
-        "format": "<span>{stateIcon} </span> ",
-        "format-disconnected": "<span color=\"#bf616a\"> </span> ",
-        "format-stopped": "<span color=\"#bf616a\"> </span> ",
-        "tooltip": false,
-        "interval": 1,
-        "state-icons": {
-            "paused": "<span color=\"#d08770\"></span>",
-            "playing": "<span color=\"#a3be8c\"></span>",
-        }
-    },
    "custom/spotify": {
                 "format": "  {}",
                 "max-length": 40,
@@ -106,7 +95,7 @@
                 "on-click": "emacsclient -a emacs --eval '(emacs-agenda)'", // launch agenda to choose time
     },
     "custom/powermenu": {
-                "format": "  ",
+                "format": " ",
                 "on-click": "~/bin/powermenu.sh",
                 "signal": 8,
                 "tooltip": false
@@ -120,7 +109,7 @@
     "clock": {
         "interval": 1,
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format": "<span color=\"#88c0d0\"></span> {:%I:%M %p}",
+        "format": " {:%I:%M %p}",
     },
     "network": {
                 // "interface": "wlp2s0",
@@ -138,7 +127,7 @@
     },
     "pulseaudio": {
         "format": "<span color=\"#88c0d0\">{icon} </span>{format_source}",
-        "format-muted": "<span color=\"#d08770\"> 婢 </span>{format_source}",
+        "format-muted": "<span color=\"#d08770\">婢  </span>{format_source}",
         "format-source": "<span color=\"#88c0d0\">  </span>",
         "format-source-muted": "<span color=\"#d08770\">  </span>",
         "format-icons": {
@@ -146,7 +135,7 @@
             "default": ["", ""]
         },
         "on-click": "amixer set Master toggle && amixer set Capture toggle",
-        "on-click-right": "amixer set Capture toggle",
+        "on-click-right": "pavucontrol",
         "on-click-middle": "~/bin/volume",
     }
 }

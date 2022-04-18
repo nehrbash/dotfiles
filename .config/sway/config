@@ -39,12 +39,12 @@ output * bg ~/Downloads/mountains-1412683.svg fill
 # Displays
 #
 # output $mon1 {
-#   resolution 3840x2160 position 0,0
 # }
 
 # gaming rez until I can build my own system.
 output $mon1 {
-  resolution 1920x1080 position 0,0
+  resolution 3840x2160 position 0,0
+  # resolution 1920x1080 position 0,0
 }
 
 output $mon2 disable {
@@ -55,13 +55,12 @@ output $mon2 disable {
 
 #
 ### Idle configuration
-#
 exec swayidle -w \
          timeout 275 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
-         timeout 15 'swaylock-fancy -c 000000' \
-         timeout 600 'swaymsg "output * dpms off"' resume 'swaymsg "output * dpms on"' \
-         before-sleep 'swaylock-fancy -f -c 000000'
-
+         timeout 300 'swaylock-fancy' \
+         timeout 600 'swaymsg "output * dpms off"'\
+         resume 'swaymsg "output * dpms on"' \
+         before-sleep 'swaylock-fancy'
 
 ### Key bindings
 #
@@ -309,7 +308,6 @@ assign [class="Messages"] 3
 exec waybar
 exec emacs --daemon
 exec discord
-exec swaymsg 'workspace 9;exec spotify'
 exec swaymsg 'workspace 2;exec microsoft-edge-beta'
 exec /opt/Messages/Messages
 
