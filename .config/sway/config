@@ -210,6 +210,9 @@ mode "$snippet_copy" {
     # Move focus to the parent container
     bindsym $mod+a focus parent
 
+    # Move focus to the child container
+    bindsym $mod+c focus child
+
     # keep window when switching
     bindsym $mod+Shift+s sticky toggle
 #
@@ -273,6 +276,9 @@ mode "Launch" {
         bindsym Space exec --no-startup-id emacsclient -c -a "emacs" --eval '(multi-vterm)' ; mode "default"
         bindsym r exec --no-startup-id "emacsclient -u -e '(org-roam-ui-mode t)' & microsoft-edge-beta -app=http://localhost:35901/" ; mode "default"
 
+        # workspace setup
+        bindsym 1 exec ~/bin/setup_spotify; mode "default"
+
         # files
         bindsym 6 exec --no-startup-id emacsclient -c -a "emacs" ~/.dotfiles/Emacs.org; mode "default"
         bindsym 7 exec --no-startup-id emacsclient -c -a "emacs" ~/.config/sway/config; mode "default"
@@ -294,7 +300,7 @@ mode "Launch" {
 # Colours and style
 #
 default_border pixel 4
-font Cozette 18
+font SorceCodePro 18
 title_align center
 #class                      border       backgr     text        indicator     childborder
 client.focused              #c678dd     #c678dd     #282c34     #a9a1e1         #c678dd
@@ -307,7 +313,7 @@ client.background           n/a         #c678dd     n/a
 # Auto start
 #
 
-for_window [title="^Edge$"] move to workspace 2
+# for_window [title="^Edge$"] move to workspace 2
 assign [class="Spotify"] 9
 assign [class="discord"] 3
 assign [class="Messages"] 3

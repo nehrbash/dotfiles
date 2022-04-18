@@ -2263,9 +2263,10 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   "Launch emacs agenda as new frame."
   (interactive)
   (with-selected-frame (make-frame '((name . "emacs-agenda")
-				     (width . 100)
-				     (height . 40)))
+				     (width . 115)
+				     (height . 25)))
    (gtd)
+   (setq mode-line-format nil)
    (local-set-key (kbd "q") '(lambda ()
             (interactive)
             (if  (string-equal x-resource-name "emacs-agenda")
