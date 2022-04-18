@@ -248,6 +248,13 @@ mode "resize" {
     bindsym Return mode "default"
     bindsym Escape mode "default"
 }
+bindsym $mod+Control+$right resize shrink width 10px
+bindsym $mod+Control+$up resize grow height 10px
+bindsym $mod+Control+$down resize shrink height 10px
+bindsym $mod+Control+$left resize grow width 10px
+
+
+
 #
 # launching stuff
 #
@@ -286,7 +293,7 @@ mode "Launch" {
 #
 # Colours and style
 #
-default_border pixel 6
+default_border pixel 4
 font Cozette 18
 title_align center
 #class                      border       backgr     text        indicator     childborder
