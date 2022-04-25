@@ -1,6 +1,6 @@
 #+TITLE:Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
-* Table of Contents                                                             :TOC:
+* Table of Contents                                                       :TOC:
 - [[#program-settings][Program Settings]]
   - [[#startup-performance][Startup Performance]]
   - [[#change-emacs-directory][Change Emacs Directory]]
@@ -1710,7 +1710,7 @@ window."
         ;;org-adapt-indentation nil
         org-edit-src-content-indentation 0
         org-export-kill-product-buffer-when-displayed t
-        org-tags-column 80
+        org-tags-column -80
         org-startup-folded t
         org-startup-with-inline-images t
         org-archive-mark-done nil
@@ -1788,6 +1788,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Re-align tags
+
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-agenda
   (add-hook 'org-agenda-mode-hook

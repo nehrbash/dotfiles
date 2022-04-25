@@ -5,21 +5,7 @@
 (defpoll pkgs :interval "5h" "pacman -Qq | wc -l")
 (defpoll pkgs_up :interval "5h" "checkupdates | wc -l")
 
-(defpoll time_hour :interval "5m"
-       "date +\"%I\"")
-(defpoll time_min :interval "5s"
-       "date +\"%M\"")
-(defpoll time_day :interval "30m"
-       "date +\"%d\"")
-(defpoll time_month :interval "48h"
-      "date +\%m")
-(defpoll time_day_name :interval "30m"
-       "date +\"%A\"")
-(defpoll time_month_name :interval "48h"
-      "date +\%B")
-
-
-(defpoll battery :interval "15s" "./scripts/battery --bat")
+(defpoll battery :interval "15s" "scripts/battery --bat")
 (defpoll memory :interval "15s" "scripts/memory")
 (defpoll cpu :interval "17s" "scripts/cpu")
 
@@ -29,73 +15,11 @@
 (defpoll brightness :interval "6s" "brightnessctl -m -d intel_backlight | awk -F, '{print substr($4, 0, length($4)-1)}' | tr -d '%'")
 
 
-
-
 (defwidget profile []
 			(box :class "bg_alt" :orientation "v" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false"
 				(box :class "profile_picture" :halign "center" :style "background-image: url('${IMAGE});")
 				(label :class "profile_greeting" :halign "center" :wrap "true" :limit-width 25 :text username)))
-
-
-
-(defwidget time [] 
-		(box :class "win" 
-             :orientation "v" 
-             :space-evenly "false" 
-             :vexpand "false" 
-             :hexpand "false" 
-             :spacing 0
-		(box  
-             :orientation "h" 
-             :space-evenly "false" 
-             :vexpand "false" 
-             :halign "center"
-             :hexpand "false" 
-             :spacing 0
-			 (label :class "hour_class" 
-                    :valign "start" 
-                    :wrap "true" 
-                    :limit-width 25 
-                    :text time_hour)
-			 (label :class "minute_class" 
-                    :valign "start" 
-                    :halign "start" 
-                    :wrap "true" 
-                    :limit-width 25 
-                    :text time_min))
-            (box :orientation "h" 
-              :spacing 0 
-              :space-evenly "false" 
-              :halign "center"
-              :vexpand "false" :hexpand "false" 
-			  (label :class "day_class" 
-                     :valign "start" 
-                     :text time_day)
-			  (label :class "time_sep"
-                     :valign "start" 
-                     :text " ")
-			  (label :class "month_class" 
-                     :valign "start" 
-                     :text time_month))))
-
-
-
-
-(defwidget day [] 
-            (box :orientation "h" 
-              :class "win"
-              :spacing 0 
-              :space-evenly "false" 
-              :halign "center"
-			  (label :class "day_class_n" 
-                     :text time_day_name)
-			  (label :class "time_sep"
-                     :text ", ")
-			  (label :class "month_class_n" 
-                     :text time_month_name)))
-
-
-
+                
 
 (defwidget system []
   (box :class "sys_win" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false" :spacing 0 
@@ -127,10 +51,6 @@
                 :show_truncated false
                 :wrap false
                 :angle 0.0)))))
-
-
-
-
 
 
 ;;  system
@@ -168,8 +88,7 @@
 
 ;;  Music
 (defpoll song :interval "3s"  "~/.config/eww/leftbar/scripts/gettitle")
-(defpoll song_artist :interval "3s"  "playerctl metadata --format '{{ artist }}' && ~/.config/eww/leftbar/scripts/getart")
-(defpoll song_status :interval "1s"  "~/.config/eww/leftbar/scripts/spotifystatus")
+(defpoll song_artist :interval "1s"  "playerctl metadata --format '{{ artist }}' && ~/.config/eww/leftbar/scripts/getart")
 (defpoll song_status :interval "1s"  "~/.config/eww/leftbar/scripts/spotifystatus")
 (defpoll cover :interval "5s"  "~/.config/eww/leftbar/scripts/echoart")
 
@@ -220,18 +139,18 @@
                 (label :class "weather-quote-tail" :text "${weather-quote2}")))
                 
 (defwidget weather-forecast []
-           (box :class "forecast_bg" :orientation "h" :space-evenly "true" :vexpand "false" :hexpand "true"
-                (box :class "weather-forecast-box" :orientation "v":space-evenly "false"
-                (label :class "weather-date" :spacing 10:text forecast-0-date)
+           (box :class "forecast_bg" :orientation "h" :space-evenly "true" :vexpand "false" :hexpand "false"
+                (box :class "weather-forecast-box" :orientation "v":space-evenly "false" 
+                (label :class "weather-date" :text forecast-0-date)
                 (box :class "weather-forecast-box" :orientation "h" :space-evenly "false"
                      (label :class "weather-icon" :text forecast-0-icon)
-                     (box :class "weather-forecast-box" :orientation "v"
+                     (box :class "weather-forecast-box" :orientation "v" :valign "center"
                      (label :class "weather-max" :text forecast-0-max) 
                      (label :class "weather-min" :text forecast-0-min)
                      (label :class "weather-quote-head" :text forecast-0-state)))
                 )
                 (box :class "weather-forecast-box" :orientation "v":space-evenly "false"
-                (label :class "weather-date" :spacing 10:text forecast-1-date)
+                (label :class "weather-date" :text forecast-1-date)
                 (box :class "weather-forecast-box" :orientation "h" :space-evenly "false"
                      (label :class "weather-icon" :text forecast-1-icon)
                      (box :class "weather-forecast-box" :orientation "v"

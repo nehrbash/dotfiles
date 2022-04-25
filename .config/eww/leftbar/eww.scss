@@ -68,10 +68,6 @@ tooltip label {
     margin: 0px 30px 0px 0px;
 }
 
-
-
-
-
 .profile_picture {
 	background-image: url('images/profile.png');
 	background-size: 175px;
@@ -310,13 +306,13 @@ scale trough {
 	margin : -5px 0px 0px 15px;
 }
 
-
 .song_btn_prev, .song_btn_next, .song_btn_loop {
     font-size: 34px;
     font-weight: normal;
     color: #bbc2cf;
 	margin : 6px 0px 0px 10px;
 }
+
 .song_btn_play {
     font-weight: normal;
     font-size: 42px;
@@ -382,20 +378,22 @@ scale trough {
   font-size: 18px;
   font-weight: bold;
   color: #bfc9db;
+  margin-left: -50;
+  margin-top: 10;
 }
 
 .weather-icon {
-    font-size: 86px;
+    font-size: 60px;
     margin: 20px;
     margin-top: 0;
-    margin-right: -10;
-
+    margin-right: -15;
 }
 
 .weather-min, .weather-max {
-    margin-left: 15;
+    margin-right: -50;
     font-size: 22px;
     font-weight: bold;
+    min-width: 130px;
 }
 .weather-min {
     color: #73bff2;

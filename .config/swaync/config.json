@@ -9,6 +9,7 @@
     "image-visibility": "always",
     "transition-time": 200,
     "hide-on-clear": true,
+    "control-center-width": 500,
     "control-center-margin-bottom": 240,
     "control-center-margin-top": 240
 }

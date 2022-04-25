@@ -98,11 +98,12 @@ if [ ! -z "$weather" ]; then
     forecast_0_max=$(echo "$weather" | jq -r ".weather[1].maxtempF")
     forecast_0_min=$(echo "$weather" | jq -r ".weather[1].mintempF")
     forecast_0_code=$(echo "$weather" | jq -r ".weather[1].hourly[0].weatherCode")
+    echo $forecast_0_code
     weath=${weatherCode["$forecast_0_code"]}
     forecast_0_emoji=${weatherSymbol["$weath"]}
 
     if [ -z "$forecast_0_emoji" ]; then
-        forecast_0_emoji="✨"
+        forecast_0_emoji=✨
     fi
 
     # tomorrow x2

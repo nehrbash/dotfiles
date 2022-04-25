@@ -41,9 +41,9 @@ output * bg ~/Downloads/mountains-1412683.svg fill
 # output $mon1 {
 # }
 
-# gaming rez until I can build my own system.
 output $mon1 {
   resolution 3840x2160 position 0,0
+  # gaming rez until I can build a better computer.
   # resolution 1920x1080 position 0,0
 }
 
