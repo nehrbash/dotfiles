@@ -40,62 +40,22 @@ zmodload zsh/complist
 compinit
 _comp_options+=(globdots)     # Include hidden files.
 
-# Load aliases and shortcuts if existent.
-[ -f "$HOME/.zsh/aliasrc" ] && source "$HOME/.zsh/aliasrc"
-
-
 # Load plugins
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
 ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=3'
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
 source /usr/share/autojump/autojump.zsh 2>/dev/null
 
+export PATH=$PATH:~/go/bin
+export EDITOR=emacs
+export TERM=xterm-256color
+
+# Load aliases and shortcuts if existent.
+[ -f "$HOME/.zsh/aliasrc" ] && source "$HOME/.zsh/aliasrc"
+
+# Load utility functions
+[ -f "$HOME/.zsh/functions" ] && source "$HOME/.zsh/functions"
 
 # Load emacs functions for vterm and restarting daemon.
 [ -f "$HOME/.zsh/emacs_functions" ] && source "$HOME/.zsh/emacs_functions"
 
-# Import colorscheme from 'wal' asynchronously
-# &   # Run the process in the background.
-# ( ) # Hide shell job control messages.
-# cat ~/.cache/wal/sequences
-# clear
-# source ~/.cache/wal/colors-tty.sh
-
-# set dual monitors
-dual () {
-    xrandr --output DP1 --mode 3840x2160 --primary --left-of eDP1 --output eDP1 --auto
-}
-
-# set single monitor
-single () {
-    xrandr --output eDP1 --off
-}
-
-if type swiperd > /dev/null; then
-    cd () {
-        builtin cd $@ && swiperd -a
-    }
-    sd () {
-        builtin cd "$(swiperd)" && swiperd -a
-    }
-fi
-
-# put in function bc it keeps getting in the way of system packages.
-conda_setup () {
-    __conda_setup="$('/usr/local/anaconda3/bin/conda' 'shell.bash' 'hook' 2> /dev/null)"
-    if [ $? -eq 0 ]; then
-        eval "$__conda_setup"
-    else
-        if [ -f "/usr/local/anaconda3/etc/profile.d/conda.sh" ]; then
-            . "/usr/local/anaconda3/etc/profile.d/conda.sh"
-        else
-            export PATH="/usr/local/anaconda3/bin:$PATH"
-        fi
-    fi
-    unset __conda_setup
-    # <<< conda initialize <<<
-}
-
-
-export EDITOR=emacs
-export TERM=xterm-256color

@@ -15,7 +15,7 @@
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line or Region]]
 - [[#ui][UI]]
-  - [[#startup-message][Startup Message]]
+  - [[#startup][Startup]]
   - [[#font][Font]]
   - [[#theme][Theme]]
   - [[#dimmer][Dimmer]]
@@ -326,13 +326,22 @@
   
 * UI
 
-** Startup Message
+** Startup
    
-   The default scratch buffer message.
+   The default buffer.
 
 #+begin_src emacs-lisp
-(setq initial-scratch-message
-              (concat ";; Hey, Your a Geniuse " user-login-name "!!!\n;; Keep up the great work!  - Emacs ♥\n\n"))
+(setq initial-major-mode 'org-mode)
+(setq initial-scratch-message nil)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package dashboard
+  :straight t
+  :ensure t
+  :config
+  (dashboard-setup-startup-hook)
+  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
 #+end_src
 
 ** Font
@@ -351,12 +360,14 @@
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
 	    doom-themes-enable-italic t)     ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
-  (doom-themes-org-config))
+  (doom-themes-org-config)
+  )
 ;; to load theme properly when new client frame is created 
 (add-hook 'after-make-frame-functions
             (lambda (frame)
               (with-selected-frame frame
-                (load-theme 'doom-one t))))
+                (load-theme 'doom-one t)
+                )))
 ;; Don't prompt to confirm theme safety. This avoids problems with
 ;; first-time startup on Emacs > 26.3.
 (setq custom-safe-themes t)
@@ -773,25 +784,26 @@ Need to revisit now that I am using dirvish.
 #+end_src
 
 #+begin_src emacs-lisp
-(defmacro sanityinc/no-consult-preview (&rest cmds)
-  `(with-eval-after-load 'consult
-     (consult-customize ,@cmds :preview-key (kbd "M-P"))))
-(sanityinc/no-consult-preview
- consult-ripgrep
- consult-git-grep consult-grep
- consult-bookmark consult-recent-file consult-xref
- consult--source-file consult--source-project-file consult--source-bookmark)
-(setq-default consult-project-root-function 'projectile-project-root)
-(defun sanityinc/affe-grep-at-point (&optional dir initial)
-  (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
-                                    (symbol-name s))))
-  (affe-grep dir initial))
-(global-set-key (kbd "M-?") 'sanityinc/affe-grep-at-point)
-(sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
-(with-eval-after-load 'affe (sanityinc/no-consult-preview affe-grep))
+  (defmacro sanityinc/no-consult-preview (&rest cmds)
+	`(with-eval-after-load 'consult
+	   (consult-customize ,@cmds :preview-key (kbd "M-P"))))
+  (sanityinc/no-consult-preview
+   consult-ripgrep
+   consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
+  (setq-default consult-project-root-function 'projectile-project-root)
+  (defun sanityinc/affe-grep-at-point (&optional dir initial)
+	(interactive (list prefix-arg (when-let ((s (symbol-at-point)))
+									  (symbol-name s))))
+	(affe-grep dir initial))
+  (global-set-key (kbd "M-?") 'sanityinc/affe-grep-at-point)
+  (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
+  (with-eval-after-load 'affe (sanityinc/no-consult-preview affe-grep))
 #+end_src
 
-  
+
+
 ** Consult
 
 #+begin_src emacs-lisp
@@ -883,7 +895,7 @@ Need to revisit now that I am using dirvish.
    :preview-key '(:debounce 0.2 any)
    consult-ripgrep consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
-   consult--source-file consult--source-project-file consult--source-bookmark
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    sanityinc/affe-grep-at-point affe-grep
    :preview-key (kbd "M-."))
 
@@ -919,8 +931,8 @@ Need to revisit now that I am using dirvish.
   :config
   (setq vterm-buffer-name-string "%s")
   :bind (
-         ( "C-c t" . multi-vterm-dedicated-toggle)
-         ( "C-c T" . multi-vterm)
+         ( "C-t" . multi-vterm-dedicated-toggle)
+         ( "M-t" . multi-vterm)
          :map term-mode-map
          ("C-b" . term-send-left)
          ("C-f" . term-send-right)))
@@ -1411,7 +1423,7 @@ ORIG is the advised function, which is called with its ARGS."
   (use-package git-blamed)
 ;;  (use-package gitignore-mode)
 ;;  (use-package gitconfig-mode)
-  (use-package git-timemachine
+  (use-package git-time-machine
     :config
     (global-set-key (kbd "C-x v t") 'git-timemachine-toggle))
 
@@ -1711,7 +1723,7 @@ window."
         ;;org-adapt-indentation nil
         org-edit-src-content-indentation 0
         org-export-kill-product-buffer-when-displayed t
-        org-tags-column -80
+        org-tags-column 0
         org-startup-folded t
         org-startup-with-inline-images t
         org-archive-mark-done nil
@@ -1750,10 +1762,10 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    Set registers to jump to certain files like type C-x r j e to open .emacs
 
 #+begin_src emacs-lisp
-   (setq org-directory "/home/snehrbass/doc")
+   (setq org-directory "~/doc")
    (setq org-default-notes-file (concat org-directory "/inbox.org"))
-   (setq org-agenda-files (list "/home/snehrbass/doc/inbox.org"
-                             "/home/snehrbass/doc/projects.org" ))
+   (setq org-agenda-files (list "~/doc/inbox.org"
+                             "~/doc/projects.org" ))
 #+end_src
 
 ** Capturing
@@ -1784,7 +1796,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (with-eval-after-load 'org-agenda
   (add-hook 'org-agenda-mode-hook
             (lambda ()   (setq mode-line-format nil)
-              (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
+              (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t)))
+)
+(with-eval-after-load 'org-mode
+  (add-hook 'before-save-hook
+            (lambda ()  (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
 #+end_src
 
 ** Pretty Symbol Replacement
@@ -1797,12 +1813,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")) 
   :init
-  (setq org-ellipsis " "))
+  (setq org-ellipsis " ↩"))
 
 (add-hook 'org-mode-hook
           (lambda ()
-            ;;(push '("[ ]" .  "🞎") prettify-symbols-alist)
-            (push '("[X]" . "✓" ) prettify-symbols-alist)
+            (push '("[ ]" .  "☐") prettify-symbols-alist)
+            (push '("[X]" . "☑" ) prettify-symbols-alist)
             (push '("#+TITLE:" . "") prettify-symbols-alist)
             (push '("#+title: " . "") prettify-symbols-alist)
             ;;(push '("[-]" . "◫" ) prettify-symbols-alist)
