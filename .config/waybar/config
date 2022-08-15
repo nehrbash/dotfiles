@@ -109,7 +109,7 @@
     "clock": {
         "interval": 1,
         "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format": " {:%I:%M %p}",
+        "format": "{:%I:%M %p\n%D}",
     },
     "network": {
                 // "interface": "wlp2s0",

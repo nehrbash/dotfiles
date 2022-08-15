@@ -39,12 +39,21 @@ window#waybar:first-child > box {
     color: #a9a1e1;
 }
 
-#clock, #pulseaudio {
+#clock {
+    padding: 0 7px;
+    margin: -20px 5px;
+    color: #88c0d0;
+    font-size: 18px;
+    font-family: Lemon;
+}
+
+#pulseaudio {
     padding: 0 7px;
     margin: 2px 0px;
     color: #88c0d0;
     font-size: 24px;
 }
+
 
 #pulseaudio {
   margin-right: -7px;

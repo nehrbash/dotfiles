@@ -147,7 +147,7 @@
                      (box :class "weather-forecast-box" :orientation "v" :valign "center"
                      (label :class "weather-max" :text forecast-0-max) 
                      (label :class "weather-min" :text forecast-0-min)
-                     (label :class "weather-quote-head" :text forecast-0-state)))
+                     (label :class "forcast-quote" :text forecast-0-state)))
                 )
                 (box :class "weather-forecast-box" :orientation "v":space-evenly "false"
                 (label :class "weather-date" :text forecast-1-date)
@@ -156,7 +156,7 @@
                      (box :class "weather-forecast-box" :orientation "v"
                      (label :class "weather-max" :text forecast-1-max) 
                      (label :class "weather-min" :text forecast-1-min)
-                     (label :class "weather-quote-head" :text forecast-1-state)))
+                     (label :class "forcast-quote" :text forecast-1-state)))
                 )
 
 

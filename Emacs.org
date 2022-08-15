@@ -1,6 +1,6 @@
 #+TITLE:Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
-* Table of Contents                                                       :TOC:
+* Table of Contents                                                                                                                    :TOC:
 - [[#program-settings][Program Settings]]
   - [[#startup-performance][Startup Performance]]
   - [[#change-emacs-directory][Change Emacs Directory]]
@@ -58,7 +58,7 @@
   - [[#sizes][Sizes]]
   - [[#org-file-locations][Org File Locations]]
   - [[#capturing][Capturing]]
-  - [[#re-align-tags][Re-align tags]]
+  - [[#dynamic-re-align-tags][Dynamic Re-align tags]]
   - [[#pretty-symbol-replacement][Pretty Symbol Replacement]]
   - [[#pomodoro-timer][Pomodoro Timer]]
   - [[#clock][Clock]]
@@ -67,6 +67,7 @@
   - [[#prose-mode][Prose Mode]]
   - [[#calendar][Calendar]]
   - [[#refiling][Refiling]]
+  - [[#to-do-settings][To Do Settings]]
   - [[#agenda-views][Agenda views]]
   - [[#table-of-contents][Table of Contents]]
   - [[#automatically-tangle-on-save][Automatically "Tangle" on Save]]
@@ -1741,17 +1742,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    '(org-level-1 ((t (:foreground "#98be65" :height 1.6))))
   '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
   '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
-  '(header-line ((t (:height 2))))
-;;  `(pdf-view-midnight-colors '("#ffffff" . "#fbf8ef"))
-  )
-;;(lamb;; da () (progn
-;;              (setq left-margin-width 2)
-;;              (setq right-margin-width 2)
-;;              (set-window-buffer nil (current-buffer))))
-
-
-;; ;;(
-;;(setq header-line-format " ")
+  '(header-line ((t (:height 2)))))
 #+end_src
 
 ** Org File Locations
@@ -1787,12 +1778,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
         ))
 #+end_src
 
-** Re-align tags
+** Dynamic Re-align tags
 
 #+begin_src emacs-lisp
 (with-eval-after-load 'org-agenda
   (add-hook 'org-agenda-mode-hook
-            (lambda () (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
+            (lambda ()   (setq mode-line-format nil)
+              (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
 #+end_src
 
 ** Pretty Symbol Replacement
@@ -2158,7 +2150,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 #+END_SRC
 
-*** To Do Settings
+** To Do Settings
+
 #+begin_src emacs-lisp
   (setq org-todo-keywords
         (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
@@ -2267,7 +2260,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 				     (width . 115)
 				     (height . 25)))
    (gtd)
-   (setq mode-line-format nil)
    (local-set-key (kbd "q") '(lambda ()
             (interactive)
             (if  (string-equal x-resource-name "emacs-agenda")
@@ -2517,7 +2509,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+begin_src emacs-lisp
 (use-package go-mode
   :config (progn
-            (setq compile-command "go build -v && go test -v -cover && go vet && golint") 
+            (setq compile-command "go build -v && go test -v -cover && go vet") 
             )
   :hook ((go-mode . lsp-deferred)
    (before-save . lsp-format-buffer)

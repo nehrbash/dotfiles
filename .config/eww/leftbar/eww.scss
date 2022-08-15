@@ -378,8 +378,6 @@ scale trough {
   font-size: 18px;
   font-weight: bold;
   color: #bfc9db;
-  margin-left: -50;
-  margin-top: 10;
 }
 
 .weather-icon {
@@ -410,6 +408,15 @@ scale trough {
     color: #bfc9db;
     margin-top: 10px;
 }
+
+.forcast-quote {
+  font-size: 18px;
+  font-weight: bold;
+  color: #bfc9db;
+  margin-left: -50;
+  margin-top: 10;
+}
+
 
 .forecast_bg {
     background-color: rgb(40, 44, 52);

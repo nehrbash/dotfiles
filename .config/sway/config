@@ -47,6 +47,8 @@ output $mon1 {
   # resolution 1920x1080 position 0,0
 }
 
+
+
 output $mon2 disable {
 # output $mon1 {
   resolution 1920x1080 position 3840,1080
@@ -265,7 +267,7 @@ bindsym $mod+F1 mode "Launch"
 mode "Launch" {
         bindsym a exec $menu; mode "default"
         bindsym d exec --no-startup-id xdg-open ~/ ; mode "default"
-        bindsym w exec --no-startup-id microsoft-edge-beta; mode "default"
+        bindsym w exec --no-startup-id microsoft-edge-stable; mode "default"
         bindsym s exec --no-startup-id spotify; mode "default"
         bindsym c exec --no-startup-id discord; mode "default"
         bindsym p exec ~/bin/volume; mode "default"
@@ -274,7 +276,7 @@ mode "Launch" {
         bindsym t exec --no-startup-id emacsclient -n -a "emacs" --eval '(emacs-agenda)' ; mode "default"
         bindsym n exec --no-startup-id emacsclient -c -n -a "emacs" ; mode "default"
         bindsym Space exec --no-startup-id emacsclient -c -a "emacs" --eval '(multi-vterm)' ; mode "default"
-        bindsym r exec --no-startup-id "emacsclient -u -e '(org-roam-ui-mode t)' & microsoft-edge-beta -app=http://localhost:35901/" ; mode "default"
+        bindsym r exec --no-startup-id "emacsclient -u -e '(org-roam-ui-mode t)' & microsoft-edge-stable -app=http://localhost:35901/" ; mode "default"
 
         # workspace setup
         bindsym 1 exec ~/bin/setup_spotify; mode "default"
@@ -321,7 +323,7 @@ assign [class="Messages"] 3
 exec waybar
 exec emacs --daemon
 exec discord
-exec swaymsg 'workspace 2;exec microsoft-edge-beta'
+exec swaymsg 'workspace 2;exec microsoft-edge-stable'
 exec /opt/Messages/Messages
 
 for_window [urgent="latest"] focus
