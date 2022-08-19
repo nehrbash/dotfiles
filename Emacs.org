@@ -16,13 +16,11 @@
   - [[#whole-line-or-region][Whole Line or Region]]
 - [[#ui][UI]]
   - [[#startup][Startup]]
-  - [[#font][Font]]
   - [[#theme][Theme]]
   - [[#dimmer][Dimmer]]
   - [[#modeline][Modeline]]
   - [[#gui-frames][GUI Frames]]
   - [[#beacon][Beacon]]
-  - [[#emoji-][Emoji 🔥]]
   - [[#tabs][Tabs]]
 - [[#dired][Dired]]
   - [[#openwith][Openwith]]
@@ -65,7 +63,6 @@
   - [[#latex-fragments][Latex Fragments]]
   - [[#auto-save-pdf-toggle][Auto Save PDF Toggle]]
   - [[#prose-mode][Prose Mode]]
-  - [[#calendar][Calendar]]
   - [[#refiling][Refiling]]
   - [[#to-do-settings][To Do Settings]]
   - [[#agenda-views][Agenda views]]
@@ -98,15 +95,7 @@
 
    #+begin_src emacs-lisp
   ;; The default is 800 kilobytes.  Measured in bytes.
-  (setq gc-cons-threshold (* 50 1000 1000))
   ;; Profile emacs startup
-  (add-hook 'emacs-startup-hook
-            (lambda ()
-              (message "*** Emacs loaded in %s with %d garbage collections."
-                       (format "%.2f seconds"
-                               (float-time
-                                (time-subtract after-init-time before-init-time)))
-                       gcs-done)))
 #+end_src
 
 ** Change Emacs Directory
@@ -307,8 +296,8 @@
 #+begin_src emacs-lisp
 (use-package move-dup
   :config(global-move-dup-mode)
-  :bind( ("M-<up>" . md-move-lines-up)
-         ("M-<down>" . md-move-lines-down)
+  :bind( ("M-<up>" . move-dup-move-lines-up)
+         ("M-<down>" . move-dup-move-lines-down)
          ("C-c d" . move-dup-duplicate-down)
          ("C-c u" . move-dup-duplicate-up)))
 #+end_src
@@ -341,16 +330,10 @@
   :ensure t
   :config
   (dashboard-setup-startup-hook)
-  (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
+  ;; (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+)
 #+end_src
-
-** Font
    
-#+begin_src emacs-lisp
-(add-to-list 'default-frame-alist '(font .  "Source Code Pro Medium 14"))
-(set-face-attribute 'default nil :height 150)
-#+end_src
-
 ** Theme
 
 #+begin_src emacs-lisp
@@ -360,8 +343,7 @@
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
 	    doom-themes-enable-italic t)     ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
-  (doom-themes-org-config)
-  )
+  (doom-themes-org-config))
 ;; to load theme properly when new client frame is created 
 (add-hook 'after-make-frame-functions
             (lambda (frame)
@@ -417,28 +399,16 @@
 *** GUI Features
 
 #+begin_src emacs-lisp
-  (setq use-file-dialog nil)
-  (setq use-dialog-box nil)
-  (setq inhibit-startup-screen t)
-  (set-fringe-mode '(nil . 0))
+(pixel-scroll-precision-mode t)
+(setq use-file-dialog nil)
+(setq use-dialog-box nil)
+(setq inhibit-startup-screen t)
+(set-fringe-mode '(nil . 0))
 #+END_SRC
 
 *** Window Size
     
 #+BEGIN_SRC emacs-lisp
-;;(set-face-background 'vertical-border  "#586e75")
-;;(set-face-foreground 'vertical-border (face-background 'vertical-border))
-(when (fboundp 'tool-bar-mode)
-  (tool-bar-mode -1))
-(when (fboundp 'set-scroll-bar-mode)
-  (set-scroll-bar-mode nil))
-(when (fboundp 'menu-bar-mode)
-  (menu-bar-mode -1))
-
-;; (let ((no-border '(internal-border-width . 0)))
-;;   (add-to-list 'default-frame-alist no-border)
-;;   (add-to-list 'initial-frame-alist no-border))
-
 ;; Non-zero values for `line-spacing' can mess up ansi-term and co,
 ;; so we zero it explicitly in those cases.
 (add-hook 'term-mode-hook
@@ -451,34 +421,9 @@
 (setq-default tab-width 4)
 #+end_src
 
-*** Opacity
+*** Frame Title
     
 #+begin_src emacs-lisp
-(defun sanityinc/adjust-opacity (frame incr)
-  "Adjust the background opacity of FRAME by increment INCR."
-  (unless (display-graphic-p frame)
-    (Error "Cannot adjust opacity of this frame"))
-  (let* ((oldalpha (or (frame-parameter frame 'alpha) 100))
-         ;; The 'alpha frame param became a pair at some point in
-         ;; emacs 24.x, e.g. (100 100)
-         (oldalpha (if (listp oldalpha) (car oldalpha) oldalpha))
-         (newalpha (+ incr oldalpha)))
-    (when (and (<= frame-alpha-lower-limit newalpha) (>= 100 newalpha))
-      (modify-frame-parameters frame (list (cons 'alpha newalpha))))))
-
-;; TODO: use seethru package instead?
-(global-set-key (kbd "M-C-9") (lambda () (interactive) (sanityinc/adjust-opacity nil -2)))
-(global-set-key (kbd "M-C-7") (lambda () (interactive) (sanityinc/adjust-opacity nil 2)))
-(global-set-key (kbd "M-C-8") (lambda () (interactive) (modify-frame-parameters nil `((alpha . 100)))))
-
-(if (display-graphic-p)
-    (sanityinc/adjust-opacity nil -2)
-  (add-hook 'after-make-frame-functions
-            (lambda (frame)
-              (when (display-graphic-p frame)
-                (with-selected-frame frame
-                  (sanityinc/adjust-opacity nil -2))))))
-
 (setq frame-title-format
       '((:eval (if (buffer-file-name)
                    (abbreviate-file-name (buffer-file-name))
@@ -515,18 +460,6 @@
   :init
   (beacon-mode 1))
 
-#+end_src
-
-** Emoji 🔥
-
-I don't know if this is necessary in Emacs 28 but I'm keeping it.
-
-#+begin_src emacs-lisp
-;; Emoji: 😄, 🤦, 🏴󠁧󠁢󠁳󠁣󠁴󠁿
-;; (set-fontset-font t 'symbol "Apple Color Emoji")
-(set-fontset-font t 'symbol "Noto Color Emoji" nil 'append)
-(set-fontset-font t 'symbol "Segoe UI Emoji" nil 'append)
-(set-fontset-font t 'symbol "Symbola" nil 'append)
 #+end_src
 
 ** Tabs
@@ -753,7 +686,7 @@ Need to revisit now that I am using dirvish.
   (add-hook 'minibuffer-setup-hook 'sanityinc/use-orderless-in-minibuffer))
 
 (use-package embark-consult
-  :after (embark consult)
+  :after (embark)
   :demand t
   :hook (embark-collect-mode . embark-consult-preview-minor-mode))
 (use-package consult-flycheck)
@@ -761,14 +694,19 @@ Need to revisit now that I am using dirvish.
 (use-package affe
   :after (orderless consult)
   :config
+  
   (setq affe-regexp-function #'orderless-pattern-compiler
         affe-highlight-function #'orderless--highlight)
   ;; Manual preview key for `affe-grep'
   (consult-customize affe-grep :preview-key (kbd "M-."))
-      ;; (global-set-key (kbd "M-?") 'sanityinc/affe-grep-at-point)
+       (global-set-key (kbd "M-?") 'sanityinc/affe-grep-at-point)
       ;; (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
       ;;  (sanityinc/no-consult-preview affe-grep)
-       )
+(defun sanityinc/affe-grep-at-point (&optional dir initial)
+	(interactive (list prefix-arg (when-let ((s (symbol-at-point)))
+									  (symbol-name s))))
+	(affe-grep dir initial))
+    )
 
 (use-package savehist
   :init
@@ -783,34 +721,19 @@ Need to revisit now that I am using dirvish.
   (marginalia-mode))
 #+end_src
 
-#+begin_src emacs-lisp
-  (defmacro sanityinc/no-consult-preview (&rest cmds)
-	`(with-eval-after-load 'consult
-	   (consult-customize ,@cmds :preview-key (kbd "M-P"))))
-  (sanityinc/no-consult-preview
-   consult-ripgrep
-   consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
-  (setq-default consult-project-root-function 'projectile-project-root)
-  (defun sanityinc/affe-grep-at-point (&optional dir initial)
-	(interactive (list prefix-arg (when-let ((s (symbol-at-point)))
-									  (symbol-name s))))
-	(affe-grep dir initial))
-  (global-set-key (kbd "M-?") 'sanityinc/affe-grep-at-point)
-  (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
-  (with-eval-after-load 'affe (sanityinc/no-consult-preview affe-grep))
-#+end_src
-
-
-
 ** Consult
 
 #+begin_src emacs-lisp
+(defmacro sanityinc/no-consult-preview (&rest cmds)
+	`(with-eval-after-load 'consult
+	   (consult-customize ,@cmds :preview-key (kbd "M-P"))))
+
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
   
-  :bind (;; C-c bindings (mode-specific-map)
+  :bind (
+         ( "M-?" . sanityinc/affe-grep-at-point)
+         ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
          ;;("C-c m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
@@ -861,7 +784,15 @@ Need to revisit now that I am using dirvish.
 
   ;; The :init configuration is always executed (Not lazy)
   :init
-
+   (sanityinc/no-consult-preview
+   consult-ripgrep
+   consult-git-grep consult-grep
+   consult-bookmark consult-recent-file consult-xref
+   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
+  (setq-default consult-project-root-function 'projectile-project-root)
+    (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
+  (sanityinc/no-consult-preview affe-grep)
+  
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
@@ -913,7 +844,9 @@ Need to revisit now that I am using dirvish.
   (setq consult-project-root-function
         (lambda ()
           (when-let (project (project-current))
-            (car (project-roots project)))))
+            (car (project-root project)))))
+  
+ 
   ;;;; 2. projectile.el (projectile-project-root)
   ;; (autoload 'projectile-project-root "projectile")
   ;; (setq consult-project-root-function #'projectile-project-root)
@@ -925,24 +858,27 @@ Need to revisit now that I am using dirvish.
 #+end_src
 
 * Multi Vterm
+
 #+begin_src emacs-lisp
 (use-package multi-vterm
   :straight t
   :config
   (setq vterm-buffer-name-string "%s")
   :bind (
-         ( "C-t" . multi-vterm-dedicated-toggle)
+         ( "C-c t" . multi-vterm-dedicated-toggle)
          ( "M-t" . multi-vterm)
-         :map term-mode-map
+         :map vterm-mode-map
+         ("C-c t" . multi-vterm-dedicated-toggle)
+         ("M-w" . copy-region-as-kill)
          ("C-b" . term-send-left)
+         ( "C-y" . vterm-yank)
          ("C-f" . term-send-right)))
 (add-hook 'vterm-mode-hook (lambda ()
                              (setq vterm-buffer-maximum-size 1000
                                    vterm-scroll-to-bottom-on-output t
                                    multi-vterm-scroll-show-maximum-output t
                                    multi-vterm-dedicated-select-after-open-p t
-                                   mode-line-format nil)
-                             (define-key vterm-mode-map (kbd "C-y") 'vterm-yank)))
+                                   mode-line-format nil)))
 (defun vterm-clear-buffer ()
   "Clear terminal"
   (interactive)
@@ -1121,7 +1057,6 @@ install ripgrep manually
   (setq-default company-dabbrev-other-buffers 'all
                 company-tooltip-align-annotations t)
   (global-company-mode))
-
 (use-package company-quickhelp
     :init (company-quickhelp-mode 1))
 #+end_src
@@ -1583,15 +1518,32 @@ ORIG is the advised function, which is called with its ARGS."
    
 #+begin_src emacs-lisp
 (use-package ispell
-  :defer t
+  :if (not (bound-and-true-p disable-pkg-ispell))
+  :defer 15
   :config
-  (when (executable-find ispell-program-name)
-  ;; Add spell-checking in comments for all programming language modes
-  (add-hook 'prog-mode-hook 'flyspell-prog-mode)
-  (after-load 'flyspell
-    (define-key flyspell-mode-map (kbd "C-;") nil)
-    (add-to-list 'flyspell-prog-text-faces 'nxml-text-face)))
-  )
+  (setq ispell-extra-args   '("--sug-mode=ultra"
+                                  "--lang=en_US"))
+  ;; Save a new word to personal dictionary without asking
+  (setq ispell-silently-savep t))
+(use-package flyspell
+    :init  (progn
+        ;; Below variables need to be set before `flyspell' is loaded.
+        (setq flyspell-use-meta-tab nil)
+        ;; Binding for `flyspell-auto-correct-previous-word'.
+        (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
+    :config  (progn
+        (add-hook 'prog-mode-hook #'flyspell-prog-mode)
+        (with-eval-after-load 'auto-complete
+          (ac-flyspell-workaround))
+        ;; https://github.com/larstvei/dot-emacs#flyspell
+        (add-hook 'text-mode-hook #'turn-on-flyspell)
+        (add-hook 'org-mode-hook  #'turn-on-flyspell)
+        (bind-keys
+         :map flyspell-mode-map
+         ;; Stop flyspell overriding other key bindings
+         ("C-," . nil)
+         ("C-." . nil)
+         ("<C-f12>" . flyspell-goto-next-error))))
 #+end_src
 
 ** projectile
@@ -1812,19 +1764,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")) 
-  :init
-  (setq org-ellipsis " ↩"))
-
-(add-hook 'org-mode-hook
-          (lambda ()
+  :init  (setq org-ellipsis " ↩"))
+(add-hook 'org-mode-hook   (lambda ()
             (push '("[ ]" .  "☐") prettify-symbols-alist)
             (push '("[X]" . "☑" ) prettify-symbols-alist)
             (push '("#+TITLE:" . "") prettify-symbols-alist)
             (push '("#+title: " . "") prettify-symbols-alist)
-            ;;(push '("[-]" . "◫" ) prettify-symbols-alist)
-            (prettify-symbols-mode)
-            ))
-
+            (prettify-symbols-mode)))
 (with-eval-after-load 'org
   ;; This is needed as of Org 9.2
   (require 'org-tempo)
@@ -1984,27 +1930,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                    :branch "master")
   :demand t
   :hook (org-mode . org-pretty-table-mode))
-(use-package pretty-mode
-  :config
-  (global-pretty-mode t)
-  (global-prettify-symbols-mode 1)
-  (pretty-deactivate-groups
-   '(:equality
-     :ordering
-     :ordering-double
-     :ordering-triple
-     :arrows
-     :arrows-twoheaded
-     :punctuation
-     :logic
-     :sets
-     :sub-and-superscripts
-     :subscripts
-     :arithmetic-double
-     :arithmetic-triple))
-
-  (pretty-activate-groups
-   '(:greek :arithmetic-nary)))
 (use-package writeroom-mode
   :bind ((:map writeroom-mode-map
                ("C-M-<" . writeroom-decrease-width)
@@ -2033,7 +1958,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
  This enables or modifies a number of settings so that the
  experience of editing prose is a little more like that of a
  typical word processor."
-    nil " Prose" nil
+    :interactive nil " Prose" nil
     (if prose-mode
         (progn
           (when (fboundp 'writeroom-mode)
@@ -2062,68 +1987,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (visual-line-mode -1)
       (when (fboundp 'writeroom-mode)
         (writeroom-mode 0)))))
-#+end_src
-
-** Calendar
-   
-   calfw Calendar renders a nice looking calendar in what looks to be a org table. Displays holidays,  org agenda and ical backups.
-   
-*** Calendar Colors
-	
-#+begin_src emacs-lisp
-(use-package calfw
-  ;; :straight (calfw-cal calfw-org calfw-ical)
-  :init
-  (use-package calfw-cal)
-  (use-package calfw-org)
-  (use-package calfw-ical)
-  (setq cfw:fchar-junction ?╋
-		cfw:fchar-vertical-line ?┃
-		cfw:fchar-horizontal-line ?━
-		cfw:fchar-left-junction ?┣
-		cfw:fchar-right-junction ?┫
-		cfw:fchar-top-junction ?┳
-		cfw:fchar-top-left-corner ?┏
-		cfw:fchar-top-right-corner ?┓)
-  (setq frame-inhibit-implied-resize t)) ;; to prevent resizing
-#+end_src
-
-*** Desktop Calendar
-#+begin_src emacs-lisp
-(defun open-calendar ()
-  "CFW config calendars."
-  (interactive)
-  (if (string= (frame-parameter (selected-frame) 'name) "cfw:Calendar")
-      (progn
-        (set-face-attribute 'default (selected-frame) :font "Source Code Pro Bold 11")
-        (cfw:open-calendar-buffer
-         :contents-sources
-         (list
-          (cfw:org-create-source "#7f9f7f")
-          (cfw:ical-create-source "Personal" "~/doc/Personal.ics" "#707D86")
-                                        ; (cfw:ical-create-source "Work" "~/Documents/Work.ics" "Orange")
-          ))
-        )
-    (progn
-      (cfw:open-calendar-buffer
-       :contents-sources
-       (list
-        (cfw:org-create-source "#7f9f7f")
-        (cfw:ical-create-source "Personal" "~/doc/Personal.ics" "#707D86")
-                                        ; (cfw:ical-create-source "Work" "~/Documents/Work.ics" "Orange")
-        )))
-    ))
-(add-hook 'cfw:calendar-mode-hook
-          (lambda ()
-            (interactive)
-            (setq mode-line-format nil)
-            (set-fringe-mode '(1 . 1)) 
-            ;; (cfw:refresh-calendar-buffer nil)
-            ))
-(add-hook 'server-after-make-frame-hook
-          (lambda ()
-            (setq inhibit-message t)
-            (run-with-idle-timer 0 nil (lambda () (setq inhibit-message nil)))))
 #+end_src
 
 ** Refiling
@@ -2662,4 +2525,8 @@ Other dotfiles repos and blog posts for inspiration:
 
 
 And of course [[https://systemcrafters.cc/][System Crafters]] !!!
+
+
+
+
 

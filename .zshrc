@@ -3,15 +3,12 @@
 # zsh-syntax-highlighting - syntax highlighting for ZSH in standard repos
 # zsh-autosuggestions - Suggestions based on your history
 
-# Initial Setup
-# mkdir -p "$HOME/.zsh"
-# git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
-# Setup Alias in $HOME/.zsh/aliasrc
+# very simple prompt for tramp
+[[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
 
 # Enable colors and change prompt:
 autoload -U colors && colors
-PS1="%B%{$fg[red]%}[%{$fg[yellow]%}%n%{$fg[green]%}@%{$fg[blue]%}%M %{$fg[magenta]%}%~%{$fg[red]%}]%{$reset_color%}$%b "
-
+export PS1="> "
 
 # Pure Prompt
 fpath+=$HOME/.zsh/pure

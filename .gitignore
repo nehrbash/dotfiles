@@ -1,3 +1,4 @@
 /.zsh/pure/
 /.zsh/history
 /bin/install
+*.elc
