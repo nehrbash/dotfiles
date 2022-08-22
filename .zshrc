@@ -3,7 +3,7 @@
 # zsh-syntax-highlighting - syntax highlighting for ZSH in standard repos
 # zsh-autosuggestions - Suggestions based on your history
 
-# very simple prompt for tramp
+# very simple prompt for tramp emacs
 [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
 
 # Enable colors and change prompt:

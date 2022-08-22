@@ -8,8 +8,9 @@
                     :height 110
                     :weight 'normal
                     :width 'normal)
+(add-to-list 'default-frame-alist
+             '(background-color . "#282c34")) ;; doom one
 ;;(add-to-list 'default-frame-alist '(font .  "Source Code Pro Medium 14"))
-;;(set-face-attribute 'default nil :height 110)
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)

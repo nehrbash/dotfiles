@@ -14,6 +14,10 @@
   - [[#esc-cancels-all][ESC Cancels All]]
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line or Region]]
+- [[#general-settings][General Settings]]
+  - [[#auto--update-file][Auto  update file]]
+  - [[#electri-pair][Electri Pair]]
+  - [[#faster-tramp][Faster TRAMP]]
 - [[#ui][UI]]
   - [[#startup][Startup]]
   - [[#theme][Theme]]
@@ -24,20 +28,19 @@
   - [[#tabs][Tabs]]
 - [[#dired][Dired]]
   - [[#openwith][Openwith]]
-- [[#mini-buffer][Mini Buffer]]
+- [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
+  - [[#company][Company]]
+  - [[#track-recent-files][Track Recent Files]]
+  - [[#settings-for-hippie-expand][Settings for hippie expand]]
+  - [[#spelling][Spelling]]
 - [[#multi-vterm][Multi Vterm]]
+  - [[#dont-ask-to-kill-on-exit][don't ask to kill on exit]]
 - [[#other][Other]]
   - [[#i-search][I-Search]]
   - [[#ripgrep][Ripgrep]]
   - [[#ibuffer][Ibuffer]]
-  - [[#flycheck][Flycheck]]
-  - [[#track-recent-files][Track Recent Files]]
-  - [[#settings-for-hippie-expand][Settings for hippie expand]]
-  - [[#company-completion-framework][Company completion framework]]
   - [[#multiple-major-modes][Multiple major modes]]
-  - [[#general-settings][General settings]]
-  - [[#huge-files][Huge files]]
   - [[#newline-behavior][Newline Behavior]]
   - [[#symbol-overlay][Symbol Overlay]]
   - [[#whitespaces][Whitespaces]]
@@ -45,7 +48,6 @@
   - [[#helpers-for-m-x-compile][Helpers for M-x compile]]
   - [[#yasnippet][yasnippet]]
   - [[#paredit-parenthicy-completion][paredit parenthicy completion]]
-  - [[#spelling][spelling]]
   - [[#projectile][projectile]]
   - [[#misc][misc]]
   - [[#improve-window-switching][Improve window switching]]
@@ -141,7 +143,7 @@
 
 * Non-Configured Packages
 
-  These are packages that don't require configurations.
+These are packages that don't require configurations.
   
 #+begin_src emacs-lisp
 (use-package org
@@ -158,7 +160,7 @@
 
 * Editing Utilities
 
-  General editing configurations. 
+General editing configurations. 
 
 ** Right Click Edit Menu
 
@@ -304,7 +306,7 @@
 
 ** Whole Line or Region
 
-   Cut/copy the current line if no region is active.
+Cut/copy the current line if no region is active.
    
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
@@ -312,7 +314,64 @@
   :config (whole-line-or-region-global-mode t)
   :bind ("M-j". comment-indent))
 #+end_src
-  
+
+* General Settings
+
+#+begin_src emacs-lisp
+(setq-default
+ blink-cursor-interval 0.4
+ bookmark-default-file (expand-file-name ".bookmarks.el" user-emacs-directory)
+ buffers-menu-max-size 30
+ case-fold-search t
+ column-number-mode t
+ delete-selection-mode t
+ ediff-split-window-function 'split-window-horizontally
+ ediff-window-setup-function 'ediff-setup-windows-plain
+ indent-tabs-mode nil
+ make-backup-files nil
+ mouse-yank-at-point t
+ save-interprogram-paste-before-kill t
+ scroll-preserve-screen-position 'always
+ set-mark-command-repeat-pop t
+ tooltip-delay 1.5
+ truncate-lines nil
+ truncate-partial-width-windows nil)
+(add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting 
+#+end_src
+ 
+** Auto  update file
+
+When A file changes on disk update Emacs.
+#+begin_src emacs-lisp
+(global-auto-revert-mode 1)
+(add-hook 'dired-mode-hook 'auto-revert-mode)
+#+end_src
+
+** Electri Pair
+
+Easily insert matching delimiters.
+
+#+begin_src emacs-lisp
+(when (fboundp 'electric-pair-mode)
+  (add-hook 'after-init-hook 'electric-pair-mode))
+(when (eval-when-compile (version< "24.4" emacs-version))
+  (add-hook 'after-init-hook 'electric-indent-mode))
+(use-package list-unicode-display)
+#+end_src
+
+** Faster TRAMP
+
+Tramp was acting slow this helps.
+
+#+begin_src emacs-lisp
+(setq remote-file-name-inhibit-cache nil)
+(setq vc-ignore-dir-regexp
+      (format "%s\\|%s"
+                    vc-ignore-dir-regexp
+                    tramp-file-name-regexp))
+;; (setq tramp-verbose 1)
+#+end_src
+
 * UI
 
 ** Startup
@@ -329,9 +388,7 @@
   :straight t
   :ensure t
   :config
-  (dashboard-setup-startup-hook)
-  ;; (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
-)
+  (dashboard-setup-startup-hook))
 #+end_src
    
 ** Theme
@@ -652,16 +709,14 @@ Need to revisit now that I am using dirvish.
 
 #+end_src
 
-* Mini Buffer
+* Minibuffer / Completion Framework
 
   Experimenting with new hype packages. replaces ivy and counsel aka completion framework.
   
 #+BEGIN_SRC emacs-lisp
 (use-package vertico
-  :config
-  (setq completion-styles '(substring orderless))
+  :config 
   :init (vertico-mode))
-
 (use-package embark
   :after vertico
   :bind (("M-a" . embark-act) 
@@ -678,9 +733,9 @@ Need to revisit now that I am using dirvish.
 
 (use-package orderless
   :init
-  (setq completion-styles '(orderless)
+  (setq completion-styles '(orderless  basic) ;; substring
         completion-category-defaults nil
-        completion-category-overrides '((file (styles partial-completion))))
+        completion-category-overrides '((file (styles basic partial-completion))))
   (defun sanityinc/use-orderless-in-minibuffer ()
     (setq-local completion-styles '(substring orderless)))
   (add-hook 'minibuffer-setup-hook 'sanityinc/use-orderless-in-minibuffer))
@@ -694,7 +749,7 @@ Need to revisit now that I am using dirvish.
 (use-package affe
   :after (orderless consult)
   :config
-  
+
   (setq affe-regexp-function #'orderless-pattern-compiler
         affe-highlight-function #'orderless--highlight)
   ;; Manual preview key for `affe-grep'
@@ -706,19 +761,14 @@ Need to revisit now that I am using dirvish.
 	(interactive (list prefix-arg (when-let ((s (symbol-at-point)))
 									  (symbol-name s))))
 	(affe-grep dir initial))
-    )
-
-(use-package savehist
-  :init
-  (savehist-mode))
-
+  )
+(use-package savehist :init (savehist-mode))
 (use-package marginalia
   :after vertico
   :ensure t
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :init
-  (marginalia-mode))
+  :init (marginalia-mode))
 #+end_src
 
 ** Consult
@@ -727,15 +777,14 @@ Need to revisit now that I am using dirvish.
 (defmacro sanityinc/no-consult-preview (&rest cmds)
 	`(with-eval-after-load 'consult
 	   (consult-customize ,@cmds :preview-key (kbd "M-P"))))
-
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
-  
   :bind (
          ( "M-?" . sanityinc/affe-grep-at-point)
+         ("C-s" . swiper-thing-at-point)       ;; orig. isearch
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
-         ;;("C-c m" . consult-mode-command)
+         ("C-c C-m" . consult-mode-command)
          ("C-c b" . consult-bookmark)
          ("C-c k" . consult-kmacro)
          ;; C-x bindings (ctl-x-map)
@@ -754,12 +803,11 @@ Need to revisit now that I am using dirvish.
          ("M-g e" . consult-compile-error)
          ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
-         ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
          ("M-g k" . consult-global-mark)
          ("M-g i" . consult-imenu)
-         ("M-g I" . consult-project-imenu)
+         ("M-g I" . consult-imenu-multi)
          ;; M-s bindings (search-map)
          ("M-s f" . consult-find)
          ("M-s L" . consult-locate)
@@ -777,50 +825,31 @@ Need to revisit now that I am using dirvish.
          ("M-s e" . consult-isearch)               ;; orig. isearch-edit-string
          ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
 
-  ;; Enable automatic preview at point in the *Completions* buffer.
-  ;; This is relevant when you use the default completion UI,
-  ;; and not necessary for Vertico, Selectrum, etc.
-  ;;:hook (completion-list-mode . consult-preview-at-point-mode)
-
-  ;; The :init configuration is always executed (Not lazy)
   :init
-   (sanityinc/no-consult-preview
+  (sanityinc/no-consult-preview
    consult-ripgrep
    consult-git-grep consult-grep
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
   (setq-default consult-project-root-function 'projectile-project-root)
-    (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
+  (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
   (sanityinc/no-consult-preview affe-grep)
-  
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
   (setq register-preview-delay 0
         register-preview-function #'consult-register-format)
-
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
-
   ;; Optionally replace `completing-read-multiple' with an enhanced version.
   (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
-
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
-
-  ;; Configure other variables and modes in the :config section,
-  ;; after lazily loading the package.
   :config
-
-  ;; Optionally configure preview. The default value
-  ;; is 'any, such that any key triggers the preview.
-  ;; (setq consult-preview-key 'any)
-  ;; (setq consult-preview-key (kbd "M-."))
-  ;; (setq consult-preview-key (list (kbd "<S-down>") (kbd "<S-up>")))
-  ;; For some commands and buffer sources it is useful to configure the
-  ;; :preview-key on a per-command basis using the `consult-customize' macro.
+  (setq consult-narrow-key "<")
+  (setq consult-preview-key (kbd "M-."))
   (consult-customize
    consult-theme
    :preview-key '(:debounce 0.2 any)
@@ -828,33 +857,135 @@ Need to revisit now that I am using dirvish.
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    sanityinc/affe-grep-at-point affe-grep
-   :preview-key (kbd "M-."))
+   :preview-key (kbd "M-.")))
+#+end_src
 
-  ;; Optionally configure the narrowing key.
-  ;; Both < and C-+ work reasonably well.
-  (setq consult-narrow-key "<") ;; (kbd "C-+")
+*** consult directories
 
-  ;; Optionally make narrowing help available in the minibuffer.
-  ;; You may want to use `embark-prefix-help-command' or which-key instead.
-  ;; (define-key consult-narrow-map (vconcat consult-narrow-key "?") #'consult-narrow-help)
+#+begin_src emacs-lisp
+(use-package consult-dir
+  :ensure t
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
+  :config
+  (setq consult-dir-project-list-function nil)
+  (setq consult-dir-project-list-function #'consult-dir-projectile-dirs)
+  (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
+  (defun consult-dir--tramp-docker-hosts ()
+  "Get a list of hosts from docker."
+  (when (require 'docker-tramp nil t)
+    (let ((hosts)
+          (docker-tramp-use-names t))
+      (dolist (cand (docker-tramp--parse-running-containers))
+        (let ((user (unless (string-empty-p (car cand))
+                        (concat (car cand) "@")))
+              (host (car (cdr cand))))
+          (push (concat "/docker:" user host ":/") hosts)))
+      hosts)))
+(defvar consult-dir--source-tramp-docker
+  `(:name     "Docker"
+    :narrow   ?d
+    :category file
+    :face     consult-file
+    :history  file-name-history
+    :items    ,#'consult-dir--tramp-docker-hosts)
+  "Docker candiadate source for `consult-dir'.")
+(add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
+#+end_src
 
-  ;; Optionally configure a function which returns the project root directory.
-  ;; There are multiple reasonable alternatives to chose from.
-  ;;;; 1. project.el (project-roots)
-  (setq consult-project-root-function
-        (lambda ()
-          (when-let (project (project-current))
-            (car (project-root project)))))
-  
- 
-  ;;;; 2. projectile.el (projectile-project-root)
-  ;; (autoload 'projectile-project-root "projectile")
-  ;; (setq consult-project-root-function #'projectile-project-root)
-  ;;;; 3. vc.el (vc-root-dir)
-  ;; (setq consult-project-root-function #'vc-root-dir)
-  ;;;; 4. locate-dominating-file
-  ;; (setq consult-project-root-function (lambda () (locate-dominating-file "." ".git")))
-)  
+** Company 
+   
+   Company is a text completion framework to retrieve and display completion candidates.
+
+#+begin_src emacs-lisp
+(setq tab-always-indent 'complete)
+(use-package company
+  :diminish company-mode
+  :bind(("M-C-/" . company-complete)
+        (:map company-mode-map
+              ( "M-/" . company-complete))
+         (:map company-active-map
+               ( "M-/" . company-other-backend)
+               ( "C-n" . company-select-next)
+               ( "C-p" . company-select-previous)
+               ("C-d" . company-show-doc-buffer)
+               ("M-." . company-show-location)))
+  :config
+  (dolist (backend '(company-eclim company-semantic))
+      (delq backend company-backends))
+  (setq-default company-dabbrev-other-buffers 'all
+                company-tooltip-align-annotations t)
+  (global-company-mode))
+(use-package company-quickhelp
+    :init (company-quickhelp-mode 1))
+#+end_src
+
+** Track Recent Files
+
+   When you perform =m-x b= you will see list of recent files
+   
+#+begin_src emacs-lisp
+(add-hook 'emacs-startup-hook 'recentf-mode)
+  (setq-default
+   recentf-max-saved-items 1000
+   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "bookmark.el"))
+#+end_src
+
+** Settings for hippie expand 
+   
+#+begin_src emacs-lisp
+(global-set-key (kbd "M-/") 'hippie-expand)
+(setq hippie-expand-try-functions-list
+      '(try-complete-file-name-partially
+        try-complete-file-name
+        try-expand-dabbrev
+        try-expand-dabbrev-all-buffers
+        try-expand-dabbrev-from-kill))
+#+end_src
+
+** Spelling
+   
+#+begin_src emacs-lisp
+(use-package ispell
+  :if (not (bound-and-true-p disable-pkg-ispell))
+  :defer 15
+  :config
+  (setq ispell-extra-args   '("--sug-mode=ultra"
+                                  "--lang=en_US"))
+  ;; Save a new word to personal dictionary without asking
+  (setq ispell-silently-savep t))
+(use-package flyspell
+    :init  (progn
+        ;; Below variables need to be set before `flyspell' is loaded.
+        (setq flyspell-use-meta-tab nil)
+        ;; Binding for `flyspell-auto-correct-previous-word'.
+        (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
+    :config  (progn
+        (add-hook 'prog-mode-hook #'flyspell-prog-mode)
+        (with-eval-after-load 'auto-complete
+          (ac-flyspell-workaround))
+        ;; https://github.com/larstvei/dot-emacs#flyspell
+        (add-hook 'text-mode-hook #'turn-on-flyspell)
+        (add-hook 'org-mode-hook  #'turn-on-flyspell)
+        (bind-keys
+         :map flyspell-mode-map
+         ;; Stop flyspell overriding other key bindings
+         ("C-," . nil)
+         ("C-." . nil)
+         ("<C-f12>" . flyspell-goto-next-error))))
+#+end_src
+
+*** Flycheck
+
+#+begin_src emacs-lisp
+(use-package flycheck
+  :defer t
+  :config
+    (setq flycheck-check-syntax-automatically '(mode-enabled save new-line)) ;to ignore idel flycheck
+   (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
+    (global-flycheck-mode 1))
 #+end_src
 
 * Multi Vterm
@@ -885,6 +1016,12 @@ Need to revisit now that I am using dirvish.
   (let ((inhibit-read-only t))
     (erase-buffer)
     (vterm-send-input)))
+#+end_src
+
+** don't ask to kill on exit
+
+#+begin_src emacs-lisp
+(setq confirm-kill-processes nil)
 #+end_src
 
 * Other
@@ -1000,130 +1137,12 @@ install ripgrep manually
 (global-set-key (kbd "C-x C-b") 'ibuffer)
 #+end_src
 
-** Flycheck
-#+begin_src emacs-lisp
-(use-package flycheck
-  :defer t
-  :config
-    (setq flycheck-check-syntax-automatically '(mode-enabled save new-line)) ;to ignore idel flycheck
-   (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
-    (global-flycheck-mode 1))
-#+end_src
-
-** Track Recent Files
-
-   When you perform =m-x b= you will see list of recent files
-   
-#+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook 'recentf-mode)
-  (setq-default
-   recentf-max-saved-items 1000
-   recentf-exclude '("/tmp/" "/ssh:"))
-#+end_src
-
-** Settings for hippie expand
-   
-#+begin_src emacs-lisp
-(global-set-key (kbd "M-/") 'hippie-expand)
-(setq hippie-expand-try-functions-list
-      '(try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill))
-#+end_src
-
-** Company completion framework
-   
-   Company is a text completion framework to retrieve and display completion candidates.
-
-#+begin_src emacs-lisp
-(setq tab-always-indent 'complete)
-(add-to-list 'completion-styles 'initials t)
-(use-package company
-  :diminish company-mode
-  :bind(("M-C-/" . company-complete)
-        (:map company-mode-map 
-              ( "M-/" . company-complete))    
-         (:map company-active-map
-               ( "M-/" . company-other-backend)  
-               ( "C-n" . company-select-next)    
-               ( "C-p" . company-select-previous)
-               ("C-d" . company-show-doc-buffer)
-               ("M-." . company-show-location)))
-  :config 
-  (dolist (backend '(company-eclim company-semantic))
-      (delq backend company-backends))
-  (setq-default company-dabbrev-other-buffers 'all
-                company-tooltip-align-annotations t)
-  (global-company-mode))
-(use-package company-quickhelp
-    :init (company-quickhelp-mode 1))
-#+end_src
-
 ** Multiple major modes
 #+begin_src emacs-lisp
-
-
   (use-package mmm-mode)
   (require 'mmm-auto)
   (setq mmm-global-mode 'buffers-with-submode-classes)
   (setq mmm-submode-decoration-level 2)
-
-
-#+end_src
-
-** General settings
-#+begin_src emacs-lisp
-(use-package unfill)
-(when (fboundp 'electric-pair-mode)
-  (add-hook 'after-init-hook 'electric-pair-mode))
-(when (eval-when-compile (version< "24.4" emacs-version))
-  (add-hook 'after-init-hook 'electric-indent-mode))
-(use-package list-unicode-display)
-
-(setq-default
- blink-cursor-interval 0.4
- bookmark-default-file (expand-file-name ".bookmarks.el" user-emacs-directory)
- buffers-menu-max-size 30
- case-fold-search t
- column-number-mode t
- delete-selection-mode t
- ediff-split-window-function 'split-window-horizontally
- ediff-window-setup-function 'ediff-setup-windows-plain
- indent-tabs-mode nil
- make-backup-files nil
- mouse-yank-at-point t
- save-interprogram-paste-before-kill t
- scroll-preserve-screen-position 'always
- set-mark-command-repeat-pop t
- tooltip-delay 1.5
- truncate-lines nil
- truncate-partial-width-windows nil)
-
-;;(add-hook 'after-init-hook 'global-auto-revert-mode)
-(use-package autorevert
-  :defer t
-  :diminish 'auto-revert-mode
-  :config
-  (setq global-auto-revert-non-file-buffers t
-      auto-revert-verbose nil)
-  )
-
-(add-hook 'after-init-hook 'transient-mark-mode)
-#+end_src
-
-** Huge files
-   
-#+begin_src emacs-lisp
-(use-package vlf)
-(defun ffap-vlf ()
-  "Find file at point with VLF."
-  (interactive)
-  (let ((file (ffap-file-at-point)))
-    (unless (file-exists-p file)
-      (error "File does not exist: %s" file))
-    (vlf file)))
 #+end_src
 
 ** Newline Behavior
@@ -1193,27 +1212,9 @@ install ripgrep manually
 ;;----------------------------------------------------------------------------
 (cua-selection-mode t)                  ; for rectangles, CUA is nice
 
-;;----------------------------------------------------------------------------
-;; Handy key bindings
-;;----------------------------------------------------------------------------
-(global-set-key (kbd "C-.") 'set-mark-command)
-(global-set-key (kbd "C-x C-.") 'pop-global-mark)
-
 (use-package avy
   :config
   (global-set-key (kbd "C-o") 'avy-goto-char-timer))
-
-(use-package multiple-cursors)
-;; multiple-cursors
-(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
-(global-set-key (kbd "C->") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-+") 'mc/mark-next-like-this)
-(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
-;; From active region to multiple cursors:
-(global-set-key (kbd "C-c m r") 'set-rectangular-region-anchor)
-(global-set-key (kbd "C-c m c") 'mc/edit-lines)
-(global-set-key (kbd "C-c m e") 'mc/edit-ends-of-lines)
-(global-set-key (kbd "C-c m a") 'mc/edit-beginnings-of-lines)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1302,6 +1303,22 @@ ORIG is the advised function, which is called with its ARGS."
     (apply orig args)))
 
 (advice-add 'kmacro-call-macro :around 'sanityinc/disable-features-during-macro-call)
+#+end_src
+
+*** Multi Cursor
+
+#+begin_src emacs-lisp
+(use-package multiple-cursors)
+;; multiple-cursors
+(global-set-key (kbd "C-<") 'mc/mark-previous-like-this)
+(global-set-key (kbd "C->") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-+") 'mc/mark-next-like-this)
+(global-set-key (kbd "C-c C-<") 'mc/mark-all-like-this)
+;; From active region to multiple cursors:
+(global-set-key (kbd "C-c m r") 'set-rectangular-region-anchor)
+(global-set-key (kbd "C-c m c") 'mc/edit-lines)
+(global-set-key (kbd "C-c m e") 'mc/edit-ends-of-lines)
+(global-set-key (kbd "C-c m a") 'mc/edit-beginnings-of-lines)
 #+end_src
 
 ** Symbol Overlay
@@ -1408,9 +1425,7 @@ ORIG is the advised function, which is called with its ARGS."
 #+begin_src emacs-lisp
   (setq-default compilation-scroll-output t)
   (use-package alert)
-
   ;; Customize `alert-default-style' to get messages after compilation
-
   (defun sanityinc/alert-after-compilation-finish (buf result)
     "Use `alert' to report compilation RESULT if BUF is hidden."
     (when (buffer-live-p buf)
@@ -1512,38 +1527,6 @@ ORIG is the advised function, which is called with its ARGS."
 (define-key paredit-mode-map (kbd "DEL") 'delete-backward-char)
 (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
   (define-key paredit-mode-map (read-kbd-macro binding) nil)))
-#+end_src
-
-** spelling
-   
-#+begin_src emacs-lisp
-(use-package ispell
-  :if (not (bound-and-true-p disable-pkg-ispell))
-  :defer 15
-  :config
-  (setq ispell-extra-args   '("--sug-mode=ultra"
-                                  "--lang=en_US"))
-  ;; Save a new word to personal dictionary without asking
-  (setq ispell-silently-savep t))
-(use-package flyspell
-    :init  (progn
-        ;; Below variables need to be set before `flyspell' is loaded.
-        (setq flyspell-use-meta-tab nil)
-        ;; Binding for `flyspell-auto-correct-previous-word'.
-        (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
-    :config  (progn
-        (add-hook 'prog-mode-hook #'flyspell-prog-mode)
-        (with-eval-after-load 'auto-complete
-          (ac-flyspell-workaround))
-        ;; https://github.com/larstvei/dot-emacs#flyspell
-        (add-hook 'text-mode-hook #'turn-on-flyspell)
-        (add-hook 'org-mode-hook  #'turn-on-flyspell)
-        (bind-keys
-         :map flyspell-mode-map
-         ;; Stop flyspell overriding other key bindings
-         ("C-," . nil)
-         ("C-." . nil)
-         ("<C-f12>" . flyspell-goto-next-error))))
 #+end_src
 
 ** projectile
@@ -1665,6 +1648,7 @@ window."
   
     )
   (setq org-log-done t
+        org-return-follows-link  t
         org-edit-timestamp-down-means-later t
         org-hide-emphasis-markers t
         org-catch-invisible-edits 'show
@@ -1902,7 +1886,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 ** Auto Save PDF Toggle
 
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
   (if (memq 'org-latex-export-to-pdf after-save-hook)
@@ -1952,7 +1936,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                (if (equal mode-line-format nil)
                    (default-value 'mode-line-format)) )
          (redraw-display))
-
   (define-minor-mode prose-mode
     "Set up a buffer for prose editing.
  This enables or modifies a number of settings so that the
@@ -1993,27 +1976,21 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    
 #+begin_src emacs-lisp
 (setq org-refile-use-cache nil)
-
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
 (setq org-refile-targets '((nil :maxlevel . 5) (org-agenda-files :maxlevel . 5)))
-
 (with-eval-after-load 'org-agenda
   (add-to-list 'org-agenda-after-show-hook 'org-show-entry))
-
 (advice-add 'org-refile :after (lambda (&rest _) (org-save-all-org-buffers)))
-
 ;; Exclude DONE state tasks from refile targets
 (defun sanityinc/verify-refile-target ()
   "Exclude todo keywords with a done state from refile targets."
   (not (member (nth 2 (org-heading-components)) org-done-keywords)))
 (setq org-refile-target-verify-function 'sanityinc/verify-refile-target)
-
 (defun sanityinc/org-refile-anywhere (&optional goto default-buffer rfloc msg)
   "A version of `org-refile' which allows refiling to any subtree."
   (interactive "P")
   (let ((org-refile-target-verify-function))
     (org-refile goto default-buffer rfloc msg)))
-
 (defun sanityinc/org-agenda-refile-anywhere (&optional goto rfloc no-update)
   "A version of `org-agenda-refile' which allows refiling to any subtree."
   (interactive "P")
@@ -2239,10 +2216,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
         TeX-source-correlate-start-server t)
   (setq-default TeX-master nil)
   (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-  ;; very important so that PDFView refesh itself after comilation
-  (add-hook 'TeX-after-compilation-finished-functions
-            #'TeX-revert-document-buffer)
-  (auctex-latexmk-setup))
+  )
 #+end_src
 
 *** Latex Classes And Bibtex
@@ -2349,10 +2323,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
 
 #+begin_src emacs-lisp
+(use-package consult-lsp  :ensure t )
 (use-package lsp-mode
   :straight t
   :init
-  (setq lsp-keymap-prefix "C-c l")
+  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
+  (setq lsp-keymap-prefix "C-.")
   ;; uncomment to enable gopls http debug server
   ;; :custom (lsp-gopls-server-args '("-debug" "127.0.0.1:0"))
   :commands (lsp lsp-deferred)
@@ -2361,6 +2337,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (lsp-rust-analyzer-server-display-inlay-hints t)
   :config (progn
             ;; use flycheck, not flymake
+            (define-key lsp-mode-map (kbd "C-.") lsp-command-map)
             (setq lsp-prefer-flymake nil)))
 #+end_src
 
@@ -2387,14 +2364,16 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    
 #+begin_src emacs-lisp
 (use-package go-mode
-  :config (progn
-            (setq compile-command "go build -v && go test -v -cover && go vet") 
-            )
+  :config
+  (progn
+    (setq compile-command "go build -v && go test -v -cover && go vet") )
+   (define-key go-mode-map (kbd "C-,") go-goto-map)
   :hook ((go-mode . lsp-deferred)
    (before-save . lsp-format-buffer)
    (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
-               ("C-c C-c" . compile))
+               ("C-c C-c" . compile)
+               )
   )
 #+end_src
 
