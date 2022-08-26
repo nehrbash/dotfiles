@@ -1,6 +1,6 @@
 #+TITLE:Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
-* Table of Contents                                                                                                                    :TOC:
+* Table of Contents :TOC:
 - [[#program-settings][Program Settings]]
   - [[#startup-performance][Startup Performance]]
   - [[#change-emacs-directory][Change Emacs Directory]]
@@ -64,7 +64,7 @@
   - [[#clock][Clock]]
   - [[#latex-fragments][Latex Fragments]]
   - [[#auto-save-pdf-toggle][Auto Save PDF Toggle]]
-  - [[#prose-mode][Prose Mode]]
+  - [[#writing-mode][Writing Mode]]
   - [[#refiling][Refiling]]
   - [[#to-do-settings][To Do Settings]]
   - [[#agenda-views][Agenda views]]
@@ -72,7 +72,6 @@
   - [[#automatically-tangle-on-save][Automatically "Tangle" on Save]]
   - [[#org-screenshot][Org Screenshot]]
   - [[#pdf-tools][PDF Tools]]
-  - [[#latex][Latex]]
   - [[#markdown][Markdown]]
   - [[#org-roam][Org Roam]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
@@ -90,7 +89,7 @@
 - [[#inspiration][Inspiration]]
 
 * Program Settings
-  
+
 ** Startup Performance
 
    Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time. Startup time is bad because I have stopped caring about startup time after switching to running Emacs as a daemon.
@@ -110,9 +109,9 @@
 #+end_src
 
 ** Straight package manager
-  
+
    Alternative to package.el closer to go.mod where it tracks packages to git commit versions. compatable with use-package. It only does pre-loading so just using straight may not fully load it.
-   
+
  #+begin_src emacs-lisp
 (setq straight-check-for-modifications '(check-on-save))
  (defvar bootstrap-version)
@@ -131,7 +130,7 @@
  (straight-use-package 'use-package)
  (setq straight-use-package-by-default t)
  #+end_src
- 
+
 ** Update Load Path
 
    Custom Emacs Lisp libraries which must be added to the load path. Currently only =init-windows.el= needs to be loaded.
@@ -143,8 +142,8 @@
 
 * Non-Configured Packages
 
-These are packages that don't require configurations.
-  
+  These are packages that don't require configurations.
+
 #+begin_src emacs-lisp
 (use-package org
   :straight org-contrib)
@@ -160,7 +159,7 @@ These are packages that don't require configurations.
 
 * Editing Utilities
 
-General editing configurations. 
+General editing configurations.
 
 ** Right Click Edit Menu
 
@@ -181,7 +180,7 @@ General editing configurations.
 #+end_src
 
 ** File Handler Functions
-   
+
 #+begin_src emacs-lisp
 (if (fboundp 'with-eval-after-load)
     (defalias 'after-load 'with-eval-after-load)
@@ -193,7 +192,7 @@ General editing configurations.
 #+END_SRC
 
 *** Handier way to add modes to auto-mode-alist
-    
+
 #+BEGIN_SRC emacs-lisp
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -202,7 +201,7 @@ General editing configurations.
 #+END_SRC
 
 *** String utilities missing from core emacs
-    
+
 #+BEGIN_SRC emacs-lisp
 (defun sanityinc/string-all-matches (regex str &optional group)
   "Find all matches for `REGEX' within `STR', returning the full match string or group `GROUP'."
@@ -216,7 +215,7 @@ General editing configurations.
 #+END_SRC
 
 *** Delete the current file
-    
+
 #+BEGIN_SRC emacs-lisp
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
@@ -231,7 +230,7 @@ General editing configurations.
 #+END_SRC
 
 *** Rename the current file
-    
+
 #+BEGIN_SRC emacs-lisp
 (defun rename-this-file-and-buffer (new-name)
   "Renames both current buffer and file it's visiting to NEW-NAME."
@@ -248,7 +247,7 @@ General editing configurations.
 #+END_SRC
 
 *** Frame-hooks
-    
+
 #+BEGIN_SRC emacs-lisp
 (defvar after-make-console-frame-hooks '()
   "Hooks to run after creating a new TTY frame")
@@ -271,7 +270,7 @@ General editing configurations.
 #+end_src
 
 ** Xterm Integration in terminals (Mouse)
-   
+
 #+begin_src emacs-lisp
   (global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
   (global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
@@ -289,7 +288,7 @@ General editing configurations.
 #+end_src
 
 ** Move & Duplicating Lines
-   
+
    Shift lines up and down with M-up and M-down. When paredit is enabled,
    it will use those keybindings. For this reason, you might prefer to
    use M-S-up and M-S-down, which will work even in lisp modes.
@@ -307,7 +306,7 @@ General editing configurations.
 ** Whole Line or Region
 
 Cut/copy the current line if no region is active.
-   
+
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
   :defer nil
@@ -320,7 +319,7 @@ Cut/copy the current line if no region is active.
 #+begin_src emacs-lisp
 (setq-default
  blink-cursor-interval 0.4
- bookmark-default-file (expand-file-name ".bookmarks.el" user-emacs-directory)
+ bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory)
  buffers-menu-max-size 30
  case-fold-search t
  column-number-mode t
@@ -336,9 +335,9 @@ Cut/copy the current line if no region is active.
  tooltip-delay 1.5
  truncate-lines nil
  truncate-partial-width-windows nil)
-(add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting 
+(add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 #+end_src
- 
+
 ** Auto  update file
 
 When A file changes on disk update Emacs.
@@ -375,7 +374,7 @@ Tramp was acting slow this helps.
 * UI
 
 ** Startup
-   
+
    The default buffer.
 
 #+begin_src emacs-lisp
@@ -390,7 +389,7 @@ Tramp was acting slow this helps.
   :config
   (dashboard-setup-startup-hook))
 #+end_src
-   
+
 ** Theme
 
 #+begin_src emacs-lisp
@@ -398,24 +397,24 @@ Tramp was acting slow this helps.
   :straight t
   :config
   (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-	    doom-themes-enable-italic t)     ; if nil, italics is universally disabled
+        doom-themes-enable-italic t)     ; if nil, italics is universally disabled
   (load-theme 'doom-one t)
   (doom-themes-org-config))
-;; to load theme properly when new client frame is created 
+;; to load theme properly when new client frame is created
 (add-hook 'after-make-frame-functions
             (lambda (frame)
               (with-selected-frame frame
-                (load-theme 'doom-one t)
-                )))
+                (load-theme 'doom-one t))))
 ;; Don't prompt to confirm theme safety. This avoids problems with
 ;; first-time startup on Emacs > 26.3.
 (setq custom-safe-themes t)
+(set-face-attribute 'highlight nil :background "#374854")
 #+end_src
 
 ** Dimmer
 
     Dim the unfocused buffer.
-    
+
 #+begin_src emacs-lisp
 (use-package dimmer
   :init (dimmer-mode)
@@ -431,18 +430,20 @@ Tramp was acting slow this helps.
 #+begin_src emacs-lisp
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
-  :custom ((doom-modeline-height 15)))
+  :custom (
+           (doom-modeline-vcs-max-length 30)
+           (doom-modeline-height 40)))
 #+end_src
 
 ** GUI Frames
 
    UI Features that are related to the Emacs GUI.
-   
+
 *** Fix Control-Z
 
     Stop C-z from minimizing windows under Linux.
-      
-#+begin_src emacs-lisp 
+
+#+begin_src emacs-lisp
 (defun sanityinc/maybe-suspend-frame ()
   (interactive)
   (if (display-graphic-p)
@@ -456,22 +457,15 @@ Tramp was acting slow this helps.
 *** GUI Features
 
 #+begin_src emacs-lisp
-(pixel-scroll-precision-mode t)
 (setq use-file-dialog nil)
 (setq use-dialog-box nil)
-(setq inhibit-startup-screen t)
-(set-fringe-mode '(nil . 0))
+(use-package unicode-fonts
+  :config (unicode-fonts-setup))
 #+END_SRC
 
 *** Window Size
-    
-#+BEGIN_SRC emacs-lisp
-;; Non-zero values for `line-spacing' can mess up ansi-term and co,
-;; so we zero it explicitly in those cases.
-(add-hook 'term-mode-hook
-          (lambda ()
-            (setq line-spacing 0)))
 
+#+BEGIN_SRC emacs-lisp
 ;; Change global font size easily
 (use-package default-text-scale)
 (add-hook 'after-init-hook 'default-text-scale-mode)
@@ -479,7 +473,7 @@ Tramp was acting slow this helps.
 #+end_src
 
 *** Frame Title
-    
+
 #+begin_src emacs-lisp
 (setq frame-title-format
       '((:eval (if (buffer-file-name)
@@ -504,11 +498,11 @@ Tramp was acting slow this helps.
 (setq bottom-divider-width 20)
 (set-window-buffer nil (current-buffer))
 #+end_src
-    
+
 ** Beacon
 
    A light up bar when scrolling.
-   
+
 #+begin_src emacs-lisp
 (use-package beacon
   :config
@@ -516,7 +510,6 @@ Tramp was acting slow this helps.
   (setq-default beacon-size 30)
   :init
   (beacon-mode 1))
-
 #+end_src
 
 ** Tabs
@@ -614,7 +607,7 @@ Tramp was acting slow this helps.
 * Dired
 
 Need to revisit now that I am using dirvish.
-  
+
 #+begin_src emacs-lisp
 (straight-use-package 'dirvish)
 (use-package dired
@@ -651,12 +644,12 @@ Need to revisit now that I am using dirvish.
               (interactive)
               (dired-omit-mode 1)
               (setq mode-line-format nil)
-              (hl-line-mode 1)))    
+              (hl-line-mode 1)))
 
   (use-package dired-ranger
     :defer t
     :config
-    (put 'dired-find-alternate-file 'disabled nil)   
+    (put 'dired-find-alternate-file 'disabled nil)
     (define-key dired-mode-map "b" 'dired-single-up-directory)
     (define-key dired-mode-map "f" 'dired-find-alternate-file)
     (define-key dired-mode-map "l" 'dired-single-buffer)
@@ -664,10 +657,10 @@ Need to revisit now that I am using dirvish.
     (define-key dired-mode-map "X" 'dired-ranger-move)
     (define-key dired-mode-map "H" 'dired-omit-mode)
     (define-key dired-mode-map "p" 'dired-ranger-paste))
-  
+
   (use-package dired-collapse
     :defer t)
-  
+
   (use-package all-the-icons-dired
     :defer t)
   (add-hook 'dired-mode-hook 'all-the-icons-dired-mode))
@@ -678,7 +671,7 @@ Need to revisit now that I am using dirvish.
   (define-key dired-mode-map "." #'dired-hide-dotfiles-mode)
   (setq dired-omit-files "^\\(?:\\..*\\|.*~\\)$"))
 
-;; ;; Hook 
+;; ;; Hook
 ;; up dired-x global bindings without loading it up-front
 (define-key ctl-x-map "\C-j" 'dired-jump)
 (define-key ctl-x-map "\C-d" 'dired-jump-other-window)
@@ -686,7 +679,7 @@ Need to revisit now that I am using dirvish.
 (use-package diff-hl  ; mark git change
   :config
   (after-load 'dired
-    (add-hook 'dired-mode-hook 'diff-hl-dired-mode)))  
+    (add-hook 'dired-mode-hook 'diff-hl-dired-mode)))
 #+end_src
 
 ** Openwith
@@ -712,14 +705,14 @@ Need to revisit now that I am using dirvish.
 * Minibuffer / Completion Framework
 
   Experimenting with new hype packages. replaces ivy and counsel aka completion framework.
-  
+
 #+BEGIN_SRC emacs-lisp
 (use-package vertico
-  :config 
+  :config
   :init (vertico-mode))
 (use-package embark
   :after vertico
-  :bind (("M-a" . embark-act) 
+  :bind (("M-a" . embark-act)
          :map vertico-map
              ("C-c C-o" . embark-export)
              ("C-c C-c" . embark-act)
@@ -740,28 +733,19 @@ Need to revisit now that I am using dirvish.
     (setq-local completion-styles '(substring orderless)))
   (add-hook 'minibuffer-setup-hook 'sanityinc/use-orderless-in-minibuffer))
 
+
 (use-package embark-consult
   :after (embark)
   :demand t
   :hook (embark-collect-mode . embark-consult-preview-minor-mode))
 (use-package consult-flycheck)
-
 (use-package affe
-  :after (orderless consult)
+  :bind ("M-?" . sn/affe-grep-at-point)
   :config
-
   (setq affe-regexp-function #'orderless-pattern-compiler
-        affe-highlight-function #'orderless--highlight)
-  ;; Manual preview key for `affe-grep'
-  (consult-customize affe-grep :preview-key (kbd "M-."))
-       (global-set-key (kbd "M-?") 'sanityinc/affe-grep-at-point)
-      ;; (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
-      ;;  (sanityinc/no-consult-preview affe-grep)
-(defun sanityinc/affe-grep-at-point (&optional dir initial)
-	(interactive (list prefix-arg (when-let ((s (symbol-at-point)))
-									  (symbol-name s))))
-	(affe-grep dir initial))
-  )
+        affe-highlight-function #'orderless--highlight))
+  ;; (consult-customize affe-grep :preview-key (kbd "M-."))
+  ;; -*- lexical-binding: t -*-
 (use-package savehist :init (savehist-mode))
 (use-package marginalia
   :after vertico
@@ -769,19 +753,24 @@ Need to revisit now that I am using dirvish.
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init (marginalia-mode))
+
+
+ (defun sn/affe-grep-at-point (&optional dir initial)
+    "affe-grep thing with currently selected symbol"
+    (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
+                                    (symbol-name s))))
+    (affe-grep dir initial))
+(global-set-key (kbd "C-r") 'sn/affe-grep-at-point)
+
+
 #+end_src
 
 ** Consult
 
 #+begin_src emacs-lisp
-(defmacro sanityinc/no-consult-preview (&rest cmds)
-	`(with-eval-after-load 'consult
-	   (consult-customize ,@cmds :preview-key (kbd "M-P"))))
 (use-package consult
   ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (
-         ( "M-?" . sanityinc/affe-grep-at-point)
-         ("C-s" . swiper-thing-at-point)       ;; orig. isearch
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
          ("C-c C-m" . consult-mode-command)
@@ -814,7 +803,7 @@ Need to revisit now that I am using dirvish.
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
-         ("M-s l" . consult-line)
+         ("M-s s" . consult-line)
          ("M-s m" . consult-multi-occur)
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)
@@ -826,14 +815,7 @@ Need to revisit now that I am using dirvish.
          ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
 
   :init
-  (sanityinc/no-consult-preview
-   consult-ripgrep
-   consult-git-grep consult-grep
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark)
   (setq-default consult-project-root-function 'projectile-project-root)
-  (sanityinc/no-consult-preview sanityinc/affe-grep-at-point)
-  (sanityinc/no-consult-preview affe-grep)
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
@@ -842,22 +824,19 @@ Need to revisit now that I am using dirvish.
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
-  ;; Optionally replace `completing-read-multiple' with an enhanced version.
-  (advice-add #'completing-read-multiple :override #'consult-completing-read-multiple)
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   :config
   (setq consult-narrow-key "<")
-  (setq consult-preview-key (kbd "M-."))
+  ;; (setq consult-preview-key (kbd "M-."))
   (consult-customize
    consult-theme
    :preview-key '(:debounce 0.2 any)
-   consult-ripgrep consult-git-grep consult-grep
+   consult-ripgrep consult-git-grep consult-grep consult-find
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   sanityinc/affe-grep-at-point affe-grep
-   :preview-key (kbd "M-.")))
+   sanityinc/affe-grep-at-point affe-grep))
 #+end_src
 
 *** consult directories
@@ -895,8 +874,8 @@ Need to revisit now that I am using dirvish.
 (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 #+end_src
 
-** Company 
-   
+** Company
+
    Company is a text completion framework to retrieve and display completion candidates.
 
 #+begin_src emacs-lisp
@@ -925,16 +904,16 @@ Need to revisit now that I am using dirvish.
 ** Track Recent Files
 
    When you perform =m-x b= you will see list of recent files
-   
+
 #+begin_src emacs-lisp
 (add-hook 'emacs-startup-hook 'recentf-mode)
   (setq-default
    recentf-max-saved-items 1000
-   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "bookmark.el"))
+   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "bookmark.el" "inbox.org" "project.org"))
 #+end_src
 
-** Settings for hippie expand 
-   
+** Settings for hippie expand
+
 #+begin_src emacs-lisp
 (global-set-key (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
@@ -946,7 +925,7 @@ Need to revisit now that I am using dirvish.
 #+end_src
 
 ** Spelling
-   
+
 #+begin_src emacs-lisp
 (use-package ispell
   :if (not (bound-and-true-p disable-pkg-ispell))
@@ -995,21 +974,22 @@ Need to revisit now that I am using dirvish.
   :straight t
   :config
   (setq vterm-buffer-name-string "%s")
+  (setq )
   :bind (
          ( "C-c t" . multi-vterm-dedicated-toggle)
          ( "M-t" . multi-vterm)
          :map vterm-mode-map
          ("C-c t" . multi-vterm-dedicated-toggle)
          ("M-w" . copy-region-as-kill)
-         ("C-b" . term-send-left)
-         ( "C-y" . vterm-yank)
-         ("C-f" . term-send-right)))
+         ( "C-y" . vterm-yank)))
 (add-hook 'vterm-mode-hook (lambda ()
                              (setq vterm-buffer-maximum-size 1000
                                    vterm-scroll-to-bottom-on-output t
                                    multi-vterm-scroll-show-maximum-output t
                                    multi-vterm-dedicated-select-after-open-p t
-                                   mode-line-format nil)))
+                                   mode-line-format nil
+                                   goto-address-mode t
+                                   cursor-type 'bar)))
 (defun vterm-clear-buffer ()
   "Clear terminal"
   (interactive)
@@ -1026,7 +1006,7 @@ Need to revisit now that I am using dirvish.
 
 * Other
 ** I-Search
-   
+
 #+begin_src emacs-lisp
 ;; Show number of matches while searching
 (use-package anzu
@@ -1065,24 +1045,19 @@ This is useful when followed by an immediate kill."
 ** Ripgrep
 
 grep using ripgrep
-install ripgrep manually
+install rg and ag manually
 
 #+begin_src emacs-lisp
-  (setq-default grep-highlight-matches t
-                grep-scroll-output t)
-  (use-package wgrep
-    :config
-     (dolist (key (list (kbd "C-c C-q") (kbd "w")))
-      (define-key grep-mode-map key 'wgrep-change-to-wgrep-mode)))
-  (when (and (executable-find "ag")
-             (use-package ag))
-    (use-package wgrep-ag
-      :bind("M-?" . ag-project)
-      :config
-      (setq-default ag-highlight-search t)))
-  (when (and (executable-find "rg")
-             (use-package rg))
-    (global-set-key (kbd "M-?") 'rg-project))
+(setq-default grep-highlight-matches t
+              grep-scroll-output t)
+(use-package wgrep
+  :config
+   (dolist (key (list (kbd "C-c C-q") (kbd "w")))
+    (define-key grep-mode-map key 'wgrep-change-to-wgrep-mode)))
+(when (executable-find "ag")
+           (use-package ag))
+  (when (executable-find "rg")
+    (use-package rg))
 #+end_src
 
 ** Ibuffer
@@ -1146,7 +1121,7 @@ install ripgrep manually
 #+end_src
 
 ** Newline Behavior
-   
+
 #+begin_src emacs-lisp
 (set 'ad-redefinition-action 'accept)
 (global-set-key (kbd "RET") 'newline-and-indent)
@@ -1229,7 +1204,7 @@ install ripgrep manually
 #+end_src
 
 *** Fix backward-up-list to understand quotes, see http://bit.ly/h7mdIL
-    
+
 #+begin_src emacs-lisp
 (defun sanityinc/backward-up-sexp (arg)
   "Jump up to the start of the ARG'th enclosing sexp."
@@ -1327,9 +1302,9 @@ ORIG is the advised function, which is called with its ARGS."
 (use-package symbol-overlay
   :diminish symbol-overlay-mode
   :bind (:map symbol-overlay-mode-map
-              ("M-i" . symbol-overlay-put)       
+              ("M-i" . symbol-overlay-put)
               ("M-I" . symbol-overlay-remove-all)
-              ("M-n" . symbol-overlay-jump-next) 
+              ("M-n" . symbol-overlay-jump-next)
               ("M-p" . symbol-overlay-jump-prev)))
   (dolist (hook '(org-mode hook prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook))
     (add-hook hook 'symbol-overlay-mode))
@@ -1338,7 +1313,7 @@ ORIG is the advised function, which is called with its ARGS."
 ** Whitespaces
 
    View and auto remove them.
-   
+
 #+begin_src emacs-lisp
 (setq-default show-trailing-whitespace nil)
 ;;; Whitespace
@@ -1356,7 +1331,7 @@ ORIG is the advised function, which is called with its ARGS."
 #+end_src
 
 ** Git & Version control support
-   
+
 #+begin_src emacs-lisp
 (use-package diff-hl
   :defer t
@@ -1421,7 +1396,7 @@ ORIG is the advised function, which is called with its ARGS."
 #+end_src
 
 ** Helpers for M-x compile
-   
+
 #+begin_src emacs-lisp
   (setq-default compilation-scroll-output t)
   (use-package alert)
@@ -1480,9 +1455,9 @@ ORIG is the advised function, which is called with its ARGS."
 #+end_src
 
 ** yasnippet
-   
+
 #+begin_src emacs-lisp
-  (use-package yasnippet                
+  (use-package yasnippet
     :straight t
     :config
     (setq yas-verbosity 1)                      ; No need to be so verbose
@@ -1530,7 +1505,7 @@ ORIG is the advised function, which is called with its ARGS."
 #+end_src
 
 ** projectile
-   
+
 #+begin_src emacs-lisp
 (use-package projectile
   :bind(:map projectile-mode-map ("C-c p" . projectile-command-map))
@@ -1543,7 +1518,7 @@ ORIG is the advised function, which is called with its ARGS."
 #+end_src
 
 ** misc
-   
+
 #+begin_src emacs-lisp
 (add-auto-mode 'tcl-mode "^Portfile\\'")
 (fset 'yes-or-no-p 'y-or-n-p)
@@ -1586,7 +1561,7 @@ ORIG is the advised function, which is called with its ARGS."
 #+end_src
 
 ** Improve window switching
-   
+
 #+begin_src emacs-lisp
 (require 'init-windows)
 (defun th/swap-window-buffers-by-dnd (drag-event)
@@ -1608,7 +1583,7 @@ window."
 (global-set-key (kbd "<C-drag-mouse-1>") #'th/swap-window-buffers-by-dnd)
 #+end_src
 
-** App launcher 
+** App launcher
 #+begin_src emacs-lisp
 (use-package counsel)
 (setq counsel-linux-app-format-function 'counsel-linux-app-format-function-name-pretty)
@@ -1617,12 +1592,12 @@ window."
    "Create and select a frame called emacs-run-launcher which consists only of a minibuffer and has specific dimensions. Run counsel-linux-app on that frame, which is an emacs command that prompts you to select an app and open it in a dmenu like behaviour. Delete the frame after that command has exited"
    (interactive)
    (with-selected-frame (make-frame '((name . "emacs-run-launcher")
-				       (minibuffer . only)
-				       (width . 120)
-				       (height . 11)))
+                       (minibuffer . only)
+                       (width . 120)
+                       (height . 11)))
      (unwind-protect
-	  (counsel-linux-app)
-	(delete-frame))))
+      (counsel-linux-app)
+    (delete-frame))))
 #+end_src
 
 * Org Mode
@@ -1630,45 +1605,44 @@ window."
   Text based writing.
 
 ** General Configure
-   
-#+begin_src emacs-lisp
-  (provide 'org-version)
-  (use-package org
-    :straight org-contrib
-    :bind (
-           (:map org-mode-map
-                 ( "C-M-<up>" . org-up-element)))
-    :config
-    (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-    (require 'ox-extra)
-    ;; (ox-extras-activate '(latex-header-blocks ignore-headlines))
 
-    (setq org-src-tab-acts-natively t)
-    (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f"))
-  
-    )
-  (setq org-log-done t
+#+begin_src emacs-lisp
+(provide 'org-version)
+(use-package org
+  :straight org-contrib
+  :bind (("C-c a" .  gtd)
+         (:map org-mode-map
+               ( "C-M-<up>" . org-up-element)))
+  :config
+  (defun gtd () (interactive) (org-agenda 'nil "g"))
+  (require 'ox-extra)
+  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
+  (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f")
+        org-src-tab-acts-natively t
+        org-log-done t
         org-return-follows-link  t
         org-edit-timestamp-down-means-later t
         org-hide-emphasis-markers t
-        org-catch-invisible-edits 'show
+        org-catch-invisible-edits 'show-and-error
         org-export-coding-system 'utf-8
         org-fast-tag-selection-single-key 'expert
         org-html-validation-link nil
         org-image-actual-width nil
-        ;;org-adapt-indentation nil
+        org-adapt-indentation t
         org-edit-src-content-indentation 0
-        org-export-kill-product-buffer-when-displayed t
+        org-auto-align-tags nil
         org-tags-column 0
+        org-special-ctrl-a/e t
+        org-insert-heading-respect-content t
         org-startup-folded t
         org-startup-with-inline-images t
-        org-archive-mark-done nil
+        org-pretty-entities t
         org-archive-location "%s_archive::* Archive")
-(defun gtd () (interactive) (org-agenda 'nil "g"))
-  (use-package org-cliplink
-    :bind (
-           ("C-c l" . org-store-link)
-           ("C-c a" .  gtd)))
+  ;; Agenda styling
+  org-agenda-tags-column 0)
+(use-package org-cliplink
+  :bind (("C-c l" . org-store-link)))
+
 #+end_src
 
 ** Org Appear
@@ -1705,13 +1679,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Capturing
-   
+
 #+BEGIN_SRC emacs-lisp
 (global-set-key (kbd "C-c c") 'org-capture)
 ;; (setq org-capture-templates
 ;;       '(("t" "Todo" entry (file+headline "" "Inbox") ;"" => `org-default-notes-file'
 ;;          "** TODO %?\n  %i\n  %a":clock-resume t)
-;;         ("c" "CURRENT" entry (clock) 
+;;         ("c" "CURRENT" entry (clock)
 ;;          "%U\n" :clock-resume t)
 ;;         ("j" "Journal" entry (file+olp+datetree "~/doc/status/journal.org")
 ;;          "* %?\nEntered on %U\n  %i\n  %a":clock-resume t)
@@ -1720,7 +1694,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       `(("e" "Next" entry (file "")  ; "" => `org-default-notes-file'
          "* NEXT %?\n%U\n" :clock-resume t)
         ("t" "todo" entry (file "")
-	     "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
+         "* TODO %?\n%u\n%a\n" :clock-in t :clock-resume t)
         ("n" "note" entry (file "")
          "* %? :NOTE:\n%U\n%a\n" :clock-resume t)
         ))
@@ -1747,8 +1721,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :defer t
   :hook (org-mode . org-bullets-mode)
   :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●")) 
-  :init  (setq org-ellipsis " ↩"))
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
+  :init  (setq org-ellipsis " ⮟"))
 (add-hook 'org-mode-hook   (lambda ()
             (push '("[ ]" .  "☐") prettify-symbols-alist)
             (push '("[X]" . "☑" ) prettify-symbols-alist)
@@ -1778,7 +1752,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 ** Pomodoro Timer
 
    https://colekillian.com/posts/org-pomodoro-and-polybar/
-   
+
 #+begin_src emacs-lisp
 (use-package org-pomodoro
   :commands (org-pomodoro)
@@ -1830,11 +1804,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Clock
-   
+
    PDFs visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
 
 #+begin_src emacs-lisp
-(defvar sanityinc/org-global-prefix-map (make-sparse-keymap) 
+(defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
 (define-key sanityinc/org-global-prefix-map (kbd "j") 'org-clock-goto)
 (define-key sanityinc/org-global-prefix-map (kbd "l") 'org-clock-in-last)
@@ -1876,7 +1850,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Latex Fragments
-   
+
 #+begin_src emacs-lisp
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode)
@@ -1906,7 +1880,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
     (message "Enabled org html export on save for current buffer...")))
 #+end_src
 
-** Prose Mode
+** Writing Mode
 
 #+begin_src emacs-lisp
 (use-package org-pretty-table
@@ -1919,8 +1893,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                ("C-M-<" . writeroom-decrease-width)
                ("C-M->" . writeroom-increase-width))
          (:map org-mode-map
-               ("C-c v" . prose-mode)))
-  :hook (org-mode . prose-mode)
+               ("C-c v" . wr-mode)))
+  :hook (org-mode . wr-mode)
   :config
   (setq writeroom-width 140
         writeroom-mode-line nil
@@ -1936,13 +1910,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                (if (equal mode-line-format nil)
                    (default-value 'mode-line-format)) )
          (redraw-display))
-  (define-minor-mode prose-mode
-    "Set up a buffer for prose editing.
+  (define-minor-mode wr-mode
+    "Set up a buffer for word editing.
  This enables or modifies a number of settings so that the
- experience of editing prose is a little more like that of a
+ experience of word processing is a little more like that of a
  typical word processor."
-    :interactive nil " Prose" nil
-    (if prose-mode
+   :interactive t " Writing" nil
+    (if wr-mode
         (progn
           (when (fboundp 'writeroom-mode)
             (writeroom-mode 1))
@@ -1952,7 +1926,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
           (when (eq major-mode 'org)
             (kill-local-variable 'buffer-face-mode-face))
           (buffer-face-mode 1)
-          (setq-local blink-cursor-interval 0.6)
+          (setq-local blink-cursor-interval 0.8)
           (setq-local show-trailing-whitespace nil)
           (setq-local line-spacing 0.2)
           (setq-local electric-pair-mode nil)
@@ -1970,10 +1944,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (visual-line-mode -1)
       (when (fboundp 'writeroom-mode)
         (writeroom-mode 0)))))
+
 #+end_src
 
 ** Refiling
-   
+
 #+begin_src emacs-lisp
 (setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
@@ -2113,8 +2088,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   "Launch emacs agenda as new frame."
   (interactive)
   (with-selected-frame (make-frame '((name . "emacs-agenda")
-				     (width . 115)
-				     (height . 25)))
+                     (width . 115)
+                     (height . 25)))
    (gtd)
    (local-set-key (kbd "q") '(lambda ()
             (interactive)
@@ -2124,10 +2099,10 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Table of Contents
-   
+
    It's nice to have a table of contents section for long literate configuration files (like this one!) so I use =toc-org= to automatically update the TOC in any header with a property named =TOC=. Simply add a =:TOC:= tag to the header you want to be the table of contents. there are many TOC packages but I have found this one as it works in org files and rendered on GitLab.
    *Note:* This package can also be used for markdown but is not configured for it.
-   
+
 #+begin_src emacs-lisp
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
@@ -2158,7 +2133,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 ** PDF Tools
 
    Better PDF viewer, lots of cool stuff.
-   
+
 #+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :magic ("%PDF" . pdf-view-mode)
@@ -2172,92 +2147,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
          :map pdf-view-mode-map
          ("h" . pdf-annot-add-highlight-markup-annotation)
          ("t" . pdf-annot-add-text-annotation)
-         ("D" . pdf-annot-delete))
-  )
+         ("D" . pdf-annot-delete)))
 #+END_SRC
 
-** Latex
-   
-   Configure for emacs latex
-   
-#+begin_src emacs-lisp
-(use-package latex
-  :straight (auctex auctex-latexmk company-math company-auctex cdlatex)
-  :defer t
-  :custom
-  (cdlatex-simplify-sub-super-scripts nil)
-  (reftex-default-bibliography
-   '("~/doc/references.bib"))
-  (bibtex-dialect 'biblatex)
-  :mode
-  ("\\.tex\\'" . latex-mode)
-  :bind (:map LaTeX-mode-map
-              ("C-c C-e" . cdlatex-environment)
-              )
-  :hook
-  (LaTeX-mode . outline-minor-mode)
-  (LaTeX-mode . TeX-PDF-mode)
-  (LaTeX-mode . company-mode)
-  (LaTeX-mode . flyspell-mode)
-  (LaTeX-mode . flycheck-mode)
-  (LaTeX-mode . LaTeX-math-mode)
-  (LaTeX-mode . turn-on-reftex)
-  (LaTeX-mode . TeX-source-correlate-mode)
-  (LaTeX-mode . try/latex-mode-setup)
-  (LaTeX-mode . turn-on-cdlatex)
-
-  :config
-  (setq TeX-auto-save t
-        TeX-parse-self t
-        TeX-save-query nil
-        reftex-plug-into-AUCTeX t
-        TeX-view-program-selection '((output-pdf "PDF Tools"))
-        TeX-view-program-list '(("PDF Tools" TeX-pdf-tools-sync-view))
-        TeX-source-correlate-start-server t)
-  (setq-default TeX-master nil)
-  (setq auctex-latexmk-inherit-TeX-PDF-mode t)
-  )
-#+end_src
-
-*** Latex Classes And Bibtex
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'ox-latex
-  (add-to-list 'org-latex-classes
-               '("new-aiaa"
-                 "\\documentclass{new-aiaa}
-          [NO-DEFAULT-PACKAGES]
-          [PACKAGES]
-          [EXTRA]"
-                 ("\\section{%s}" . "\\section*{%s}")
-                 ("\\subsection{%s}" . "\\subsection*{%s}")
-                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}")))
-  (add-to-list 'org-latex-classes
-               '("org-article"
-                 "\\documentclass{org-article}
-       [NO-DEFAULT-PACKAGES]
-       [PACKAGES]
-       [EXTRA]"
-                 ("\\section{%s}" . "\\section*{%s}")
-                 ("\\subsection{%s}" . "\\subsection*{%s}")
-                 ("\\subsubsection{%s}" . "\\subsubsection*{%s}")
-                 ("\\paragraph{%s}" . "\\paragraph*{%s}")
-                 ("\\subparagraph{%s}" . "\\subparagraph*{%s}"))))
-
-;; (require-package 'org-ref)
-;; (setq org-ref-bibliography-notes "~/doc/references/notes.org"
-;;       reftex-default-bibliography '("~/doc/references/references.bib")
-;;       org-ref-default-bibliography '("~/doc/references/references.bib")
-;;       org-ref-pdf-directory "~/doc/references/bibtex-pdfs/")
-;; (setq bibtex-completion-bibliography "~/doc/references/references.bib"
-;;       bibtex-completion-library-path "~/doc/references/bibtex-pdfs"
-;;       bibtex-completion-notes-path "~/doc/references/helm-bibtex-notes")
-#+end_src
 
 ** Markdown
-   
+
 #+begin_src emacs-lisp
 (use-package markdown-mode
   :config
@@ -2317,7 +2212,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 #+end_src
 
-* Code Languages & File Modes 
+* Code Languages & File Modes
 ** LSP-Mode
 
    We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
@@ -2359,9 +2254,9 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Go
-   
+
    Don't forget to install golsp =go get golang.org/x/tools/gopls@latest=
-   
+
 #+begin_src emacs-lisp
 (use-package go-mode
   :config
@@ -2435,7 +2330,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
    install server pip install -U jedi-language-server
    currently breaks lsp-mode for all lsp servers...
-   
+
 #+begin_src emacs
    (use-package lsp-jedi
      :straight t
@@ -2452,7 +2347,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+end_src
 
 ** CSV
-   
+
 #+begin_src emacs-lisp
   (use-package csv-mode)
   (add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
@@ -2460,7 +2355,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+end_src
 
 ** yaml
-   
+
 #+begin_src emacs-lisp
   (use-package yaml-mode
     :config
@@ -2469,7 +2364,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+end_src
 
 ** Docker
-   
+
 #+begin_src emacs-lisp
   (use-package docker
     :config
@@ -2491,7 +2386,6 @@ Dial the GC threshold back down so that garbage collection happens more frequent
 #+end_src
 
 * Inspiration
-
   [[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] has a good list of packages and themes to check out.
 
 Other dotfiles repos and blog posts for inspiration:
@@ -2504,8 +2398,3 @@ Other dotfiles repos and blog posts for inspiration:
 
 
 And of course [[https://systemcrafters.cc/][System Crafters]] !!!
-
-
-
-
-

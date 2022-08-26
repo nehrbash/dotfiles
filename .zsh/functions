@@ -24,3 +24,11 @@ if type swiperd > /dev/null; then
         builtin cd "$(swiperd)" && swiperd -a
     }
 fi
+
+ssh-delete-host () {
+    if [ -z $1 ]; then
+        echo "give a line to delete"
+    else
+        sed -i "${1}d" ~/.ssh/known_hosts
+    fi
+}
