@@ -1644,11 +1644,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
   :init  (setq org-ellipsis " ⮟"))
 (add-hook 'org-mode-hook   (lambda ()
-            (push '("[ ]" .  "☐") prettify-symbols-alist)
-            (push '("[X]" . "☑" ) prettify-symbols-alist)
-            (push '("#+TITLE:" . "") prettify-symbols-alist)
-            (push '("#+title: " . "") prettify-symbols-alist)
-            (prettify-symbols-mode)))
+                             (push '("[ ]" .  "☐") prettify-symbols-alist)
+                             (push '("[X]" . "☑" ) prettify-symbols-alist)
+                             (push '("#+TITLE:" . "") prettify-symbols-alist)
+                             (push '("#+title: " . "") prettify-symbols-alist)
+                             (prettify-symbols-mode)))
 (with-eval-after-load 'org
   ;; This is needed as of Org 9.2
   (require 'org-tempo)
@@ -1805,7 +1805,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (use-package org-pretty-table
   :straight (:host github :repo "Fuco1/org-pretty-table"
                    :branch "master")
-  :demand t
   :hook (org-mode . org-pretty-table-mode))
 (use-package writeroom-mode
   :bind ((:map writeroom-mode-map
@@ -1849,7 +1848,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
           (setq-local show-trailing-whitespace nil)
           (setq-local line-spacing 0.2)
           (setq-local electric-pair-mode nil)
-}          (ignore-errors (flyspell-mode 1))
+          (ignore-errors (flyspell-mode 1))
           (visual-line-mode 1))
       (kill-local-variable 'truncate-lines)
       (kill-local-variable 'word-wrap)
