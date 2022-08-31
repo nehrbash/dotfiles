@@ -488,106 +488,106 @@ Tramp was acting slow this helps.
 
    A light up bar when scrolling.
 
-   #+begin_src emacs-lisp
-   (use-package beacon
-     :config
-     (setq-default beacon-lighter "")
-     (setq-default beacon-size 30)
-     :init
-     (beacon-mode 1))
-   #+end_src
+#+begin_src emacs-lisp
+(use-package beacon
+  :config
+  (setq-default beacon-lighter "")
+  (setq-default beacon-size 30)
+  :init
+  (beacon-mode 1))
+#+end_src
 
 ** Tabs
 
-   #+begin_src emacs-lisp
-   (use-package centaur-tabs
-     :demand
-     :config
-     (setq centaur-tabs-style "slant"
-           centaur-tabs-height 32
-           centaur-tabs-set-icons t
-           centaur-tabs-set-modified-marker t
-           centaur-tabs-show-navigation-buttons t
-           centaur-tabs-set-bar 'under
-           uniquify-buffer-name-style 'forward
-           x-underline-at-descent-line t)
-     (centaur-tabs-headline-match)
-     ;; (centaur-tabs-mode t)
-     (setq uniquify-separator "/")
-     (setq uniquify-buffer-name-style 'forward)
-     (defun centaur-tabs-buffer-groups ()
-       "`centaur-tabs-buffer-groups' control buffers' group rules.
+#+begin_src emacs-lisp
+(use-package centaur-tabs
+  :demand
+  :config
+  (setq centaur-tabs-style "slant"
+        centaur-tabs-height 32
+        centaur-tabs-set-icons t
+        centaur-tabs-set-modified-marker t
+        centaur-tabs-show-navigation-buttons t
+        centaur-tabs-set-bar 'under
+        uniquify-buffer-name-style 'forward
+        x-underline-at-descent-line t)
+  (centaur-tabs-headline-match)
+  ;; (centaur-tabs-mode t)
+  (setq uniquify-separator "/")
+  (setq uniquify-buffer-name-style 'forward)
+  (defun centaur-tabs-buffer-groups ()
+    "`centaur-tabs-buffer-groups' control buffers' group rules.
 
-   Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
-   All buffer name start with * will group to \"Emacs\".
-   Other buffer group by `centaur-tabs-get-group-name' with project name."
-       (list
-        (cond
+Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
+All buffer name start with * will group to \"Emacs\".
+Other buffer group by `centaur-tabs-get-group-name' with project name."
+    (list
+     (cond
 
-         ((derived-mode-p 'prog-mode)
-          "Editing")
-         ((derived-mode-p 'vterm-mode)
-          "Term")
-         ((derived-mode-p 'dired-mode)
-          "Dired")
-         ((memq major-mode '(helpful-mode
-                             help-mode))
-          "Help")
-         ((or (string-equal "*" (substring (buffer-name) 0 1))
-              (memq major-mode '(magit-process-mode
-                                 magit-status-mode
-                                 magit-diff-mode
-                                 magit-log-mode
-                                 magit-file-mode
-                                 magit-blob-mode
-                                 magit-blame-mode
-                                 )))
-          "Emacs")
-         ((memq major-mode '(org-mode
-                             org-agenda-clockreport-mode
-                             org-src-mode
-                             org-agenda-mode
-                             org-beamer-mode
-                             org-indent-mode
-                             org-bullets-mode
-                             org-cdlatex-mode
-                             org-agenda-log-mode
-                             diary-mode))
-          "OrgMode")
-         (t
-          (centaur-tabs-get-group-name (current-buffer))))))
-     (defun centaur-tabs-hide-tab (x)
-       "Do no to show buffer X in tabs."
-       (let ((name (format "%s" x)))
-         (or
-          ;; Current window is not dedicated window.
-          (window-dedicated-p (selected-window))
+      ((derived-mode-p 'prog-mode)
+       "Editing")
+      ((derived-mode-p 'vterm-mode)
+       "Term")
+      ((derived-mode-p 'dired-mode)
+       "Dired")
+      ((memq major-mode '(helpful-mode
+                          help-mode))
+       "Help")
+      ((or (string-equal "*" (substring (buffer-name) 0 1))
+           (memq major-mode '(magit-process-mode
+                              magit-status-mode
+                              magit-diff-mode
+                              magit-log-mode
+                              magit-file-mode
+                              magit-blob-mode
+                              magit-blame-mode
+                              )))
+       "Emacs")
+      ((memq major-mode '(org-mode
+                          org-agenda-clockreport-mode
+                          org-src-mode
+                          org-agenda-mode
+                          org-beamer-mode
+                          org-indent-mode
+                          org-bullets-mode
+                          org-cdlatex-mode
+                          org-agenda-log-mode
+                          diary-mode))
+       "OrgMode")
+      (t
+       (centaur-tabs-get-group-name (current-buffer))))))
+  (defun centaur-tabs-hide-tab (x)
+    "Do no to show buffer X in tabs."
+    (let ((name (format "%s" x)))
+      (or
+       ;; Current window is not dedicated window.
+       (window-dedicated-p (selected-window))
 
-          ;; Buffer name not match below blacklist.
-          (string-prefix-p "*epc" name)
-          (string-prefix-p "*helm" name)
-          (string-prefix-p "*Helm" name)
-          (string-prefix-p "*Compile-Log*" name)
-          (string-prefix-p "*lsp" name)
-          (string-prefix-p "*company" name)
-          (string-prefix-p "*Flycheck" name)
-          (string-prefix-p "*tramp" name)
-          (string-prefix-p " *Mini" name)
-          (string-prefix-p "*help" name)
-          (string-prefix-p "*straight" name)
-          (string-prefix-p " *temp" name)
-          (string-prefix-p "*Help" name)
-          (string-prefix-p "*mybuf" name)
-          (string-prefix-p "*Messages" name)
+       ;; Buffer name not match below blacklist.
+       (string-prefix-p "*epc" name)
+       (string-prefix-p "*helm" name)
+       (string-prefix-p "*Helm" name)
+       (string-prefix-p "*Compile-Log*" name)
+       (string-prefix-p "*lsp" name)
+       (string-prefix-p "*company" name)
+       (string-prefix-p "*Flycheck" name)
+       (string-prefix-p "*tramp" name)
+       (string-prefix-p " *Mini" name)
+       (string-prefix-p "*help" name)
+       (string-prefix-p "*straight" name)
+       (string-prefix-p " *temp" name)
+       (string-prefix-p "*Help" name)
+       (string-prefix-p "*mybuf" name)
+       (string-prefix-p "*Messages" name)
 
-          ;; Is not magit buffer.
-          (and (string-prefix-p "magit" name)
-               (not (file-name-extension name))))))
-     :bind
-     ("C-c x b" . centaur-tabs-backward)
-     ("C-c x f" . centaur-tabs-forward)
-     ("C-c x s" . centaur-tabs-counsel-switch-group))
-   #+end_src
+       ;; Is not magit buffer.
+       (and (string-prefix-p "magit" name)
+            (not (file-name-extension name))))))
+  :bind
+  ("C-c x b" . centaur-tabs-backward)
+  ("C-c x f" . centaur-tabs-forward)
+  ("C-c x s" . centaur-tabs-counsel-switch-group))
+#+end_src
 
 * Dired
 
@@ -1862,7 +1862,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (visual-line-mode -1)
       (when (fboundp 'writeroom-mode)
         (writeroom-mode 0)))))
-#+end_src emacs-lisp
+#+end_src
 
 ** Refiling
 
@@ -2279,9 +2279,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 ** yaml
 
 #+begin_src emacs-lisp
-  (use-package yaml-mode
-    :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
-    :hook (yaml-mode-hook .goto-address-prog-mode))
+(use-package yaml-mode
+  :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
+  :hook (yaml-mode-hook .goto-address-prog-mode))
 #+end_src
 
 ** Docker
