@@ -1,10 +1,7 @@
 #+TITLE:Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
 * Table of Contents :TOC:
-- [[#program-settings][Program Settings]]
-  - [[#startup-performance][Startup Performance]]
-  - [[#change-emacs-directory][Change Emacs Directory]]
-  - [[#straight-package-manager][Straight package manager]]
+- [[#straight-package-manager][Straight Package Manager]]
   - [[#update-load-path][Update Load Path]]
 - [[#non-configured-packages][Non-Configured Packages]]
 - [[#editing-utilities][Editing Utilities]]
@@ -15,9 +12,10 @@
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line or Region]]
 - [[#general-settings][General Settings]]
-  - [[#auto--update-file][Auto  update file]]
+  - [[#auto-update-file][Auto update file]]
   - [[#electri-pair][Electri Pair]]
   - [[#faster-tramp][Faster TRAMP]]
+  - [[#init-path-environment-variable][Init PATH environment variable]]
 - [[#ui][UI]]
   - [[#startup][Startup]]
   - [[#theme][Theme]]
@@ -27,7 +25,6 @@
   - [[#beacon][Beacon]]
   - [[#tabs][Tabs]]
 - [[#dired][Dired]]
-  - [[#openwith][Openwith]]
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
   - [[#company][Company]]
@@ -75,6 +72,7 @@
   - [[#markdown][Markdown]]
   - [[#org-roam][Org Roam]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
+  - [[#tree-sitter][Tree sitter]]
   - [[#lsp-mode][LSP-Mode]]
   - [[#lsp-ui][LSP-UI]]
   - [[#go][Go]]
@@ -88,29 +86,9 @@
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
-* Program Settings
+* Straight Package Manager
 
-** Startup Performance
-
-   Make startup faster by reducing the frequency of garbage collection and then use a hook to measure Emacs startup time. Startup time is bad because I have stopped caring about startup time after switching to running Emacs as a daemon.
-
-   #+begin_src emacs-lisp
-  ;; The default is 800 kilobytes.  Measured in bytes.
-  ;; Profile emacs startup
-#+end_src
-
-** Change Emacs Directory
-
-   I don't want a bunch of transient files showing up as untracked in the Git repo so I move them all to another location.
-
-#+begin_src emacs-lis
-(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
-      url-history-file (expand-file-name "url/history" user-emacs-directory))
-#+end_src
-
-** Straight package manager
-
-   Alternative to package.el closer to go.mod where it tracks packages to git commit versions. compatable with use-package. It only does pre-loading so just using straight may not fully load it.
+   Alternative to *package.el* closer to go.mod where it tracks packages to git commit versions. compatable with use-package. It only does pre-loading so just using straight may not fully load it.
 
  #+begin_src emacs-lisp
 (setq straight-check-for-modifications '(check-on-save))
@@ -133,11 +111,11 @@
 
 ** Update Load Path
 
-   Custom Emacs Lisp libraries which must be added to the load path. Currently only =init-windows.el= needs to be loaded.
+   Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
 
 #+begin_src emacs-lisp
 (push "~/.emacs.d/lisp" load-path)
-(use-package no-littering) ;; Use no-littering to automatically set common paths to the new user-emacs-directory
+(use-package no-littering)
 #+end_src
 
 * Non-Configured Packages
@@ -147,14 +125,12 @@
 #+begin_src emacs-lisp
 (use-package org
   :straight org-contrib)
-  (use-package general)
-  (use-package git-gutter-fringe)
-  (use-package diminish)
-  (use-package gnuplot)
-  (use-package htmlize)
-  (use-package dsvn)
-  (use-package daemons)
-(use-package hide-mode-line)
+(use-package general)
+(use-package diminish)
+(use-package gnuplot)
+(use-package htmlize)
+(use-package dsvn)
+(use-package daemons)
 #+end_src
 
 * Editing Utilities
@@ -311,7 +287,7 @@ Cut/copy the current line if no region is active.
 (use-package whole-line-or-region
   :defer nil
   :config (whole-line-or-region-global-mode t)
-  :bind ("M-j". comment-indent))
+  :bind ("M-j". comment-dwim))
 #+end_src
 
 * General Settings
@@ -323,7 +299,6 @@ Cut/copy the current line if no region is active.
  buffers-menu-max-size 30
  case-fold-search t
  column-number-mode t
- delete-selection-mode t
  ediff-split-window-function 'split-window-horizontally
  ediff-window-setup-function 'ediff-setup-windows-plain
  indent-tabs-mode nil
@@ -335,10 +310,11 @@ Cut/copy the current line if no region is active.
  tooltip-delay 1.5
  truncate-lines nil
  truncate-partial-width-windows nil)
+( delete-selection-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 #+end_src
 
-** Auto  update file
+** Auto update file
 
 When A file changes on disk update Emacs.
 #+begin_src emacs-lisp
@@ -368,8 +344,15 @@ Tramp was acting slow this helps.
       (format "%s\\|%s"
                     vc-ignore-dir-regexp
                     tramp-file-name-regexp))
-;; (setq tramp-verbose 1)
 #+end_src
+
+** Init PATH environment variable
+
+#+begin_src emacs-lisp
+(use-package exec-path-from-shell
+  :config (exec-path-from-shell-initialize))
+#+end_src
+
 
 * UI
 
@@ -380,6 +363,7 @@ Tramp was acting slow this helps.
 #+begin_src emacs-lisp
 (setq initial-major-mode 'org-mode)
 (setq initial-scratch-message nil)
+(setq visible-bell 1)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -387,6 +371,8 @@ Tramp was acting slow this helps.
   :straight t
   :ensure t
   :config
+  (setq dashboard-startup-banner "~/Pictures/gopherMe_small.png")
+  (setq dashboard-projects-backend 'projectile)
   (dashboard-setup-startup-hook))
 #+end_src
 
@@ -682,26 +668,6 @@ Need to revisit now that I am using dirvish.
     (add-hook 'dired-mode-hook 'diff-hl-dired-mode)))
 #+end_src
 
-** Openwith
-
-#+begin_src emacs-lisp
-  (use-package openwith
-  :ensure t
-  :config
-  (setq openwith-associations
-        (cond
-         ((string-equal system-type "darwin")
-          '(("\\.\\(dmg\\|doc\\|docs\\|xls\\|xlsx\\)$"
-             "open" (file))
-            ("\\.\\(mp4\\|mp3\\|webm\\|avi\\|flv\\|mov\\)$"
-             "open" ("-a" "VLC" file))))
-         ((string-equal system-type "gnu/linux")
-          '(("\\.\\(mp4\\|mp3\\|webm\\|avi\\|flv\\|mov\\)$"
-             "xdg-open" (file))))))
-  (openwith-mode +1))
-
-#+end_src
-
 * Minibuffer / Completion Framework
 
   Experimenting with new hype packages. replaces ivy and counsel aka completion framework.
@@ -726,26 +692,19 @@ Need to revisit now that I am using dirvish.
 
 (use-package orderless
   :init
-  (setq completion-styles '(orderless  basic) ;; substring
+  (setq completion-styles '(orderless  basic)
         completion-category-defaults nil
         completion-category-overrides '((file (styles basic partial-completion))))
-  (defun sanityinc/use-orderless-in-minibuffer ()
-    (setq-local completion-styles '(substring orderless)))
-  (add-hook 'minibuffer-setup-hook 'sanityinc/use-orderless-in-minibuffer))
-
-
 (use-package embark-consult
   :after (embark)
   :demand t
-  :hook (embark-collect-mode . embark-consult-preview-minor-mode))
+  :hook (embark-collect-mode . embark-consult-preview-minor-mode)))
 (use-package consult-flycheck)
 (use-package affe
   :bind ("M-?" . sn/affe-grep-at-point)
   :config
   (setq affe-regexp-function #'orderless-pattern-compiler
         affe-highlight-function #'orderless--highlight))
-  ;; (consult-customize affe-grep :preview-key (kbd "M-."))
-  ;; -*- lexical-binding: t -*-
 (use-package savehist :init (savehist-mode))
 (use-package marginalia
   :after vertico
@@ -753,16 +712,12 @@ Need to revisit now that I am using dirvish.
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init (marginalia-mode))
-
-
  (defun sn/affe-grep-at-point (&optional dir initial)
     "affe-grep thing with currently selected symbol"
     (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
                                     (symbol-name s))))
     (affe-grep dir initial))
 (global-set-key (kbd "C-r") 'sn/affe-grep-at-point)
-
-
 #+end_src
 
 ** Consult
@@ -909,7 +864,7 @@ Need to revisit now that I am using dirvish.
 (add-hook 'emacs-startup-hook 'recentf-mode)
   (setq-default
    recentf-max-saved-items 1000
-   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "bookmark.el" "inbox.org" "project.org"))
+   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "bookmark.el" "inbox.org" "project.org" "Emacs.org" "MySetup.org"))
 #+end_src
 
 ** Settings for hippie expand
@@ -1158,13 +1113,6 @@ install rg and ag manually
 (when (fboundp 'global-prettify-symbols-mode)
   (add-hook 'after-init-hook 'global-prettify-symbols-mode))
 
-
-;;----------------------------------------------------------------------------
-;; Zap *up* to char is a handy pair for zap-to-char
-;;----------------------------------------------------------------------------
-(autoload 'zap-up-to-char "misc" "Kill up to, but not including ARGth occurrence of CHAR.")
-(global-set-key (kbd "M-Z") 'zap-up-to-char)
-
 ;;----------------------------------------------------------------------------
 ;; Show matching parens
 ;;----------------------------------------------------------------------------
@@ -1182,21 +1130,15 @@ install rg and ag manually
 (put 'upcase-region 'disabled nil)
 (put 'downcase-region 'disabled nil)
 
-;;----------------------------------------------------------------------------
-;; Rectangle selections, and overwrite text when the selection is active
-;;----------------------------------------------------------------------------
-(cua-selection-mode t)                  ; for rectangles, CUA is nice
-
-(use-package avy
-  :config
-  (global-set-key (kbd "C-o") 'avy-goto-char-timer))
+(use-package avy :config(global-set-key (kbd "C-o") 'avy-goto-char-timer))
 #+end_src
 
 #+begin_src emacs-lisp
 (defun kill-back-to-indentation ()
   "Kill from point back to the first non-whitespace character on the line."
   (interactive)
-  (let ((prev-pos (point)))
+  (let ((prev-pos
+         (point)))
     (back-to-indentation)
     (kill-region (point) prev-pos)))
 
@@ -1215,31 +1157,6 @@ install rg and ag manually
            (sanityinc/backward-up-sexp (1- arg)))
           ((backward-up-list arg)))))
 (global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
-
-;; Some local minor modes clash with CUA rectangle selection
-
-(defvar-local sanityinc/suspended-modes-during-cua-rect nil
-  "Modes that should be re-activated when cua-rect selection is done.")
-
-(eval-after-load 'cua-rect
-  (advice-add 'cua--deactivate-rectangle :after
-              (lambda (&rest _)
-                (dolist (m sanityinc/suspended-modes-during-cua-rect)
-                  (funcall m 1)
-                  (setq sanityinc/suspended-modes-during-cua-rect nil)))))
-
-(defun sanityinc/suspend-mode-during-cua-rect-selection (mode-name)
-  "Add an advice to suspend `MODE-NAME' while selecting a CUA rectangle."
-  (eval-after-load 'cua-rect
-    (advice-add 'cua--activate-rectangle :after
-                (lambda (&rest _)
-                  (when (bound-and-true-p mode-name)
-                    (push mode-name sanityinc/suspended-modes-during-cua-rect)
-                    (funcall mode-name 0))))))
-
-(sanityinc/suspend-mode-during-cua-rect-selection 'whole-line-or-region-local-mode)
-
-
 ;;----------------------------------------------------------------------------
 ;; Random line sorting
 ;;----------------------------------------------------------------------------
@@ -1343,6 +1260,10 @@ ORIG is the advised function, which is called with its ARGS."
       (kbd "<left-fringe> <mouse-1>")
       'diff-hl-diff-goto-hunk)))
 (use-package browse-at-remote)
+
+
+
+
 #+end_src
 
 *** magit
@@ -1896,7 +1817,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                ("C-c v" . wr-mode)))
   :hook (org-mode . wr-mode)
   :config
-  (setq writeroom-width 140
+  (setq writeroom-width 80
         writeroom-mode-line nil
         writeroom-global-effects '(writeroom-set-alpha
                                    writeroom-set-menu-bar-lines
@@ -1944,7 +1865,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (visual-line-mode -1)
       (when (fboundp 'writeroom-mode)
         (writeroom-mode 0)))))
-
+(use-package mixed-pitch
+  :hook (text-mode . mixed-pitch-mode))
 #+end_src
 
 ** Refiling
@@ -2150,7 +2072,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
          ("D" . pdf-annot-delete)))
 #+END_SRC
 
-
 ** Markdown
 
 #+begin_src emacs-lisp
@@ -2213,6 +2134,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 * Code Languages & File Modes
+** Tree sitter
+   better syntax parsing
+#+begin_src emacs-lisp
+   (use-package tree-sitter)
+   (use-package tree-sitter-langs)
+#+end_src
 ** LSP-Mode
 
    We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
