@@ -309,7 +309,8 @@ Cut/copy the current line if no region is active.
  set-mark-command-repeat-pop t
  tooltip-delay 1.5
  truncate-lines nil
- truncate-partial-width-windows nil)
+ truncate-partial-width-windows nil
+ ring-bell-function 'ignore)
 ( delete-selection-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 #+end_src
@@ -353,7 +354,6 @@ Tramp was acting slow this helps.
   :config (exec-path-from-shell-initialize))
 #+end_src
 
-
 * UI
 
 ** Startup
@@ -363,7 +363,6 @@ Tramp was acting slow this helps.
 #+begin_src emacs-lisp
 (setq initial-major-mode 'org-mode)
 (setq initial-scratch-message nil)
-(setq visible-bell 1)
 #+end_src
 
 #+begin_src emacs-lisp
@@ -378,48 +377,48 @@ Tramp was acting slow this helps.
 
 ** Theme
 
-#+begin_src emacs-lisp
-(use-package doom-themes
-  :straight t
-  :config
-  (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-        doom-themes-enable-italic t)     ; if nil, italics is universally disabled
-  (load-theme 'doom-one t)
-  (doom-themes-org-config))
-;; to load theme properly when new client frame is created
-(add-hook 'after-make-frame-functions
-            (lambda (frame)
-              (with-selected-frame frame
-                (load-theme 'doom-one t))))
-;; Don't prompt to confirm theme safety. This avoids problems with
-;; first-time startup on Emacs > 26.3.
-(setq custom-safe-themes t)
-(set-face-attribute 'highlight nil :background "#374854")
-#+end_src
+   #+begin_src emacs-lisp
+   (use-package doom-themes
+     :straight t
+     :config
+     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
+           doom-themes-enable-italic t)     ; if nil, italics is universally disabled
+     (load-theme 'doom-one t)
+     (doom-themes-org-config))
+   ;; to load theme properly when new client frame is created
+   (add-hook 'after-make-frame-functions
+             (lambda (frame)
+               (with-selected-frame frame
+                 (load-theme 'doom-one t))))
+   ;; Don't prompt to confirm theme safety. This avoids problems with
+   ;; first-time startup on Emacs > 26.3.
+   (setq custom-safe-themes t)
+   (set-face-attribute 'highlight nil :background "#374854")
+   #+end_src
 
 ** Dimmer
 
-    Dim the unfocused buffer.
+   Dim the unfocused buffer.
 
-#+begin_src emacs-lisp
-(use-package dimmer
-  :init (dimmer-mode)
-  :config (setq-default dimmer-fraction 0.15)
-  (advice-add 'frame-set-background-mode :after (lambda (&rest args) (dimmer-process-all)))
-  (defun sanityinc/display-non-graphic-p ()
-    (not (display-graphic-p)))
-  (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
-#+end_src
+   #+begin_src emacs-lisp
+   (use-package dimmer
+     :init (dimmer-mode)
+     :config (setq-default dimmer-fraction 0.15)
+     (advice-add 'frame-set-background-mode :after (lambda (&rest args) (dimmer-process-all)))
+     (defun sanityinc/display-non-graphic-p ()
+       (not (display-graphic-p)))
+     (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
+   #+end_src
 
 ** Modeline
 
-#+begin_src emacs-lisp
-(use-package doom-modeline
-  :init (doom-modeline-mode 1)
-  :custom (
-           (doom-modeline-vcs-max-length 30)
-           (doom-modeline-height 40)))
-#+end_src
+   #+begin_src emacs-lisp
+   (use-package doom-modeline
+     :init (doom-modeline-mode 1)
+     :custom (
+              (doom-modeline-vcs-max-length 30)
+              (doom-modeline-height 40)))
+   #+end_src
 
 ** GUI Frames
 
@@ -429,166 +428,166 @@ Tramp was acting slow this helps.
 
     Stop C-z from minimizing windows under Linux.
 
-#+begin_src emacs-lisp
-(defun sanityinc/maybe-suspend-frame ()
-  (interactive)
-  (if (display-graphic-p)
-      (message "suspend-frame disabled for graphical displays.")
-    (suspend-frame)))
-(global-unset-key (kbd "C-z"))
-(global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
-(global-set-key (kbd "C-z") 'undo)
-#+end_src
+    #+begin_src emacs-lisp
+    (defun sanityinc/maybe-suspend-frame ()
+      (interactive)
+      (if (display-graphic-p)
+          (message "suspend-frame disabled for graphical displays.")
+        (suspend-frame)))
+    (global-unset-key (kbd "C-z"))
+    (global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
+    (global-set-key (kbd "C-z") 'undo)
+    #+end_src
 
 *** GUI Features
 
-#+begin_src emacs-lisp
-(setq use-file-dialog nil)
-(setq use-dialog-box nil)
-(use-package unicode-fonts
-  :config (unicode-fonts-setup))
-#+END_SRC
+    #+begin_src emacs-lisp
+    (setq use-file-dialog nil)
+    (setq use-dialog-box nil)
+    (use-package unicode-fonts
+      :config (unicode-fonts-setup))
+    #+END_SRC
 
 *** Window Size
 
-#+BEGIN_SRC emacs-lisp
-;; Change global font size easily
-(use-package default-text-scale)
-(add-hook 'after-init-hook 'default-text-scale-mode)
-(setq-default tab-width 4)
-#+end_src
+    #+BEGIN_SRC emacs-lisp
+    ;; Change global font size easily
+    (use-package default-text-scale)
+    (add-hook 'after-init-hook 'default-text-scale-mode)
+    (setq-default tab-width 4)
+    #+end_src
 
 *** Frame Title
 
-#+begin_src emacs-lisp
-(setq frame-title-format
-      '((:eval (if (buffer-file-name)
-                   (abbreviate-file-name (buffer-file-name))
-                 "%b"))))
-#+end_src
+    #+begin_src emacs-lisp
+    (setq frame-title-format
+          '((:eval (if (buffer-file-name)
+                       (abbreviate-file-name (buffer-file-name))
+                     "%b"))))
+    #+end_src
 
 *** margins
 
-#+begin_src emacs-lisp
-(setq-default fringes-outside-margins t
-                indicate-buffer-boundaries nil
-                fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
-                                             fringe-indicator-alist))
+    #+begin_src emacs-lisp
+    (setq-default fringes-outside-margins t
+                  indicate-buffer-boundaries nil
+                  fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
+                                               fringe-indicator-alist))
 
 
 
-;;(setq left-margin-width 12)
-;; (setq right-margin-width 12)
-(setq internal-border 40)
-(setq frame-internal-border-width 60)
-(setq bottom-divider-width 20)
-(set-window-buffer nil (current-buffer))
-#+end_src
+    ;;(setq left-margin-width 12)
+    ;; (setq right-margin-width 12)
+    (setq internal-border 40)
+    (setq frame-internal-border-width 60)
+    (setq bottom-divider-width 20)
+    (set-window-buffer nil (current-buffer))
+    #+end_src
 
 ** Beacon
 
    A light up bar when scrolling.
 
-#+begin_src emacs-lisp
-(use-package beacon
-  :config
-  (setq-default beacon-lighter "")
-  (setq-default beacon-size 30)
-  :init
-  (beacon-mode 1))
-#+end_src
+   #+begin_src emacs-lisp
+   (use-package beacon
+     :config
+     (setq-default beacon-lighter "")
+     (setq-default beacon-size 30)
+     :init
+     (beacon-mode 1))
+   #+end_src
 
 ** Tabs
 
- #+begin_src emacs-lisp
- (use-package centaur-tabs
-   :demand
-   :config
-  (setq centaur-tabs-style "slant"
-      centaur-tabs-height 32
-      centaur-tabs-set-icons t
-      centaur-tabs-set-modified-marker t
-      centaur-tabs-show-navigation-buttons t
-      centaur-tabs-set-bar 'under
-      uniquify-buffer-name-style 'forward
-      x-underline-at-descent-line t)
-   (centaur-tabs-headline-match)
-   ;; (centaur-tabs-mode t)
-   (setq uniquify-separator "/")
-   (setq uniquify-buffer-name-style 'forward)
-  (defun centaur-tabs-buffer-groups ()
-     "`centaur-tabs-buffer-groups' control buffers' group rules.
+   #+begin_src emacs-lisp
+   (use-package centaur-tabs
+     :demand
+     :config
+     (setq centaur-tabs-style "slant"
+           centaur-tabs-height 32
+           centaur-tabs-set-icons t
+           centaur-tabs-set-modified-marker t
+           centaur-tabs-show-navigation-buttons t
+           centaur-tabs-set-bar 'under
+           uniquify-buffer-name-style 'forward
+           x-underline-at-descent-line t)
+     (centaur-tabs-headline-match)
+     ;; (centaur-tabs-mode t)
+     (setq uniquify-separator "/")
+     (setq uniquify-buffer-name-style 'forward)
+     (defun centaur-tabs-buffer-groups ()
+       "`centaur-tabs-buffer-groups' control buffers' group rules.
 
- Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
- All buffer name start with * will group to \"Emacs\".
- Other buffer group by `centaur-tabs-get-group-name' with project name."
-     (list
-      (cond
+   Group centaur-tabs with mode if buffer is derived from `eshell-mode' `emacs-lisp-mode' `dired-mode' `org-mode' `magit-mode'.
+   All buffer name start with * will group to \"Emacs\".
+   Other buffer group by `centaur-tabs-get-group-name' with project name."
+       (list
+        (cond
 
-    ((derived-mode-p 'prog-mode)
-     "Editing")
-    ((derived-mode-p 'vterm-mode)
-     "Term")
-    ((derived-mode-p 'dired-mode)
-     "Dired")
-    ((memq major-mode '(helpful-mode
-                help-mode))
-     "Help")
-    ((or (string-equal "*" (substring (buffer-name) 0 1))
-         (memq major-mode '(magit-process-mode
-                magit-status-mode
-                magit-diff-mode
-                magit-log-mode
-                magit-file-mode
-                magit-blob-mode
-                magit-blame-mode
-                )))
-     "Emacs")
-    ((memq major-mode '(org-mode
-                org-agenda-clockreport-mode
-                org-src-mode
-                org-agenda-mode
-                org-beamer-mode
-                org-indent-mode
-                org-bullets-mode
-                org-cdlatex-mode
-                org-agenda-log-mode
-                diary-mode))
-     "OrgMode")
-    (t
-     (centaur-tabs-get-group-name (current-buffer))))))
- (defun centaur-tabs-hide-tab (x)
-  "Do no to show buffer X in tabs."
-  (let ((name (format "%s" x)))
-    (or
-     ;; Current window is not dedicated window.
-     (window-dedicated-p (selected-window))
+         ((derived-mode-p 'prog-mode)
+          "Editing")
+         ((derived-mode-p 'vterm-mode)
+          "Term")
+         ((derived-mode-p 'dired-mode)
+          "Dired")
+         ((memq major-mode '(helpful-mode
+                             help-mode))
+          "Help")
+         ((or (string-equal "*" (substring (buffer-name) 0 1))
+              (memq major-mode '(magit-process-mode
+                                 magit-status-mode
+                                 magit-diff-mode
+                                 magit-log-mode
+                                 magit-file-mode
+                                 magit-blob-mode
+                                 magit-blame-mode
+                                 )))
+          "Emacs")
+         ((memq major-mode '(org-mode
+                             org-agenda-clockreport-mode
+                             org-src-mode
+                             org-agenda-mode
+                             org-beamer-mode
+                             org-indent-mode
+                             org-bullets-mode
+                             org-cdlatex-mode
+                             org-agenda-log-mode
+                             diary-mode))
+          "OrgMode")
+         (t
+          (centaur-tabs-get-group-name (current-buffer))))))
+     (defun centaur-tabs-hide-tab (x)
+       "Do no to show buffer X in tabs."
+       (let ((name (format "%s" x)))
+         (or
+          ;; Current window is not dedicated window.
+          (window-dedicated-p (selected-window))
 
-     ;; Buffer name not match below blacklist.
-     (string-prefix-p "*epc" name)
-     (string-prefix-p "*helm" name)
-     (string-prefix-p "*Helm" name)
-     (string-prefix-p "*Compile-Log*" name)
-     (string-prefix-p "*lsp" name)
-     (string-prefix-p "*company" name)
-     (string-prefix-p "*Flycheck" name)
-     (string-prefix-p "*tramp" name)
-     (string-prefix-p " *Mini" name)
-     (string-prefix-p "*help" name)
-     (string-prefix-p "*straight" name)
-     (string-prefix-p " *temp" name)
-     (string-prefix-p "*Help" name)
-     (string-prefix-p "*mybuf" name)
-     (string-prefix-p "*Messages" name)
+          ;; Buffer name not match below blacklist.
+          (string-prefix-p "*epc" name)
+          (string-prefix-p "*helm" name)
+          (string-prefix-p "*Helm" name)
+          (string-prefix-p "*Compile-Log*" name)
+          (string-prefix-p "*lsp" name)
+          (string-prefix-p "*company" name)
+          (string-prefix-p "*Flycheck" name)
+          (string-prefix-p "*tramp" name)
+          (string-prefix-p " *Mini" name)
+          (string-prefix-p "*help" name)
+          (string-prefix-p "*straight" name)
+          (string-prefix-p " *temp" name)
+          (string-prefix-p "*Help" name)
+          (string-prefix-p "*mybuf" name)
+          (string-prefix-p "*Messages" name)
 
-     ;; Is not magit buffer.
-     (and (string-prefix-p "magit" name)
-      (not (file-name-extension name))))))
-   :bind
-   ("C-c x b" . centaur-tabs-backward)
-   ("C-c x f" . centaur-tabs-forward)
-   ("C-c x s" . centaur-tabs-counsel-switch-group))
-#+end_src
+          ;; Is not magit buffer.
+          (and (string-prefix-p "magit" name)
+               (not (file-name-extension name))))))
+     :bind
+     ("C-c x b" . centaur-tabs-backward)
+     ("C-c x f" . centaur-tabs-forward)
+     ("C-c x s" . centaur-tabs-counsel-switch-group))
+   #+end_src
 
 * Dired
 
@@ -1683,11 +1682,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (setq org-pomodoro-keep-killed-pomodoro-time t)
   (setq
    alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil))))
-  (setq org-pomodoro-finished-sound "/home/snehrbass/Music/bell.wav"
-        org-pomodoro-long-break-sound "/home/snehrbass/Music/bell.wav"
-        org-pomodoro-short-break-sound "/home/snehrbass/Music/bell.wav"
-        org-pomodoro-start-sound "/home/snehrbass/Music/bell.wav"
-        org-pomodoro-killed-sound "/home/snehrbass/Music/bell.wav"))
+  (setq org-pomodoro-finished-sound "~/Music/bell.wav"
+        org-pomodoro-long-break-sound "~/Music/bell.wav"
+        org-pomodoro-short-break-sound "~/Music/bell.wav"
+        org-pomodoro-start-sound "~/Music/bell.wav"
+        org-pomodoro-killed-sound "~/Music/bell.wav"))
 
 (defun ruborcalor/org-pomodoro-time ()
   "Return the remaining pomodoro time"
@@ -1767,7 +1766,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (after-load 'org-clock
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
-
 #+end_src
 
 ** Latex Fragments
@@ -1851,7 +1849,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
           (setq-local show-trailing-whitespace nil)
           (setq-local line-spacing 0.2)
           (setq-local electric-pair-mode nil)
-          (ignore-errors (flyspell-mode 1))
+}          (ignore-errors (flyspell-mode 1))
           (visual-line-mode 1))
       (kill-local-variable 'truncate-lines)
       (kill-local-variable 'word-wrap)
@@ -1865,9 +1863,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (visual-line-mode -1)
       (when (fboundp 'writeroom-mode)
         (writeroom-mode 0)))))
-(use-package mixed-pitch
-  :hook (text-mode . mixed-pitch-mode))
-#+end_src
+#+end_src emacs-lisp
 
 ** Refiling
 
@@ -2285,9 +2281,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
   (use-package yaml-mode
-    :config
-    (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
-    (add-hook 'yaml-mode-hook 'goto-address-prog-mode))
+    :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
+    :hook (yaml-mode-hook .goto-address-prog-mode))
 #+end_src
 
 ** Docker
