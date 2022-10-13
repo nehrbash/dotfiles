@@ -14,7 +14,10 @@ export PS1="> "
 fpath+=$HOME/.zsh/pure
 autoload -U promptinit; promptinit
 prompt pure
-# zstyle 'prompt:continuation' color '#b294bb'
+
+# highlight colors
+source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.sh
+
 
 
 ## History file configuration

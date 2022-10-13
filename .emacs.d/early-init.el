@@ -11,11 +11,16 @@
                     :weight 'normal
                     :width 'normal)
 (set-fontset-font "fontset-default" '(#x5d0 . #x5ff) "FontAwesome")
+(fringe-mode '(3 . 6))
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)
-
 (setq package-enable-at-startup nil)
 (pixel-scroll-precision-mode t)
+
+(setq custom-file (concat user-emacs-directory "var/custom.el"))
+(when (file-exists-p custom-file)
+  (load custom-file))
+
 ;; So we can detect this having been loaded
 (provide 'early-init)

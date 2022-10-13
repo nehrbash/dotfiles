@@ -3,15 +3,18 @@
 * Table of Contents :TOC:
 - [[#straight-package-manager][Straight Package Manager]]
   - [[#update-load-path][Update Load Path]]
-- [[#non-configured-packages][Non-Configured Packages]]
+  - [[#non-configured-packages][Non-Configured Packages]]
 - [[#editing-utilities][Editing Utilities]]
+  - [[#keybindings][Keybindings]]
   - [[#right-click-edit-menu][Right Click Edit Menu]]
   - [[#file-handler-functions][File Handler Functions]]
   - [[#xterm-integration-in-terminals-mouse][Xterm Integration in terminals (Mouse)]]
   - [[#esc-cancels-all][ESC Cancels All]]
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line or Region]]
+  - [[#file-modified-state][File modified State]]
 - [[#general-settings][General Settings]]
+  - [[#track-recent-files][Track Recent Files]]
   - [[#auto-update-file][Auto update file]]
   - [[#electri-pair][Electri Pair]]
   - [[#faster-tramp][Faster TRAMP]]
@@ -28,7 +31,6 @@
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
   - [[#company][Company]]
-  - [[#track-recent-files][Track Recent Files]]
   - [[#settings-for-hippie-expand][Settings for hippie expand]]
   - [[#spelling][Spelling]]
 - [[#multi-vterm][Multi Vterm]]
@@ -83,6 +85,7 @@
   - [[#csv][CSV]]
   - [[#yaml][yaml]]
   - [[#docker][Docker]]
+  - [[#terraform][Terraform]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -114,28 +117,38 @@
    Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
 
 #+begin_src emacs-lisp
+(setq custom-file "")
 (push "~/.emacs.d/lisp" load-path)
 (use-package no-littering)
 #+end_src
 
-* Non-Configured Packages
+** Non-Configured Packages
 
-  These are packages that don't require configurations.
+   These are packages that don't require configurations.
 
-#+begin_src emacs-lisp
-(use-package org
-  :straight org-contrib)
-(use-package general)
-(use-package diminish)
-(use-package gnuplot)
-(use-package htmlize)
-(use-package dsvn)
-(use-package daemons)
-#+end_src
+ #+begin_src emacs-lisp
+ (use-package org
+   :straight org-contrib)
+ (use-package general)
+ (use-package diminish)
+ (use-package gnuplot)
+ (use-package htmlize)
+ (use-package dsvn)
+ (use-package daemons)
+ #+end_src
 
 * Editing Utilities
 
-General editing configurations.
+  General editing configurations.
+
+** Keybindings
+   I wanna try out modal editing so I am going to try
+
+#+begin_src emacs
+(straight-use-package '(xah-fly-keys :type git :host github :repo "xahlee/xah-fly-keys"))
+(require 'xah-fly-keys)
+(xah-fly-keys-set-layout "colemak-mod-dh-new")
+#+end_src
 
 ** Right Click Edit Menu
 
@@ -290,6 +303,14 @@ Cut/copy the current line if no region is active.
   :bind ("M-j". comment-dwim))
 #+end_src
 
+** File modified State
+
+#+begin_src emacs-lisp
+(use-package unmodified-buffer
+  :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
+  :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
+#+end_src
+
 * General Settings
 
 #+begin_src emacs-lisp
@@ -313,6 +334,17 @@ Cut/copy the current line if no region is active.
  ring-bell-function 'ignore)
 ( delete-selection-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
+#+end_src
+
+** Track Recent Files
+
+   When you perform =m-x b= you will see list of recent files
+
+#+begin_src emacs-lisp
+(add-hook 'emacs-startup-hook 'recentf-mode)
+  (setq-default
+   recentf-max-saved-items 1000
+   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el" "/inbox.org" "/projects.org" "/Emacs.org" "early-init.el" "MySetup.org"))
 #+end_src
 
 ** Auto update file
@@ -351,6 +383,9 @@ Tramp was acting slow this helps.
 
 #+begin_src emacs-lisp
 (use-package exec-path-from-shell
+  :init
+  (dolist (var '("LSP_USE_PLISTS"))
+  (add-to-list 'exec-path-from-shell-variables var))
   :config (exec-path-from-shell-initialize))
 #+end_src
 
@@ -367,8 +402,6 @@ Tramp was acting slow this helps.
 
 #+begin_src emacs-lisp
 (use-package dashboard
-  :straight t
-  :ensure t
   :config
   (setq dashboard-startup-banner "~/Pictures/gopherMe_small.png")
   (setq dashboard-projects-backend 'projectile)
@@ -383,13 +416,13 @@ Tramp was acting slow this helps.
      :config
      (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
            doom-themes-enable-italic t)     ; if nil, italics is universally disabled
-     (load-theme 'doom-one t)
+     (load-theme 'doom-dracula t)
      (doom-themes-org-config))
    ;; to load theme properly when new client frame is created
    (add-hook 'after-make-frame-functions
              (lambda (frame)
                (with-selected-frame frame
-                 (load-theme 'doom-one t))))
+                 (load-theme 'doom-dracula t))))
    ;; Don't prompt to confirm theme safety. This avoids problems with
    ;; first-time startup on Emacs > 26.3.
    (setq custom-safe-themes t)
@@ -412,13 +445,20 @@ Tramp was acting slow this helps.
 
 ** Modeline
 
-   #+begin_src emacs-lisp
+ #+begin_src emacs-lisp
    (use-package doom-modeline
      :init (doom-modeline-mode 1)
      :custom (
+              (doom-modeline-buffer-file-name-style 'truncate-upto-project)
               (doom-modeline-vcs-max-length 30)
-              (doom-modeline-height 40)))
-   #+end_src
+              (doom-modeline-height 40)
+              (all-the-icons-scale-factor 1))
+    ;;  :config
+  ;;     (doom-modeline-def-modeline 'main
+  ;; '(bar matches vcs buffer-info remote-host buffer-position parrot selection-info)
+  ;; '(misc-info minor-modes input-method buffer-encoding major-mode process  checker " "))
+     )
+ #+end_src
 
 ** GUI Frames
 
@@ -853,17 +893,8 @@ Need to revisit now that I am using dirvish.
   (global-company-mode))
 (use-package company-quickhelp
     :init (company-quickhelp-mode 1))
-#+end_src
-
-** Track Recent Files
-
-   When you perform =m-x b= you will see list of recent files
-
-#+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook 'recentf-mode)
-  (setq-default
-   recentf-max-saved-items 1000
-   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "bookmark.el" "inbox.org" "project.org" "Emacs.org" "MySetup.org"))
+(use-package company-box
+  :hook (company-mode . company-box-mode))
 #+end_src
 
 ** Settings for hippie expand
@@ -924,6 +955,7 @@ Need to revisit now that I am using dirvish.
 * Multi Vterm
 
 #+begin_src emacs-lisp
+(use-package vterm)
 (use-package multi-vterm
   :straight t
   :config
@@ -1093,6 +1125,7 @@ install rg and ag manually
 ;;; uncomment if you wnat line numbers do not use linum-mode because it is not optimized
 (when (fboundp 'display-line-numbers-mode)
   (setq-default display-line-numbers-width 3)
+  (setq-default display-line-numbers-type 'relative)
   (add-hook 'prog-mode-hook 'display-line-numbers-mode))
 
 (use-package goto-line-preview
@@ -1476,7 +1509,6 @@ ORIG is the advised function, which is called with its ARGS."
 (after-load 're-builder
   ;; Support a slightly more idiomatic quit binding in re-builder
   (define-key reb-mode-map (kbd "C-c C-k") 'reb-quit))
-
 (add-auto-mode 'conf-mode "^Procfile\\'")
 #+end_src
 
@@ -2129,12 +2161,18 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 * Code Languages & File Modes
+
 ** Tree sitter
+
    better syntax parsing
+
 #+begin_src emacs-lisp
-   (use-package tree-sitter)
-   (use-package tree-sitter-langs)
+(use-package tree-sitter)
+(use-package tree-sitter-langs)
+(global-tree-sitter-mode)
+;; (tree-sitter-hl-mode)
 #+end_src
+
 ** LSP-Mode
 
    We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
@@ -2150,11 +2188,15 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   ;; :custom (lsp-gopls-server-args '("-debug" "127.0.0.1:0"))
   :commands (lsp lsp-deferred)
   :custom
+  (read-process-output-max (* 1024 1024)) ;; 1 mb
   (lsp-idle-delay 0.6)
   (lsp-rust-analyzer-server-display-inlay-hints t)
+    :bind ((:map lsp-mode-map
+               ("C-." .  lsp-command-map))
+    (:map lsp-command-map
+               ("e" .  consult-lsp-diagnostics)))
   :config (progn
             ;; use flycheck, not flymake
-            (define-key lsp-mode-map (kbd "C-.") lsp-command-map)
             (setq lsp-prefer-flymake nil)))
 #+end_src
 
@@ -2167,11 +2209,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :straight t
   :custom
   (lsp-ui-doc-position 'bottom)
-  (lsp-ui-doc-delay 2 )
+  (lsp-ui-doc-delay .2 )
   (lsp-headerline-breadcrumb-enable nil)
-  (lsp-eldoc-enable-hover nil)
+  (lsp-eldoc-enable-hover t)
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t)
+  (lsp-ui-sideline-enable nil)
   :hook (lsp-mode . lsp-ui-mode))
 #+end_src
 
@@ -2189,9 +2232,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    (before-save . lsp-format-buffer)
    (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
-               ("C-c C-c" . compile)
-               )
-  )
+               ("C-c C-c" . compile)))
 #+end_src
 
 ** C++
@@ -2296,6 +2337,12 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
     (fullframe docker-containers tablist-quit))
   (use-package dockerfile-mode)
   (use-package docker-compose-mode)
+#+end_src
+
+** Terraform
+
+#+begin_src emacs-lisp
+(use-package terraform-mode)
 #+end_src
 
 * Runtime Performance
