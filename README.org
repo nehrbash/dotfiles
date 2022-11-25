@@ -1,5 +1,5 @@
 #+TITLE:My Setup
-#+PROPERTY: header-args:sh :tangle ~/bin/install
+#+PROPERTY: header-args:sh :tangle ~/.local/bin/install
 
 Here are my notes on how I set up my system.
 
@@ -367,7 +367,6 @@ used these configs to make mine
 - https://github.com/saimoomedits/eww-widgets
 
 #+begin_src bash
-
 0,30 * * * * /home/{Your-username}/.config/eww/scripts/getweather
 @reboot /home/{Your-username}/.config/eww/scripts/getquotes
 #+end_src
@@ -376,6 +375,6 @@ used these configs to make mine
 notifications to fix posture and eyes.
 
 #+begin_src bash
-*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/bin/notieye
-*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/bin/notipose
+*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/.local/bin/notieye
+*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/.local/bin/notipose
 #+end_src

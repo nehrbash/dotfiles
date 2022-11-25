@@ -5,7 +5,7 @@ window:
   decorations: None
   padding:
     x: 8
-    y: 10
+    y: 4
   dynamic_padding: true
   title: Alacritty
   class:

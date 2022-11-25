@@ -383,10 +383,10 @@ Tramp was acting slow this helps.
 
 #+begin_src emacs-lisp
 (use-package exec-path-from-shell
-  :init
+  :config
   (dolist (var '("LSP_USE_PLISTS"))
-  (add-to-list 'exec-path-from-shell-variables var))
-  :config (exec-path-from-shell-initialize))
+    (add-to-list 'exec-path-from-shell-variables var))
+  (exec-path-from-shell-initialize))
 #+end_src
 
 * UI
