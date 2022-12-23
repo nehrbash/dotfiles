@@ -1,3 +1,6 @@
+;;; early-init.el --- loads before init is loaded.
+;;; Commentary:
+;;; Code:
 (setq gc-cons-threshold (* 50 1000 1000))
 (setq inhibit-startup-screen t)
 (setq inhibit-startup-message t)
@@ -24,3 +27,4 @@
 
 ;; So we can detect this having been loaded
 (provide 'early-init)
+;;; early-init.el ends here

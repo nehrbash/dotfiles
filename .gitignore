@@ -2,3 +2,11 @@
 /.zsh/history
 /bin/install
 *.elc
+/.emacs.d/elpa/
+/.emacs.d/straight/
+/.emacs.d/var/
+/.zsh/zsh-syntax-highlighting/
+/.emacs.d/init.el
+/.emacs.d/eln-cache/
+/doc/inbox.org
+/doc/projects.org

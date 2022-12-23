@@ -6,3 +6,4 @@ export PATH=$PATH:~/.local/bin
 export GO111MODULE=on
 export PATH=$PATH:$HOME/bin
 export TERM=linux
+export SSH_AUTH_SOCK="$XDG_RUNTIME_DIR/ssh-agent.socket"

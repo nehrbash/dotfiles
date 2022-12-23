@@ -1,0 +1,7 @@
+#!/bin/bash
+swayidle -w \
+         timeout 275 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
+         timeout 300 'swaylock-fancy' \
+         timeout 600 'hyprctl dispatch dpms off'\
+         resume 'hyprctl dispatch dpms on' \
+         before-sleep 'swaylock-fancy'

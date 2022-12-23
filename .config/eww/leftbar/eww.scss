@@ -1,8 +1,14 @@
 *{
 	all: unset;
-	font-family: feather;
-	font-family: DaddyTimeMono NF;
+    font-family: "DaddyTimeMono, VictorMono Nerd Font";
 }
+
+.profile_box {
+    // max-height: 95%;
+
+}
+
+
 
 
 /** tooltip!! **/
@@ -236,10 +242,11 @@ scale trough {
 	font-weight : normal;
 	margin : 20px 35px 0px 0px;
 }
-.fetch_icon_2 , .fetch_icon_3 {
+.fetch_icon_2, .fetch_icon_3 {
     font-size: 24px;
 	font-weight : bold;
 	margin : 0px 0px 0px 37px;
+    font-family: "Source Code Pro";
 }
 .fetch_icon_1 {
     font-size: 24px;
@@ -344,7 +351,7 @@ scale trough {
 }
 .weather-icon-side {
   font-size: 140px;
-  font-family: Iosevka;
+  font-family: "VictorMono Nerd Font";
   margin: 0px -40px 0px 40px;
 }
 

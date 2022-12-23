@@ -1,6 +1,7 @@
 {
     "positionX": "right",
     "positionY": "top",
+    "layer": "top",
     "timeout": 10,
     "timeout-low": 5,
     "timeout-critical": 0,
@@ -9,7 +10,33 @@
     "image-visibility": "always",
     "transition-time": 200,
     "hide-on-clear": true,
+    "fit-to-screen": true,
     "control-center-width": 500,
     "control-center-margin-bottom": 240,
-    "control-center-margin-top": 240
+    "control-center-margin-top": 240,
+    "widgets": [
+        "mpris",
+        "notifications",
+        "title",
+        "dnd"
+    ],
+    "widget-config": {
+        "title": {
+            "text": "",
+            "clear-all-button": true,
+            "button-text": "Clear All"
+        },
+        "dnd": {
+            "text": "Do Not Disturb"
+        },
+        "label": {
+            "max-lines": 5,
+            "text": "Label Text"
+        },
+        "mpris": {
+            "image-size": 96,
+            "image-radius": 12
+        }
+    }
+
 }

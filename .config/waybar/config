@@ -1,28 +1,24 @@
-{
+[{
     // Basic config
-    "layer": "bottom",
+    "layer": "top",
     "position": "bottom",
     "height": 70,
-    // "output": "DP-1",
-    "margin-top": -15,
+    "output": "HDMI-A-1",
+    "margin-top": -10,
     "margin-bottom": 15,
     "margin-right": 200,
     "margin-left": 200,
+    "gtk-layer-shell": false,
 
     // Modules
     "modules-left": ["clock", "custom/d", "custom/pomodoro", "custom/spotify"],
-    "modules-center": ["custom/startmenu", "custom/d", "sway/workspaces"],
-    "modules-right": ["tray", "sway/mode", "custom/d", "pulseaudio", "network", "inhibitor", "custom/notification", "custom/d", "custom/powermenu"],
+    "modules-center": ["custom/startmenu", "custom/d", "wlr/workspaces"],
+    "modules-right": ["tray", "custom/d", "pulseaudio", "network", "inhibitor", "custom/notification", "custom/d", "custom/powermenu"],
 
     // Modules configuration
     "custom/d": {
         "format": "|",
         "tooltip": false
-    },
-    "sway/mode": {
-                   "format": "  {}  ",
-                   "max-length": 50,
-
     },
     "tray": {
                "icon-size": 24,
@@ -35,43 +31,32 @@
                     "deactivated": ""
                 }
     },
-    "sway/workspaces": {
-        "disable-scroll": true,
-        "all-outputs": true,
-        "format": "{icon}",
-        "format-icons": {
-            "1": "",
-            "2": "",
-            "3": "",
-            "4": "",
-            "5": "",
-            "7": "",
-            "8": "",
-            "6": "",
-            "9": "",
-            "urgent": "",
-            "default": ""
-        },
-        "persistent_workspaces": {
-            "1": [],
-            "2": [],
-            "3": [],
-            "4": [],
-            "5": [],
-            "6": [],
-            "7": [],
-            "8": [],
-            "9": []
-        }
+    "wlr/workspaces": {
+    "format": "{icon}",
+    "format-icons": {
+        "1": "",
+        "2": "",
+        "3": "",
+        "4": "",
+        "5": "",
+        "6": "",
+        "7": "",
+        "focused": "",
+        "default": ""
     },
+    "on-click": "activate",
+    "all-outputs": true,
+    "active-only": false,
+    "sort-by-number": true
+},
     "custom/notification": {
     "tooltip": false,
-    "format": " {icon} ",
+    "format": "{icon}",
     "format-icons": {
-      "notification": "<span foreground='red'><sup></sup></span>",
-      "none": "",
-      "dnd-notification": "<span foreground='red'><sup></sup></span>",
-      "dnd-none": ""
+      "notification": "<span foreground='#ff9f39'><sup> </sup></span>",
+      "none": " ",
+      "dnd-notification": "<span foreground='#ff9f39'><sup> </sup></span>",
+      "dnd-none": " "
     },
     "return-type": "json",
     "exec-if": "which swaync-client",
@@ -83,26 +68,26 @@
    "custom/spotify": {
                 "format": "  {}",
                 "max-length": 40,
-                "exec": "$HOME/bin/mediaplayer.sh 2> /dev/null", // Script in resources folder
+                "exec": "~/.local/bin/mediaplayer.sh 2> /dev/null", // Script in resources folder
                 "exec-if": "pgrep spotify",
                 "return-type": "json"
     },
     "custom/pomodoro": {
                 "format": " {}",
                 "interval": 1,
-                "exec": "~/bin/pomodoro",
+                "exec": "~/.local/bin/pomodoro",
                 "exec-if": "pgrep emacs 2> /dev/null",
                 "on-click": "emacsclient -a emacs --eval '(emacs-agenda)'", // launch agenda to choose time
     },
     "custom/powermenu": {
-                "format": " ",
-                "on-click": "~/bin/powermenu.sh",
+                "format": "",
+                "on-click": "nwgbar",
                 "signal": 8,
                 "tooltip": false
     },
     "custom/startmenu": {
-                "format": "  ",
-                "on-click": "~/bin/startmenu",
+                "format": "",
+                "on-click": "~/.local/bin/startmenu",
                 "signal": 8,
                 "tooltip": false
     },
@@ -115,7 +100,7 @@
                 // "interface": "wlp2s0",
                 "format": "{ifname}",
                 "format-wifi": "  ",
-                "format-ethernet": "{ifname}  ",
+                "format-ethernet": "  ",
                 "format-disconnected": "  ",
                 "tooltip-format": "{ifname}",
                 "tooltip-format-wifi": "{essid} ({signalStrength}%)  ",
@@ -136,6 +121,6 @@
         },
         "on-click": "amixer set Master toggle && amixer set Capture toggle",
         "on-click-right": "pavucontrol",
-        "on-click-middle": "~/bin/volume",
+        "on-click-middle": "~/.local/bin/volume",
     }
-}
+}]

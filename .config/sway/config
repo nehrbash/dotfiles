@@ -54,7 +54,6 @@ output $mon2 disable {
   resolution 1920x1080 position 3840,1080
 }
 
-
 #
 ### Idle configuration
 exec swayidle -w \
@@ -212,7 +211,7 @@ mode "$snippet_copy" {
     # Move focus to the parent container
     bindsym $mod+a focus parent
 
-    # Move focus to the child container
+    # Move focus to the child contaiatner
     bindsym $mod+c focus child
 
     # keep window when switching

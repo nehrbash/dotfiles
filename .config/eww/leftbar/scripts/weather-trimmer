@@ -4,6 +4,6 @@ weather_count=$(cat /tmp/sway/weather/weather-stat | wc -c)
 
 if [ "$weather_count" -lt 10 ]; then
 	echo $weather;
-else 
+else
 	echo $(cat /tmp/sway/weather/weather-stat | cut -c1-6)...
 fi

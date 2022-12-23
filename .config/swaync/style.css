@@ -2,8 +2,6 @@
 @define-color border-color rgb(18, 23, 28);
 @define-color shadow-color rgba(10, 11, 13, 0.3);
 @define-color bg rgb(40, 44, 52);
-@define-color bg-hover rgb(62, 78, 94);
-@define-color bg-focus rgba(198, 120, 221, 0.2);
 @define-color bg-selected rgb(255, 108, 107);
 @define-color fg rgb(223, 223, 223);
 
@@ -36,15 +34,14 @@
 }
 
 .close-button {
-  background: black;
+  background: @unfocused_borders;
   color: @fg;
   text-shadow: none;
-  padding: 2px 4px;
-  box-shadow: 0px 2px 4px 2px @shadow-color;
+  padding: 2px 2px;
   border-radius: 100%;
 }
 .close-button:hover {
-  background: rgb(30, 30, 30);
+  background: @borders;
   transition: all 0.15s ease-in-out;
 }
 
@@ -54,12 +51,12 @@
   margin: 0;
   box-shadow: none;
   background: @bg;
-  border: 6px solid @border-color;
+  border: 6px solid @unfocused_bg_color;
 }
 
 .notification-default-action:hover,
 .notification-action:hover {
-  background: @bg-hover;
+  background: @theme_selected_bg_color;
 }
 
 .notification-default-action {
@@ -84,7 +81,6 @@
 }
 .notification-action:last-child {
   border-bottom-right-radius: 10px;
-  border-right: 1px solid @border-color;
 }
 
 .image {
@@ -113,12 +109,25 @@
   text-shadow: none;
 }
 
+.widget-title {
+  margin-left: 100px;
+}
+
+.widget-dnd {
+    margin-left: 100px;
+}
+
 .top-action-title {
   margin-top: 20px;
-  margin-left: 130px;
   color: @fg;
   text-shadow: none;
   font-size: 16px;
+}
+
+.widget-mpris {
+  margin-top: 40px;
+  margin-left: 10px;
+  margin-right: 10px;
 }
 
 .control-center-clear-all {
@@ -150,9 +159,9 @@
 }
 
 .control-center {
-  background: rgba(40, 44, 52, 0.95);
+  background: @theme_base_color;
   border-radius: 100px 0px 0px 100px;
-  border: 8px solid #c678dd;
+  border: 7px solid @unfocused_selected_bg_color;
   border-right: 0;
 }
 .control-center-list {
@@ -160,5 +169,5 @@
 }
 
 .floating-notifications {
-  background: transparent;
+  /* background: transparent; */
 }

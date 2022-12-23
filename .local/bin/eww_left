@@ -6,16 +6,16 @@ EWW="eww -c $HOME/.config/eww/leftbar"
 
 ## window list
 w_ls="
-    weather\
-    weathqu\
-    weathfc\
-    pomo\
+    back \
+    weather \
+    weathqu \
+    weathfc \
+    pomo \
     status \
     sys_usg \
     fetch \
     song \
-    pfp \
-    back
+    pfp
 "
 ## Run eww daemon if not running already
 if [[ ! `pidof eww` ]]; then

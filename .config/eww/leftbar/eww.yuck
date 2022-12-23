@@ -1,22 +1,15 @@
 (defvar IMAGE "images/profile.png")
-(defvar greeting "Hey!")
 (defpoll username :interval "48h"  "whoami")
 
-(defpoll pkgs :interval "5h" "pacman -Qq | wc -l")
-(defpoll pkgs_up :interval "5h" "checkupdates | wc -l")
+(defpoll pkgs :interval "1h" "pacman -Qq | wc -l")
+(defpoll pkgs_up :interval "1h" "checkupdates | wc -l")
 
-(defpoll battery :interval "15s" "scripts/battery --bat")
 (defpoll memory :interval "15s" "scripts/memory")
-(defpoll cpu :interval "17s" "scripts/cpu")
-
-
-(defpoll volume_percent :interval "6s" "amixer -D pulse sget Master | grep 'Left:' | awk -F'[][]' '{ print $2 }' | tr -d '%'")
-(defpoll mic_percent :interval "6s" "amixer -D pulse sget Capture | grep 'Left:' | awk -F'[][]' '{ print $2 }' | tr -d '%'")
-(defpoll brightness :interval "6s" "brightnessctl -m -d intel_backlight | awk -F, '{print substr($4, 0, length($4)-1)}' | tr -d '%'")
+(defpoll cpu :interval "15s" "scripts/cpu")
 
 
 (defwidget profile []
-			(box :class "bg_alt" :orientation "v" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false"
+			(box :class "bg_alt profile_box" :orientation "v" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false" :height 100
 				(box :class "profile_picture" :halign "center" :style "background-image: url('${IMAGE});")
 				(label :class "profile_greeting" :halign "center" :wrap "true" :limit-width 25 :text username)))
                 
@@ -24,10 +17,10 @@
 (defwidget system []
   (box :class "sys_win" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false" :spacing 0 
       (box :class "sys_bat_box" :orientation "h" :space-evenly "false" :hexpand "false" :vexpand "false"
-      (circular-progress :value battery
+      (circular-progress :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100, 0)}
                 :class "sys_bat"
                 :thickness 16
-            (label :text ""
+            (label :text "💾"
                 :class "sys_icon_bat"
                 :limit-width 2
                 :show_truncated false
@@ -45,31 +38,13 @@
       (circular-progress :value memory
                 :class "sys_mem"
                 :thickness 16
-            (label :text ""
+            (label :text "🐏"
                 :class "sys_icon_mem"
                 :limit-width 2
                 :show_truncated false
                 :wrap false
                 :angle 0.0)))))
 
-
-;;  system
-(defwidget stats []
-	(box :class "genwin" :vexpand "false" :hexpand "false"
-		(box :orientation "h" :spacing 30 :halign "center" :valign "center" :space-evenly "false" :vexpand "false" :hexpand "false"
-			(box :class "volume_bar" :orientation "v" :spacing 25 :space-evenly "false" :vexpand "false" :hexpand "false"
-                       (scale :flipped "true" :orientation "v" :min 0 :max 101 :value volume_percent :active "false" :onchange "amixer -D pulse sset Master {}%" )
-                            (label  :text "" :class "vol_icon"))
-					(box :class "mic_bar" :orientation "v" :spacing 25 :space-evenly "false" :vexpand "false" :hexpand "false"
-                            (scale :flipped "true" :orientation "v" :min 0 :max 101 :value mic_percent :active "false")
-                            (label  :text "" :class "mic_icon"))
-					(box :class "bright_bar" :onchange "brightnessctl set {}%" :orientation "v" :spacing 20 :space-evenly "false" :vexpand "false" :hexpand "false"
-                            (scale :flipped "true" :orientation "v" :min 0 :max 101 :value brightness :active "false")
-                            (label  :text "" :class "brg_icon"))
-					(box :class "storage_bar" :orientation "v" :spacing 25 :space-evenly "false" :vexpand "false" :hexpand "false"
-                        (scale :flipped "true" :orientation "v" :min 0 :max 101 :active "false" :value {round((1 - (EWW_DISK["/"].free / EWW_DISK["/"].total)) * 100, 0)})
-                        (label  :text ""
-                                :class "stor_icon")))))
 
 (defwidget fetch_sys [] 
 		(box :class "win" :halign "center" :vexpand "false" :hexpand "false" :orientation "v" :space-evenly "false" :spacing 10
@@ -78,7 +53,7 @@
 				(label :class "fetch_sep_1" :text "" :halign "center")
                 (label :class "fetch_text_1" :text "Arch"))
 		(box :vexpand "false" :hexpand "false" :orientation "h" :space-evenly "false" :spacing 30
-				(label :class "fetch_icon_2" :text "")
+				(label :class "fetch_icon_2" :text "📦")
 				(label :class "fetch_sep" :text "" :valign "center")
                 (label :class "fetch_text_2" :text pkgs))
         (box :vexpand "false" :hexpand "false" :orientation "h" :space-evenly "false" :spacing 30
@@ -91,7 +66,6 @@
 (defpoll song_artist :interval "1s"  "playerctl metadata --format '{{ artist }}' && ~/.config/eww/leftbar/scripts/getart")
 (defpoll song_status :interval "1s"  "~/.config/eww/leftbar/scripts/spotifystatus")
 (defpoll cover :interval "5s"  "~/.config/eww/leftbar/scripts/echoart")
-
 
 (defwidget music []
 		(box :class "msc_ctl_bg" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "false" 
@@ -134,7 +108,8 @@
                 (label :class "temperature-side" :text "${temperature}  ")
                 (label :class "weather-stat-side" :text "${weather-stat}"))))
 (defwidget weather-quote []
-           (box :class "weather-quote" :orientation "v" :space-evenly "false" :vexpand "false" :hexpand "true"
+           (box :class "weather-quote" :orientation "v" :space-evenly "false" :hexpand "true"            :height 80
+
                 (label :class "weather-quote-head" :text "${weather-quote}")
                 (label :class "weather-quote-tail" :text "${weather-quote2}")))
                 
@@ -170,7 +145,7 @@
 (defpoll pomo-task :interval "15s" "./scripts/pomo_task")
 
 (defwidget pomodoro []
-  (box :class "sys_win" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false" :spacing 0 
+  (box :class "sys_win" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false" :height 300 :width: 300  
       (box :class "pomo_box" :orientation "h" :space-evenly "false" :hexpand "false" :vexpand "false"
       (circular-progress :value pomo-percent
                 :class "pomo"
@@ -187,9 +162,22 @@
                 
 
 
-(defwidget bg []
-  (box :class "bg"))
-
+(defwidget left []
+  (box :class "bg" :orientation "v"
+  :height 80
+  (box :orientation "h"
+  (profile)
+  (weather-side))
+  (box :orientation "h"
+  (weather-quote))
+  (box :orientation "h"
+  (weather-forecast))
+  (box :orientation "h"
+  (pomodoro))
+  (box :orientation "h"
+  (system))
+))
+                        
 (defwindow weather
            :monitor 0
            :geometry (geometry
@@ -226,7 +214,7 @@
                      :y "860px")
            (pomodoro))
            
-(defwindow back
+(defwindow left
   :monitor 0
   :stacking "fg"
   :geometry (geometry :anchor "left center"
@@ -234,7 +222,7 @@
              :height "75%"
              :x "0px"
              :y "0px")
-             (bg))
+             (left))
              
 
 (defwindow pfp
@@ -246,15 +234,6 @@
              :y "260px")
   (profile))
 
-
-(defwindow time
-  :monitor 0
-  :geometry (geometry 
-             :width "218px"
-             :height "90px"
-             :x "285px"
-             :y "355px")
-  (time))
 
 
 (defwindow day_dot

@@ -402,38 +402,47 @@ Tramp was acting slow this helps.
 
 #+begin_src emacs-lisp
 (use-package dashboard
-  :config
-  (setq dashboard-startup-banner "~/Pictures/gopherMe_small.png")
-  (setq dashboard-projects-backend 'projectile)
-  (dashboard-setup-startup-hook))
+  :custom ((dashboard-startup-banner "~/Pictures/gopherMe_small.png")
+           (dashboard-projects-backend 'projectile)
+           (dashboard-center-content t)
+           (dashboard-set-heading-icons t)
+           (dashboard-set-file-icons t)
+           (dashboard-set-navigator t)
+           (dashboard-set-footer nil)
+           (dashboard-items '(
+                              (agenda . 5)
+                              (projects . 5)
+                              (bookmarks . 5)
+                              (recents  . 10))))
+    :config (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*")))
+    (dashboard-setup-startup-hook))
 #+end_src
 
 ** Theme
 
-   #+begin_src emacs-lisp
-   (use-package doom-themes
-     :straight t
-     :config
-     (setq doom-themes-enable-bold t    ; if nil, bold is universally disabled
-           doom-themes-enable-italic t)     ; if nil, italics is universally disabled
-     (load-theme 'doom-dracula t)
-     (doom-themes-org-config))
-   ;; to load theme properly when new client frame is created
-   (add-hook 'after-make-frame-functions
-             (lambda (frame)
-               (with-selected-frame frame
-                 (load-theme 'doom-dracula t))))
-   ;; Don't prompt to confirm theme safety. This avoids problems with
-   ;; first-time startup on Emacs > 26.3.
-   (setq custom-safe-themes t)
-   (set-face-attribute 'highlight nil :background "#374854")
-   #+end_src
+#+begin_src emacs-lisp
+(use-package doom-themes
+  :straight t
+  :custom ((doom-themes-enable-bold t)
+           (doom-themes-enable-italic t))
+  :config
+  (load-theme 'doom-dracula t)
+  (doom-themes-org-config))
+;; to load theme properly when new client frame is created
+(add-hook 'after-make-frame-functions
+          (lambda (frame)
+            (with-selected-frame frame
+              (load-theme 'doom-dracula t))))
+;; Don't prompt to confirm theme safety. This avoids problems with
+;; first-time startup on Emacs > 26.3.
+(setq custom-safe-themes t)
+#+end_src
 
 ** Dimmer
 
    Dim the unfocused buffer.
 
-   #+begin_src emacs-lisp
+#+begin_src emacs-lisp
    (use-package dimmer
      :init (dimmer-mode)
      :config (setq-default dimmer-fraction 0.15)
@@ -441,23 +450,19 @@ Tramp was acting slow this helps.
      (defun sanityinc/display-non-graphic-p ()
        (not (display-graphic-p)))
      (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
-   #+end_src
+#+end_src
 
 ** Modeline
 
  #+begin_src emacs-lisp
-   (use-package doom-modeline
-     :init (doom-modeline-mode 1)
-     :custom (
-              (doom-modeline-buffer-file-name-style 'truncate-upto-project)
-              (doom-modeline-vcs-max-length 30)
-              (doom-modeline-height 40)
-              (all-the-icons-scale-factor 1))
-    ;;  :config
-  ;;     (doom-modeline-def-modeline 'main
-  ;; '(bar matches vcs buffer-info remote-host buffer-position parrot selection-info)
-  ;; '(misc-info minor-modes input-method buffer-encoding major-mode process  checker " "))
-     )
+ (use-package doom-modeline
+   :init (doom-modeline-mode 1)
+   :custom (
+            (doom-modeline-buffer-file-name-style 'truncate-upto-project)
+            (doom-modeline-vcs-max-length 30)
+            (doom-modeline-height 40)
+            (doom-modeline-width 40)
+            (all-the-icons-scale-factor 1)))
  #+end_src
 
 ** GUI Frames
@@ -911,34 +916,34 @@ Need to revisit now that I am using dirvish.
 
 ** Spelling
 
-#+begin_src emacs-lisp
-(use-package ispell
-  :if (not (bound-and-true-p disable-pkg-ispell))
-  :defer 15
-  :config
-  (setq ispell-extra-args   '("--sug-mode=ultra"
-                                  "--lang=en_US"))
-  ;; Save a new word to personal dictionary without asking
-  (setq ispell-silently-savep t))
-(use-package flyspell
-    :init  (progn
-        ;; Below variables need to be set before `flyspell' is loaded.
-        (setq flyspell-use-meta-tab nil)
-        ;; Binding for `flyspell-auto-correct-previous-word'.
-        (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
-    :config  (progn
-        (add-hook 'prog-mode-hook #'flyspell-prog-mode)
-        (with-eval-after-load 'auto-complete
-          (ac-flyspell-workaround))
-        ;; https://github.com/larstvei/dot-emacs#flyspell
-        (add-hook 'text-mode-hook #'turn-on-flyspell)
-        (add-hook 'org-mode-hook  #'turn-on-flyspell)
-        (bind-keys
-         :map flyspell-mode-map
-         ;; Stop flyspell overriding other key bindings
-         ("C-," . nil)
-         ("C-." . nil)
-         ("<C-f12>" . flyspell-goto-next-error))))
+#+begin_src emacs
+  (use-package ispell
+    :if (not (bound-and-true-p disable-pkg-ispell))
+    :defer 15
+    :config
+    (setq ispell-extra-args   '("--sug-mode=ultra"
+                                    "--lang=en_US"))
+    ;; Save a new word to personal dictionary without asking
+    (setq ispell-silently-savep t))
+  (use-package flyspell
+      :init  (progn
+          ;; Below variables need to be set before `flyspell' is loaded.
+          (setq flyspell-use-meta-tab nil)
+          ;; Binding for `flyspell-auto-correct-previous-word'.
+          (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
+      :config  (progn
+          (add-hook 'prog-mode-hook #'flyspell-prog-mode)
+          (with-eval-after-load 'auto-complete
+            (ac-flyspell-workaround))
+          ;; https://github.com/larstvei/dot-emacs#flyspell
+          (add-hook 'text-mode-hook #'turn-on-flyspell)
+          (add-hook 'org-mode-hook  #'turn-on-flyspell)
+          (bind-keys
+           :map flyspell-mode-map
+           ;; Stop flyspell overriding other key bindings
+           ("C-," . nil)
+           ("C-." . nil)
+           ("<C-f12>" . flyspell-goto-next-error))))
 #+end_src
 
 *** Flycheck
@@ -955,7 +960,6 @@ Need to revisit now that I am using dirvish.
 * Multi Vterm
 
 #+begin_src emacs-lisp
-(use-package vterm)
 (use-package multi-vterm
   :straight t
   :config
@@ -1450,8 +1454,7 @@ ORIG is the advised function, which is called with its ARGS."
                 (minibufferp))
       (local-set-key (kbd "RET") 'paredit-newline)))
   :config
-;; Suppress certain paredit keybindings to avoid clashes, including
-;; my global binding of M-?
+;; Suppress certain paredit keybindings to avoid clashes
 (define-key paredit-mode-map (kbd "DEL") 'delete-backward-char)
 (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
   (define-key paredit-mode-map (read-kbd-macro binding) nil)))
@@ -1515,7 +1518,12 @@ ORIG is the advised function, which is called with its ARGS."
 ** Improve window switching
 
 #+begin_src emacs-lisp
-(require 'init-windows)
+(use-package 'switch-window
+  :config (require 'init-windows))
+
+  (use-package windswap)
+  (add-hook 'after-init-hook (apply-partially 'windmove-default-keybindings 'control))
+  (add-hook 'after-init-hook (apply-partially 'windswap-default-keybindings 'shift 'control))
 (defun th/swap-window-buffers-by-dnd (drag-event)
   "Swaps the buffers displayed in the DRAG-EVENT's start and end
 window."
@@ -1568,6 +1576,7 @@ window."
   :config
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (require 'ox-extra)
+  (require 'org-indent)
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f")
         org-src-tab-acts-natively t

@@ -13,7 +13,6 @@ if type exa > /dev/null; then
     alias ldot='exa -ld .* --icons'
 fi
 alias t='tail -f'
-# Command line head / tail shortcuts
 alias -g H='| head'
 alias -g T='| tail'
 alias -g G='| grep'
@@ -34,9 +33,13 @@ alias p='ps -f'
 alias sortnr='sort -n -r'
 alias unexport='unset'
 alias open='xdg-open 2>/dev/null'
-alias rm="rm -i"
+alias rm='rm -I'
 alias cp='cp -i'
-alias mv="mv -i"
-alias em='emacsclient -nw -a "emacs" 2>/dev/null'
-alias emw='emacsclient -c -a "emacs" 2>/dev/null'
+alias mv='mv -i'
+alias em='emacsclient -nw -a "" 2>/dev/null'
+alias emw='emacsclient -c -a "" 2>/dev/null'
 alias clock='tty-clock -c  -n -D'
+alias ..='cd ..'
+alias ...='cd ../../../'
+alias ....='cd ../../../../'
+alias .....='cd ../../../../'
