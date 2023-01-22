@@ -1,0 +1,32 @@
+#!/bin/bash
+
+emtime=$(emacsclient -e '(snehrbass/org-pomodoro-time)' 2> /dev/null)
+pomoPercent=0
+if [ -z "${emtime}" ];
+then
+    emtime=0
+else
+    emtime=$(echo $emtime | cut -d '"' -f 2)
+    min=$(bc <<< "$emtime/60")
+    sec=$(bc <<< "$emtime%60")
+
+    pomoTime=$(printf "%02d:%02d" $min $sec)
+    pomoPercent=$(bc <<< "$emtime*100/1500") # 25 min cycle
+fi
+
+emtask=$(emacsclient -e '(snehrbass/org-pomodoro-task)' 2> /dev/null)
+
+if [ -z "${emtask}" ];
+then
+   emtask="No Active Pomodoro"
+else
+   emtask=$(echo $emtask | cut -d '"' -f 2)
+fi
+
+emsg=$(emacsclient -e '(ruborcalor/org-pomodoro-time)' 2> /dev/null)
+if [ ! -z "${emsg}" ];
+then
+   emsg=$(echo $emsg | cut -d '"' -f 2)
+fi
+
+echo "{\"percent\": \"${pomoPercent}\", \"time\": \"${pomoTime}\", \"task\": \"${emtask}\", \"summary\": \"${emsg}\" }"

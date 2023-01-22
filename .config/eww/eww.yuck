@@ -6,6 +6,7 @@
 (include "./modules/sys.yuck")
 (include "./modules/volume.yuck")
 (include "./modules/workspaces.yuck")
+(include "./modules/pomodoro.yuck")
 
 (include "./windows/calendar.yuck")
 (include "./windows/music.yuck")
@@ -31,6 +32,7 @@
   (box
     :space-evenly false
     :halign "end"
+    (pomo)
     (volume-module)
     (bluetooth)
     (net)

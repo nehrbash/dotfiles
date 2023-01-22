@@ -8,6 +8,7 @@
 (defvar profile-image "/home/nehrbash/Pictures/gopherMe_small.png")
 (defpoll time :interval "5s" `date +'{"date": "%m/%d/%y", "hour": "%I", "minute": "%M %p", "day": "%A"}'`)
 (defpoll upgrades :interval "5m" `checkupdates | wc -l`)
+(defpoll pomo :interval "1s" `scripts/pomo`)
 
 (deflisten airplane "scripts/airplane")
 (deflisten battery "scripts/battery")

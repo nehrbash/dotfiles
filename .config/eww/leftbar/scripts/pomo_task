@@ -3,7 +3,6 @@
 
 emtask=$(emacsclient -e '(snehrbass/org-pomodoro-task)' 2> /dev/null)
 
-
 if [ -z "${emtask}" ];
 then
    emtask="No Active Pomodoro"
