@@ -1,0 +1,5 @@
+:PROPERTIES:
+:ID:       b75be1c6-43f8-4346-9763-7ce4957c2d3c
+:END:
+#+title: 2023-01-02
+Seems like i have a race condition of hyprland auto detecting my second moniror and hyprland starting. it is normally picked up after logging out and back in again but was

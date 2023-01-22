@@ -12,7 +12,8 @@
   - [[#esc-cancels-all][ESC Cancels All]]
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line or Region]]
-  - [[#file-modified-state][File modified State]]
+  - [[#file-modified-state][File Modified State]]
+  - [[#sudo-editing][Sudo editing]]
 - [[#general-settings][General Settings]]
   - [[#track-recent-files][Track Recent Files]]
   - [[#auto-update-file][Auto update file]]
@@ -20,7 +21,7 @@
   - [[#faster-tramp][Faster TRAMP]]
   - [[#init-path-environment-variable][Init PATH environment variable]]
 - [[#ui][UI]]
-  - [[#startup][Startup]]
+  - [[#startup--dashboard][Startup / Dashboard]]
   - [[#theme][Theme]]
   - [[#dimmer][Dimmer]]
   - [[#modeline][Modeline]]
@@ -86,6 +87,7 @@
   - [[#yaml][yaml]]
   - [[#docker][Docker]]
   - [[#terraform][Terraform]]
+  - [[#yuck][Yuck]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -303,12 +305,21 @@ Cut/copy the current line if no region is active.
   :bind ("M-j". comment-dwim))
 #+end_src
 
-** File modified State
+** File Modified State
 
+   Marks a file as unmodified based on diff not if edits have been made. Nice for when you add a character accidentally and then delete it. Normally the file would be marked as edited (slightly annoying).
 #+begin_src emacs-lisp
 (use-package unmodified-buffer
   :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
   :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
+#+end_src
+
+** Sudo editing
+
+   This is completely unnecessary since you could just tramp the same file really quick but using this package is a slightly nicer user experience.
+
+#+begin_src emacs-lisp
+(use-package sudo-edit)
 #+end_src
 
 * General Settings
@@ -333,6 +344,7 @@ Cut/copy the current line if no region is active.
  truncate-partial-width-windows nil
  ring-bell-function 'ignore)
 ( delete-selection-mode t)
+(global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 #+end_src
 
@@ -391,7 +403,7 @@ Tramp was acting slow this helps.
 
 * UI
 
-** Startup
+** Startup / Dashboard
 
    The default buffer.
 
@@ -421,18 +433,20 @@ Tramp was acting slow this helps.
 ** Theme
 
 #+begin_src emacs-lisp
+(straight-use-package '(autothemer :type git :host github :repo "catppuccin/emacs"))
 (use-package doom-themes
   :straight t
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'doom-dracula t)
+  (load-theme 'catppuccin t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
+
 (add-hook 'after-make-frame-functions
           (lambda (frame)
             (with-selected-frame frame
-              (load-theme 'doom-dracula t))))
+              (load-theme 'catppuccin t))))
 ;; Don't prompt to confirm theme safety. This avoids problems with
 ;; first-time startup on Emacs > 26.3.
 (setq custom-safe-themes t)
@@ -964,7 +978,7 @@ Need to revisit now that I am using dirvish.
   :straight t
   :config
   (setq vterm-buffer-name-string "%s")
-  (setq )
+  (set-window-margins (selected-window) 1 1)
   :bind (
          ( "C-c t" . multi-vterm-dedicated-toggle)
          ( "M-t" . multi-vterm)
@@ -972,13 +986,16 @@ Need to revisit now that I am using dirvish.
          ("C-c t" . multi-vterm-dedicated-toggle)
          ("M-w" . copy-region-as-kill)
          ( "C-y" . vterm-yank)))
+(add-hook 'vterm-mode-hook
+          (lambda ()
+            (set (make-local-variable 'buffer-face-mode-face) 'fixed-pitch)
+                 (buffer-face-mode t) (set-window-margins (selected-window) 1 1)))
 (add-hook 'vterm-mode-hook (lambda ()
                              (setq vterm-buffer-maximum-size 1000
-                                   vterm-scroll-to-bottom-on-output t
-                                   multi-vterm-scroll-show-maximum-output t
-                                   multi-vterm-dedicated-select-after-open-p t
+                                   multi-vterm-dedicated-window-height-percent 30
+                                   left-margin-width 1
+                                   right-margin-width 1
                                    mode-line-format nil
-                                   goto-address-mode t
                                    cursor-type 'bar)))
 (defun vterm-clear-buffer ()
   "Clear terminal"
@@ -1517,34 +1534,16 @@ ORIG is the advised function, which is called with its ARGS."
 
 ** Improve window switching
 
-#+begin_src emacs-lisp
-(use-package 'switch-window
-  :config (require 'init-windows))
+   I go use to how windows worked using purcell's configuration.
 
-  (use-package windswap)
-  (add-hook 'after-init-hook (apply-partially 'windmove-default-keybindings 'control))
-  (add-hook 'after-init-hook (apply-partially 'windswap-default-keybindings 'shift 'control))
-(defun th/swap-window-buffers-by-dnd (drag-event)
-  "Swaps the buffers displayed in the DRAG-EVENT's start and end
-window."
-  (interactive "e")
-  (let ((start-win (cl-caadr drag-event))
-        (end-win   (cl-caaddr drag-event)))
-    (when (and (windowp start-win)
-               (windowp end-win)
-               (not (eq start-win end-win))
-               (not (memq (minibuffer-window)
-                          (list start-win end-win))))
-      (let ((bs (window-buffer start-win))
-            (be (window-buffer end-win)))
-        (unless (eq bs be)
-          (set-window-buffer start-win be)
-          (set-window-buffer end-win bs))))))
-(global-set-key (kbd "<C-drag-mouse-1>") #'th/swap-window-buffers-by-dnd)
+#+begin_src emacs-lisp
+(require 'init-windows)
 #+end_src
 
 ** App launcher
-#+begin_src emacs-lisp
+
+   Just having some fun, here is a possible wofi replacement.
+#+begin_src lisp
 (use-package counsel)
 (setq counsel-linux-app-format-function 'counsel-linux-app-format-function-name-pretty)
 
@@ -1712,7 +1711,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 ** Pomodoro Timer
 
-   https://colekillian.com/posts/org-pomodoro-and-polybar/
+Basically just followed the directions from this cool blog.   https://colekillian.com/posts/org-pomodoro-and-polybar/
 
 #+begin_src emacs-lisp
 (use-package org-pomodoro
@@ -2352,6 +2351,14 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package terraform-mode)
+#+end_src
+
+** Yuck
+
+   Yuck is the eww configuration language.
+
+#+begin_src emacs-lisp
+(use-package yuck-mode)
 #+end_src
 
 * Runtime Performance

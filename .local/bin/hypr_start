@@ -7,14 +7,18 @@ export XDG_SESSION_DESKTOP=Hyprland
 export XDG_DATA_DIRS=/home/nehrbash/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/
 export XDG_RUNTIME_DIR=/run/user/1000
 export XDG_SESSION_CLASS=user
+# firfox
+export SDL_VIDEODRIVER=wayland
+export MOZ_ENABLE_WAYLAND=1
 # Qt
 export QT_AUTO_SCREEN_SCALE_FACTOR=1
 export QT_QPA_PLATFORM="wayland;xcb"
 export QT_WAYLAND_DISABLE_WINDOWDECORATION=1
 export QT_QPA_PLATFORMTHEME=qt5ct
 # themes
-export GTK_THEME=Dracula:dark
+export GTK_THEME=Catppuccin-Mocha-Standard-Mauve-Dark:dark
 export XCURSOR_THEME=Dracula-cursors
 export WLR_DRM_NO_ATOMIC=1
-
+export XDG_CONFIG_HOME="$HOME/.config"
+export XDG_CACHE_HOME="$HOME/.cache"
 exec Hyprland

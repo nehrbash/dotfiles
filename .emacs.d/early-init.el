@@ -13,7 +13,7 @@
                     :height 120
                     :weight 'normal
                     :width 'normal)
-(set-fontset-font "fontset-default" '(#x5d0 . #x5ff) "FontAwesome")
+;; (set-fontset-font "fontset-default" '(#x5d0 . #x5ff) "FontAwesome")
 (fringe-mode '(3 . 6))
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)

@@ -1,19 +1,18 @@
-[{
+{
     // Basic config
-    "layer": "top",
-    "position": "bottom",
-    "height": 70,
-    "output": "HDMI-A-1",
-    "margin-top": -10,
-    "margin-bottom": 15,
+    "layer": "bottom",
+    "position": "top",
+    //"height": 0,
+    // "output": ["HDMI-A-1"],
+    "margin-top": 5,
+    "margin-bottom": 5,
     "margin-right": 200,
     "margin-left": 200,
-    "gtk-layer-shell": false,
 
     // Modules
-    "modules-left": ["clock", "custom/d", "custom/pomodoro", "custom/spotify"],
-    "modules-center": ["custom/startmenu", "custom/d", "wlr/workspaces"],
-    "modules-right": ["tray", "custom/d", "pulseaudio", "network", "inhibitor", "custom/notification", "custom/d", "custom/powermenu"],
+    "modules-left": ["custom/startmenu", "custom/d", "wlr/workspaces", "custom/d", "custom/spotify"],
+    "modules-center": ["custom/notification","clock"],
+    "modules-right": ["custom/pomodoro", "tray", "custom/d", "network", "pulseaudio", "inhibitor"],
 
     // Modules configuration
     "custom/d": {
@@ -21,7 +20,7 @@
         "tooltip": false
     },
     "tray": {
-               "icon-size": 24,
+               "icon-size": 18,
                "spacing": 15
     },
     "inhibitor": {
@@ -34,21 +33,21 @@
     "wlr/workspaces": {
     "format": "{icon}",
     "format-icons": {
-        "1": "",
-        "2": "",
-        "3": "",
-        "4": "",
-        "5": "",
-        "6": "",
-        "7": "",
-        "focused": "",
-        "default": ""
+    "1": "",
+    "2": "",
+    "3": "",
+    "4": "",
+    "5": "",
+    "6": "",
+    "7": "",
+    "focused": "",
+    "default": ""
     },
     "on-click": "activate",
     "all-outputs": true,
     "active-only": false,
     "sort-by-number": true
-},
+    },
     "custom/notification": {
     "tooltip": false,
     "format": "{icon}",
@@ -66,9 +65,9 @@
     "escape": true
     },
    "custom/spotify": {
-                "format": "  {}",
+                "format": "{icon} {}",
                 "max-length": 40,
-                "exec": "~/.local/bin/mediaplayer.sh 2> /dev/null", // Script in resources folder
+                "exec": "~/.local/bin/mediaplayer.sh --player spotify 2> /dev/null", // Script in resources folder
                 "exec-if": "pgrep spotify",
                 "return-type": "json"
     },
@@ -93,8 +92,8 @@
     },
     "clock": {
         "interval": 1,
-        "tooltip-format": "<big>{:%Y %B}</big>\n<tt><small>{calendar}</small></tt>",
-        "format": "{:%I:%M %p\n%D}",
+        "tooltip": false,
+        "format": "{:%b %d   %I:%M %p}",
     },
     "network": {
                 // "interface": "wlp2s0",
@@ -123,4 +122,4 @@
         "on-click-right": "pavucontrol",
         "on-click-middle": "~/.local/bin/volume",
     }
-}]
+}

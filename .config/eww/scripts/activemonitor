@@ -1,0 +1,9 @@
+#!/bin/sh
+hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | { id:.id }'
+function handle {
+  if [[ ${1:0:10} == "focusedmon" ]]; then
+    hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | { id:.id }'
+  fi
+}
+
+socat - UNIX-CONNECT:/tmp/hypr/$(echo $HYPRLAND_INSTANCE_SIGNATURE)/.socket2.sock | while read line; do handle $line; done

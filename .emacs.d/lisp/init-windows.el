@@ -13,7 +13,7 @@
 
 
 ;; Make "C-x o" prompt for a target window when there are more than 2
-(require 'winner)
+(use-package switch-window)
 (setq-default switch-window-shortcut-style 'alphabet)
 (setq-default switch-window-timeout nil)
 (global-set-key (kbd "C-x o") 'switch-window)
@@ -49,8 +49,7 @@
 ;; Rearrange split windows
 
 (defun split-window-horizontally-instead ()
-  "Kill any other windows and re-split such that the current window
- is on the top half of the frame."
+  "Kill any other windows and re-split such that the current window is on the top half of the frame."
   (interactive)
   (let ((other-buffer (and (next-window) (window-buffer (next-window)))))
     (delete-other-windows)
@@ -59,8 +58,7 @@
       (set-window-buffer (next-window) other-buffer))))
 
 (defun split-window-vertically-instead ()
-  "Kill any other windows and re-split such that the
-current window is on the left half of the frame."
+  "Kill any other windows and re-split such that the current window is on the left half of the frame."
   (interactive)
   (let ((other-buffer (and (next-window) (window-buffer (next-window)))))
     (delete-other-windows)
@@ -101,6 +99,15 @@ Call a second time to restore the original window configuration."
              (buffer-name))))
 
 (global-set-key (kbd "C-c <down>") 'sanityinc/toggle-current-window-dedication)
+
+
+
+
+(unless (memq window-system '(nt w32))
+  (use-package windswap)
+  (add-hook 'after-init-hook (apply-partially 'windmove-default-keybindings 'control))
+  (add-hook 'after-init-hook (apply-partially 'windswap-default-keybindings 'shift 'control)))
+
 
 (provide 'init-windows)
 ;;; init-windows.el ends here

@@ -1,0 +1,8 @@
+(defwidget sys []
+  (box
+    :class "module"
+    :space-evenly false
+    (button
+        :class "song-cover-art"
+        :style "background-image: url(\"${profile-image}\");"
+        :onclick "${EWW_CMD} open --toggle system-menu-closer --screen ${monit.id}; ${EWW_CMD} open --toggle  system-menu --screen ${monit.id}")))

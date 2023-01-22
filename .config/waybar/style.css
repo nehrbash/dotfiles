@@ -1,7 +1,7 @@
 * {
     border: 0;
     font-family: Cozette, FontAwesome;
-    font-size: 22px;
+    font-size: 18px;
     min-height: 0;
 }
 
@@ -11,9 +11,8 @@ window#waybar {
 }
 
 window#waybar:first-child > box {
-
-    padding: 8px 20px 8px 20px;
-    border-radius: 35px 35px 35px 35px;
+    padding: 6px 10px 6px 10px;
+    border-radius: 30px 30px 30px 30px;
     background-color: @theme_base_color;
     border: 4px solid @theme_selected_bg_color;
 
@@ -21,10 +20,10 @@ window#waybar:first-child > box {
 
 #workspaces* {
     font-family: SourceCode;
-    font-size: 36px;
+    font-size: 24px;
 }
 #workspaces button {
-    padding: 0 20px;
+    padding: 0 15px;
     background: transparent;
     color: #4c566a;
 }
@@ -39,32 +38,17 @@ window#waybar:first-child > box {
     color: #a9a1e1;
 }
 
-#clock {
-    padding: 0 7px;
-    margin: -20px 5px;
+#clock, #pulseaudio {
     color: #88c0d0;
-    font-size: 18px;
-    font-family: Lemon;
-}
-
-#pulseaudio {
-    padding: 0 7px;
-    margin: 2px 0px;
-    color: #88c0d0;
-    font-size: 24px;
-}
-
-
-#pulseaudio {
-  margin-right: -7px;
 }
 
 #custom-d {
-    padding: 7px;
-    margin-top: -20px;
-    margin-bottom: -10px;
+    margin-top: -12px;
+    margin-bottom: -8px;
+    padding-left: 4px;
+    padding-right: 4px;
+    font-size: 24px;
     color: #4c566a;
-    font-size: 42px;
 }
 
 #custom-pomodoro {
@@ -72,40 +56,27 @@ window#waybar:first-child > box {
     margin-right: 5px;
 }
 
-#custom-powermenu {
-    font-size: 40px;
-    color: #ff6c6b;
-    margin-right:  2px;
-    margin-bottom: -2px;
-}
-
-#custom-spotify {
-    color: #99bb66;
-    margin-right: 5px;
-    margin-bottom: -3px;
-}
-
-
-#network {
+#custom-spotify, #network {
     color: #99bb66;
 }
+
 #inhibitor {
     color: #ffb86c;
     padding-left: 4px;
     padding-right: 4px;
 }
 
-#mode {
-    /* border-radius: 20px 20px 20px 20px; */
-    background-color: #a9a1e1;
-    color: #282c34;
-    margin-right: 5px;
-    margin-left: 5px;
-    margin-bottom: -20px;
-    margin-top: -8px;
-    padding-bottom: 8px;
-    font-size: 32px;
-}
+/* #mode { */
+/*     /\* border-radius: 20px 20px 20px 20px; *\/ */
+/*     background-color: #a9a1e1; */
+/*     color: #282c34; */
+/*     margin-right: 5px; */
+/*     margin-left: 5px; */
+/*     margin-bottom: -20px; */
+/*     margin-top: -8px; */
+/*     padding-bottom: 8px; */
+/*     font-size: 32px; */
+/* } */
 
 #custom-notification {
   font-family: "NotoSansMono Nerd Font";
@@ -114,11 +85,12 @@ window#waybar:first-child > box {
   padding-right: 4px;
 }
 
-#custom-startmenu {
-    font-size: 32px;
-    color: @unfocused_fg_color;
-}
-
 #custom-pomodoro {
     font-family: "NotoSansMono Nerd Font";
+    padding-right: 15px;
+}
+
+#custom-startmenu {
+    font-size: 18px;
+    color: @unfocused_fg_color;
 }

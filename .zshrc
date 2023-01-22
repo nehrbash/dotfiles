@@ -18,8 +18,6 @@ prompt pure
 # highlight colors
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.sh
 
-
-
 ## History file configuration
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh/history"
 [ "$HISTSIZE" -lt 50000 ] && HISTSIZE=50000
@@ -42,13 +40,10 @@ _comp_options+=(globdots)     # Include hidden files.
 
 # Load plugins
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
-ZSH_AUTOSUGGEST_HIGHLIGHT_STYLE='fg=3'
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
 source /usr/share/autojump/autojump.zsh 2>/dev/null
 
-export PATH=$PATH:~/go/bin
-export EDITOR=emacs
-export TERM=xterm-256color
+# export variables are in $HOME/.zshenv
 
 # Load aliases and shortcuts if existent.
 [ -f "$HOME/.zsh/aliasrc" ] && source "$HOME/.zsh/aliasrc"
