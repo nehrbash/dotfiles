@@ -78,6 +78,7 @@
   - [[#tree-sitter][Tree sitter]]
   - [[#lsp-mode][LSP-Mode]]
   - [[#lsp-ui][LSP-UI]]
+  - [[#dap][DAP]]
   - [[#go][Go]]
   - [[#c][C++]]
   - [[#rust][Rust]]
@@ -2005,10 +2006,9 @@ Basically just followed the directions from this cool blog.   https://colekillia
                         (org-agenda-skip-function
                          '(lambda ()
                             (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-                                (org-agenda-skip-subtree-if 'nottododo '("TODO")))))
+                                (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
                         (org-tags-match-list-sublevels t)
-                        (org-agenda-sorting-strategy
-                         '(category-keep))))
+                        (org-agenda-sorting-strategy '(category-keep))))
             (tags-todo "/WAITING"
                        ((org-agenda-overriding-header "Waiting")
                         (org-agenda-tags-todo-honor-ignore-options t)
@@ -2029,11 +2029,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
                                 (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
                         (org-tags-match-list-sublevels nil)
                         (org-agenda-sorting-strategy
-                         '(category-keep))))
-            ;; (tags-todo "-NEXT"
-            ;;            ((org-agenda-overriding-header "All other TODOs")
-            ;;             (org-match-list-sublevels t)))
-            )))))
+                         '(category-keep)))))))))
   (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 #+end_src
 
@@ -2186,7 +2182,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
    We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
 
 #+begin_src emacs-lisp
-(use-package consult-lsp  :ensure t )
+(use-package consult-lsp)
 (use-package lsp-mode
   :straight t
   :init
@@ -2226,6 +2222,21 @@ Basically just followed the directions from this cool blog.   https://colekillia
   :hook (lsp-mode . lsp-ui-mode))
 #+end_src
 
+** DAP
+
+#+begin_src emacs-lisp
+(use-package dap-mode
+  :config
+  (dap-mode 1)
+  (setq dap-print-io t)
+  ;;(setq fit-window-to-buffer-horizontally t)
+  ;;(setq window-resize-pixelwise t)
+  (require 'dap-dlv-go)
+  (use-package dap-ui
+    :config (dap-ui-mode 1)))
+#+end_src
+
+
 ** Go
 
    Don't forget to install golsp =go get golang.org/x/tools/gopls@latest=
@@ -2241,6 +2252,18 @@ Basically just followed the directions from this cool blog.   https://colekillia
    (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
                ("C-c C-c" . compile)))
+
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+(lsp-register-client
+ (make-lsp-client :new-connection (lsp-tramp-connection
+                                   (lambda ()
+                     (cons "gopls" lsp-gopls-server-args)))
+                  :major-modes '(go-mode)
+                  :priority 10
+                  :server-id 'gopls-remote
+                  :remote? t
+                  ))
+
 #+end_src
 
 ** C++
@@ -2370,6 +2393,7 @@ Dial the GC threshold back down so that garbage collection happens more frequent
 #+end_src
 
 * Inspiration
+
   [[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] has a good list of packages and themes to check out.
 
 Other dotfiles repos and blog posts for inspiration:
