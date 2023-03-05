@@ -1,15 +1,4 @@
 #! /bin/bash
 
-pidFile=/tmp/center-eww.pid
-maxTime=$((SECONDS+10))
- read pid < "$pidFile"
-
-if (( $pid > 0 ))
-then                            # kill if clicked multiple times
-    eww close-all
-    echo -1 > "$pidFile"
-else
-    eww open-many blur_full weather profile quote search_full incognito-icon vpn-icon home_dir screenshot power_full reboot_full lock_full logout_full suspend_full &
-    pid="$!"
-    echo $pid > "$pidFile"
-fi
+actmonit=$(hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | .id')
+eww open --toggle control-menu-closer --screen $actmonit; eww open --toggle control-menu --screen $actmonit

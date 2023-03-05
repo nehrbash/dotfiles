@@ -1,0 +1,30 @@
+(defwidget control-menu-win []
+           (box
+            :class "system-menu-box"
+            :space-evenly false
+            
+            (box
+             :orientation "v"
+             :space-evenly false
+             :width "0%"
+             :height "0%"
+             (music)
+             (notifications))
+            (box
+             :orientation "v"
+             :space-evenly false
+             (calendar-win)
+             (pomodoro))))
+
+(defwindow control-menu
+           :geometry (geometry
+                      :width "0%"
+                      :height "0%"
+                      :anchor "top center")
+           (control-menu-win))
+
+(defwindow control-menu-closer
+  :geometry (geometry :width "100%" :height "100%")
+  :stacking "fg"
+  :focusable false
+  (closer :window "control-menu"))

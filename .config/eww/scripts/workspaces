@@ -28,7 +28,7 @@ status() {
     echo -n "$empty"
   fi
 }
-#  
+
 icons=("􏿽" "" "" "" "" "" "" "" "")
 # set name for workspaces
 icon() {

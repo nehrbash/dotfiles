@@ -76,10 +76,10 @@
           :class "element"
           (button
             :class "airplane-button"
-            :onclick "scripts/airplane toggle"
-            airplane))
+            :onclick "scripts/inhibitor toggle"
+            inhibitor))
         (label
-          :text "Airplane Mode"
+          :text "Inhibitor"
           :xalign 0.5
           :limit-width 16)))
 

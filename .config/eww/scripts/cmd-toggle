@@ -1,0 +1,23 @@
+#!/bin/bash
+# toggle arbitrary command
+# args: $1 $2[optional] $3[optional]
+# $1 the command to start the process
+# $2[optional] command to end or close process
+# $3[optional] command to check if process is up, default pgrep cmd name.
+
+cmd=$(echo $1 | awk '{print $1;}')
+check="pgrep $cmd"
+[ ! -z "$3" ] && check=$3
+
+if [ -z "$(eval $check)" ]
+then
+    eval "$1" &
+else
+    if [ -z "$2" ]
+    then
+        pkill "$cmd"
+    else
+        eval "$2"
+    fi
+fi
+exit 0

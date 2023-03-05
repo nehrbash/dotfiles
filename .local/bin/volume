@@ -1,8 +1,0 @@
-#! /bin/bash
-
-if ! swaymsg -t get_tree | grep -q EasyEffects
-then
-    easyeffects
-else
-    easyeffects -w
-fi

@@ -1,0 +1,11 @@
+:PROPERTIES:
+:ID:       67d91787-180d-4382-85d5-0dc28bb451fd
+:END:
+#+title: 2023-02-24
+* What Worked
+  - *me* working with Josh has lead to extremely rapid growth. Having such an organized project leader has helped develop really good habits.
+  - *us* I feel like I have a really good understanding of what our customers what as a developer without having to go to all the meeting. Critical information is well communicated.
+* What Can be Improved
+  - *me* I could learn how to feel more comfortable with pair programming.
+  - *us* Document and update ticket much more heavily.
+* How can I help

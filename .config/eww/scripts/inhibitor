@@ -1,0 +1,43 @@
+#!/bin/bash
+
+# inhibitor on means that swayidle is not on and the screen will never fall asleep
+
+if [ -z "$(pgrep swayidle)" ]
+then
+    inhibitor="on"
+    icon=""
+else
+    inhibitor="off"
+    icon=""
+fi
+
+function off {
+    swayidle -w \
+             timeout 275 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
+             timeout 300 'swaylock-fancy &' \
+             timeout 600 'hyprctl dispatch dpms off' \
+             resume 'hyprctl dispatch dpms on' \
+             before-sleep 'swaylock-fancy' &
+}
+
+function toggle {
+    if [[ $inhibitor == "off" ]]
+    then
+        pkill swayidle
+        notify-send "Inhibitor" "Activated"
+    else
+        off
+        notify-send "Inhibitor" "Deactivated"
+    fi
+}
+
+
+if [[ $1 == "toggle" ]]
+then
+  toggle
+elif [[ $1 == "off" ]]
+then
+     off
+else # display icon
+    echo $icon
+fi

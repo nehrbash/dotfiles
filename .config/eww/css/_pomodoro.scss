@@ -1,0 +1,31 @@
+.pomo {
+    margin: 15px;
+    color: $mauve;
+    background-color: $base;
+    border-radius: 18px;
+}
+
+
+.pomo_box {
+    background-color: $mantle;
+    border-radius: 18px;
+}
+
+.pomo_icon {
+    background-image: url("images/tomatoe.png");
+    background-position: center;
+    background-size: cover;
+    min-height: 84px;
+    min-width: 84px;
+    margin: 30px;
+}
+
+.pomo_time {
+   font-size: 68px;
+   margin: 20px 0px 10px 0px;
+}
+
+.pomo_task {
+    color: $peach;
+    font-size: 32px;
+}

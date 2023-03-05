@@ -10,15 +10,17 @@
 (add-to-list 'default-frame-alist '(font . "Source Code Pro 12"))
 (set-face-attribute 'default nil
                     :family "Source Code Pro"
-                    :height 120
+                    :height 100
                     :weight 'normal
                     :width 'normal)
-;; (set-fontset-font "fontset-default" '(#x5d0 . #x5ff) "FontAwesome")
 (fringe-mode '(3 . 6))
+(set-face-attribute 'header-line nil  :height 120)
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)
 (setq package-enable-at-startup nil)
+(setq straight-use-package-by-default t)
+
 (pixel-scroll-precision-mode t)
 
 (setq custom-file (concat user-emacs-directory "var/custom.el"))

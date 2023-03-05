@@ -1,0 +1,5 @@
+:PROPERTIES:
+:ID:       45e497dc-cc4b-43f4-9110-1660aab320d6
+:END:
+#+title: AWS Pricing
+https://docs.aws.amazon.com/awsaccountbilling/latest/aboutv2/price-changes.html
