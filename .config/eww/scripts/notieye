@@ -1,0 +1,2 @@
+#!/bin/bash
+sleep $(shuf -i 10-300 -n 1) && notify-send -i ~/.config/eww/images/heart.png "Health" "Look after your eyes!" #<br>Look at something at a distance of 20 feet for a while or take a break!"
