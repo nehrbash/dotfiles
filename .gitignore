@@ -11,3 +11,7 @@
 /doc/inbox.org
 /doc/projects.org
 /.config/alacritty/catppuccin/
+/doc/gcal.org
+/.emacs.d/oauth2-auto.plist
+/.emacs.d/.org-generic-id-locations
+/doc/Roam/*

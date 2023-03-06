@@ -61,19 +61,20 @@
   - [[#dynamic-re-align-tags][Dynamic Re-align tags]]
   - [[#pretty-symbol-replacement][Pretty Symbol Replacement]]
   - [[#pomodoro-timer][Pomodoro Timer]]
-  - [[#clock][Clock]]
+  - [[#clock-inout][Clock In/Out]]
   - [[#latex-fragments][Latex Fragments]]
   - [[#auto-save-pdf-toggle][Auto Save PDF Toggle]]
   - [[#writing-mode][Writing Mode]]
   - [[#refiling][Refiling]]
   - [[#to-do-settings][To Do Settings]]
-  - [[#agenda-views][Agenda views]]
+  - [[#agenda-views][Agenda Views]]
   - [[#table-of-contents][Table of Contents]]
   - [[#automatically-tangle-on-save][Automatically "Tangle" on Save]]
   - [[#org-screenshot][Org Screenshot]]
   - [[#pdf-tools][PDF Tools]]
   - [[#markdown][Markdown]]
   - [[#org-roam][Org Roam]]
+  - [[#google-calendar][Google Calendar]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
   - [[#tree-sitter][Tree sitter]]
   - [[#lsp-mode][LSP-Mode]]
@@ -1399,7 +1400,7 @@ ORIG is the advised function, which is called with its ARGS."
 
 #+end_src
 
-*** magit
+*** Magit
 #+begin_src emacs-lisp
   (use-package git-blamed)
 ;;  (use-package gitignore-mode)
@@ -1412,7 +1413,6 @@ ORIG is the advised function, which is called with its ARGS."
     :defer t
     :config
     (setq-default magit-diff-refine-hunk t)
-
     ;; Hint: customize `magit-repository-directories' so that you can use C-u M-F12 to
     ;; quickly open magit on any one of your projects.
     (global-set-key [(meta f12)] 'magit-status)
@@ -1427,26 +1427,25 @@ ORIG is the advised function, which is called with its ARGS."
               (magit-log-buffer-file-popup)
             (magit-log-buffer-file t))
         (vc-print-log)))
-
     (after-load 'vc
       (define-key vc-prefix-map (kbd "l") 'sanityinc/magit-or-vc-log-file)))
+(after-load 'magit
+  (define-key magit-status-mode-map (kbd "C-M-<up>") 'magit-section-up))
+(use-package magit-todos
+  :after magit
+  :config (magit-todos-mode 1))
+(use-package forge
+  :after magit)
+(use-package fullframe)
+(after-load 'magit
+  (fullframe magit-status magit-mode-quit-window))
+(use-package git-commit
+  :config
+  (add-hook 'git-commit-mode-hook 'goto-address-mode))
 
-  (after-load 'magit
-    (define-key magit-status-mode-map (kbd "C-M-<up>") 'magit-section-up))
-
-  (use-package magit-todos)
-
-  (use-package fullframe)
-  (after-load 'magit
-    (fullframe magit-status magit-mode-quit-window))
-
-  (use-package git-commit
-    :config
-    (add-hook 'git-commit-mode-hook 'goto-address-mode))
-
-  ;; Convenient binding for vc-git-grep
-  (after-load 'vc
-    (define-key vc-prefix-map (kbd "f") 'vc-git-grep))
+;; Convenient binding for vc-git-grep
+(after-load 'vc
+  (define-key vc-prefix-map (kbd "f") 'vc-git-grep))
 #+end_src
 
 ** Helpers for M-x compile
@@ -1712,10 +1711,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    Set registers to jump to certain files like type C-x r j e to open .emacs
 
 #+begin_src emacs-lisp
-   (setq org-directory "~/doc")
-   (setq org-default-notes-file (concat org-directory "/inbox.org"))
-   (setq org-agenda-files (list "~/doc/inbox.org"
-                             "~/doc/projects.org" ))
+  (setq org-directory "~/doc")
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-agenda-files (list "~/doc/inbox.org"
+                            "~/doc/projects.org"
+                            "~/doc/gcal.org"))
 #+end_src
 
 ** Capturing
@@ -1843,7 +1843,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
     "No Active Pomodoro"))
 #+end_src
 
-** Clock
+** Clock In/Out
 
    PDFs visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
 
@@ -2031,7 +2031,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
                 ("PROJECT" :inherit font-lock-string-face))))
 #+end_src
 
-** Agenda views
+** Agenda Views
 #+begin_src emacs-lisp
 (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
 (let ((active-project-match "-INBOX/PROJECT"))
@@ -2199,8 +2199,9 @@ Basically just followed the directions from this cool blog.   https://colekillia
   :straight t
   :init
   (setq org-roam-v2-ack t)
-
   :diminish(org-roam-mode)
+  :config
+    (org-roam-db-autosync-mode)
   :custom
   (org-roam-directory "~/doc/Roam/")
   (org-roam-completion-everywhere t)
@@ -2242,6 +2243,20 @@ Basically just followed the directions from this cool blog.   https://colekillia
           org-roam-ui-open-on-start nil))
 
 #+end_src
+
+** Google Calendar
+
+   Add my Gmail.
+#+begin_src emacs-lisp
+(setq plstore-cache-passphrase-for-symmetric-encryption t)
+(setq org-gcal-client-id "537037004027-g7ivp5qns2hnaupomto837rkdu8vtkv6.apps.googleusercontent.com"
+      org-gcal-client-secret "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"
+      org-gcal-fetch-file-alist '(("stephen.nehrbass@infinitetactics.com" .  "~/doc/gcal.org")))
+(use-package org-gcal)
+(add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
+(add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+#+end_src
+
 
 * Code Languages & File Modes
 
@@ -2308,13 +2323,12 @@ Basically just followed the directions from this cool blog.   https://colekillia
   :config
   (dap-mode 1)
   (setq dap-print-io t)
-  ;;(setq fit-window-to-buffer-horizontally t)
-  ;;(setq window-resize-pixelwise t)
   (require 'dap-dlv-go)
-  (use-package dap-ui
-    :config (dap-ui-mode 1)))
+  (dap-ui-mode 1)
+  (dap-tooltip-mode 1)
+  (tooltip-mode 1)
+  (dap-ui-controls-mode 1))
 #+end_src
-
 
 ** Go
 
@@ -2342,7 +2356,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
                   :server-id 'gopls-remote
                   :remote? t
                   ))
-
 #+end_src
 
 ** C++
