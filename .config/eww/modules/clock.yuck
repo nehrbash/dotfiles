@@ -2,11 +2,9 @@
 
 (defwidget clock_module []
   (eventbox
-    :onhover "${EWW_CMD} update date_rev=true"
-    :onhoverlost "${EWW_CMD} update date_rev=false"
-    (overlay
-      :class "module"
-      (box
+   :class "date clock"
+   :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${monit.id}; ${EWW_CMD} open --toggle control-menu --screen ${monit.id}"
+          (box
         :space-evenly false
         (label
           :text {time.day}
@@ -19,10 +17,5 @@
           :class "clock")
         (label
           :text {time.minute}
-          :class "clock minute"))
-      (revealer
-        :reveal date_rev
-        (button
-          :class "date clock"
-          :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${monit.id}; ${EWW_CMD} open --toggle control-menu --screen ${monit.id}"
-          {time.date})))))
+          :class "clock minute")
+        )))

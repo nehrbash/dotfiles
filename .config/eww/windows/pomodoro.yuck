@@ -1,17 +1,12 @@
 (defwidget pomodoro []
-  (box :class "sys_win" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false" :height 300 :width: 300
-      (box :class "pomo_box" :orientation "h" :space-evenly "false" :hexpand "false" :vexpand "false"
-      (circular-progress :value {pomo.percent}
-                :class "pomo"
-                :thickness 16
-            (label :halign "center" :valign "center"
-                :class "pomo_icon"
-                :limit-width 2
-                :show_truncated false
-                :wrap false
-                :angle 45))
-                (box :class "pomo_box" :orientation "v" :space-evenly "false" :hexpand "true" :vexpand "false"
-                (label :class "pomo_time" :text {pomo.time})
-                )
-                )
+  (box :class "ct_box" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false"
+      (box :orientation "h"  :space-evenly "false" :valign "center"
+           (circular-progress :value {pomo.percent} :class "pomo_circle" :thickness 10
+                              (label :halign "center" :valign "center"
+                                     :class "pomo_icon"
+                                     :wrap false
+                                     :angle 45))
+           (box :orientation "v" :space-evenly "true" :halign "center" :valign "center"
+                (label :class "pomo_time" :text {pomo.time})))
+
       (label :class "pomo_task" :wrap true :text {pomo.task})))

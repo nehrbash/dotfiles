@@ -1,10 +1,12 @@
 (defwidget music []
   (box
-    :class "music-window"
+    :class "ct_box"
     :space-evenly false
+    :style "background-color: ${music.color1}; border: 1px solid ${music.color2};"
     (box
       :class "music-cover-art"
-      :style "background-image: url(\"${music_cover}\");")
+      :height 20
+      :style "background-image: url(\"${music.cover}\");")
     (box
       :orientation "v"
       :class "music-box"
@@ -36,16 +38,7 @@
         (box
           :class "music-bar"
           (scale
+            ; doesn't work, looking for other ways
+            ; :style "background: linear-gradient(to right, ${music.color1}, ${music.color2});"
             :onchange "playerctl position `bc <<< \"{} * $(playerctl metadata mpris:length) / 1000000 / 100\"`"
             :value {music.position}))))))
-
-(defwindow music
-  :stacking "fg"
-  :focusable false
-  :geometry (geometry
-    :x "0%"
-    :y "0%"
-    :width "0%"
-    :height "0%"
-    :anchor "top center")
-  (music))

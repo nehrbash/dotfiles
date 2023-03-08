@@ -1,31 +1,28 @@
-.pomo {
-    margin: 15px;
-    color: $mauve;
-    background-color: $base;
-    border-radius: 18px;
-}
-
-
-.pomo_box {
-    background-color: $mantle;
-    border-radius: 18px;
+.pomo_circle {
+    color: $red;
+    background-color: $bg1;
+    font-size: 16px;
+    padding: 20px;
 }
 
 .pomo_icon {
-    background-image: url("images/tomatoe.png");
+    background-image: url("images/tomatoe3.png");
     background-position: center;
     background-size: cover;
     min-height: 84px;
     min-width: 84px;
-    margin: 30px;
+    padding: 15px;
 }
 
 .pomo_time {
    font-size: 68px;
-   margin: 20px 0px 10px 0px;
+   padding: 10px;
+   min-width: 200px;
+   font-family: monospace;
 }
 
 .pomo_task {
+    padding-top: 10px;
     color: $peach;
-    font-size: 32px;
+    font-size: 26px;
 }

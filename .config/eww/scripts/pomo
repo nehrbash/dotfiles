@@ -19,6 +19,7 @@ emtask=$(emacsclient -e '(snehrbass/org-pomodoro-task)' 2> /dev/null)
 if [ -z "${emtask}" ];
 then
    emtask="No Active Pomodoro"
+   pomoTime="00:00"
 else
    emtask=$(echo $emtask | cut -d '"' -f 2)
 fi

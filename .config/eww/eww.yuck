@@ -7,18 +7,18 @@
 (include "./modules/volume.yuck")
 (include "./modules/workspaces.yuck")
 (include "./modules/pomodoro.yuck")
+(include "./modules/weather.yuck")
 
 (include "./windows/calendar.yuck")
 (include "./windows/music.yuck")
 (include "./windows/osd.yuck")
-(include "./windows/notifications.yuck")
 (include "./windows/system-menu.yuck")
 (include "./windows/control-menu.yuck")
 (include "./windows/pomodoro.yuck")
 
 (defwidget notif-toggle []
   (button
-    :class "notif-toggle module"
+    :class "module"
     :onclick "sleep .15; swaync-client -t"
     :onrightclick "swaync-client -d"
     {notif.Icon}))

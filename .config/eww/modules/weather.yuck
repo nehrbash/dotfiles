@@ -1,0 +1,41 @@
+(defwidget weather-day [min max icon desc day month]
+           (box :class "weather-forecast-box" :orientation "v" :space-evenly "false" :valign "end"
+                (box :orientation "h" :space-evenly "false"
+                     (label :class "weather-icon" :text {icon})
+                     (box :orientation "v" :space-evenly "false" :vexpand "true"
+                           (box  :orientation "h" :space-evenly "false" :valign "start" :halign "start"
+                                 (label :class "weather-date" :text "${month}")
+                                 (label :class "weather-sep" :text "/")
+                                 (label :class "weather-date" :text "${day}"))
+                           (box  :orientation "v" :space-evenly "false" :valign "end"  :vexpand "true"
+                          (label :class "weather-max" :text "${max}°F")
+                          (label :class "weather-min" :text "${min}°F"))))
+                     (label :class "weather-state" :text {desc})))
+
+(defwidget weather-forecast []
+           (box :class "ct_box" :orientation "h" :space-evenly "true" :vexpand "false" :hexpand "true"
+               (centerbox
+                (weather-day :min "${weather.day1.min}"
+                             :max "${weather.day1.max}"
+                             :icon "${weather.day1.icon}"
+                             :desc "${weather.day1.desc}"
+                             :day "${weather.day1.day}"
+                             :month "${weather.day1.month}")
+                (weather-day :min "${weather.day2.min}"
+                             :max "${weather.day2.max}"
+                             :icon "${weather.day2.icon}"
+                             :desc "${weather.day2.desc}"
+                             :day "${weather.day2.day}"
+                             :month "${weather.day2.month}")
+                (weather-day :min "${weather.day3.min}"
+                             :max "${weather.day3.max}"
+                             :icon "${weather.day3.icon}"
+                             :desc "${weather.day3.desc}"
+                             :day "${weather.day3.day}"
+                             :month "${weather.day3.month}"))))
+
+
+(defwidget weather-moon []
+           (box :class "ct_box" :orientation "h" :space-evenly "true" :hexpand "false" :halign "center"
+                (for m in "${weather.moons}"
+                     (label :class "weather-moon ${m.class}" :text "${m.value}"))))

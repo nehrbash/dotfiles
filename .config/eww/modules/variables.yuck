@@ -10,7 +10,6 @@
 (defpoll upgrades :interval "1h" `checkupdates | wc -l`)
 (defpoll pomo :interval "1s" `scripts/pomo`)
 (defpoll inhibitor :interval "3s" `scripts/inhibitor`)
-(defpoll weather :interval "10m" `scripts/getweather`)
 (defpoll quotes :interval "3h" `scripts/getquotes`)
 (defpoll eye :interval "25m" `scripts/notieye`)
 (defpoll pose :interval "25m" `scripts/notipose`)
@@ -27,6 +26,4 @@
 (deflisten volume "scripts/volume")
 (deflisten workspace "scripts/workspaces")
 (deflisten monit "scripts/activemonitor")
-
-(deflisten notifications "scripts/notifications")
-(deflisten notif_icons :initial `{"icon": "󰆄", "toggle_icon": ""}` "scripts/notifications icons")
+(deflisten weather "scripts/eww-weather")

@@ -1,15 +1,13 @@
 (defwidget control-menu-win []
            (box
             :class "system-menu-box"
-            :space-evenly false
-            
+            :space-evenly false            
             (box
              :orientation "v"
              :space-evenly false
-             :width "0%"
-             :height "0%"
              (music)
-             (notifications))
+             (weather-forecast)
+             (weather-moon))
             (box
              :orientation "v"
              :space-evenly false
@@ -18,8 +16,6 @@
 
 (defwindow control-menu
            :geometry (geometry
-                      :width "0%"
-                      :height "0%"
                       :anchor "top center")
            (control-menu-win))
 

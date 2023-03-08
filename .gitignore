@@ -15,3 +15,4 @@
 /.emacs.d/oauth2-auto.plist
 /.emacs.d/.org-generic-id-locations
 /doc/Roam/*
+/.config/eww/scripts/eww-weather

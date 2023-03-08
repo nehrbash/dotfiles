@@ -1,0 +1,9 @@
+* TODO Watch Office Space
+  :LOGBOOK:
+  CLOCK: [2023-03-06 Mon 12:10]--[2023-03-06 Mon 12:11] =>  0:01
+  :END:
+[2023-03-06 Mon]
+[[file:~/.dotfiles/.config/hypr/hyprland.conf::bindr=, XF86AudioPause, exec, playerctl pause]]
+* TODO personal plugin sidebar
+[2023-03-06 Mon]
+[[file:~/doc/inbox.org::*study for test][study for test]]

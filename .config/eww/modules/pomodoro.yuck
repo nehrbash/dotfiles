@@ -1,7 +1,6 @@
 (defwidget pomo []
            (box
             :space-evenly false
-            :padding 15
             :class "module"
             (label
              :text " ${pomo.summary}"

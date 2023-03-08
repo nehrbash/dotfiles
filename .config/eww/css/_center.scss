@@ -1,0 +1,7 @@
+.ct_box {
+    @include rounding;
+    @include window;
+    background-color: $mantle;
+    margin: 10px;
+    padding: 10px;
+}

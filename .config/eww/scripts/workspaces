@@ -29,7 +29,7 @@ status() {
   fi
 }
 
-icons=("􏿽" "" "" "" "" "" "" "" "")
+icons=("" "􏿽" "" "" "" "" "" "" "" "")
 # set name for workspaces
 icon() {
 
@@ -37,7 +37,7 @@ icon() {
         echo ""
         return 1
    fi
-   echo "${icons[$1 - 1]}"
+   echo "${icons[$1]}"
 }
 
 # handle workspace create/destroy

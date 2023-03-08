@@ -25,6 +25,8 @@
 @import 'css/system';
 @import 'css/volume';
 @import 'css/pomodoro';
+@import 'css/center';
+@import 'css/weather';
 
 .bar {
   background-color: $bg;
@@ -80,7 +82,3 @@ scale trough {
 }
 
 .workspaces { margin-left: 10px; }
-
-.notif-toggle {
-  padding: 0 5px;
-}
