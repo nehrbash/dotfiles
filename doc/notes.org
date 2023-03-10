@@ -7,3 +7,9 @@
 * TODO personal plugin sidebar
 [2023-03-06 Mon]
 [[file:~/doc/inbox.org::*study for test][study for test]]
+* TODO install git version of eww
+  :LOGBOOK:
+  CLOCK: [2023-03-08 Wed 16:51]--[2023-03-08 Wed 16:52] =>  0:01
+  :END:
+[2023-03-08 Wed]
+[[file:~/.dotfiles/.config/eww/modules/mode.yuck]]

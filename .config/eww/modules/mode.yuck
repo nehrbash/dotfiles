@@ -1,0 +1,3 @@
+(defwidget mode []
+           (eventbox
+            (label :text "${hypr.mode}")))

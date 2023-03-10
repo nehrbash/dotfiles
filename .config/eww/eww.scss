@@ -32,8 +32,8 @@
   background-color: $bg;
   color: $fg;
   padding: 3 5px;
-  border: 3px solid $mauve;
-  border-radius: 30px;
+  border-bottom: 3px solid $mauve;
+
   // margin: 0px 200px 0px 200px;
 
   label {
@@ -53,6 +53,13 @@ tooltip {
 
 .icon {
     font-family: Material Icons Outlined;
+}
+
+.ws-icon {
+    background-position: center;
+    background-size: cover;
+    min-height: 15px;
+    min-width: 15px;
 }
 
 .module { margin: 0 5px; }
@@ -80,5 +87,3 @@ scale trough {
   min-height: 10px;
   min-width: 70px;
 }
-
-.workspaces { margin-left: 10px; }

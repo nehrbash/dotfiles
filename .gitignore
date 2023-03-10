@@ -16,3 +16,5 @@
 /.emacs.d/.org-generic-id-locations
 /doc/Roam/*
 /.config/eww/scripts/eww-weather
+/doc/gcal.org_archive
+/.config/eww/scripts/submap

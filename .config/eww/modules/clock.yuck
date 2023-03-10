@@ -1,9 +1,7 @@
-(defvar date_rev false)
-
 (defwidget clock_module []
   (eventbox
    :class "date clock"
-   :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${monit.id}; ${EWW_CMD} open --toggle control-menu --screen ${monit.id}"
+   :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${hypr.id}; ${EWW_CMD} open --toggle control-menu --screen ${hypr.id}"
           (box
         :space-evenly false
         (label

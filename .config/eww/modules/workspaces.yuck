@@ -8,8 +8,8 @@
 		  (for i in workspace
 		    (button
 					:onclick "hyprctl dispatch workspace ${i.number}"
-					:class "ws icon"
-					:style "color: ${i.color};"
-					"${i.icon}")))))
+                    :width 40 
+					:class "ws-icon"
+					:style "background-image: url('${i.icon}');")))))
 
 

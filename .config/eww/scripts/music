@@ -80,7 +80,7 @@ sanitize() {
 
 prevCover=''
 
-playerctl -F metadata -f '{{title}}\{{artist}}\{{status}}\{{position}}\{{mpris:length}}\{{mpris:artUrl}}' 2>/dev/null | while IFS="$(printf '\')" read -r title artist status position len cover; do
+playerctl --player=spotify -F metadata -f '{{title}}\{{artist}}\{{status}}\{{position}}\{{mpris:length}}\{{mpris:artUrl}}' 2>/dev/null | while IFS="$(printf '\')" read -r title artist status position len cover; do
 	if [[ "$cover" != "$prevCover" ]]; then
 		COVER=$(get_cover "$cover")
 

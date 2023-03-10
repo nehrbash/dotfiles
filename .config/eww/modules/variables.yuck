@@ -25,5 +25,5 @@
 (deflisten net "scripts/net")
 (deflisten volume "scripts/volume")
 (deflisten workspace "scripts/workspaces")
-(deflisten monit "scripts/activemonitor")
-(deflisten weather "scripts/eww-weather")
+(deflisten hypr "scripts/hyprvars")
+(deflisten weather :initial '{"quote":"","subQuote":"","moons":[{"class":"","value":"🌑"},{"class":"","value":"🌒"},{"class":"","value":"🌓"},{"class":"","value":"🌔"},{"class":"","value":"🌕"},{"class":"active-moon","value":"🌖"},{"class":"","value":"🌗"},{"class":"","value":"🌘"}],"day1":{"max":"51","min":"28","icon":"☁️","desc":"Overcast","month":"03","day":"08"},"day2":{"max":"50","min":"29","icon":"⛅️ ","desc":"Partly cloudy","month":"03","day":"09"},"day3":{"max":"44","min":"33","icon":"☁️","desc":"Overcast","month":"03","day":"10"}}' "scripts/eww-weather")
