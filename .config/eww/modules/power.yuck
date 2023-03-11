@@ -1,0 +1,34 @@
+(defvar power false)
+(defwidget power []
+           (eventbox :onhover "eww update power=true"
+                     :onhoverlost "eww update power=false"
+                     (box :orientation "h"
+                          :space-evenly "false"
+                          :vexpand "false"
+                          :class "powermenu"
+                          (revealer :transition "slideleft"
+                                    :reveal power
+                                    :duration "550ms"
+                                    (box :orientation "h"
+                                         :space-evenly "false"
+
+                                         (button :class "button-suspend"
+                                                 :tooltip "Suspend"
+                                                 :onclick "systemctl suspend" "" )
+
+                                         (button	:class "button-reboot"
+                                                    :tooltip "Reboot"
+                                                    :onclick "systemctl reboot"	"")
+
+                                         (button	:class "button-quit"
+                                                    :tooltip "Logout"
+                                                    :onclick "loginctl terminate-user $USER" "")
+
+                                         (button	:class "button-lock"
+                                                    :tooltip "Lock Screen"
+                                                    :onclick "swaylock-fancy"	"")))
+
+                          (button		:class "button-off"
+                                        :tooltip "Shutdown"
+                                        :onclick "systemctl poweroff"	""))))
+;;  

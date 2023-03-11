@@ -1,0 +1,15 @@
+.mode {
+    padding-left: 15px;
+    background-color: $red;
+    border-bottom-left-radius: 15px;
+    color: $bg;
+}
+
+.mode-left {
+    background-color: $red;
+}
+
+.mode-left-in {
+    background-color: $bg;
+    border-top-right-radius: 15px;
+}
