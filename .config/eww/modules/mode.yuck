@@ -1,3 +1,5 @@
 (defwidget mode []
-           (eventbox
-            (label :text "${hypr.mode}")))
+           (box :space-evenly false
+           (box :class "mode-left" (box :class "mode-left-in" :width 15 ))
+            (label :class "mode"
+                   :text {hypr.mode})))

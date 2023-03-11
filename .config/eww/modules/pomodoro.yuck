@@ -2,6 +2,35 @@
            (box
             :space-evenly false
             :class "module"
+            (box :class "pomo-left" (box :class "pomo-left-in" :width 15 ))
             (label
              :text " ${pomo.summary}"
-             :class "clock" )))
+             :class "pomo" )
+            (box :class "pomo-right" (box :class "pomo-right-in" :width 15 ))))
+
+
+(defwindow pomo-break
+  :geometry (geometry :width "100%" :height "100%" :anchor "top center")
+  :stacking "fg"
+  :focusable false
+  :monitor 0
+  (button
+   :onclick "${EWW_CMD} open-many --toggle pomo-break pomo-break2"
+  (box
+   :class "pomo_break"
+  (label
+   :text {pomo.summary}
+   :class "pomo_break_in" ))))
+
+(defwindow pomo-break2
+  :geometry (geometry :width "100%" :height "100%" :anchor "top center")
+  :stacking "fg"
+  :focusable false
+  :monitor 1
+  (button
+   :onclick "${EWW_CMD} open-many --toggle pomo-break pomo-break2"
+  (box
+   :class "pomo_break"
+  (label
+   :text {pomo.summary}
+   :class "pomo_break_in" ))))

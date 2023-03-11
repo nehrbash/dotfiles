@@ -22,7 +22,7 @@
         :halign "center"
         :class "music-button-box icon"
         (button :class "music-button" :onclick "playerctl previous" "")
-        (button :class "music-button" :onclick "playerctl play-pause" {music.status})
+        (button :class "music-button" :onclick "playerctl play-pause -p spotify" {music.status})
         (button :class "music-button" :onclick "playerctl next" ""))
       (box
         :orientation "v"

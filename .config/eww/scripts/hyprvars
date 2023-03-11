@@ -1,7 +1,7 @@
-#!/bin/sh
+#!/usr/bin/env bash
 
-mode="Normal"
-hyprctl monitors -j | jaq -rc --arg MODE "$mode" '.[] | select(.focused == true) | { id:.id, mode:$MODE }'
+mode="Default"
+hyprctl monitors -j | jaq -rc --arg MODE "$mode" '.[] | select(.focused == true) | { id:.id, mode:$MODE }' 2>/dev/null
 function handle {
   if [[ ${1:0:10} == "focusedmon" || ${1:0:6} == "submap" ]]; then
       if [[ ${1:0:6} == "submap" ]]; then
@@ -10,8 +10,9 @@ function handle {
               mode="Normal"
           fi
       fi
+      hyprctl monitors -j | jaq -rc --arg MODE "$mode" '.[] | select(.focused == true) | { id:.id, mode:$MODE }' 2>/dev/null
   fi
-  hyprctl monitors -j | jaq -rc --arg MODE "$mode" '.[] | select(.focused == true) | { id:.id, mode:$MODE }'
+
 }
 
-socat - UNIX-CONNECT:/tmp/hypr/$(echo $HYPRLAND_INSTANCE_SIGNATURE)/.socket2.sock | while read line; do handle $line; done
+socat -u UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock - | while read line; do handle $line; done

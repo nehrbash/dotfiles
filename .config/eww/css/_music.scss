@@ -60,3 +60,32 @@
     min-width: 170px;
   }
 }
+
+.spotify {
+    background-color: $green;
+    color: $base;
+    border-bottom-right-radius: 15px;
+}
+
+.spotify-left {
+    background-color: $green;
+}
+
+.spotify-left-in {
+    background-color: $red;
+    border-top-right-radius: 15px;
+}
+
+.spotify-right-in {
+    background-color: $bg;
+    border-top-left-radius: 15px;
+}
+
+.spotify-left-transition {
+    background-color: $red;
+}
+.spotify-left-transition-in {
+    background-color: $green;
+    border-bottom-left-radius: 15px;
+
+}

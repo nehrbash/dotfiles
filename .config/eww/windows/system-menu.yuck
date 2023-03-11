@@ -164,10 +164,10 @@
             :text "${memory.used} | ${memory.total}"
             :halign "start"
             :class "sys-text-sub"))))
-
+    
     (centerbox
       :class "bottom-row"
-      (label :text " ${upgrades} Upgrades Available")
+      (label :halign "start" :class "upgared-text" :text " ${upgrades} Upgrades")
       (box
         :class "battery-box"
         :space-evenly false
@@ -180,11 +180,7 @@
           :class "power-button icon"
           :onclick "gnome-control-center &"
           "⚙")
-        (button
-          :halign "end"
-          :class "settings-button icon"
-          :onclick "wlogout -p layer-shell &"
-          "")))))
+        (power)))))
 
 ;; windows
 (defwindow system-menu

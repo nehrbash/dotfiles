@@ -1,3 +1,31 @@
+.pomo {
+    background-color: $sky;
+    color: $bg;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+}
+
+.pomo-left {
+    background-color: $sky;
+}
+
+.pomo-left-in {
+    background-color: $bg;
+    border-top-right-radius: 15px;
+}
+
+.pomo-right {
+    background-color: $sky;
+}
+
+.pomo-right-in {
+    background-color: $bg;
+    border-top-left-radius: 15px;
+}
+
+
 .pomo_circle {
     color: $red;
     background-color: $bg1;
@@ -25,4 +53,22 @@
     padding-top: 10px;
     color: $peach;
     font-size: 26px;
+}
+
+
+.pomo_break {
+    background-color: rgba(0,0,0, 0.7);
+}
+
+.pomo_break_icon {
+    background-image: url('images/tomatoe3.png');
+
+}
+
+.pomo_break_in {
+    font-size: 3rem;
+    background-color: rgba(0,0,0, 0.5);
+    background: radial-gradient($base 30%, transparent 0%, $crust 0%);
+
+
 }

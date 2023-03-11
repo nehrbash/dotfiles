@@ -27,13 +27,12 @@
 @import 'css/pomodoro';
 @import 'css/center';
 @import 'css/weather';
+@import 'css/mode';
 
 .bar {
   background-color: $bg;
   color: $fg;
-  padding: 3 5px;
-  border-bottom: 3px solid $mauve;
-
+  padding-bottom: 5px;
   // margin: 0px 200px 0px 200px;
 
   label {
@@ -55,11 +54,14 @@ tooltip {
     font-family: Material Icons Outlined;
 }
 
+.ws {
+    margin-top: 5px;
+    border-radius: 50%;
+}
+
 .ws-icon {
     background-position: center;
     background-size: cover;
-    min-height: 15px;
-    min-width: 15px;
 }
 
 .module { margin: 0 5px; }
@@ -86,4 +88,17 @@ scale trough {
   margin: 0 1rem;
   min-height: 10px;
   min-width: 70px;
+}
+
+.corners-ul {
+    background: radial-gradient(at bottom right, transparent 70%, $mantle 0%);
+}
+.corners-ur {
+    background: radial-gradient(at bottom left, transparent 70%, $mantle 0%);
+}
+.corners-bl {
+    background: radial-gradient(at top right, transparent 70%, $mantle 0%);
+}
+.corners-br {
+    background: radial-gradient(at top left, transparent 70%, $mantle 0%);
 }

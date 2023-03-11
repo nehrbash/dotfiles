@@ -2,6 +2,8 @@
 
 emtime=$(emacsclient -e '(snehrbass/org-pomodoro-time)' 2> /dev/null)
 pomoPercent=0
+min=0
+sec=0
 if [ -z "${emtime}" ];
 then
     emtime=0
@@ -24,10 +26,17 @@ else
    emtask=$(echo $emtask | cut -d '"' -f 2)
 fi
 
-emsg=$(emacsclient -e '(ruborcalor/org-pomodoro-time)' 2> /dev/null)
-if [ ! -z "${emsg}" ];
-then
-   emsg=$(echo $emsg | cut -d '"' -f 2)
+if [[  "$min" == "0" ]]; then
+    emsg="${emtask}"
+else
+    emsg="${min} min - ${emtask}"
 fi
+
+# if break is in the name trigger eww break splash screen
+if [[ "$emtask" == *"Break"* ]]; then
+    eww open-many pomo-break pomo-break2 2> dev/null
+    sleep 15
+fi
+
 
 echo "{\"percent\": \"${pomoPercent}\", \"time\": \"${pomoTime}\", \"task\": \"${emtask}\", \"summary\": \"${emsg}\" }"

@@ -1808,20 +1808,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
         org-pomodoro-start-sound "~/Music/bell.wav"
         org-pomodoro-killed-sound "~/Music/bell.wav"))
 
-(defun ruborcalor/org-pomodoro-time ()
-  "Return the remaining pomodoro time"
-  (if (org-pomodoro-active-p)
-      (cl-case org-pomodoro-state
-        (:pomodoro
-           (format "%d min - %s" (/ (org-pomodoro-remaining-seconds) 60) org-clock-heading))
-        (:short-break
-         (format "Short Break: %d min" (/ (org-pomodoro-remaining-seconds) 60)))
-        (:long-break
-         (format "Long Break: %d min" (/ (org-pomodoro-remaining-seconds) 60)))
-        (:overtime
-         (format "Overtime! %d min" (/ (org-pomodoro-remaining-seconds) 60))))
-    "No Active Pomodoro"))
-
 (defun snehrbass/org-pomodoro-time ()
   "Return the remaining pomodoro time in sec"
   (if (org-pomodoro-active-p)
@@ -2253,10 +2239,9 @@ Basically just followed the directions from this cool blog.   https://colekillia
       org-gcal-client-secret "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"
       org-gcal-fetch-file-alist '(("stephen.nehrbass@infinitetactics.com" .  "~/doc/gcal.org")))
 (use-package org-gcal)
-(add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
-(add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+;; (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
+;; (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
 #+end_src
-
 
 * Code Languages & File Modes
 
