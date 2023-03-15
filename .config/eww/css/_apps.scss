@@ -1,0 +1,22 @@
+.apps {
+    background-color: $base;
+}
+
+.app-icon, .app-active {
+    margin: 4px;
+    background-position: center;
+    background-size: cover;
+
+
+    // &:hover {
+    //     background: $surface0;
+    // }
+}
+
+.app-active-bar, .app-dot {
+    background-color: $yellow;
+    border-radius: 2px;
+}
+.app-dot {
+
+}

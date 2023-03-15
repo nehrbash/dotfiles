@@ -16,7 +16,23 @@
     text-decoration: underline;
 }
 
-.weather-moon {
+.title-bar {
+    padding: 5px;
+    @include rounding;
+   background: linear-gradient(45deg, $sapphire 0%, $blue 25%, $sky 50%, $blue 75%, $teal 100% );
+}
+
+.weather-label {
+    color: $bg;
+    font-size: 1.2rem;
+}
+
+.moon-label {
+    color: $lavender;
+    font-weight: bold;
+}
+
+.weather-moon, .moon-label {
     font-size: 1.5rem;
 }
 

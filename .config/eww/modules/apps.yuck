@@ -1,0 +1,49 @@
+(defwidget apps []
+           (box
+            :class "bar"
+            :orientation "v"
+            (box
+             :class "apps"
+             :orientation "v"
+             :vexpand true
+             :space-evenly false
+             :spacing 16
+             :valign "center"
+             (for a in apps
+                  (box
+                   :orientation "v"
+                   :space-evenly false
+                  (button
+                   :class "app-icon"
+                   :height 48
+                   :tooltip "${a.Class}: ${a.Title}"
+                   :onclick "hyprctl dispatch focuswindow address:${a.Address}"
+                   :style "background-image: url('${a.Icon}');")
+                  (box
+                   :orientation "h"
+                   :hexpand false
+                   :space-evenly false
+                   :halign "center"
+                   :height 4
+                   :width {a.Focused ? 24 :4}
+                   :class {a.Focused ? "app-active-bar" : "app-dot"}))
+                  ))))
+(defwindow leftbar
+    :monitor 0
+    :geometry (geometry
+      :width "48px"
+      :height "100%"
+      :anchor "left center")
+    :stacking "fg"
+    :exclusive true
+    (apps))
+
+(defwindow leftbar2
+    :monitor 1
+    :geometry (geometry
+      :width "48px"
+      :height "100%"
+      :anchor "left center")
+    :stacking "fg"
+    :exclusive true
+    (apps))

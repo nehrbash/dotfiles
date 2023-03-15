@@ -11,12 +11,15 @@ import (
 )
 
 type EwwVariables struct {
-	Quote    string      `json:"quote"`
-	SubQuote string      `json:"subQuote"`
-	Moons    [8]Moon     `json:"moons"`
-	Day1     DayOverview `json:"day1"`
-	Day2     DayOverview `json:"day2"`
-	Day3     DayOverview `json:"day3"`
+	Location    string      `json:"location"`
+	Feel        string      `json:"feelTemp"`
+	Current     string      `json:"currentTemp"`
+	CurrentIcon string      `json:"currentIcon"`
+	MoonLable   string      `json:"moonLabel"`
+	Moons       [8]Moon     `json:"moons"`
+	Day1        DayOverview `json:"day1"`
+	Day2        DayOverview `json:"day2"`
+	Day3        DayOverview `json:"day3"`
 }
 
 type DayOverview struct {
@@ -49,12 +52,15 @@ func NewDay(w *WeatherForcast, day int) DayOverview {
 // Only gives 3 day forcast
 func NewEwwVariables(w WeatherForcast) EwwVariables {
 	return EwwVariables{
-		Quote:    "",
-		SubQuote: "",
-		Moons:    Moons(w.Weather[0].Astronomy[0].MoonPhase),
-		Day1:     NewDay(&w, 0),
-		Day2:     NewDay(&w, 1),
-		Day3:     NewDay(&w, 2),
+		Location:    w.NearestArea[0].AreaName[0].Value,
+		Feel:        w.CurrentCondition[0].FeelsLikeF,
+		Current:     w.CurrentCondition[0].TempF,
+		CurrentIcon: Icon(w.CurrentCondition[0].WeatherCode),
+		MoonLable:   w.Weather[0].Astronomy[0].MoonPhase,
+		Moons:       Moons(w.Weather[0].Astronomy[0].MoonPhase),
+		Day1:        NewDay(&w, 0),
+		Day2:        NewDay(&w, 1),
+		Day3:        NewDay(&w, 2),
 	}
 }
 

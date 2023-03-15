@@ -28,13 +28,13 @@
 @import 'css/center';
 @import 'css/weather';
 @import 'css/mode';
+@import 'css/apps';
 
 .bar {
   background-color: $bg;
   color: $fg;
   padding-bottom: 5px;
   // margin: 0px 200px 0px 200px;
-
   label {
     font-size: 1.2rem;
   }
@@ -52,6 +52,11 @@ tooltip {
 
 .icon {
     font-family: Material Icons Outlined;
+
+}
+
+.workspaces {
+    padding-left: 53px;// 48 + 5
 }
 
 .ws {
@@ -91,14 +96,14 @@ scale trough {
 }
 
 .corners-ul {
-    background: radial-gradient(at bottom right, transparent 70%, $mantle 0%);
+    background: radial-gradient(at bottom right, transparent 70%, $bg 0%);
 }
 .corners-ur {
-    background: radial-gradient(at bottom left, transparent 70%, $mantle 0%);
+    background: radial-gradient(at bottom left, transparent 70%, $bg 0%);
 }
 .corners-bl {
-    background: radial-gradient(at top right, transparent 70%, $mantle 0%);
+    background: radial-gradient(at top right, transparent 70%, $bg 0%);
 }
 .corners-br {
-    background: radial-gradient(at top left, transparent 70%, $mantle 0%);
+    background: radial-gradient(at top left, transparent 70%, $bg 0%);
 }

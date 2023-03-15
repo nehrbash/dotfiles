@@ -1,5 +1,4 @@
 #!/bin/bash
 
-eww open-many --toggle bar bar2 corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
-
-
+eww open-many --toggle bar bar2 leftbar leftbar2 corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
+ 
