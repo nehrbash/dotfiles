@@ -1,19 +1,19 @@
 (defwidget clock_module []
   (eventbox
-   :class "date clock"
+   :class "clock"
    :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${hypr.id}; ${EWW_CMD} open --toggle control-menu --screen ${hypr.id}"
           (box
         :space-evenly false
         (label
           :text {time.day}
-          :class "clock")
+          )
         (label
           :text {time.hour}
-          :class "clock hour")
+          )
         (label
           :text ":"
-          :class "clock")
+          )
         (label
           :text "${time.minute}"
-          :class "clock minute")
+          )
         )))

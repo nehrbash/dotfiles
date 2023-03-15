@@ -11,6 +11,15 @@
   @include rounding;
 }
 
+@mixin hoverable {
+        &:hover {
+           border-radius: 25px;
+           padding: 20px;
+           background: $border;
+    }
+}
+
+
 * {
   all: unset;
   transition: 200ms ease;
@@ -70,10 +79,6 @@ tooltip {
 }
 
 .module { margin: 0 5px; }
-.hour {
-  font-weight: bold;
-  margin-left: 5px;
-}
 
 .date {
   background: $bg;

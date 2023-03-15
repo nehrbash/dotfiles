@@ -44,9 +44,9 @@
     (net)
     (sys)))
 
-(defwidget center [notif_class]
+(defwidget center []
   (box
-    :class {notif_class}
+    :class "${notif.Class} clock"
     :space-evenly false
     :halign "center"
     (clock_module)
@@ -56,7 +56,7 @@
            (centerbox
             :class "bar"
             (left)
-            (center :notif_class {notif.Class})
+            (center)
             (right)))
 
 (defwindow bar
