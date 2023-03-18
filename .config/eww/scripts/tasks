@@ -1,0 +1,15 @@
+#!/bin/bash
+
+csv=$(emacs -batch -l ~/.emacs.d/early-init.el -eval '(org-batch-agenda-csv "t" org-agenda-files (quote ("~/doc/inbox.org" "~/doc/projects.org" "~/doc/repeater.org")) org-todo-keywords (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)") (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")(sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))))')
+
+num=$(echo "$csv" | wc -l)
+echo "$csv" | jq -Rsnc --arg NUM "$num" '
+  {"tasks":
+    [inputs
+     | . / "\n"
+     | (.[] | select(length > 0) | . / ",") as $input
+     |{"type": $input[0], "title": $input[1],"state": $input[3]}],
+     "num":$NUM
+  }
+' | jq '.tasks[:8] as $lessTasks
+  | {"num": .num, "tasks": $lessTasks}'

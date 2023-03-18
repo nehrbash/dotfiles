@@ -52,8 +52,16 @@
 
 
 (defwidget weather-moon []
-           (box :orientation "v" :class "ct_box" :space-evenly "false" :vexpand "true"
-            (label :class "moon-label" :text {weather.moonLabel})
-           (box :orientation "h" :space-evenly "true" :hexpand "false" :halign "center"
-                (for m in "${weather.moons}"
-                     (label :class "weather-moon ${m.class}" :text "${m.value}")))))
+           (box :orientation "v"
+                :class "ct_box"
+                :space-evenly "false"
+                :vexpand "false"
+                (label :class "moon-label"
+                       :text {weather.moonLabel})
+                (box :orientation "h"
+                     :space-evenly "true"
+                     :hexpand "false"
+                     :vexpand "false"
+                     :halign "center"
+                     (for m in {weather.moons}
+                          (label :class "weather-moon ${m.class}" :text "${m.value}")))))

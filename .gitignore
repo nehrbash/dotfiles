@@ -19,3 +19,6 @@
 /doc/gcal.org_archive
 /.config/eww/scripts/submap
 /.config/eww/pkg/eww-weather/eww-weather
+*.ics
+/doc/*.org_archive
+*.org

@@ -85,7 +85,7 @@ func (a *Apps) Update(c Clients) (alist AppList) {
 		if window.Workspace.ID < 0 {
 			continue
 		}
-		if window.Address == "" {
+		if window.Address == "" || window.Class == "" {
 			continue
 		}
 		if _, ok := a.lookup[window.Address]; ok {

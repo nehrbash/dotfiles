@@ -12,7 +12,8 @@
              :orientation "v"
              :space-evenly false
              (calendar-win)
-             (pomodoro))))
+             (pomodoro)
+             (task-list))))
 
 (defwindow control-menu
            :geometry (geometry

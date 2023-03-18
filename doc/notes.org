@@ -13,3 +13,10 @@
   :END:
 [2023-03-08 Wed]
 [[file:~/.dotfiles/.config/eww/modules/mode.yuck]]
+* TODO inhibitor
+  :LOGBOOK:
+  CLOCK: [2023-03-17 Fri 10:54]--[2023-03-17 Fri 10:55] =>  0:01
+  :END:
+[2023-03-17 Fri]
+* TODO fix top margin
+[2023-03-17 Fri]

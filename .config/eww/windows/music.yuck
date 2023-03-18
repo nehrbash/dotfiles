@@ -5,7 +5,6 @@
     :style "background-color: ${music.color1}; border: 1px solid ${music.color2};"
     (box
       :class "music-cover-art"
-      :height 20
       :style "background-image: url(\"${music.cover}\");")
     (box
       :orientation "v"

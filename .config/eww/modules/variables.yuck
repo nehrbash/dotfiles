@@ -10,6 +10,7 @@
 (defpoll upgrades :interval "1h" `checkupdates | wc -l`)
 (defpoll pomo :interval "1s" `scripts/pomo`)
 (defpoll inhibitor :interval "3s" `scripts/inhibitor`)
+(defpoll tasks :interval "1m" `scripts/tasks`)
 (deflisten battery "scripts/battery")
 (deflisten bluetooth "scripts/bluetooth")
 (deflisten brightness "scripts/brightness")

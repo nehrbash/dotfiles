@@ -11,6 +11,7 @@
 (include "./modules/mode.yuck")
 (include "./modules/power.yuck")
 (include "./modules/apps.yuck")
+(include "./modules/tasks.yuck")
 
 (include "./windows/calendar.yuck")
 (include "./windows/music.yuck")

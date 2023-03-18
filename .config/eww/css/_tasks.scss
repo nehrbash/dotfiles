@@ -1,0 +1,23 @@
+.TODO, .INPROGRESS, .NEXT {
+    padding-left: 15px;
+    color: $peach;
+}
+
+.PROJECT {
+    color: $green;
+    padding-top: 15px;
+    padding-left: 5px;
+}
+
+.project {
+    padding-top: 15px;
+    color: $teal;
+}
+.task {
+    color: $yellow;
+}
+
+.task-label {
+    color: $blue;
+    font-size: 1.2rem;
+}

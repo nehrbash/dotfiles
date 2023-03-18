@@ -1681,7 +1681,6 @@ ORIG is the advised function, which is called with its ARGS."
   org-agenda-tags-column 0)
 (use-package org-cliplink
   :bind (("C-c l" . org-store-link)))
-
 #+end_src
 
 ** Org Appear
@@ -1711,11 +1710,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    Set registers to jump to certain files like type C-x r j e to open .emacs
 
 #+begin_src emacs-lisp
-  (setq org-directory "~/doc")
-  (setq org-default-notes-file (concat org-directory "/notes.org"))
-  (setq org-agenda-files (list "~/doc/inbox.org"
-                            "~/doc/projects.org"
-                            "~/doc/gcal.org"))
+(setq org-directory "~/doc")
+(setq org-default-notes-file (concat org-directory "/notes.org"))
+(setq org-agenda-files (list "~/doc/inbox.org"
+                          "~/doc/projects.org"
+                          "~/doc/gcal.org"
+                          "~/doc/repeater.org"))
 #+end_src
 
 ** Capturing
@@ -2019,10 +2019,10 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 ** Agenda Views
 #+begin_src emacs-lisp
+
 (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
 (let ((active-project-match "-INBOX/PROJECT"))
-  (setq org-stuck-projects
-        `(,active-project-match ("NEXT")))
+  (setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS")))
   (setq org-agenda-compact-blocks t
         org-agenda-sticky t
         org-agenda-start-on-weekday nil
@@ -2035,30 +2035,27 @@ Basically just followed the directions from this cool blog.   https://colekillia
           (search category-up))
         org-agenda-window-setup 'current-window
         org-agenda-custom-commands
-        `(("N" "Notes" tags "NOTE"
-           ((org-agenda-overriding-header "Notes")
-            (org-tags-match-list-sublevels t)))
-          ("g" "GTD"
+        `(("g" "GTD"
            ((agenda "" nil)
             (tags "INBOX"
                   ((org-agenda-overriding-header "Inbox")
-                   (org-tags-match-list-sublevels nil)))
+                   (org-tags-match-list-sublevels nil)
+                   (org-agenda-skip-function '(lambda ()
+                                (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
             (stuck ""
                    ((org-agenda-overriding-header "Stuck Projects")
                     (org-agenda-tags-todo-honor-ignore-options t)
                     (org-tags-match-list-sublevels t)
                     (org-agenda-todo-ignore-scheduled 'future)))
-            (tags-todo "-INBOX"
+            (tags-todo "INBOX|PROJECT"
                        ((org-agenda-overriding-header "Next Actions")
                         (org-agenda-tags-todo-honor-ignore-options t)
                         (org-agenda-todo-ignore-scheduled 'future)
-                        (org-agenda-skip-function
-                         '(lambda ()
+                        (org-agenda-skip-function '(lambda ()
                             (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
-                                (org-agenda-skip-entry-if 'nottodo '("NEXT")))))
+                                (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
                         (org-tags-match-list-sublevels t)
-                        (org-agenda-sorting-strategy
-                         '(todo-state-down effort-up category-keep))))
+                        (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
             (tags-todo ,active-project-match
                        ((org-agenda-overriding-header "Projects")
                         (org-tags-match-list-sublevels t)
@@ -2084,8 +2081,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
                        ((org-agenda-overriding-header "Delegated")
                         (org-agenda-tags-todo-honor-ignore-options t)
                         (org-agenda-todo-ignore-scheduled 'future)
-                        (org-agenda-sorting-strategy
-                         '(category-keep))))
+                        (org-agenda-sorting-strategy '(category-keep))))
             (tags-todo "-INBOX"
                        ((org-agenda-overriding-header "On Hold")
                         (org-agenda-skip-function
@@ -2093,8 +2089,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
                             (or (org-agenda-skip-subtree-if 'todo '("WAITING"))
                                 (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
                         (org-tags-match-list-sublevels nil)
-                        (org-agenda-sorting-strategy
-                         '(category-keep)))))))))
+                        (org-agenda-sorting-strategy '(category-keep)))))))))
   (add-hook 'org-agenda-mode-hook 'hl-line-mode)
 #+end_src
 
