@@ -10,8 +10,9 @@
                                     :reveal power
                                     :duration "550ms"
                                     (box :orientation "h"
-                                         :space-evenly "false"
-
+                                         :space-evenly "true"
+                                         :spacing "5"
+                                         :style "padding-right: 5px;"
                                          (button :class "button-suspend"
                                                  :tooltip "Suspend"
                                                  :onclick "systemctl suspend" "" )

@@ -113,8 +113,6 @@
 
     (box
       :class "system-info-box"
-
-      ; cpu
       (box
         :class "sys-box"
         :space-evenly false
@@ -178,7 +176,8 @@
         (button
           :halign "end"
           :class "power-button icon"
-          :onclick "gnome-control-center &"
+          :onclick "gnome-control-center"
+          :style "margin-right: 5px;"
           "⚙")
         (power)))))
 

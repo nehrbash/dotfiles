@@ -47,7 +47,7 @@
 
 (defwidget center []
   (box
-    :class "${notif.Class} clock"
+    :class "clock ${notif.Class}"
     :space-evenly false
     :halign "center"
     (clock_module)

@@ -18,7 +18,7 @@
   - [[#track-recent-files][Track Recent Files]]
   - [[#auto-update-file][Auto update file]]
   - [[#electri-pair][Electri Pair]]
-  - [[#faster-tramp][Faster TRAMP]]
+  - [[#tramp][TRAMP]]
   - [[#init-path-environment-variable][Init PATH environment variable]]
 - [[#ui][UI]]
   - [[#startup--dashboard][Startup / Dashboard]]
@@ -31,7 +31,7 @@
 - [[#dired][Dired]]
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
-  - [[#company][Company]]
+  - [[#corfu][Corfu]]
   - [[#settings-for-hippie-expand][Settings for hippie expand]]
   - [[#spelling][Spelling]]
 - [[#multi-vterm][Multi Vterm]]
@@ -40,7 +40,6 @@
   - [[#i-search][I-Search]]
   - [[#ripgrep][Ripgrep]]
   - [[#ibuffer][Ibuffer]]
-  - [[#multiple-major-modes][Multiple major modes]]
   - [[#newline-behavior][Newline Behavior]]
   - [[#symbol-overlay][Symbol Overlay]]
   - [[#whitespaces][Whitespaces]]
@@ -51,7 +50,6 @@
   - [[#projectile][projectile]]
   - [[#misc][misc]]
   - [[#improve-window-switching][Improve window switching]]
-  - [[#app-launcher][App launcher]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
   - [[#org-appear][Org Appear]]
@@ -84,7 +82,6 @@
   - [[#c][C++]]
   - [[#rust][Rust]]
   - [[#python][Python]]
-  - [[#haskell][Haskell]]
   - [[#csv][CSV]]
   - [[#yaml][yaml]]
   - [[#docker][Docker]]
@@ -98,20 +95,22 @@
    Alternative to *package.el* closer to go.mod where it tracks packages to git commit versions. compatable with use-package. It only does pre-loading so just using straight may not fully load it.
 
  #+begin_src emacs-lisp
-(setq straight-check-for-modifications '(check-on-save))
- (defvar bootstrap-version)
- (let ((bootstrap-file
-        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-       (bootstrap-version 5))
-   (unless (file-exists-p bootstrap-file)
-     (with-current-buffer
-         (url-retrieve-synchronously
-          "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-          'silent 'inhibit-cookies)
-       (goto-char (point-max))
-       (eval-print-last-sexp)))
-   (load bootstrap-file nil 'nomessage))
- (straight-use-package 'use-package)
+ (setq straight-check-for-modifications '(check-on-save))
+   (defvar bootstrap-version)
+   (let ((bootstrap-file
+          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+         (bootstrap-version 5))
+     (unless (file-exists-p bootstrap-file)
+       (with-current-buffer
+           (url-retrieve-synchronously
+            "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+            'silent 'inhibit-cookies)
+         (goto-char (point-max))
+         (eval-print-last-sexp)))
+     (load bootstrap-file nil 'nomessage))
+ (require 'use-package)
+ ;; Silence compiler warnings as they can be pretty disruptive
+(setq comp-async-report-warnings-errors nil)
  #+end_src
 
 ** Update Load Path
@@ -119,9 +118,21 @@
    Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
 
 #+begin_src emacs-lisp
-(setq custom-file "")
-(push "~/.emacs.d/lisp" load-path)
+;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
+(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
+      url-history-file (expand-file-name "url/history" user-emacs-directory))
+
+;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
+
+;; Keep customization settings in a temporary file
+(setq custom-file
+      (if (boundp 'server-socket-dir)
+          (expand-file-name "custom.el" server-socket-dir)
+        (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
+(load custom-file t)
+;; Load path 
+(push "~/.emacs.d/lisp" load-path)
 #+end_src
 
 ** Non-Configured Packages
@@ -129,9 +140,6 @@
    These are packages that don't require configurations.
 
  #+begin_src emacs-lisp
- (use-package org
-   :straight org-contrib)
- (use-package general)
  (use-package diminish)
  (use-package gnuplot)
  (use-package htmlize)
@@ -422,7 +430,7 @@ Cut/copy the current line if no region is active.
  truncate-lines nil
  truncate-partial-width-windows nil
  ring-bell-function 'ignore)
-( delete-selection-mode t)
+(delete-selection-mode t)
 (global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
@@ -454,12 +462,9 @@ Easily insert matching delimiters.
 #+begin_src emacs-lisp
 (when (fboundp 'electric-pair-mode)
   (add-hook 'after-init-hook 'electric-pair-mode))
-(when (eval-when-compile (version< "24.4" emacs-version))
-  (add-hook 'after-init-hook 'electric-indent-mode))
-(use-package list-unicode-display)
 #+end_src
 
-** Faster TRAMP
+** TRAMP
 
 Tramp was acting slow this helps.
 
@@ -469,6 +474,18 @@ Tramp was acting slow this helps.
       (format "%s\\|%s"
                     vc-ignore-dir-regexp
                     tramp-file-name-regexp))
+#+end_src
+
+*** ControlMaster
+
+    Don't know if this will help but added bc lsp was starting a bunch of gio's ... did nothing.
+    
+#+begin_src emacs-lisp
+(customize-set-variable
+ 'tramp-ssh-controlmaster-options
+ (concat
+  "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
+  "-o ControlMaster=auto -o ControlPersist=yes"))
 #+end_src
 
 ** Init PATH environment variable
@@ -489,7 +506,7 @@ Tramp was acting slow this helps.
 
 #+begin_src emacs-lisp
 (setq initial-major-mode 'org-mode)
-(setq initial-scratch-message nil)
+(setq initial-scratch-message "* Scratch\n\n#+begin_src emacs-lisp\n\n#+end_src")
 #+end_src
 
 #+begin_src emacs-lisp
@@ -501,14 +518,17 @@ Tramp was acting slow this helps.
            (dashboard-set-file-icons t)
            (dashboard-set-navigator t)
            (dashboard-set-footer nil)
-           (dashboard-items '(
-                              (agenda . 5)
-                              (projects . 5)
-                              (bookmarks . 5)
-                              (recents  . 10))))
+           (dashboard-items '((projects . 5)
+                              (bookmarks . 10))))
     :config (dashboard-setup-startup-hook)
 
     (setq initial-buffer-choice (lambda () (get-buffer-create "*dashboard*"))))
+(defun my-dashboard-refresh-buffer ()
+  "Refresh the *dashboard* buffer if it exists."
+  (when-let ((dashboard-buffer (get-buffer "*dashboard*")))
+    (with-current-buffer dashboard-buffer
+      (dashboard-refresh-buffer))))
+;; (add-hook 'after-make-frame-functions #'my-dashboard-refresh-buffer)
 #+end_src
 
 ** Theme
@@ -527,9 +547,16 @@ Tramp was acting slow this helps.
 (add-hook 'after-make-frame-functions
           (lambda (frame)
             (with-selected-frame frame
-              (load-theme 'catppuccin t))))
-;; Don't prompt to confirm theme safety. This avoids problems with
-;; first-time startup on Emacs > 26.3.
+              (load-theme 'catppuccin t)
+              (set-face-attribute 'default nil
+                    :family "Source Code Pro"
+                    :height 120
+                    :weight 'normal
+                    :width 'normal)
+              (fringe-mode '(10 . 10))
+              (pixel-scroll-precision-mode t)
+              (set-face-attribute 'header-line nil :height 100)
+              )))
 (setq custom-safe-themes t)
 #+end_src
 
@@ -578,15 +605,6 @@ Tramp was acting slow this helps.
     (global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
     (global-set-key (kbd "C-z") 'undo)
     #+end_src
-
-*** GUI Features
-
-    #+begin_src emacs-lisp
-    (setq use-file-dialog nil)
-    (setq use-dialog-box nil)
-    (use-package unicode-fonts
-      :config (unicode-fonts-setup))
-    #+END_SRC
 
 *** Window Size
 
@@ -709,7 +727,6 @@ Other buffer group by `centaur-tabs-get-group-name' with project name."
        (string-prefix-p "*Helm" name)
        (string-prefix-p "*Compile-Log*" name)
        (string-prefix-p "*lsp" name)
-       (string-prefix-p "*company" name)
        (string-prefix-p "*Flycheck" name)
        (string-prefix-p "*tramp" name)
        (string-prefix-p " *Mini" name)
@@ -809,7 +826,7 @@ Need to revisit now that I am using dirvish.
 
 * Minibuffer / Completion Framework
 
-  Experimenting with new hype packages. replaces ivy and counsel aka completion framework.
+  Experimenting with new hype packages. replaces ivy and counsel aka completion framework. (What make Emacs Emacs IMO).
 
 #+BEGIN_SRC emacs-lisp
 (use-package vertico
@@ -830,20 +847,16 @@ Need to revisit now that I am using dirvish.
       embark-become-indicator embark-action-indicator))
 
 (use-package orderless
+  :after vertico
   :init
   (setq completion-styles '(orderless  basic)
         completion-category-defaults nil
-        completion-category-overrides '((file (styles basic partial-completion))))
+        completion-category-overrides '((file (styles . (partial-completion)))))
 (use-package embark-consult
   :after (embark)
   :demand t
   :hook (embark-collect-mode . embark-consult-preview-minor-mode)))
 (use-package consult-flycheck)
-(use-package affe
-  :bind ("M-?" . sn/affe-grep-at-point)
-  :config
-  (setq affe-regexp-function #'orderless-pattern-compiler
-        affe-highlight-function #'orderless--highlight))
 (use-package savehist :init (savehist-mode))
 (use-package marginalia
   :after vertico
@@ -851,12 +864,17 @@ Need to revisit now that I am using dirvish.
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
   :init (marginalia-mode))
- (defun sn/affe-grep-at-point (&optional dir initial)
-    "affe-grep thing with currently selected symbol"
-    (interactive (list prefix-arg (when-let ((s (symbol-at-point)))
-                                    (symbol-name s))))
-    (affe-grep dir initial))
-(global-set-key (kbd "C-r") 'sn/affe-grep-at-point)
+(defun consult-ripgrep-symbol-at-point ()
+  "Run `consult-ripgrep' with the symbol at point as the initial input."
+  (interactive)
+  (let ((initial (when-let ((symbol (symbol-at-point)))
+                   (concat "" (regexp-quote (symbol-name symbol)) ""))))
+    (minibuffer-with-setup-hook
+        (lambda ()
+          (when initial
+            (insert initial)))
+      (consult-ripgrep))))
+(global-set-key (kbd "C-r") #'consult-ripgrep-symbol-at-point)
 #+end_src
 
 ** Consult
@@ -968,33 +986,22 @@ Need to revisit now that I am using dirvish.
 (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 #+end_src
 
-** Company
+** Corfu
 
-   Company is a text completion framework to retrieve and display completion candidates.
+   Corfu is a text completion framework to retrieve and display completion candidates. More Simple than Company better for Emacs API.
 
 #+begin_src emacs-lisp
 (setq tab-always-indent 'complete)
-(use-package company
-  :diminish company-mode
-  :bind(("M-C-/" . company-complete)
-        (:map company-mode-map
-              ( "M-/" . company-complete))
-         (:map company-active-map
-               ( "M-/" . company-other-backend)
-               ( "C-n" . company-select-next)
-               ( "C-p" . company-select-previous)
-               ("C-d" . company-show-doc-buffer)
-               ("M-." . company-show-location)))
-  :config
-  (dolist (backend '(company-eclim company-semantic))
-      (delq backend company-backends))
-  (setq-default company-dabbrev-other-buffers 'all
-                company-tooltip-align-annotations t)
-  (global-company-mode))
-(use-package company-quickhelp
-    :init (company-quickhelp-mode 1))
-(use-package company-box
-  :hook (company-mode . company-box-mode))
+(use-package corfu
+  :init (global-corfu-mode)
+  :custom (corfu-auto t)
+  :bind (:map corfu-map ("M-SPC" . corfu-insert-separator))
+  :config 
+  (setq-default corfu-auto t
+                corfu-quit-no-match 'separator)
+  (when (featurep 'corfu-popupinfo)
+    (with-eval-after-load 'corfu
+      (corfu-popupinfo-mode))))
 #+end_src
 
 ** Settings for hippie expand
@@ -1094,7 +1101,7 @@ Need to revisit now that I am using dirvish.
 
 * Other
 ** I-Search
-
+very impressive dedication congrats on the one year milestone  
 #+begin_src emacs-lisp
 ;; Show number of matches while searching
 (use-package anzu
@@ -1198,14 +1205,6 @@ install rg and ag manually
 (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-#+end_src
-
-** Multiple major modes
-#+begin_src emacs-lisp
-  (use-package mmm-mode)
-  (require 'mmm-auto)
-  (setq mmm-global-mode 'buffers-with-submode-classes)
-  (setq mmm-submode-decoration-level 2)
 #+end_src
 
 ** Newline Behavior
@@ -1434,8 +1433,8 @@ ORIG is the advised function, which is called with its ARGS."
 (use-package magit-todos
   :after magit
   :config (magit-todos-mode 1))
-(use-package forge
-  :after magit)
+;; (use-package forge
+;;   :after magit)
 (use-package fullframe)
 (after-load 'magit
   (fullframe magit-status magit-mode-quit-window))
@@ -1510,33 +1509,33 @@ ORIG is the advised function, which is called with its ARGS."
 ** yasnippet
 
 #+begin_src emacs-lisp
-  (use-package yasnippet
-    :straight t
-    :config
-    (setq yas-verbosity 1)                      ; No need to be so verbose
-    (setq yas-wrap-around-region t)
-    (use-package yasnippet-snippets
-      :straight t)
-    (with-eval-after-load 'yasnippet
-      (setq yas-snippet-dirs '(yasnippet-snippets-dir)))
+(use-package yasnippet
+  :straight t
+  :config
+  (setq yas-verbosity 1)                      ; No need to be so verbose
+  (setq yas-wrap-around-region t)
+  (use-package yasnippet-snippets
+    :straight t)
+  (with-eval-after-load 'yasnippet
+    (setq yas-snippet-dirs '(yasnippet-snippets-dir)))
 
-    (yas-reload-all)
-    (yas-global-mode t)
-    (define-key yas-minor-mode-map (kbd "C-c s") #'yas-insert-snippet)
+  (yas-reload-all)
+  (yas-global-mode t)
+  (define-key yas-minor-mode-map (kbd "C-c s") #'yas-insert-snippet)
 
-    (defun company-yasnippet-or-completion ()
-      "Solve company yasnippet conflicts."
-      (interactive)
-      (let ((yas-fallback-behavior
-             (apply 'company-complete-common nil)))
-        (yas-expand)))
+  (defun company-yasnippet-or-completion ()
+    "Solve company yasnippet conflicts."
+    (interactive)
+    (let ((yas-fallback-behavior
+           (apply 'company-complete-common nil)))
+      (yas-expand)))
 
-    (add-hook 'company-mode-hook
-              (lambda ()
-                (substitute-key-definition
-                 'company-complete-common
-                 'company-yasnippet-or-completion
-                 company-active-map))))
+  (add-hook 'company-mode-hook
+            (lambda ()
+              (substitute-key-definition
+               'company-complete-common
+               'company-yasnippet-or-completion
+               company-active-map))))
 #+end_src
 
 ** paredit parenthicy completion
@@ -1619,25 +1618,6 @@ ORIG is the advised function, which is called with its ARGS."
 (require 'init-windows)
 #+end_src
 
-** App launcher
-
-   Just having some fun, here is a possible wofi replacement.
-#+begin_src lisp
-(use-package counsel)
-(setq counsel-linux-app-format-function 'counsel-linux-app-format-function-name-pretty)
-
- (defun emacs-run-launcher ()
-   "Create and select a frame called emacs-run-launcher which consists only of a minibuffer and has specific dimensions. Run counsel-linux-app on that frame, which is an emacs command that prompts you to select an app and open it in a dmenu like behaviour. Delete the frame after that command has exited"
-   (interactive)
-   (with-selected-frame (make-frame '((name . "emacs-run-launcher")
-                       (minibuffer . only)
-                       (width . 120)
-                       (height . 11)))
-     (unwind-protect
-      (counsel-linux-app)
-    (delete-frame))))
-#+end_src
-
 * Org Mode
 
   Text based writing.
@@ -1645,7 +1625,6 @@ ORIG is the advised function, which is called with its ARGS."
 ** General Configure
 
 #+begin_src emacs-lisp
-(provide 'org-version)
 (use-package org
   :straight org-contrib
   :bind (("C-c a" .  gtd)
@@ -2226,29 +2205,23 @@ Basically just followed the directions from this cool blog.   https://colekillia
 #+end_src
 
 ** Google Calendar
-
-   Add my Gmail.
+   Add my Gmail. Has secrets so don't push.
 #+begin_src emacs-lisp
-(setq plstore-cache-passphrase-for-symmetric-encryption t)
-(setq org-gcal-client-id "537037004027-g7ivp5qns2hnaupomto837rkdu8vtkv6.apps.googleusercontent.com"
-      org-gcal-client-secret "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"
-      org-gcal-fetch-file-alist '(("stephen.nehrbass@infinitetactics.com" .  "~/doc/gcal.org")))
-(use-package org-gcal)
-;; (add-hook 'org-agenda-mode-hook (lambda () (org-gcal-sync) ))
-;; (add-hook 'org-capture-after-finalize-hook (lambda () (org-gcal-sync) ))
+(require 'init-gcal)
 #+end_src
 
 * Code Languages & File Modes
 
 ** Tree sitter
-
-   better syntax parsing
-
+   
+   Enable syntax highlighting based on the tree-sitter. already installed
+    
 #+begin_src emacs-lisp
-(use-package tree-sitter)
-(use-package tree-sitter-langs)
-(global-tree-sitter-mode)
-;; (tree-sitter-hl-mode)
+(use-package tree-sitter
+  :config
+  (use-package tree-sitter-langs)
+  (global-tree-sitter-mode)
+  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 #+end_src
 
 ** LSP-Mode
@@ -2260,19 +2233,22 @@ Basically just followed the directions from this cool blog.   https://colekillia
 (use-package lsp-mode
   :straight t
   :init
+  (defun my/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+          '(orderless)))
   (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
   (setq lsp-keymap-prefix "C-.")
-  ;; uncomment to enable gopls http debug server
-  ;; :custom (lsp-gopls-server-args '("-debug" "127.0.0.1:0"))
   :commands (lsp lsp-deferred)
   :custom
-  (read-process-output-max (* 1024 1024)) ;; 1 mb
-  (lsp-idle-delay 0.6)
+  (lsp-enable-file-watchers nil)
+  (lsp-completion-provider :none)
+  (lsp-idle-delay 0.2)
   (lsp-rust-analyzer-server-display-inlay-hints t)
-    :bind ((:map lsp-mode-map
+  :bind ((:map lsp-mode-map
                ("C-." .  lsp-command-map))
-    (:map lsp-command-map
+         (:map lsp-command-map
                ("e" .  consult-lsp-diagnostics)))
+  :hook (lsp-completion-mode . my/lsp-mode-setup-completion)
   :config (progn
             ;; use flycheck, not flymake
             (setq lsp-prefer-flymake nil)))
@@ -2406,12 +2382,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
        (add-to-list 'lsp-enabled-clients 'jedi)))
 #+end_src
 
-** Haskell
-
-#+begin_src emacs-lisp
-(straight-use-package 'haskell-mode)
-#+end_src
-
 ** CSV
 
 #+begin_src emacs-lisp
@@ -2470,6 +2440,7 @@ Dial the GC threshold back down so that garbage collection happens more frequent
 
 Other dotfiles repos and blog posts for inspiration:
 
+- [[https://github.com/purcell/emacs.d][Purcell's Reasonable Emacs config]]
 - [[https://github.com/howardabrams/dot-files][Howard Abrams' dotfiles]]
 - [[https://github.com/daedreth/UncleDavesEmacs/blob/master/config.org][UncleDave's Emacs config]]
 - [[https://github.com/dakrone/dakrone-dotfiles][dakrone's dotfiles]]
@@ -2477,4 +2448,4 @@ Other dotfiles repos and blog posts for inspiration:
 - [[https://writequit.org/org/][writequit's config]]
 
 
-And of course [[https://systemcrafters.cc/][System Crafters]] !!!
+And of course [[https://systemcrafters.cc/][System Crafters]] !

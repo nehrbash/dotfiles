@@ -3,24 +3,16 @@ sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
-
-cd "$(dirname "$(spicetify -c)")/Themes/Dribbblish"
-mkdir -p ../../Extensions
-cp dribbblish.js ../../Extensions/.
-spicetify config extensions dribbblish.js
-spicetify config current_theme Dribbblish color_scheme base
-spicetify config inject_css 1 replace_colors 1 overwrite_assets 1
-spicetify apply
-
-spicetify config color_scheme Purple
+cd -
 
 xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory
 
 mkdir -p ~/doc
-echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
 mkdir -p ~/doc/Roam/Journal
+[ -f "~/doc/inbox.org" ] && echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
 
 paru -Qqe
 
+cd .dotfiles
 stow .

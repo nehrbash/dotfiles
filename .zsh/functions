@@ -32,3 +32,14 @@ ssh-delete-host () {
         sed -i "${1}d" ~/.ssh/known_hosts
     fi
 }
+
+
+gitsr () { # Git Squash then Rebase on BRANCH
+    # Squash merge, then rebase onto the desired branch (typically develop or master).
+    local BRANCH=$1
+    # Find the last common commit from the current HEAD and BRANCH.
+    # Then soft reset to that point (to keep all changes staged).
+    # Commit all changes as one atomic commit (i.e. squash merge).
+    # Then rebase the updated HEAD onto BRANCH.
+    git reset --soft $(git merge-base HEAD $BRANCH) && git commit && git rebase $BRANCH
+}

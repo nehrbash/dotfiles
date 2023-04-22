@@ -12,10 +12,9 @@
 }
 
 @mixin hoverable {
-        &:hover {
-           border-radius: 25px;
-           padding: 20px;
-           background: $border;
+    @include rounding;
+    &:hover {
+        background: $border;
     }
 }
 
@@ -39,7 +38,7 @@
 @import 'css/mode';
 @import 'css/apps';
 @import 'css/tasks';
-.bar {
+.bar, .sidebar {
   background-color: $bg;
   color: $fg;
   padding-bottom: 5px;
@@ -47,6 +46,10 @@
   label {
     font-size: 1.2rem;
   }
+}
+
+.bar {
+    padding-left: 48px;
 }
 
 tooltip {
@@ -78,7 +81,10 @@ tooltip {
     background-size: cover;
 }
 
-.module { margin: 0 5px; }
+.module {
+    @include hoverable;
+    padding: 0px 10px;
+}
 
 .date {
   background: $bg;
@@ -111,4 +117,8 @@ scale trough {
 }
 .corners-br {
     background: radial-gradient(at top left, transparent 70%, $bg 0%);
+}
+
+.mr-15 {
+    margin-right: 15px;
 }

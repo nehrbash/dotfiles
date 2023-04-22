@@ -22,5 +22,5 @@
 (deflisten volume "scripts/volume")
 (deflisten workspace "scripts/workspaces")
 (deflisten hypr "scripts/hyprvars")
-(deflisten apps "pkg/apps/apps")
-(deflisten weather "pkg/eww-weather/eww-weather")
+(deflisten apps "~/src/hyprhelper/pkg/apps/apps")
+(deflisten weather "hypr-dm/pkg/eww-weather/eww-weather")

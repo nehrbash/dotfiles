@@ -1,6 +1,6 @@
 (defwidget apps []
            (box
-            :class "bar"
+            :class "sidebar"
             :orientation "v"
             (box
              :class "apps"

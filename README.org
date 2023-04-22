@@ -1,19 +1,23 @@
 #+TITLE:My Setup
 #+PROPERTY: header-args:sh :tangle ~/.local/bin/install
 
-Here are my notes on how I set up my system.
+Here are my configs, no they are not well maintained and are very volatile right now.
+
 
 - [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][wallpaper]]
-- [[Emacs.org][Emacs]]
-- sway
+- [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
+- Hyprland
 - Arch
-- pipewire
 - nwg-shell (menu, drawer, wrapper)
-- waybar
-- easyeffects
-- File Manager: Dirvish (Emacs)
+- Bars: eww
+- pipewire, easyeffects
+- File Manager: gnome files, Dirvish (Emacs), Dired (Emacs)
 - PDF Viewer: pdf-tools (Emacs)
-* Instructions                                                                  :TOC:
+- Theme:   https://github.com/catppuccin/catppuccin
+- cursor theme: Dracula
+- Fonts: (a complete mess, I have so many installed)
+* Instructions :TOC:
+- [[#keyboard][Keyboard]]
 - [[#install-paru][Install Paru]]
 - [[#spicetify][Spicetify]]
 - [[#emacs][Emacs]]
@@ -21,10 +25,12 @@ Here are my notes on how I set up my system.
   - [[#set-up-org-agenda-and-roam][set up org agenda and Roam]]
 - [[#installed-packages][Installed packages]]
 - [[#my-dots][My dots]]
-- [[#sway][Sway]]
+- [[#hyprland][Hyprland]]
 - [[#crontab][Crontab]]
-  - [[#eww][Eww]]
   - [[#health][Health]]
+- [[#eww][Eww]]
+
+* Keyboard
 
 * Install Paru
 
@@ -36,24 +42,17 @@ sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
+cd -
 #+end_src
 
 * Spicetify
 
-#+begin_src sh
-cd "$(dirname "$(spicetify -c)")/Themes/Dribbblish"
-mkdir -p ../../Extensions
-cp dribbblish.js ../../Extensions/.
-spicetify config extensions dribbblish.js
-spicetify config current_theme Dribbblish color_scheme base
-spicetify config inject_css 1 replace_colors 1 overwrite_assets 1
-spicetify apply
-
-spicetify config color_scheme Purple
-#+end_src
+  I use this (mocha) just follow the well made instructions.
+  https://github.com/catppuccin/spicetify
 
 * Emacs
-My Emacs config can be found in Emacs.org. I use *emacs-gcc-wayland-devel-bin* and be warned it takes a hot sec to build all the packages.
+
+My Emacs config can be found in Emacs.org. Right now I am using *emacs-native-comp-git-enhanced*
 
 ** Setting XDG Defaults to Emacs
 
@@ -68,313 +67,306 @@ xdg-mime default emacsclient.desktop inode/directory
 
 #+begin_src sh
 mkdir -p ~/doc
-echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
 mkdir -p ~/doc/Roam/Journal
+[ -f "~/doc/inbox.org" ] && echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
 #+end_src
 
 * Installed packages
 
-#+begin_src sh
+  My installed packages In case you are crazy enough to want to use something and it's not working.
+
+
+#+begin_src sh :exports both
 paru -Qqe
 #+end_src
 
 #+RESULTS:
-| ack                           |
-| acpi                          |
-| adobe-source-sans-fonts       |
-| alac-git                      |
-| alacritty                     |
-| alsa-utils                    |
-| appmenu-gtk-module            |
-| aspell-en                     |
-| autoconf                      |
-| automake                      |
-| base                          |
-| bear                          |
-| betterdiscordctl-git          |
-| betterlockscreen              |
-| bind                          |
-| bison                         |
-| blender                       |
-| bumblebee                     |
-| candy-icons-git               |
-| cava                          |
-| code                          |
-| color-scripts-git             |
-| cronie                        |
-| dhclient                      |
-| dhcpcd                        |
-| dialog                        |
-| discord                       |
-| dmenu                         |
-| docker                        |
-| downgrade                     |
-| dpkg                          |
-| dunst                         |
-| efibootmgr                    |
-| emacs-gcc-wayland-devel-bin   |
-| etcher-bin                    |
-| eww-wayland-git               |
-| exa                           |
-| fakeroot                      |
-| fbrokendesktop                |
-| feh                           |
-| flameshot                     |
-| flex                          |
-| fluent-reader                 |
-| fonts-et-book                 |
-| gcc7                          |
-| gimp                          |
-| git                           |
-| glava                         |
-| gmrun                         |
-| gnome-keyring                 |
-| gnu-netcat                    |
-| gotop-git                     |
-| graphviz                      |
-| greetd                        |
-| greetd-wlgreet                |
-| grim                          |
-| groff                         |
-| grub                          |
-| gst-libav                     |
-| hexchat                       |
-| htop                          |
-| i3-gaps-rounded-git           |
-| i3lock-fancy-git              |
-| ifplugd                       |
-| imv                           |
-| inetutils                     |
-| inkscape                      |
-| intel-gpu-tools               |
-| jp-bin                        |
-| jq                            |
-| latte-dock                    |
-| lib32-giflib                  |
-| lib32-gnutls                  |
-| lib32-gst-plugins-base-libs   |
-| lib32-gtk3                    |
-| lib32-libgcrypt               |
-| lib32-libjpeg-turbo           |
-| lib32-libpng                  |
-| lib32-libpulse                |
-| lib32-libva                   |
-| lib32-libxcomposite           |
-| lib32-libxinerama             |
-| lib32-libxslt                 |
-| lib32-mpg123                  |
-| lib32-nvidia-utils            |
-| lib32-ocl-icd                 |
-| lib32-openal                  |
-| lib32-v4l-utils               |
-| libnvidia-container-bin       |
-| libnvidia-container-tools-bin |
-| libreoffice-still             |
-| libvterm                      |
-| linux                         |
-| linux-firmware                |
-| linux-headers                 |
-| logisim-evolution             |
-| lutris                        |
-| lxappearance-gtk3             |
-| m4                            |
-| maim                          |
-| make                          |
-| masterpdfeditor-free          |
-| mate-power-manager            |
-| media-control-indicator-git   |
-| messages-bin                  |
-| microsoft-edge-beta-bin       |
-| mpd                           |
-| mpvpaper                      |
-| mysql++                       |
-| mysql-python                  |
-| mysql-workbench               |
-| nano                          |
-| ncmatrix                      |
-| ncmpcpp                       |
-| neofetch                      |
-| net-tools                     |
-| netctl                        |
-| network-manager-applet        |
-| networkmanager-dmenu-git      |
-| nitrogen                      |
-| nodejs                        |
-| noto-fonts-emoji              |
-| nvidia-container-runtime      |
-| nvidia-dkms                   |
-| nvidia-docker                 |
-| nvidia-settings               |
-| nwg-drawer                    |
-| nwg-menu                      |
-| obsidian                      |
-| openconnect                   |
-| openjdk8-src                  |
-| os-prober                     |
-| pacman-contrib                |
-| paru                          |
-| pavucontrol                   |
-| perl-anyevent-i3              |
-| perl-file-mimeinfo            |
-| picom-ibhagwan-git            |
-| pkgconf                       |
-| playerctl                     |
-| polybar                       |
-| portaudio                     |
-| pulseaudio-alsa               |
-| pulseaudio-control            |
-| pulseeffects-legacy           |
-| pulsemixer                    |
-| pyside2                       |
-| python-cairo                  |
-| python-future                 |
-| python-gobject                |
-| python-mysql-connector        |
-| python-mysqlclient            |
-| python-pip                    |
-| python-pyalsa                 |
-| python-pytorch                |
-| python-pyusb                  |
-| python-pywal                  |
-| python-yaml                   |
-| qt5ct                         |
-| qtile                         |
-| reflector                     |
-| rofi                          |
-| rofi-greenclip                |
-| rsync                         |
-| rxvt-unicode                  |
-| screenkey                     |
-| scrot                         |
-| sddm                          |
-| simplescreenrecorder          |
-| singularity-container         |
-| slurp                         |
-| spicetify-cli-git             |
-| spicetify-themes-git          |
-| spotify                       |
-| steam                         |
-| stow                          |
-| sudo                          |
-| sway                          |
-| swayidle                      |
-| swaylock                      |
-| swaylock-fancy-git            |
-| swaync-git                    |
-| teams                         |
-| texlive-bibtexextra           |
-| texlive-core                  |
-| texlive-fontsextra            |
-| texlive-formatsextra          |
-| texlive-games                 |
-| texlive-humanities            |
-| texlive-latexextra            |
-| texlive-music                 |
-| texlive-pictures              |
-| texlive-pstricks              |
-| texlive-publishers            |
-| texlive-science               |
-| the_silver_searcher           |
-| thunar                        |
-| thunar-archive-plugin         |
-| tigervnc                      |
-| timidity++                    |
-| trash-cli                     |
-| ttf-font-awesome              |
-| ttf-linux-libertine           |
-| ttf-nerd-fonts-symbols        |
-| ttf-roboto-mono               |
-| ttf-segoewp                   |
-| ttf-symbola-free              |
-| tty-clock                     |
-| tty-clock-tomato              |
-| unicode                       |
-| update-grub                   |
-| virtualbox                    |
-| virtualbox-guest-utils        |
-| vlc                           |
-| waybar-git                    |
-| wget                          |
-| wine-staging                  |
-| wl-clipboard                  |
-| wlogout                       |
-| wlr-randr                     |
-| wmctrl                        |
-| xautolock                     |
-| xclip                         |
-| xdotool                       |
-| xf86-video-intel              |
-| xf86-video-nouveau            |
-| xf86-video-vesa               |
-| xfce4-notifyd                 |
-| xorg-docs                     |
-| xorg-fonts-100dpi             |
-| xorg-fonts-75dpi              |
-| xorg-iceauth                  |
-| xorg-server-devel             |
-| xorg-server-xephyr            |
-| xorg-server-xnest             |
-| xorg-server-xvfb              |
-| xorg-sessreg                  |
-| xorg-smproxy                  |
-| xorg-x11perf                  |
-| xorg-xbacklight               |
-| xorg-xcmsdb                   |
-| xorg-xcursorgen               |
-| xorg-xdpyinfo                 |
-| xorg-xdriinfo                 |
-| xorg-xev                      |
-| xorg-xgamma                   |
-| xorg-xhost                    |
-| xorg-xinput                   |
-| xorg-xkbevd                   |
-| xorg-xkbutils                 |
-| xorg-xkill                    |
-| xorg-xlsatoms                 |
-| xorg-xlsclients               |
-| xorg-xmodmap                  |
-| xorg-xpr                      |
-| xorg-xrandr                   |
-| xorg-xrefresh                 |
-| xorg-xvinfo                   |
-| xorg-xwd                      |
-| xorg-xwininfo                 |
-| xorg-xwud                     |
-| xtoolwait-git                 |
-| zoom                          |
-| zsa-wally                     |
-| zsh                           |
-| zsh-autosuggestions           |
-| zsh-completions               |
-| zsh-history-substring-search  |
-| zsh-syntax-highlighting       |
+| adobe-source-sans-fonts         |
+| alacritty                       |
+| amd-ucode                       |
+| android-messages-desktop-bin    |
+| archlinux-keyring               |
+| aspell                          |
+| aspell-en                       |
+| autoconf                        |
+| automake                        |
+| aws-cli                         |
+| baobab                          |
+| base                            |
+| bc                              |
+| betterdiscord-installer         |
+| binutils                        |
+| bison                           |
+| blueberry                       |
+| bluez-utils                     |
+| bt-dualboot                     |
+| btrfs-progs                     |
+| catppuccin-gtk-theme-frappe     |
+| catppuccin-gtk-theme-latte      |
+| catppuccin-gtk-theme-macchiato  |
+| catppuccin-gtk-theme-mocha      |
+| catppuccin-mocha-dark-cursors   |
+| cheese                          |
+| cmake                           |
+| cozette-ttf                     |
+| cronie                          |
+| dart-sass                       |
+| debugedit                       |
+| discord_arch_electron             |
+| docker                          |
+| docker-compose                  |
+| dracula-cursors-git             |
+| dracula-gtk-theme-git           |
+| dracula-icons-git               |
+| dunst                           |
+| easyeffects                     |
+| efibootmgr                      |
+| electron-fiddle-bin             |
+| emacs-native-comp-git-enhanced  |
+| eog                             |
+| epiphany                        |
+| evince                          |
+| eww-wayland                     |
+| exa                             |
+| fakeroot                        |
+| file                            |
+| file-roller                     |
+| findutils                       |
+| firefox-beta-bin                |
+| flex                            |
+| gawk                            |
+| gcc                             |
+| gdm                             |
+| gettext                         |
+| gimp                            |
+| git                             |
+| glfw-wayland                    |
+| gnome-applets                   |
+| gnome-backgrounds               |
+| gnome-bluetooth                 |
+| gnome-calculator                |
+| gnome-calendar                  |
+| gnome-characters                |
+| gnome-color-manager             |
+| gnome-console                   |
+| gnome-contacts                  |
+| gnome-disk-utility              |
+| gnome-font-viewer               |
+| gnome-keyring                   |
+| gnome-logs                      |
+| gnome-maps                      |
+| gnome-menus                     |
+| gnome-music                     |
+| gnome-nettool                   |
+| gnome-photos                    |
+| gnome-remote-desktop            |
+| gnome-session                   |
+| gnome-settings-daemon           |
+| gnome-shell                     |
+| gnome-software                  |
+| gnome-system-monitor            |
+| gnome-text-editor               |
+| gnome-tweaks                    |
+| gnome-user-share                |
+| gnome-video-effects             |
+| gnome-weather                   |
+| gnu-free-fonts                  |
+| go-task                         |
+| gojq                            |
+| gopsuinfo                       |
+| gotop                           |
+| grep                            |
+| grilo-plugins                   |
+| grim                            |
+| groff                           |
+| gst-plugin-pipewire             |
+| gtk-engine-murrine              |
+| gtk-engines                     |
+| gvfs                            |
+| gvfs-afc                        |
+| gvfs-goa                        |
+| gvfs-google                     |
+| gvfs-gphoto2                    |
+| gvfs-mtp                        |
+| gvfs-nfs                        |
+| gvfs-smb                        |
+| gzip                            |
+| helvum                          |
+| htop                            |
+| hyprland-nvidia-git             |
+| inetutils                       |
+| iwd                             |
+| iwgtk                           |
+| jaq                             |
+| jq                              |
+| libpulse                        |
+| libtool                         |
+| libu2f-server                   |
+| libva-mesa-driver               |
+| linux                           |
+| linux-firmware                  |
+| linux-headers                   |
+| lsp-plugins                     |
+| lutris                          |
+| lxappearance                    |
+| m4                              |
+| make                            |
+| malcontent                      |
+| man-db                          |
+| mkinitcpio-firmware             |
+| mutter                          |
+| nano                            |
+| nautilus                        |
+| net-tools                       |
+| network-manager-applet          |
+| networkmanager                  |
+| nfs-utils                       |
+| nix                             |
+| noto-fonts                      |
+| noto-fonts-cjk                  |
+| noto-fonts-extra                |
+| ntfs-3g                         |
+| nvidia-dkms                     |
+| nvidia-settings                 |
+| nvidia-vaapi-driver-git         |
+| nwg-launchers-git               |
+| nwg-menu                        |
+| oniguruma                       |
+| opensc                          |
+| openssl-1.1                     |
+| orca                            |
+| otf-daddytimemono-git           |
+| otf-material-icons-git          |
+| pacman                          |
+| pacman-contrib                  |
+| paru-bin                        |
+| patch                           |
+| pavucontrol                     |
+| pipewire                        |
+| pipewire-alsa                   |
+| pipewire-jack                   |
+| pipewire-pulse                  |
+| pkcs11-helper                   |
+| pkgconf                         |
+| playerctl                       |
+| polkit-gnome                    |
+| python-pip                      |
+| qmk                             |
+| qt5-wayland                     |
+| qt5ct                           |
+| ripgrep                         |
+| rygel                           |
+| sed                             |
+| simple-scan                     |
+| slack-desktop                   |
+| slurp                           |
+| smartmontools                   |
+| socat                           |
+| softhsm                         |
+| spicetify-cli                   |
+| spotify-launcher                |
+| sshfs                           |
+| steam                           |
+| stow                            |
+| sudo                            |
+| sushi                           |
+| swaybg                          |
+| swayidle-git                    |
+| swaylock                        |
+| swaylock-fancy-git              |
+| swaync                          |
+| terraform                       |
+| texinfo                         |
+| texlive-fontsextra              |
+| tk                              |
+| tmux                            |
+| torbrowser-launcher             |
+| totem                           |
+| tracker3-miners                 |
+| ttf-clear-sans                  |
+| ttf-font-awesome                |
+| ttf-google-sans                 |
+| ttf-icomoon-feather             |
+| ttf-iosevka                     |
+| ttf-linux-libertine             |
+| ttf-material-icons-git          |
+| ttf-ms-win10-auto               |
+| ttf-opensans                    |
+| ttf-roboto-mono                 |
+| ttf-segoewp                     |
+| ttf-symbola-free                |
+| ttf-victor-mono-nerd            |
+| vim                             |
+| visual-studio-code-bin          |
+| wdisplays                       |
+| wf-recorder                     |
+| wget                            |
+| which                           |
+| wine                            |
+| wireless_tools                   |
+| wireplumber                     |
+| wl-clipboard                    |
+| wlogout-git                     |
+| wlr-randr                       |
+| wmctrl                          |
+| wofi                            |
+| wqy-zenhei                      |
+| xclicker                        |
+| xdg-desktop-portal-hyprland-git |
+| xdg-user-dirs-gtk               |
+| xdg-utils                       |
+| xf86-video-nouveau              |
+| xorg-server                     |
+| xorg-xinit                      |
+| yelp                            |
+| yubico-c                        |
+| yubico-c-client                 |
+| yubico-piv-tool                 |
+| yubikey-manager                 |
+| yubikey-personalization         |
+| zoom                            |
+| zram-generator                  |
+| zsh                             |
+| zsh-autosuggestions             |
+| zsh-completions                 |
+| zsh-history-substring-search    |
+| zsh-syntax-highlighting         |
+
+
 
 * My dots
 
+I use stow, you just clone the repo to ~~/.dotfiles~ and run the following
+
 #+begin_src sh
-  stow .
+cd .dotfiles
+stow .
 #+end_src
 
-* Sway
-because I have nvidia gpu edit */usr/share/wayland-sessions/sway.desktop* and add the --unsupported-gpu flag to the exec command.
+* Hyprland
+
+  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland
+, a true workhorse
+
 
 * Crontab
-** Eww
-
-using wayland only package. edit *crontab -e* to add the following.
-used these configs to make mine
-- https://github.com/Axarva/dotfiles-2.0
-- https://github.com/saimoomedits/eww-widgets
-
-#+begin_src bash
-0,30 * * * * /home/{Your-username}/.config/eww/scripts/getweather
-@reboot /home/{Your-username}/.config/eww/scripts/getquotes
-#+end_src
-
 ** Health
 notifications to fix posture and eyes.
 
 #+begin_src bash
 */30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/.local/bin/notieye
 */30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/.local/bin/notipose
+#+end_src
+
+
+* Eww
+
+  used these configs to make mine or as references. Current version is heaveily based off fufexan
+- https://github.com/fufexan/dotfiles
+- https://github.com/Axarva/dotfiles-2.0
+- https://github.com/saimoomedits/eww-widgets
+
+#+begin_src bash
+0,30 * * * * /home/{Your-username}/.config/eww/scripts/getweather
+@reboot /home/{Your-username}/.config/eww/scripts/getquotes
 #+end_src

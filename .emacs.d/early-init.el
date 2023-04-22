@@ -14,7 +14,7 @@
                     :weight 'normal
                     :width 'normal)
 (fringe-mode '(10 . 10))
-(set-face-attribute 'header-line nil  :height 120)
+(set-face-attribute 'header-line nil :height 100)
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)

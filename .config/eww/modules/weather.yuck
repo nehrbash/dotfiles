@@ -10,7 +10,7 @@
                            (box  :orientation "v" :space-evenly "false" :valign "end"  :vexpand "true"
                           (label :class "weather-max" :text "${max}°F")
                           (label :class "weather-min" :text "${min}°F"))))
-                     (label :class "weather-state" :text {desc})))
+                     (label :class "weather-state" :max 20 :text {desc})))
 
 (defwidget weather-forecast []
            (box
