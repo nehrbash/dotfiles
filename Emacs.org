@@ -3,10 +3,8 @@
 * Table of Contents :TOC:
 - [[#straight-package-manager][Straight Package Manager]]
   - [[#update-load-path][Update Load Path]]
-  - [[#non-configured-packages][Non-Configured Packages]]
+- [[#non-configured-packages][Non-Configured Packages]]
 - [[#editing-utilities][Editing Utilities]]
-  - [[#keybindings][Keybindings]]
-  - [[#right-click-edit-menu][Right Click Edit Menu]]
   - [[#file-handler-functions][File Handler Functions]]
   - [[#xterm-integration-in-terminals-mouse][Xterm Integration in terminals (Mouse)]]
   - [[#esc-cancels-all][ESC Cancels All]]
@@ -94,36 +92,34 @@
 
    Alternative to *package.el* closer to go.mod where it tracks packages to git commit versions. compatable with use-package. It only does pre-loading so just using straight may not fully load it.
 
- #+begin_src emacs-lisp
- (setq straight-check-for-modifications '(check-on-save))
-   (defvar bootstrap-version)
-   (let ((bootstrap-file
-          (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-         (bootstrap-version 5))
-     (unless (file-exists-p bootstrap-file)
-       (with-current-buffer
-           (url-retrieve-synchronously
-            "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
-            'silent 'inhibit-cookies)
-         (goto-char (point-max))
-         (eval-print-last-sexp)))
-     (load bootstrap-file nil 'nomessage))
- (require 'use-package)
- ;; Silence compiler warnings as they can be pretty disruptive
-(setq comp-async-report-warnings-errors nil)
- #+end_src
-
 ** Update Load Path
 
    Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
 
 #+begin_src emacs-lisp
-;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
-(setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
-      url-history-file (expand-file-name "url/history" user-emacs-directory))
+(setq straight-check-for-modifications '(check-on-save))
+(setq straight-use-package-by-default t)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 5))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
 
-;; Use no-littering to automatically set common paths to the new user-emacs-directory
-(use-package no-littering)
+;; Silence compiler warnings as they can be pretty disruptive
+(setq comp-async-report-warnings-errors nil)
+
+;; now built-in
+(require 'use-package)
+;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
+;; (setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
+;;       url-history-file (expand-file-name "url/history" user-emacs-directory))
 
 ;; Keep customization settings in a temporary file
 (setq custom-file
@@ -133,129 +129,26 @@
 (load custom-file t)
 ;; Load path 
 (push "~/.emacs.d/lisp" load-path)
+
+;; Use no-littering to automatically set common paths to the new user-emacs-directory
+(use-package no-littering)
 #+end_src
 
-** Non-Configured Packages
+* Non-Configured Packages
 
-   These are packages that don't require configurations.
+  These are packages that don't require configurations.
 
- #+begin_src emacs-lisp
- (use-package diminish)
- (use-package gnuplot)
- (use-package htmlize)
- (use-package dsvn)
- (use-package daemons)
- #+end_src
+#+begin_src emacs-lisp
+(use-package diminish)
+(use-package gnuplot)
+(use-package htmlize)
+(use-package dsvn)
+(use-package daemons)
+#+end_src
 
 * Editing Utilities
 
   General editing configurations.
-
-** Keybindings
-#+begin_src emacs-lisp
-(use-package meow)
-(defun meow-setup ()
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-  (meow-motion-overwrite-define-key
-   ;; Use e to move up, n to move down.
-   ;; Since special modes usually use n to move down, we only overwrite e here.
-   '("e" . meow-prev)
-   '("<escape>" . ignore))
-  (meow-leader-define-key
-   '("?" . meow-cheatsheet)
-   ;; To execute the originally e in MOTION state, use SPC e.
-   '("e" . "H-e")
-   '("1" . meow-digit-argument)
-   '("2" . meow-digit-argument)
-   '("3" . meow-digit-argument)
-   '("4" . meow-digit-argument)
-   '("5" . meow-digit-argument)
-   '("6" . meow-digit-argument)
-   '("7" . meow-digit-argument)
-   '("8" . meow-digit-argument)
-   '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument))
-  (meow-normal-define-key
-   '("0" . meow-expand-0)
-   '("1" . meow-expand-1)
-   '("2" . meow-expand-2)
-   '("3" . meow-expand-3)
-   '("4" . meow-expand-4)
-   '("5" . meow-expand-5)
-   '("6" . meow-expand-6)
-   '("7" . meow-expand-7)
-   '("8" . meow-expand-8)
-   '("9" . meow-expand-9)
-   '("-" . negative-argument)
-   '(";" . meow-reverse)
-   '("," . meow-inner-of-thing)
-   '("." . meow-bounds-of-thing)
-   '("[" . meow-beginning-of-thing)
-   '("]" . meow-end-of-thing)
-   '("/" . meow-visit)
-   '("a" . meow-append)
-   '("A" . meow-open-below)
-   '("b" . meow-back-word)
-   '("B" . meow-back-symbol)
-   '("c" . meow-change)
-   '("d" . meow-delete)
-   '("i" . meow-prev)
-   '("I" . meow-prev-expand)
-   '("f" . meow-find)
-   '("g" . meow-cancel-selection)
-   '("G" . meow-grab)
-   '("n" . meow-left)
-   '("N" . meow-left-expand)
-   '("o" . meow-right)
-   '("O" . meow-right-expand)
-   '("j" . meow-join)
-   '("k" . meow-kill)
-   '("l" . meow-line)
-   '("L" . meow-goto-line)
-   '("m" . meow-mark-word)
-   '("M" . meow-mark-symbol)
-   '("e" . meow-next)
-   '("E" . meow-next-expand)
-   '("h" . meow-block)
-   '("H" . meow-to-block)
-   '("p" . meow-yank)
-   '("q" . meow-quit)
-   '("r" . meow-replace)
-   '("s" . meow-insert)
-   '("S" . meow-open-above)
-   '("t" . meow-till)
-   '("u" . meow-undo)
-   '("U" . meow-undo-in-selection)
-   '("v" . meow-search)
-   '("w" . meow-next-word)
-   '("W" . meow-next-symbol)
-   '("x" . meow-delete)
-   '("X" . meow-backward-delete)
-   '("y" . meow-save)
-   '("z" . meow-pop-selection)
-   '("'" . repeat)
-   '("<escape>" . ignore)))
-(meow-setup)
-(meow-global-mode 1)
-#+end_src
-
-** Right Click Edit Menu
-
-   When I am using the mouse I like the default right click menu to have copy paste.
-
-#+begin_src emacs-lisp
-;; (defun open-edit-menu-at-position (event)
-;;   "Opens the edit menu at the given position"
-;;   (interactive "e")
-;;   (mouse-minibuffer-check event)
-;;   (x-popup-menu event menu-bar-edit-menu))
-(use-package mouse3
-  :config
-  (setq mouse3-menu-always-flag t  )
- ;; (global-set-key (kbd "<mouse-3>") 'mouse3-action-wo-save-then-kill)
-  )
-
-#+end_src
 
 ** File Handler Functions
 
@@ -413,6 +306,7 @@ Cut/copy the current line if no region is active.
 
 #+begin_src emacs-lisp
 (setq-default
+ bookmark-save-flag 1
  blink-cursor-interval 0.4
  bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory)
  buffers-menu-max-size 30
@@ -441,10 +335,13 @@ Cut/copy the current line if no region is active.
    When you perform =m-x b= you will see list of recent files
 
 #+begin_src emacs-lisp
-(add-hook 'emacs-startup-hook 'recentf-mode)
-  (setq-default
-   recentf-max-saved-items 1000
-   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el" "/inbox.org" "/projects.org" "/Emacs.org" "early-init.el" "MySetup.org"))
+(setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+(recentf-mode 1)
+(add-hook 'find-file-hook 'recentf-save-list)
+(setq-default
+ recentf-max-saved-items 300
+ recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el"))
+
 #+end_src
 
 ** Auto update file
@@ -881,7 +778,6 @@ Need to revisit now that I am using dirvish.
 
 #+begin_src emacs-lisp
 (use-package consult
-  ;; Replace bindings. Lazily loaded due by `use-package'.
   :bind (
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
@@ -891,6 +787,7 @@ Need to revisit now that I am using dirvish.
          ;; C-x bindings (ctl-x-map)
          ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
          ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+         ("C-x f" . consult-recent-file)
          ("C-x M-b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
          ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
          ;; Custom M-# bindings for fast register access
@@ -918,14 +815,7 @@ Need to revisit now that I am using dirvish.
          ("M-s s" . consult-line)
          ("M-s m" . consult-multi-occur)
          ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)
-         ;; Isearch integration
-         ("M-s e" . consult-isearch)
-         :map isearch-mode-map
-         ("M-e" . consult-isearch)                 ;; orig. isearch-edit-string
-         ("M-s e" . consult-isearch)               ;; orig. isearch-edit-string
-         ("M-s l" . consult-line))                 ;; needed by consult-line to detect isearch
-
+         ("M-s u" . consult-focus-lines)) 
   :init
   (setq-default consult-project-root-function 'projectile-project-root)
   ;; Optionally configure the register formatting. This improves the register
@@ -944,7 +834,7 @@ Need to revisit now that I am using dirvish.
   ;; (setq consult-preview-key (kbd "M-."))
   (consult-customize
    consult-theme
-   :preview-key '(:debounce 0.2 any)
+   :preview-key '(:debounce 0.8 any)
    consult-ripgrep consult-git-grep consult-grep consult-find
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
@@ -1002,6 +892,12 @@ Need to revisit now that I am using dirvish.
   (when (featurep 'corfu-popupinfo)
     (with-eval-after-load 'corfu
       (corfu-popupinfo-mode))))
+(use-package kind-icon
+  :after corfu
+  :custom
+  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :config
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src
 
 ** Settings for hippie expand
@@ -1050,6 +946,8 @@ Need to revisit now that I am using dirvish.
 
 *** Flycheck
 
+    Modern on-the-fly syntax checking extension for GNU Emacs.
+
 #+begin_src emacs-lisp
 (use-package flycheck
   :defer t
@@ -1067,6 +965,7 @@ Need to revisit now that I am using dirvish.
   :config
   (setq vterm-buffer-name-string "%s")
   (set-window-margins (selected-window) 1 1)
+  (add-hook 'vterm-mode-hook 'meow-insert-mode)
   :bind (
          ( "C-c t" . multi-vterm-dedicated-toggle)
          ( "M-t" . multi-vterm)
@@ -1241,29 +1140,23 @@ install rg and ag manually
 
 (use-package rainbow-delimiters
   :config
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode))
+  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+  (when (fboundp 'global-prettify-symbols-mode)
+    (add-hook 'after-init-hook 'global-prettify-symbols-mode)))
+#+end_src
 
-(when (fboundp 'global-prettify-symbols-mode)
-  (add-hook 'after-init-hook 'global-prettify-symbols-mode))
+Show matching parens
 
-;;----------------------------------------------------------------------------
-;; Show matching parens
-;;----------------------------------------------------------------------------
+#+begin_src emacs-lisp
 (add-hook 'after-init-hook 'show-paren-mode)
+#+end_src
 
-;;----------------------------------------------------------------------------
-;; Expand region
-;;----------------------------------------------------------------------------
-(use-package expand-region)
-(global-set-key (kbd "C-=") 'er/expand-region)
+Expand region
 
-;;----------------------------------------------------------------------------
-;; Don't disable case-change functions
-;;----------------------------------------------------------------------------
-(put 'upcase-region 'disabled nil)
-(put 'downcase-region 'disabled nil)
-
-(use-package avy :config(global-set-key (kbd "C-o") 'avy-goto-char-timer))
+#+begin_src emacs-lisp
+(use-package expand-region
+  :bind (("M-[" . er/expand-region)
+         ("C-(" . er/mark-outside-pairs)))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -1313,7 +1206,6 @@ install rg and ag manually
 
 #+begin_src emacs-lisp
 (use-package which-key
-  :defer 0
   :diminish which-key-mode
   :config
   (which-key-mode)
@@ -1637,6 +1529,7 @@ ORIG is the advised function, which is called with its ARGS."
   (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
   (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f")
         org-src-tab-acts-natively t
+        org-src-fontify-natively t
         org-log-done t
         org-return-follows-link  t
         org-edit-timestamp-down-means-later t
@@ -1743,11 +1636,14 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
   :init  (setq org-ellipsis " ⮟"))
 (add-hook 'org-mode-hook   (lambda ()
-                             (push '("[ ]" .  "☐") prettify-symbols-alist)
-                             (push '("[X]" . "☑" ) prettify-symbols-alist)
-                             (push '("#+TITLE:" . "") prettify-symbols-alist)
-                             (push '("#+title: " . "") prettify-symbols-alist)
-                             (prettify-symbols-mode)))
+                             (setq prettify-symbols-alist
+                                   '(("[ ]" .  "☐")
+                                     ("[X]" . "☑" )
+                                     ("#+TITLE:" . "")
+                                     ("#+title: " . "")
+                                     ("#+begin_src" . "🖳 ⮷ ")
+                                     ("#+end_src" . "🖳 ⮵ ")))
+                             (prettify-symbols-mode 1)))
 (with-eval-after-load 'org
   ;; This is needed as of Org 9.2
   (require 'org-tempo)
@@ -1767,6 +1663,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
      (sql . t)
      (sqlite . t))))
 #+end_src
+
+
 
 ** Pomodoro Timer
 
@@ -1885,34 +1783,26 @@ Basically just followed the directions from this cool blog.   https://colekillia
 #+end_src
 
 ** Writing Mode
-
+#+begin_src emacs-lisp
+(defun toggle-mode-line ()
+  "toggles the modeline on and off"
+       (interactive)
+       (setq mode-line-format
+             (if (equal mode-line-format nil)
+                 (default-value 'mode-line-format)))
+       (redraw-display))
+#+end_src
+   
 #+begin_src emacs-lisp
 (use-package org-pretty-table
   :straight (:host github :repo "Fuco1/org-pretty-table"
                    :branch "master")
   :hook (org-mode . org-pretty-table-mode))
-(use-package writeroom-mode
-  :bind ((:map writeroom-mode-map
-               ("C-M-<" . writeroom-decrease-width)
-               ("C-M->" . writeroom-increase-width))
-         (:map org-mode-map
+(use-package org
+  :bind ((:map org-mode-map
                ("C-c v" . wr-mode)))
   :hook (org-mode . wr-mode)
-  :config
-  (setq writeroom-width 80
-        writeroom-mode-line nil
-        writeroom-global-effects '(writeroom-set-alpha
-                                   writeroom-set-menu-bar-lines
-                                   writeroom-set-tool-bar-lines
-                                   writeroom-set-vertical-scroll-bars
-                                   writeroom-set-bottom-divider-width))
   :init
-  (defun toggle-mode-line () "toggles the modeline on and off"
-         (interactive)
-         (setq mode-line-format
-               (if (equal mode-line-format nil)
-                   (default-value 'mode-line-format)) )
-         (redraw-display))
   (define-minor-mode wr-mode
     "Set up a buffer for word editing.
  This enables or modifies a number of settings so that the
@@ -1921,8 +1811,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
    :interactive t " Writing" nil
     (if wr-mode
         (progn
-          (when (fboundp 'writeroom-mode)
-            (writeroom-mode 1))
           (setq truncate-lines nil
                 word-wrap t
                 cursor-type 'bar)
@@ -1944,10 +1832,23 @@ Basically just followed the directions from this cool blog.   https://colekillia
       (kill-local-variable 'electric-pair-mode)
       (buffer-face-mode -1)
       (flyspell-mode -1)
-      (visual-line-mode -1)
-      (when (fboundp 'writeroom-mode)
-        (writeroom-mode 0)))))
+      (visual-line-mode -1))))
 #+end_src
+
+*** Set Margins for org mode
+
+#+begin_src emacs-lisp
+(use-package visual-fill-column
+  :defer t
+  :init
+  (defun dw/org-mode-visual-fill ()
+  (setq visual-fill-column-width 110
+        visual-fill-column-center-text t)
+  (visual-fill-column-mode 1))
+
+  :hook (org-mode . dw/org-mode-visual-fill))
+#+end_src
+
 
 ** Refiling
 
@@ -2217,9 +2118,8 @@ Basically just followed the directions from this cool blog.   https://colekillia
    Enable syntax highlighting based on the tree-sitter. already installed
     
 #+begin_src emacs-lisp
-(use-package tree-sitter
+(use-package tree-sitter-langs
   :config
-  (use-package tree-sitter-langs)
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 #+end_src
@@ -2237,18 +2137,17 @@ Basically just followed the directions from this cool blog.   https://colekillia
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless)))
   (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
-  (setq lsp-keymap-prefix "C-.")
-  :commands (lsp lsp-deferred)
+  :commands (lsp lsp-deferered)
   :custom
-  (lsp-enable-file-watchers nil)
+  ;; (read-process-output-max (* 1024 1024)) ;; 1mb
+  (lsp-keymap-prefix "C-.")
   (lsp-completion-provider :none)
-  (lsp-idle-delay 0.2)
+  (lsp-idle-delay 0.5)
   (lsp-rust-analyzer-server-display-inlay-hints t)
-  :bind ((:map lsp-mode-map
-               ("C-." .  lsp-command-map))
-         (:map lsp-command-map
+  :bind ((:map lsp-command-map
                ("e" .  consult-lsp-diagnostics)))
-  :hook (lsp-completion-mode . my/lsp-mode-setup-completion)
+  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
+         (lsp-mode . lsp-enable-which-key-integration))
   :config (progn
             ;; use flycheck, not flymake
             (setq lsp-prefer-flymake nil)))
@@ -2260,7 +2159,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package lsp-ui
-  :straight t
   :custom
   (lsp-ui-doc-position 'bottom)
   (lsp-ui-doc-delay .2 )
@@ -2269,7 +2167,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (lsp-ui-peek-always-show t)
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-sideline-enable nil)
-  :hook (lsp-mode . lsp-ui-mode))
+  :commands lsp-ui-mode)
 #+end_src
 
 ** DAP
@@ -2278,7 +2176,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
 (use-package dap-mode
   :config
   (dap-mode 1)
-  (setq dap-print-io t)
   (require 'dap-dlv-go)
   (dap-ui-mode 1)
   (dap-tooltip-mode 1)
@@ -2302,16 +2199,16 @@ Basically just followed the directions from this cool blog.   https://colekillia
   :bind (:map go-mode-map
                ("C-c C-c" . compile)))
 
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-(lsp-register-client
- (make-lsp-client :new-connection (lsp-tramp-connection
-                                   (lambda ()
-                     (cons "gopls" lsp-gopls-server-args)))
-                  :major-modes '(go-mode)
-                  :priority 10
-                  :server-id 'gopls-remote
-                  :remote? t
-                  ))
+;; (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+;; (lsp-register-client
+;;  (make-lsp-client :new-connection (lsp-tramp-connection
+;;                                    (lambda ()
+;;                      (cons "gopls" lsp-gopls-server-args)))
+;;                   :major-modes '(go-mode)
+;;                   :priority 10
+;;                   :server-id 'gopls-remote
+;;                   :remote? t
+;;                   ))
 #+end_src
 
 ** C++
