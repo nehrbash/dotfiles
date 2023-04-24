@@ -24,7 +24,6 @@
   - [[#dimmer][Dimmer]]
   - [[#modeline][Modeline]]
   - [[#gui-frames][GUI Frames]]
-  - [[#beacon][Beacon]]
   - [[#tabs][Tabs]]
 - [[#dired][Dired]]
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
@@ -521,36 +520,23 @@ Tramp was acting slow this helps.
                      "%b"))))
     #+end_src
 
-*** margins
+*** TODO Margins
 
+    What was I doing with this?
+    
     #+begin_src emacs-lisp
     (setq-default fringes-outside-margins t
-                  indicate-buffer-boundaries nil
-                  fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
-                                               fringe-indicator-alist))
+                      indicate-buffer-boundaries nil
+                      fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
+                                                   fringe-indicator-alist))
 
-
-
-    ;;(setq left-margin-width 12)
-    ;; (setq right-margin-width 12)
-    (setq internal-border 40)
-    (setq frame-internal-border-width 60)
-    (setq bottom-divider-width 20)
-    (set-window-buffer nil (current-buffer))
+        ;;(setq left-margin-width 12)
+        ;; (setq right-margin-width 12)
+        (setq internal-border 40)
+        (setq frame-internal-border-width 60)
+        (setq bottom-divider-width 20)
+        (set-window-buffer nil (current-buffer))
     #+end_src
-
-** Beacon
-
-   A light up bar when scrolling.
-
-#+begin_src emacs-lisp
-(use-package beacon
-  :config
-  (setq-default beacon-lighter "")
-  (setq-default beacon-size 30)
-  :init
-  (beacon-mode 1))
-#+end_src
 
 ** Tabs
 
@@ -567,7 +553,7 @@ Tramp was acting slow this helps.
         uniquify-buffer-name-style 'forward
         x-underline-at-descent-line t)
   (centaur-tabs-headline-match)
-  ;; (centaur-tabs-mode t)
+  (centaur-tabs-mode t)
   (setq uniquify-separator "/")
   (setq uniquify-buffer-name-style 'forward)
   (defun centaur-tabs-buffer-groups ()
@@ -965,7 +951,6 @@ Need to revisit now that I am using dirvish.
   :config
   (setq vterm-buffer-name-string "%s")
   (set-window-margins (selected-window) 1 1)
-  (add-hook 'vterm-mode-hook 'meow-insert-mode)
   :bind (
          ( "C-c t" . multi-vterm-dedicated-toggle)
          ( "M-t" . multi-vterm)
@@ -1000,7 +985,7 @@ Need to revisit now that I am using dirvish.
 
 * Other
 ** I-Search
-very impressive dedication congrats on the one year milestone  
+
 #+begin_src emacs-lisp
 ;; Show number of matches while searching
 (use-package anzu
@@ -1032,7 +1017,6 @@ This is useful when followed by an immediate kill."
   (interactive)
   (isearch-exit)
   (goto-char isearch-other-end))
-
 (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
 #+end_src
 
@@ -1636,6 +1620,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
   :init  (setq org-ellipsis " ⮟"))
 (add-hook 'org-mode-hook   (lambda ()
+                             (set-face-attribute 'org-table nil :inherit 'fixed-pitch) ;; sometimes needs to fix this depending on theme
+                             (set-face-attribute 'org-block nil :inherit 'fixed-pitch) ;; sometimes needs to fix this depending on theme
                              (setq prettify-symbols-alist
                                    '(("[ ]" .  "☐")
                                      ("[X]" . "☑" )
@@ -2108,7 +2094,8 @@ Basically just followed the directions from this cool blog.   https://colekillia
 ** Google Calendar
    Add my Gmail. Has secrets so don't push.
 #+begin_src emacs-lisp
-(require 'init-gcal)
+(when (require 'init-gcal nil 'noerror)
+  (message "init-gcal loaded"))
 #+end_src
 
 * Code Languages & File Modes

@@ -3,19 +3,19 @@
 
 Here are my configs, no they are not well maintained and are very volatile right now.
 
-
-- [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][wallpaper]]
+- [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][Wallpaper]]
 - [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
-- Hyprland
-- Arch
+- [[https://github.com/hyprwm/Hyprland][Hyprland]]
+- [[https://archlinux.org/][Arch Linux]]
 - nwg-shell (menu, drawer, wrapper)
 - Bars: eww
 - pipewire, easyeffects
-- File Manager: gnome files, Dirvish (Emacs), Dired (Emacs)
+- File Manager: Gnome Files, Dirvish (Emacs), Dired (Emacs) (mostly just use command line )
 - PDF Viewer: pdf-tools (Emacs)
-- Theme:   https://github.com/catppuccin/catppuccin
+- Theme: [[https://github.com/catppuccin/catppuccin][Catppuccin]] - I am basic I know
 - cursor theme: Dracula
 - Fonts: (a complete mess, I have so many installed)
+
 * Instructions :TOC:
 - [[#keyboard][Keyboard]]
 - [[#install-paru][Install Paru]]
@@ -26,11 +26,12 @@ Here are my configs, no they are not well maintained and are very volatile right
 - [[#installed-packages][Installed packages]]
 - [[#my-dots][My dots]]
 - [[#hyprland][Hyprland]]
-- [[#crontab][Crontab]]
-  - [[#health][Health]]
 - [[#eww][Eww]]
+  - [[#references][References]]
 
 * Keyboard
+  - [[https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
+  - [[https://github.com/manna-harbour/miryoku][Layout]]
 
 * Install Paru
 
@@ -345,28 +346,13 @@ stow .
 
 * Hyprland
 
-  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland
-, a true workhorse
-
-
-* Crontab
-** Health
-notifications to fix posture and eyes.
-
-#+begin_src bash
-*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/.local/bin/notieye
-*/30 * * * * sleep $(shuf -i 10-300 -n 1) ; /home/{Your-username}/.local/bin/notipose
-#+end_src
-
+  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here. Currently, the biggest downside is that xwayland definitely does not work as well compared to gnome.
 
 * Eww
 
-  used these configs to make mine or as references. Current version is heaveily based off fufexan
+  Used these configs to make mine or as references. Current version is heaveily based off fufexan. current work is to convert all scripts to a single golang daemon that uses dbus to give eww variables.
+
+** References
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
 - https://github.com/saimoomedits/eww-widgets
-
-#+begin_src bash
-0,30 * * * * /home/{Your-username}/.config/eww/scripts/getweather
-@reboot /home/{Your-username}/.config/eww/scripts/getquotes
-#+end_src
