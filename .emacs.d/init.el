@@ -34,7 +34,7 @@
 ;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
 
-(use-package diminish)
+(use-package delight)
 (use-package htmlize)
 (use-package dsvn)
 (use-package daemons)
@@ -560,39 +560,11 @@ This is useful when followed by an immediate kill."
            (sanityinc/backward-up-sexp (1- arg)))
           ((backward-up-list arg)))))
 (global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
-;;----------------------------------------------------------------------------
-;; Random line sorting
-;;----------------------------------------------------------------------------
-(defun sanityinc/sort-lines-random (beg end)
-  "Sort lines in region from BEG to END randomly."
-  (interactive "r")
-  (save-excursion
-    (save-restriction
-      (narrow-to-region beg end)
-      (goto-char (point-min))
-      (let ;; To make `end-of-line' and etc. to ignore fields.
-          ((inhibit-field-text-motion t))
-        (sort-subr nil 'forward-line 'end-of-line nil nil
-                   (lambda (s1 s2) (eq (random 2) 0)))))))
-
-(use-package highlight-escape-sequences)
-(add-hook 'after-init-hook 'hes-mode)
 
 (use-package which-key
-  :diminish which-key-mode
-  :config
-  (which-key-mode)
-  (setq which-key-idle-delay 1))
-
-(defun sanityinc/disable-features-during-macro-call (orig &rest args)
-  "When running a macro, disable features that might be expensive.
-ORIG is the advised function, which is called with its ARGS."
-  (let (post-command-hook
-        font-lock-mode
-        (tab-always-indent (or (eq 'complete tab-always-indent) tab-always-indent)))
-    (apply orig args)))
-
-(advice-add 'kmacro-call-macro :around 'sanityinc/disable-features-during-macro-call)
+  :delight which-key-mode
+  :custom (which-key-idle-delay 1)
+  :config (which-key-mode 1))
 
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
@@ -605,29 +577,23 @@ ORIG is the advised function, which is called with its ARGS."
          ("C-c m e" . mc/edit-ends-of-lines)
          ("C-c m a" . mc/edit-beginnings-of-lines)))
 
-(use-package symbol-overlay
-  :diminish symbol-overlay-mode
-  :bind (:map symbol-overlay-mode-map
-              ("M-i" . symbol-overlay-put)
-              ("M-I" . symbol-overlay-remove-all)
-              ("M-n" . symbol-overlay-jump-next)
-              ("M-p" . symbol-overlay-jump-prev)))
-  (dolist (hook '(org-mode hook prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook))
-    (add-hook hook 'symbol-overlay-mode))
+(use-package whitespace
+  :config
+  (setq-default show-trailing-whitespace nil))
 
-(setq-default show-trailing-whitespace nil)
-;;; Whitespace
-(defun sanityinc/show-trailing-whitespace ()
-  "Enable display of trailing whitespace in this buffer."
-  (setq-local show-trailing-whitespace t))
-
-(dolist (hook '(prog-mode-hook text-mode-hook conf-mode-hook))
-  (add-hook hook 'sanityinc/show-trailing-whitespace))
+(use-package emacs
+  :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
+  :config
+  (defun sanityinc/show-trailing-whitespace ()
+    "Enable display of trailing whitespace in this buffer."
+    (setq-local show-trailing-whitespace t)))
 
 (use-package whitespace-cleanup-mode
-  :diminish whitespace-cleanup-mode)
-(add-hook 'after-init-hook 'global-whitespace-cleanup-mode)
-(global-set-key [remap just-one-space] 'cycle-spacing)
+  :delight
+  :hook (after-init . global-whitespace-cleanup-mode))
+
+(use-package emacs
+  :bind ([remap just-one-space] . cycle-spacing))
 
 (use-package diff-hl
   :defer t
@@ -768,7 +734,7 @@ ORIG is the advised function, which is called with its ARGS."
                company-active-map))))
 
 (use-package paredit
-  :diminish paredit-mode " Par"
+  :delight paredit-mode " Par"
   :hook (paredit-mode-hook . maybe-map-paredit-newline)
   :init
   (defun maybe-map-paredit-newline ()
@@ -1261,7 +1227,7 @@ ORIG is the advised function, which is called with its ARGS."
   :straight t
   :init
   (setq org-roam-v2-ack t)
-  :diminish(org-roam-mode)
+  :delight(org-roam-mode)
   :config
     (org-roam-db-autosync-mode)
   :custom
