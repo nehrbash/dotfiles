@@ -35,33 +35,14 @@
 (use-package no-littering)
 
 (use-package diminish)
-(use-package gnuplot)
 (use-package htmlize)
 (use-package dsvn)
 (use-package daemons)
-
-(if (fboundp 'with-eval-after-load)
-    (defalias 'after-load 'with-eval-after-load)
-  (defmacro after-load (feature &rest body)
-    "After FEATURE is loaded, evaluate BODY."
-    (declare (indent defun))
-    `(eval-after-load ,feature
-       '(progn ,@body))))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
   (dolist (pattern patterns)
     (add-to-list 'auto-mode-alist (cons pattern mode))))
-
-(defun sanityinc/string-all-matches (regex str &optional group)
-  "Find all matches for `REGEX' within `STR', returning the full match string or group `GROUP'."
-  (let ((result nil)
-        (pos 0)
-        (group (or group 0)))
-    (while (string-match regex str pos)
-      (push (match-string group str) result)
-      (setq pos (match-end group)))
-    result))
 
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
@@ -85,25 +66,6 @@
         (rename-file filename new-name 1))
       (set-visited-file-name new-name)
       (rename-buffer new-name))))
-
-(defvar after-make-console-frame-hooks '()
-  "Hooks to run after creating a new TTY frame")
-(defvar after-make-window-system-frame-hooks '()
-  "Hooks to run after creating a new window-system frame")
-(defun run-after-make-frame-hooks (frame)
-  "Run configured hooks in response to the newly-created FRAME.
-  Selectively runs either `after-make-console-frame-hooks' or
-  `after-make-window-system-frame-hooks'"
-  (with-selected-frame frame
-    (run-hooks (if window-system
-                   'after-make-window-system-frame-hooks
-                 'after-make-console-frame-hooks))))
-(add-hook 'after-make-frame-functions 'run-after-make-frame-hooks)
-(defconst sanityinc/initial-frame (selected-frame)
-  "The frame (if any) active during Emacs initialization.")
-(add-hook 'after-init-hook
-          (lambda () (when sanityinc/initial-frame
-                       (run-after-make-frame-hooks sanityinc/initial-frame))))
 
 (global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
 (global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
@@ -491,25 +453,6 @@
    (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
     (global-flycheck-mode 1))
 
-(use-package multi-vterm
-  :hook (vterm-mode . (lambda ()
-                        (setq vterm-buffer-maximum-size 1000
-                              multi-vterm-dedicated-window-height-percent 30
-                              left-margin-width 1
-                              right-margin-width 1
-                              mode-line-format nil
-                              cursor-type 'bar)
-                        (buffer-face-set 'my-vterm-buffer-face)))
-  :bind (
-         ( "C-c t" . multi-vterm-dedicated-toggle)
-         ( "M-t" . multi-vterm)
-         :map vterm-mode-map
-         ("C-c t" . multi-vterm-dedicated-toggle)
-         ("M-w" . copy-region-as-kill)
-         ( "C-y" . vterm-yank)))
-
-(setq confirm-kill-processes nil)
-
 ;; Show number of matches while searching
 (use-package anzu
   :config
@@ -553,90 +496,46 @@ This is useful when followed by an immediate kill."
   (when (executable-find "rg")
     (use-package rg))
 
-(use-package fullframe)
-(after-load 'ibuffer
-  (fullframe ibuffer ibuffer-quit))
-(use-package ibuffer-vc)
+(use-package ibuffer-vc
+  :bind ("C-x C-b" . ibuffer)
+  :custom (ibuffer-show-empty-filter-groups nil)
+  :config
+  (defun ibuffer-set-up-preferred-filters ()
+    (ibuffer-vc-set-filter-groups-by-vc-root)
+    (unless (eq ibuffer-sorting-mode 'filename/process)
+      (ibuffer-do-sort-by-filename/process)))
+  :hook (ibuffer . ibuffer-set-up-preferred-filters))
 
-(defun ibuffer-set-up-preferred-filters ()
-  (ibuffer-vc-set-filter-groups-by-vc-root)
-  (unless (eq ibuffer-sorting-mode 'filename/process)
-    (ibuffer-do-sort-by-filename/process)))
+(use-package emacs
+  :config
+  (setq ad-redefinition-action 'accept)
+  :bind
+  (("RET" . newline-and-indent)
+   ("C-<return>" . sanityinc/newline-at-end-of-line)))
 
-(add-hook 'ibuffer-hook 'ibuffer-set-up-preferred-filters)
-
-(setq-default ibuffer-show-empty-filter-groups nil)
-
-(require 'ibuf-ext)
-(add-to-list 'ibuffer-never-show-predicates "^\\*")
-(after-load 'ibuffer
-  ;; Use human readable Size column instead of original one
-  (define-ibuffer-column size-h
-    (:name "Size" :inline t)
-    (file-size-human-readable (buffer-size))))
-
-
-;; Modify the default ibuffer-formats (toggle with `)
-(setq ibuffer-formats
-      '((mark modified read-only vc-status-mini " "
-              (name 22 22 :left :elide)
-              " "
-              (size-h 9 -1 :right)
-              " "
-              (mode 12 12 :left :elide)
-              " "
-              vc-relative-file)
-        (mark modified read-only vc-status-mini " "
-              (name 22 22 :left :elide)
-              " "
-              (size-h 9 -1 :right)
-              " "
-              (mode 14 14 :left :elide)
-              " "
-              (vc-status 12 12 :left)
-              " "
-              vc-relative-file)))
-
-(setq ibuffer-filter-group-name-face 'font-lock-doc-face)
-
-(global-set-key (kbd "C-x C-b") 'ibuffer)
-
-(set 'ad-redefinition-action 'accept)
-(global-set-key (kbd "RET") 'newline-and-indent)
 (defun sanityinc/newline-at-end-of-line ()
   "Move to end of line, enter a newline, and reindent."
   (interactive)
   (move-end-of-line 1)
   (newline-and-indent))
 
-(global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
-
-(after-load 'subword
-  (diminish 'subword-mode))
-
-;;; uncomment if you wnat line numbers do not use linum-mode because it is not optimized
-(when (fboundp 'display-line-numbers-mode)
+(use-package display-line-numbers
+  :ensure nil
+  :if (fboundp 'display-line-numbers-mode)
+  :init
   (setq-default display-line-numbers-width 3)
   (setq-default display-line-numbers-type 'relative)
-  (add-hook 'prog-mode-hook 'display-line-numbers-mode))
-
-(use-package goto-line-preview
-  :config
-  (global-set-key [remap goto-line] 'goto-line-preview)
-
-  (when (fboundp 'display-line-numbers-mode)
-    (defun sanityinc/with-display-line-numbers (f &rest args)
-      (let ((display-line-numbers t))
-        (apply f args)))
-    (advice-add 'goto-line-preview :around #'sanityinc/with-display-line-numbers)))
+  :hook (prog-mode . display-line-numbers-mode))
 
 (use-package rainbow-delimiters
-  :config
-  (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
+  :hook (prog-mode . rainbow-delimiters-mode)
+  :init
   (when (fboundp 'global-prettify-symbols-mode)
     (add-hook 'after-init-hook 'global-prettify-symbols-mode)))
 
-(add-hook 'after-init-hook 'show-paren-mode)
+(use-package paren
+  :ensure nil
+  :hook (after-init . show-paren-mode))
 
 (use-package expand-region
   :bind (("M-[" . er/expand-region)
@@ -765,9 +664,9 @@ ORIG is the advised function, which is called with its ARGS."
               (magit-log-buffer-file-popup)
             (magit-log-buffer-file t))
         (vc-print-log)))
-    (after-load 'vc
+    (with-eval-after-load 'vc
       (define-key vc-prefix-map (kbd "l") 'sanityinc/magit-or-vc-log-file)))
-(after-load 'magit
+(with-eval-after-load 'magit
   (define-key magit-status-mode-map (kbd "C-M-<up>") 'magit-section-up))
 (use-package magit-todos
   :after magit
@@ -775,14 +674,14 @@ ORIG is the advised function, which is called with its ARGS."
 ;; (use-package forge
 ;;   :after magit)
 (use-package fullframe)
-(after-load 'magit
+(with-eval-after-load 'magit
   (fullframe magit-status magit-mode-quit-window))
 (use-package git-commit
   :config
   (add-hook 'git-commit-mode-hook 'goto-address-mode))
 
 ;; Convenient binding for vc-git-grep
-(after-load 'vc
+(with-eval-after-load 'vc
   (define-key vc-prefix-map (kbd "f") 'vc-git-grep))
 
 (setq-default compilation-scroll-output t)
@@ -800,14 +699,14 @@ ORIG is the advised function, which is called with its ARGS."
              :buffer buf
              :category 'compilation))))
 
-(after-load 'compile
+(with-eval-after-load 'compile
   (add-hook 'compilation-finish-functions
             'sanityinc/alert-after-compilation-finish))
 
 (defvar sanityinc/last-compilation-buffer nil
   "The last buffer in which compilation took place.")
 
-(after-load 'compile
+(with-eval-after-load 'compile
   (defun sanityinc/save-compilation-buffer (&rest _)
     "Save the compilation buffer to find it later."
     (setq sanityinc/last-compilation-buffer next-error-last-buffer))
@@ -833,7 +732,7 @@ ORIG is the advised function, which is called with its ARGS."
       (view-mode 1))))
 (advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
 
-(after-load 'compile
+(with-eval-after-load 'compile
   (require 'ansi-color)
   (defun sanityinc/colourise-compilation-buffer ()
     (when (eq major-mode 'compilation-mode)
@@ -892,6 +791,25 @@ ORIG is the advised function, which is called with its ARGS."
 (use-package ibuffer-projectile)
 
 (require 'init-windows)
+
+(use-package multi-vterm
+  :hook (vterm-mode . (lambda ()
+                        (setq vterm-buffer-maximum-size 1000
+                              multi-vterm-dedicated-window-height-percent 30
+                              left-margin-width 1
+                              right-margin-width 1
+                              mode-line-format nil
+                              cursor-type 'bar)
+                        (buffer-face-set 'my-vterm-buffer-face)))
+  :bind (
+         ( "C-c t" . multi-vterm-dedicated-toggle)
+         ( "M-t" . multi-vterm)
+         :map vterm-mode-map
+         ("C-c t" . multi-vterm-dedicated-toggle)
+         ("M-w" . copy-region-as-kill)
+         ( "C-y" . vterm-yank)))
+
+(setq confirm-kill-processes nil)
 
 (use-package org
   :straight org-contrib
@@ -1096,7 +1014,7 @@ ORIG is the advised function, which is called with its ARGS."
 (add-hook 'org-clock-out-hook 'sanityinc/hide-org-clock-from-header-line)
 (add-hook 'org-clock-cancel-hook 'sanityinc/hide-org-clock-from-header-line)
 
-(after-load 'org-clock
+(with-eval-after-load 'org-clock
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
 
@@ -1336,7 +1254,7 @@ ORIG is the advised function, which is called with its ARGS."
 (use-package markdown-mode
   :config
   (add-auto-mode 'markdown-mode "\\.md\\.html\\'")
-  (after-load 'whitespace-cleanup-mode
+  (with-eval-after-load 'whitespace-cleanup-mode
     (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)))
 
 (use-package org-roam
@@ -1444,17 +1362,17 @@ ORIG is the advised function, which is called with its ARGS."
    (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
                ("C-c C-c" . compile)))
-
-;; (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-;; (lsp-register-client
-;;  (make-lsp-client :new-connection (lsp-tramp-connection
-;;                                    (lambda ()
-;;                      (cons "gopls" lsp-gopls-server-args)))
-;;                   :major-modes '(go-mode)
-;;                   :priority 10
-;;                   :server-id 'gopls-remote
-;;                   :remote? t
-;;                   ))
+;; remote go
+(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+(lsp-register-client
+ (make-lsp-client :new-connection (lsp-tramp-connection
+                                   (lambda ()
+                     (cons "gopls" lsp-gopls-server-args)))
+                  :major-modes '(go-mode)
+                  :priority 10
+                  :server-id 'gopls-remote
+                  :remote? t
+                  ))
 
 (use-package ccls
   :straight t
