@@ -1,100 +1,3 @@
-#+TITLE:Emacs Configuration
-#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
-* Table of Contents :TOC:
-- [[#straight-package-manager][Straight Package Manager]]
-  - [[#update-load-path][Update Load Path]]
-- [[#non-configured-packages][Non-Configured Packages]]
-- [[#editing-utilities][Editing Utilities]]
-  - [[#file-handler-functions][File Handler Functions]]
-  - [[#xterm-integration-in-terminals-mouse][Xterm Integration in terminals (Mouse)]]
-  - [[#esc-cancels-all][ESC Cancels All]]
-  - [[#move--duplicating-lines][Move & Duplicating Lines]]
-  - [[#whole-line-or-region][Whole Line or Region]]
-  - [[#file-modified-state][File Modified State]]
-  - [[#sudo-editing][Sudo editing]]
-- [[#general-settings][General Settings]]
-  - [[#track-recent-files][Track Recent Files]]
-  - [[#auto-update-file][Auto update file]]
-  - [[#electri-pair][Electri Pair]]
-  - [[#tramp][TRAMP]]
-  - [[#init-path-environment-variable][Init PATH environment variable]]
-- [[#ui][UI]]
-  - [[#startup][Startup]]
-  - [[#theme][Theme]]
-  - [[#dimmer][Dimmer]]
-  - [[#modeline][Modeline]]
-  - [[#gui-frames][GUI Frames]]
-  - [[#tabs][Tabs]]
-- [[#dired][Dired]]
-- [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
-  - [[#consult][Consult]]
-  - [[#corfu][Corfu]]
-  - [[#settings-for-hippie-expand][Settings for hippie expand]]
-  - [[#spelling][Spelling]]
-- [[#multi-vterm][Multi Vterm]]
-  - [[#dont-ask-to-kill-on-exit][don't ask to kill on exit]]
-- [[#other][Other]]
-  - [[#i-search][I-Search]]
-  - [[#ripgrep][Ripgrep]]
-  - [[#ibuffer][Ibuffer]]
-  - [[#newline-behavior][Newline Behavior]]
-  - [[#symbol-overlay][Symbol Overlay]]
-  - [[#whitespaces][Whitespaces]]
-  - [[#git--version-control-support][Git & Version control support]]
-  - [[#helpers-for-m-x-compile][Helpers for M-x compile]]
-  - [[#yasnippet][yasnippet]]
-  - [[#paredit-parenthicy-completion][paredit parenthicy completion]]
-  - [[#projectile][projectile]]
-  - [[#improve-window-switching][Improve window switching]]
-- [[#org-mode][Org Mode]]
-  - [[#general-configure][General Configure]]
-  - [[#org-appear][Org Appear]]
-  - [[#sizes][Sizes]]
-  - [[#org-file-locations][Org File Locations]]
-  - [[#capturing][Capturing]]
-  - [[#dynamic-re-align-tags][Dynamic Re-align tags]]
-  - [[#pretty-symbol-replacement][Pretty Symbol Replacement]]
-  - [[#pomodoro-timer][Pomodoro Timer]]
-  - [[#clock-inout][Clock In/Out]]
-  - [[#latex-fragments][Latex Fragments]]
-  - [[#auto-save-pdf-toggle][Auto Save PDF Toggle]]
-  - [[#writing-mode][Writing Mode]]
-  - [[#refiling][Refiling]]
-  - [[#to-do-settings][To Do Settings]]
-  - [[#agenda-views][Agenda Views]]
-  - [[#table-of-contents][Table of Contents]]
-  - [[#automatically-tangle-on-save][Automatically "Tangle" on Save]]
-  - [[#org-screenshot][Org Screenshot]]
-  - [[#pdf-tools][PDF Tools]]
-  - [[#markdown][Markdown]]
-  - [[#org-roam][Org Roam]]
-  - [[#google-calendar][Google Calendar]]
-- [[#code-languages--file-modes][Code Languages & File Modes]]
-  - [[#tree-sitter][Tree sitter]]
-  - [[#lsp-mode][LSP-Mode]]
-  - [[#lsp-ui][LSP-UI]]
-  - [[#dap][DAP]]
-  - [[#go][Go]]
-  - [[#c][C++]]
-  - [[#rust][Rust]]
-  - [[#python][Python]]
-  - [[#csv][CSV]]
-  - [[#yaml][yaml]]
-  - [[#docker][Docker]]
-  - [[#terraform][Terraform]]
-  - [[#yuck][Yuck]]
-- [[#runtime-performance][Runtime Performance]]
-- [[#inspiration][Inspiration]]
-
-* Straight Package Manager
-
-   Alternative to *package.el* closer to go.mod where it tracks packages to git commit versions. compatable with use-package. It only does pre-loading so just using straight may not fully load it.
-
-** Update Load Path
-
-   Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
-
-#+begin_src emacs-lisp
 (setq straight-check-for-modifications '(check-on-save))
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
@@ -130,27 +33,13 @@
 
 ;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
-#+end_src
 
-* Non-Configured Packages
-
-  These are packages that don't require configurations.
-
-#+begin_src emacs-lisp
 (use-package diminish)
 (use-package gnuplot)
 (use-package htmlize)
 (use-package dsvn)
 (use-package daemons)
-#+end_src
 
-* Editing Utilities
-
-  General editing configurations.
-
-** File Handler Functions
-
-#+begin_src emacs-lisp
 (if (fboundp 'with-eval-after-load)
     (defalias 'after-load 'with-eval-after-load)
   (defmacro after-load (feature &rest body)
@@ -158,20 +47,12 @@
     (declare (indent defun))
     `(eval-after-load ,feature
        '(progn ,@body))))
-#+END_SRC
 
-*** Handier way to add modes to auto-mode-alist
-
-#+BEGIN_SRC emacs-lisp
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
   (dolist (pattern patterns)
     (add-to-list 'auto-mode-alist (cons pattern mode))))
-#+END_SRC
 
-*** String utilities missing from core emacs
-
-#+BEGIN_SRC emacs-lisp
 (defun sanityinc/string-all-matches (regex str &optional group)
   "Find all matches for `REGEX' within `STR', returning the full match string or group `GROUP'."
   (let ((result nil)
@@ -181,11 +62,7 @@
       (push (match-string group str) result)
       (setq pos (match-end group)))
     result))
-#+END_SRC
 
-*** Delete the current file
-
-#+BEGIN_SRC emacs-lisp
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
@@ -196,11 +73,6 @@
     (delete-file (buffer-file-name))
     (kill-this-buffer)))
 
-#+END_SRC
-
-*** Rename the current file
-
-#+BEGIN_SRC emacs-lisp
 (defun rename-this-file-and-buffer (new-name)
   "Renames both current buffer and file it's visiting to NEW-NAME."
   (interactive "sNew name: ")
@@ -213,11 +85,7 @@
         (rename-file filename new-name 1))
       (set-visited-file-name new-name)
       (rename-buffer new-name))))
-#+END_SRC
 
-*** Frame-hooks
-
-#+BEGIN_SRC emacs-lisp
 (defvar after-make-console-frame-hooks '()
   "Hooks to run after creating a new TTY frame")
 (defvar after-make-window-system-frame-hooks '()
@@ -236,73 +104,35 @@
 (add-hook 'after-init-hook
           (lambda () (when sanityinc/initial-frame
                        (run-after-make-frame-hooks sanityinc/initial-frame))))
-#+end_src
 
-** Xterm Integration in terminals (Mouse)
+(global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
+(global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
+(autoload 'mwheel-install "mwheel")
+(defun sanityinc/console-frame-setup ()
+  (xterm-mouse-mode 1) ; Mouse in a terminal (Use shift to paste with middle button)
+  (mwheel-install))
+(add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
 
-#+begin_src emacs-lisp
-  (global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
-  (global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
-  (autoload 'mwheel-install "mwheel")
-  (defun sanityinc/console-frame-setup ()
-    (xterm-mouse-mode 1) ; Mouse in a terminal (Use shift to paste with middle button)
-    (mwheel-install))
-  (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
-#+end_src
+(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
-** ESC Cancels All
-
-#+begin_src emacs-lisp
-  (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
-#+end_src
-
-** Move & Duplicating Lines
-
-   Shift lines up and down with M-up and M-down. When paredit is enabled,
-   it will use those keybindings. For this reason, you might prefer to
-   use M-S-up and M-S-down, which will work even in lisp modes.
-   use M-S-up and M-S-down, which will work even in lisp modes.
-
-#+begin_src emacs-lisp
 (use-package move-dup
   :config(global-move-dup-mode)
   :bind( ("M-<up>" . move-dup-move-lines-up)
          ("M-<down>" . move-dup-move-lines-down)
          ("C-c d" . move-dup-duplicate-down)
          ("C-c u" . move-dup-duplicate-up)))
-#+end_src
 
-** Whole Line or Region
-
-Cut/copy the current line if no region is active.
-
-#+begin_src emacs-lisp
 (use-package whole-line-or-region
   :defer nil
   :config (whole-line-or-region-global-mode t)
   :bind ("M-j". comment-dwim))
-#+end_src
 
-** File Modified State
-
-   Marks a file as unmodified based on diff not if edits have been made. Nice for when you add a character accidentally and then delete it. Normally the file would be marked as edited (slightly annoying).
-#+begin_src emacs-lisp
 (use-package unmodified-buffer
   :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
   :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
-#+end_src
 
-** Sudo editing
-
-   This is completely unnecessary since you could just tramp the same file really quick but using this package is a slightly nicer user experience.
-
-#+begin_src emacs-lisp
 (use-package sudo-edit)
-#+end_src
 
-* General Settings
-
-#+begin_src emacs-lisp
 (setq-default
  bookmark-save-flag 1
  blink-cursor-interval 0.4
@@ -326,13 +156,7 @@ Cut/copy the current line if no region is active.
 (global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
-#+end_src
 
-** Track Recent Files
-
-   When you perform =m-x b= you will see list of recent files
-
-#+begin_src emacs-lisp
 (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
 (recentf-mode 1)
 (add-hook 'find-file-hook 'recentf-save-list)
@@ -340,74 +164,34 @@ Cut/copy the current line if no region is active.
  recentf-max-saved-items 300
  recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el"))
 
-#+end_src
-
-** Auto update file
-
-When A file changes on disk update Emacs.
-#+begin_src emacs-lisp
 (global-auto-revert-mode 1)
 (add-hook 'dired-mode-hook 'auto-revert-mode)
-#+end_src
 
-** Electri Pair
-
-Easily insert matching delimiters.
-
-#+begin_src emacs-lisp
 (when (fboundp 'electric-pair-mode)
   (add-hook 'after-init-hook 'electric-pair-mode))
-#+end_src
 
-** TRAMP
-
-Tramp was acting slow this helps.
-
-#+begin_src emacs-lisp
 (setq remote-file-name-inhibit-cache nil)
 (setq vc-ignore-dir-regexp
       (format "%s\\|%s"
                     vc-ignore-dir-regexp
                     tramp-file-name-regexp))
-#+end_src
 
-*** ControlMaster
-
-    Don't know if this will help but added bc lsp was starting a bunch of gio's ... did nothing.
-    
-#+begin_src emacs-lisp
 (customize-set-variable
  'tramp-ssh-controlmaster-options
  (concat
   "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
   "-o ControlMaster=auto -o ControlPersist=yes"))
-#+end_src
 
-** Init PATH environment variable
-
-#+begin_src emacs-lisp
 (use-package exec-path-from-shell
   :config
   (dolist (var '("LSP_USE_PLISTS"))
     (add-to-list 'exec-path-from-shell-variables var))
   (exec-path-from-shell-initialize))
-#+end_src
 
-* UI
-
-** Startup
-
-   The default buffer.
-
-#+begin_src emacs-lisp
 (setq initial-major-mode 'org-mode)
 (setq initial-scratch-message "* Scratch\n\n#+begin_src emacs-lisp\n\n#+end_src")
 (add-hook 'emacs-startup-hook (lambda () (gtd)))
-#+end_src
 
-** Theme
-
-#+begin_src emacs-lisp
 (straight-use-package '(autothemer :type git :host github :repo "catppuccin/emacs"))
 (use-package doom-themes
   :straight t
@@ -432,93 +216,55 @@ Tramp was acting slow this helps.
               (set-face-attribute 'header-line nil :height 100)
               )))
 (setq custom-safe-themes t)
-#+end_src
 
-** Dimmer
+(use-package dimmer
+  :init (dimmer-mode)
+  :config (setq-default dimmer-fraction 0.15)
+  (advice-add 'frame-set-background-mode :after (lambda (&rest args) (dimmer-process-all)))
+  (defun sanityinc/display-non-graphic-p ()
+    (not (display-graphic-p)))
+  (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
 
-   Dim the unfocused buffer.
+(use-package doom-modeline
+  :init (doom-modeline-mode 1)
+  :custom (
+           (doom-modeline-buffer-file-name-style 'truncate-upto-project)
+           (doom-modeline-vcs-max-length 30)
+           (doom-modeline-height 40)
+           (doom-modeline-width 40)
+           (all-the-icons-scale-factor 1)))
 
-#+begin_src emacs-lisp
-   (use-package dimmer
-     :init (dimmer-mode)
-     :config (setq-default dimmer-fraction 0.15)
-     (advice-add 'frame-set-background-mode :after (lambda (&rest args) (dimmer-process-all)))
-     (defun sanityinc/display-non-graphic-p ()
-       (not (display-graphic-p)))
-     (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
-#+end_src
+(defun sanityinc/maybe-suspend-frame ()
+  (interactive)
+  (if (display-graphic-p)
+      (message "suspend-frame disabled for graphical displays.")
+    (suspend-frame)))
+(global-unset-key (kbd "C-z"))
+(global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
+(global-set-key (kbd "C-z") 'undo)
 
-** Modeline
+;; Change global font size easily
+(use-package default-text-scale)
+(add-hook 'after-init-hook 'default-text-scale-mode)
+(setq-default tab-width 4)
 
- #+begin_src emacs-lisp
- (use-package doom-modeline
-   :init (doom-modeline-mode 1)
-   :custom (
-            (doom-modeline-buffer-file-name-style 'truncate-upto-project)
-            (doom-modeline-vcs-max-length 30)
-            (doom-modeline-height 40)
-            (doom-modeline-width 40)
-            (all-the-icons-scale-factor 1)))
- #+end_src
+(setq frame-title-format
+      '((:eval (if (buffer-file-name)
+                   (abbreviate-file-name (buffer-file-name))
+                 "%b"))))
 
-** GUI Frames
+(setq-default fringes-outside-margins t
+                  indicate-buffer-boundaries nil
+                  fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
+                                               fringe-indicator-alist))
 
-   UI Features that are related to the Emacs GUI.
+    ;;(setq left-margin-width 12)
+    ;; (setq right-margin-width 12)
+    (setq internal-border 40)
+    (setq frame-internal-border-width 60)
+    (setq bottom-divider-width 20)
+    (set-window-buffer nil (current-buffer))
 
-*** Fix Control-Z
-
-    Stop C-z from minimizing windows under Linux.
-
-    #+begin_src emacs-lisp
-    (defun sanityinc/maybe-suspend-frame ()
-      (interactive)
-      (if (display-graphic-p)
-          (message "suspend-frame disabled for graphical displays.")
-        (suspend-frame)))
-    (global-unset-key (kbd "C-z"))
-    (global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
-    (global-set-key (kbd "C-z") 'undo)
-    #+end_src
-
-*** Window Size
-
-    #+BEGIN_SRC emacs-lisp
-    ;; Change global font size easily
-    (use-package default-text-scale)
-    (add-hook 'after-init-hook 'default-text-scale-mode)
-    (setq-default tab-width 4)
-    #+end_src
-
-*** Frame Title
-
-    #+begin_src emacs-lisp
-    (setq frame-title-format
-          '((:eval (if (buffer-file-name)
-                       (abbreviate-file-name (buffer-file-name))
-                     "%b"))))
-    #+end_src
-
-*** TODO Margins
-
-    What was I doing with this?
-    
-    #+begin_src emacs-lisp
-    (setq-default fringes-outside-margins t
-                      indicate-buffer-boundaries nil
-                      fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
-                                                   fringe-indicator-alist))
-
-        ;;(setq left-margin-width 12)
-        ;; (setq right-margin-width 12)
-        (setq internal-border 40)
-        (setq frame-internal-border-width 60)
-        (setq bottom-divider-width 20)
-        (set-window-buffer nil (current-buffer))
-    #+end_src
-    
-** Tabs
-
-#+begin_src emacs-lisp
 (use-package centaur-tabs
   :demand
   :config
@@ -577,13 +323,7 @@ Tramp was acting slow this helps.
   ("C-c x b" . centaur-tabs-backward)
   ("C-c x f" . centaur-tabs-forward)
   ("C-c x s" . centaur-tabs-counsel-switch-group))
-#+end_src
 
-* Dired
-
-Need to revisit now that I am using dirvish.
-
-#+begin_src emacs-lisp
 (use-package dired
   :straight (:type built-in)
   :defer 1
@@ -644,13 +384,7 @@ Need to revisit now that I am using dirvish.
   :config
   (define-key dired-mode-map "." #'dired-hide-dotfiles-mode)
   (setq dired-omit-files "^\\(?:\\..*\\|.*~\\)$"))
-#+end_src
 
-* Minibuffer / Completion Framework
-
-  Experimenting with new hype packages. replaces ivy and counsel aka completion framework. (What make Emacs Emacs IMO).
-
-#+BEGIN_SRC emacs-lisp
 (use-package vertico
   :config
   :init (vertico-mode))
@@ -696,11 +430,7 @@ Need to revisit now that I am using dirvish.
             (insert initial)))
       (consult-ripgrep))))
 (global-set-key (kbd "C-r") #'consult-ripgrep-symbol-at-point)
-#+end_src
 
-** Consult
-
-#+begin_src emacs-lisp
 (use-package consult
   :bind (
          ;; C-c bindings (mode-specific-map)
@@ -763,11 +493,7 @@ Need to revisit now that I am using dirvish.
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    sanityinc/affe-grep-at-point affe-grep))
-#+end_src
 
-*** consult directories
-
-#+begin_src emacs-lisp
 (use-package consult-dir
   :ensure t
   :bind (("C-x C-d" . consult-dir)
@@ -798,13 +524,7 @@ Need to revisit now that I am using dirvish.
     :items    ,#'consult-dir--tramp-docker-hosts)
   "Docker candiadate source for `consult-dir'.")
 (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
-#+end_src
 
-** Corfu
-
-   Corfu is a text completion framework to retrieve and display completion candidates. More Simple than Company better for Emacs API.
-
-#+begin_src emacs-lisp
 (setq tab-always-indent 'complete)
 (use-package corfu
   :init (global-corfu-mode)
@@ -826,12 +546,7 @@ Need to revisit now that I am using dirvish.
 (use-package corfu-terminal
   :straight (:type git
    :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
-#+end_src
 
-** Settings for hippie expand
-
-
-#+begin_src emacs-lisp
 (global-set-key (kbd "M-/") 'hippie-expand)
 (setq hippie-expand-try-functions-list
       '(try-complete-file-name-partially
@@ -839,56 +554,14 @@ Need to revisit now that I am using dirvish.
         try-expand-dabbrev
         try-expand-dabbrev-all-buffers
         try-expand-dabbrev-from-kill))
-#+end_src
 
-** Spelling
-
-#+begin_src emacs
-  (use-package ispell
-    :if (not (bound-and-true-p disable-pkg-ispell))
-    :defer 15
-    :config
-    (setq ispell-extra-args   '("--sug-mode=ultra"
-                                    "--lang=en_US"))
-    ;; Save a new word to personal dictionary without asking
-    (setq ispell-silently-savep t))
-  (use-package flyspell
-      :init  (progn
-          ;; Below variables need to be set before `flyspell' is loaded.
-          (setq flyspell-use-meta-tab nil)
-          ;; Binding for `flyspell-auto-correct-previous-word'.
-          (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
-      :config  (progn
-          (add-hook 'prog-mode-hook #'flyspell-prog-mode)
-          (with-eval-after-load 'auto-complete
-            (ac-flyspell-workaround))
-          ;; https://github.com/larstvei/dot-emacs#flyspell
-          (add-hook 'text-mode-hook #'turn-on-flyspell)
-          (add-hook 'org-mode-hook  #'turn-on-flyspell)
-          (bind-keys
-           :map flyspell-mode-map
-           ;; Stop flyspell overriding other key bindings
-           ("C-," . nil)
-           ("C-." . nil)
-           ("<C-f12>" . flyspell-goto-next-error))))
-#+end_src
-
-*** Flycheck
-
-    Modern on-the-fly syntax checking extension for GNU Emacs.
-
-#+begin_src emacs-lisp
 (use-package flycheck
   :defer t
   :config
     (setq flycheck-check-syntax-automatically '(mode-enabled save new-line)) ;to ignore idel flycheck
    (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
     (global-flycheck-mode 1))
-#+end_src
 
-* Multi Vterm
-
-#+begin_src emacs-lisp
 (use-package multi-vterm
   :hook (vterm-mode . (lambda ()
                         (setq vterm-buffer-maximum-size 1000
@@ -905,18 +578,9 @@ Need to revisit now that I am using dirvish.
          ("C-c t" . multi-vterm-dedicated-toggle)
          ("M-w" . copy-region-as-kill)
          ( "C-y" . vterm-yank)))
-#+end_src
 
-** don't ask to kill on exit
-
-#+begin_src emacs-lisp
 (setq confirm-kill-processes nil)
-#+end_src
 
-* Other
-** I-Search
-
-#+begin_src emacs-lisp
 ;; Show number of matches while searching
 (use-package anzu
   :config
@@ -948,14 +612,7 @@ This is useful when followed by an immediate kill."
   (isearch-exit)
   (goto-char isearch-other-end))
 (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
-#+end_src
 
-** Ripgrep
-
-grep using ripgrep
-install rg and ag manually
-
-#+begin_src emacs-lisp
 (setq-default grep-highlight-matches t
               grep-scroll-output t)
 (use-package wgrep
@@ -966,11 +623,7 @@ install rg and ag manually
            (use-package ag))
   (when (executable-find "rg")
     (use-package rg))
-#+end_src
 
-** Ibuffer
-
-#+begin_src emacs-lisp
 (use-package fullframe)
 (after-load 'ibuffer
   (fullframe ibuffer ibuffer-quit))
@@ -1018,11 +671,7 @@ install rg and ag manually
 (setq ibuffer-filter-group-name-face 'font-lock-doc-face)
 
 (global-set-key (kbd "C-x C-b") 'ibuffer)
-#+end_src
 
-** Newline Behavior
-
-#+begin_src emacs-lisp
 (set 'ad-redefinition-action 'accept)
 (global-set-key (kbd "RET") 'newline-and-indent)
 (defun sanityinc/newline-at-end-of-line ()
@@ -1057,23 +706,13 @@ install rg and ag manually
   (add-hook 'prog-mode-hook 'rainbow-delimiters-mode)
   (when (fboundp 'global-prettify-symbols-mode)
     (add-hook 'after-init-hook 'global-prettify-symbols-mode)))
-#+end_src
 
-Show matching parens
-
-#+begin_src emacs-lisp
 (add-hook 'after-init-hook 'show-paren-mode)
-#+end_src
 
-Expand region
-
-#+begin_src emacs-lisp
 (use-package expand-region
   :bind (("M-[" . er/expand-region)
          ("C-(" . er/mark-outside-pairs)))
-#+end_src
 
-#+begin_src emacs-lisp
 (defun kill-back-to-indentation ()
   "Kill from point back to the first non-whitespace character on the line."
   (interactive)
@@ -1083,11 +722,7 @@ Expand region
     (kill-region (point) prev-pos)))
 
 (global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
-#+end_src
 
-*** Fix backward-up-list to understand quotes, see http://bit.ly/h7mdIL
-
-#+begin_src emacs-lisp
 (defun sanityinc/backward-up-sexp (arg)
   "Jump up to the start of the ARG'th enclosing sexp."
   (interactive "p")
@@ -1114,11 +749,7 @@ Expand region
 
 (use-package highlight-escape-sequences)
 (add-hook 'after-init-hook 'hes-mode)
-#+end_src
 
-*** Which Key
-
-#+begin_src emacs-lisp
 (use-package which-key
   :diminish which-key-mode
   :config
@@ -1134,11 +765,7 @@ ORIG is the advised function, which is called with its ARGS."
     (apply orig args)))
 
 (advice-add 'kmacro-call-macro :around 'sanityinc/disable-features-during-macro-call)
-#+end_src
 
-*** Multi Cursor
-
-#+begin_src emacs-lisp
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
          ("C->" . mc/mark-next-like-this)
@@ -1149,11 +776,7 @@ ORIG is the advised function, which is called with its ARGS."
          ("C-c m c" . mc/edit-lines)
          ("C-c m e" . mc/edit-ends-of-lines)
          ("C-c m a" . mc/edit-beginnings-of-lines)))
-#+end_src
 
-** Symbol Overlay
-
-#+begin_src emacs-lisp
 (use-package symbol-overlay
   :diminish symbol-overlay-mode
   :bind (:map symbol-overlay-mode-map
@@ -1163,13 +786,7 @@ ORIG is the advised function, which is called with its ARGS."
               ("M-p" . symbol-overlay-jump-prev)))
   (dolist (hook '(org-mode hook prog-mode-hook html-mode-hook yaml-mode-hook conf-mode-hook))
     (add-hook hook 'symbol-overlay-mode))
-#+end_src
 
-** Whitespaces
-
-   View and auto remove them.
-
-#+begin_src emacs-lisp
 (setq-default show-trailing-whitespace nil)
 ;;; Whitespace
 (defun sanityinc/show-trailing-whitespace ()
@@ -1183,11 +800,7 @@ ORIG is the advised function, which is called with its ARGS."
   :diminish whitespace-cleanup-mode)
 (add-hook 'after-init-hook 'global-whitespace-cleanup-mode)
 (global-set-key [remap just-one-space] 'cycle-spacing)
-#+end_src
 
-** Git & Version control support
-
-#+begin_src emacs-lisp
 (use-package diff-hl
   :defer t
   :config
@@ -1197,11 +810,8 @@ ORIG is the advised function, which is called with its ARGS."
   :bind (:map diff-hl-mode-map
          ([left-fringe mouse-2] . diff-hl-diff-goto-hunk)))
 (use-package browse-at-remote) ;; open in web
-#+end_src
 
-*** Magit
-#+begin_src emacs-lisp
-  (use-package git-blamed)
+(use-package git-blamed)
 ;;  (use-package gitignore-mode)
 ;;  (use-package gitconfig-mode)
   (use-package git-time-machine
@@ -1245,70 +855,62 @@ ORIG is the advised function, which is called with its ARGS."
 ;; Convenient binding for vc-git-grep
 (after-load 'vc
   (define-key vc-prefix-map (kbd "f") 'vc-git-grep))
-#+end_src
 
-** Helpers for M-x compile
+(setq-default compilation-scroll-output t)
+(use-package alert)
+;; Customize `alert-default-style' to get messages after compilation
+(defun sanityinc/alert-after-compilation-finish (buf result)
+  "Use `alert' to report compilation RESULT if BUF is hidden."
+  (when (buffer-live-p buf)
+    (unless (catch 'is-visible
+              (walk-windows (lambda (w)
+                              (when (eq (window-buffer w) buf)
+                                (throw 'is-visible t))))
+              nil)
+      (alert (concat "Compilation " result)
+             :buffer buf
+             :category 'compilation))))
 
-#+begin_src emacs-lisp
-  (setq-default compilation-scroll-output t)
-  (use-package alert)
-  ;; Customize `alert-default-style' to get messages after compilation
-  (defun sanityinc/alert-after-compilation-finish (buf result)
-    "Use `alert' to report compilation RESULT if BUF is hidden."
-    (when (buffer-live-p buf)
-      (unless (catch 'is-visible
-                (walk-windows (lambda (w)
-                                (when (eq (window-buffer w) buf)
-                                  (throw 'is-visible t))))
-                nil)
-        (alert (concat "Compilation " result)
-               :buffer buf
-               :category 'compilation))))
+(after-load 'compile
+  (add-hook 'compilation-finish-functions
+            'sanityinc/alert-after-compilation-finish))
 
-  (after-load 'compile
-    (add-hook 'compilation-finish-functions
-              'sanityinc/alert-after-compilation-finish))
+(defvar sanityinc/last-compilation-buffer nil
+  "The last buffer in which compilation took place.")
 
-  (defvar sanityinc/last-compilation-buffer nil
-    "The last buffer in which compilation took place.")
+(after-load 'compile
+  (defun sanityinc/save-compilation-buffer (&rest _)
+    "Save the compilation buffer to find it later."
+    (setq sanityinc/last-compilation-buffer next-error-last-buffer))
+  (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
 
-  (after-load 'compile
-    (defun sanityinc/save-compilation-buffer (&rest _)
-      "Save the compilation buffer to find it later."
-      (setq sanityinc/last-compilation-buffer next-error-last-buffer))
-    (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
+  (defun sanityinc/find-prev-compilation (orig &optional edit-command)
+    "Find the previous compilation buffer, if present, and recompile there."
+    (if (and (null edit-command)
+             (not (derived-mode-p 'compilation-mode))
+             sanityinc/last-compilation-buffer
+             (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
+        (with-current-buffer sanityinc/last-compilation-buffer
+          (funcall orig edit-command))
+      (funcall orig edit-command)))
+  (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
 
-    (defun sanityinc/find-prev-compilation (orig &optional edit-command)
-      "Find the previous compilation buffer, if present, and recompile there."
-      (if (and (null edit-command)
-               (not (derived-mode-p 'compilation-mode))
-               sanityinc/last-compilation-buffer
-               (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
-          (with-current-buffer sanityinc/last-compilation-buffer
-            (funcall orig edit-command))
-        (funcall orig edit-command)))
-    (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
+(global-set-key [f6] 'recompile)
 
-  (global-set-key [f6] 'recompile)
+(defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
+  "Put \"*Shell Command Output*\" buffers into view-mode."
+  (unless (or output-buffer replace)
+    (with-current-buffer "*Shell Command Output*"
+      (view-mode 1))))
+(advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
 
-  (defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
-    "Put \"*Shell Command Output*\" buffers into view-mode."
-    (unless (or output-buffer replace)
-      (with-current-buffer "*Shell Command Output*"
-        (view-mode 1))))
-  (advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
+(after-load 'compile
+  (require 'ansi-color)
+  (defun sanityinc/colourise-compilation-buffer ()
+    (when (eq major-mode 'compilation-mode)
+      (ansi-color-apply-on-region compilation-filter-start (point-max))))
+  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
-  (after-load 'compile
-    (require 'ansi-color)
-    (defun sanityinc/colourise-compilation-buffer ()
-      (when (eq major-mode 'compilation-mode)
-        (ansi-color-apply-on-region compilation-filter-start (point-max))))
-    (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
-#+end_src
-
-** yasnippet
-
-#+begin_src emacs-lisp
 (use-package yasnippet
   :straight t
   :config
@@ -1336,10 +938,7 @@ ORIG is the advised function, which is called with its ARGS."
                'company-complete-common
                'company-yasnippet-or-completion
                company-active-map))))
-#+end_src
 
-** paredit parenthicy completion
-#+begin_src emacs-lisp
 (use-package paredit
   :diminish paredit-mode " Par"
   :hook (paredit-mode-hook . maybe-map-paredit-newline)
@@ -1353,11 +952,7 @@ ORIG is the advised function, which is called with its ARGS."
 (define-key paredit-mode-map (kbd "DEL") 'delete-backward-char)
 (dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
   (define-key paredit-mode-map (read-kbd-macro binding) nil)))
-#+end_src
 
-** projectile
-
-#+begin_src emacs-lisp
 (use-package projectile
   :bind(:map projectile-mode-map ("C-c p" . projectile-command-map))
   :config
@@ -1366,23 +961,9 @@ ORIG is the advised function, which is called with its ARGS."
   (setq-default projectile-mode-line-prefix " Proj")   ;; Shorter modeline
   (projectile-mode))
 (use-package ibuffer-projectile)
-#+end_src
 
-** Improve window switching
-
-   Purcell's configuration.
-
-#+begin_src emacs-lisp
 (require 'init-windows)
-#+end_src
 
-* Org Mode
-
-  Text based writing.
-
-** General Configure
-
-#+begin_src emacs-lisp
 (use-package org
   :straight org-contrib
   :bind (("C-c a" .  gtd)
@@ -1419,20 +1000,10 @@ ORIG is the advised function, which is called with its ARGS."
   org-agenda-tags-column 0)
 (use-package org-cliplink
   :bind (("C-c l" . org-store-link)))
-#+end_src
 
-** Org Appear
-
-Provides a way to toggle visibility of hidden elements such as emphasis markers, links, etc. by customising specific variables.
-
-#+begin_src emacs-lisp
 (straight-use-package '(org-appear :type git :host github :repo "awth13/org-appear"))
 (add-hook 'org-mode-hook 'org-appear-mode)
-#+end_src
 
-** Sizes
-
-#+begin_src emacs-lisp
 (setq header-line-format " ")
 (custom-set-faces
    '(org-document-title ((t (:height 3.2))))
@@ -1441,24 +1012,14 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
   '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
   '(header-line ((t (:height 2)))))
-#+end_src
 
-** Org File Locations
-
-   Set registers to jump to certain files like type C-x r j e to open .emacs
-
-#+begin_src emacs-lisp
 (setq org-directory "~/doc")
 (setq org-default-notes-file (concat org-directory "/notes.org"))
 (setq org-agenda-files (list "~/doc/inbox.org"
                           "~/doc/projects.org"
                           "~/doc/gcal.org"
                           "~/doc/repeater.org"))
-#+end_src
 
-** Capturing
-
-#+BEGIN_SRC emacs-lisp
 (use-package org
   :ensure t
   :bind
@@ -1489,11 +1050,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                 ("rv" "Open Roam UI in browser" entry (function (lambda ()
                                                                           (org-roam-ui-open)
                                                                           (org-capture-finalize))))))))
-#+end_src
 
-** Dynamic Re-align tags
-
-#+begin_src emacs-lisp
 (with-eval-after-load 'org-agenda
   (add-hook 'org-agenda-mode-hook
             (lambda ()   (setq mode-line-format nil)
@@ -1502,11 +1059,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (with-eval-after-load 'org-mode
   (add-hook 'before-save-hook
             (lambda ()  (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
-#+end_src
 
-** Pretty Symbol Replacement
-
-#+BEGIN_SRC emacs-lisp
 (use-package org-bullets
   :straight t
   :hook (org-mode . org-bullets-mode)
@@ -1544,15 +1097,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
      (,(if (locate-library "ob-sh") 'sh 'shell) . t)
      (sql . t)
      (sqlite . t))))
-#+end_src
 
-
-
-** Pomodoro Timer
-
-Basically just followed the directions from this cool blog.   https://colekillian.com/posts/org-pomodoro-and-polybar/
-
-#+begin_src emacs-lisp
 (use-package org-pomodoro
   :commands (org-pomodoro)
   :bind ((:map org-agenda-mode-map
@@ -1586,13 +1131,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
         (:overtime
          (format "Overtime!" )))
     "No Active Pomodoro"))
-#+end_src
 
-** Clock In/Out
-
-   PDFs visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
-
-#+begin_src emacs-lisp
 (defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
 (define-key sanityinc/org-global-prefix-map (kbd "j") 'org-clock-goto)
@@ -1631,20 +1170,12 @@ Basically just followed the directions from this cool blog.   https://colekillia
 (after-load 'org-clock
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
-#+end_src
 
-** Latex Fragments
-
-#+begin_src emacs-lisp
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode)
   :config
     (setq org-support-shift-select t))
-#+end_src
 
-** Auto Save PDF Toggle
-
-#+begin_src emacs-lisp
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
   (if (memq 'org-latex-export-to-pdf after-save-hook)
@@ -1662,10 +1193,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
         (message "Disabled org html export on save for current buffer..."))
     (add-hook 'after-save-hook 'org-html-export-to-html nil t)
     (message "Enabled org html export on save for current buffer...")))
-#+end_src
 
-** Writing Mode
-#+begin_src emacs-lisp
 (defun toggle-mode-line ()
   "toggles the modeline on and off"
        (interactive)
@@ -1673,9 +1201,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
              (if (equal mode-line-format nil)
                  (default-value 'mode-line-format)))
        (redraw-display))
-#+end_src
-   
-#+begin_src emacs-lisp
+
 (use-package org-pretty-table
   :straight (:host github :repo "Fuco1/org-pretty-table"
                    :branch "master")
@@ -1715,11 +1241,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
       (buffer-face-mode -1)
       (flyspell-mode -1)
       (visual-line-mode -1))))
-#+end_src
 
-*** Set Margins for org mode
-
-#+begin_src emacs-lisp
 (use-package visual-fill-column
   :defer t
   :init
@@ -1729,12 +1251,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (visual-fill-column-mode 1))
 
   :hook (org-mode . dw/org-mode-visual-fill))
-#+end_src
 
-
-** Refiling
-
-#+begin_src emacs-lisp
 (setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
 (setq org-refile-targets '((nil :maxlevel . 5) (org-agenda-files :maxlevel . 5)))
@@ -1764,23 +1281,16 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 ;; Allow refile to create parent tasks with confirmation
 (setq org-refile-allow-creating-parent-nodes 'confirm)
-#+END_SRC
 
-** To Do Settings
+(setq org-todo-keywords
+      (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
+              (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
+              (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
+      org-todo-repeat-to-state "NEXT")
+(setq org-todo-keyword-faces
+      (quote (("NEXT" :inherit warning)
+              ("PROJECT" :inherit font-lock-string-face))))
 
-#+begin_src emacs-lisp
-  (setq org-todo-keywords
-        (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
-                (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
-                (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
-        org-todo-repeat-to-state "NEXT")
-  (setq org-todo-keyword-faces
-        (quote (("NEXT" :inherit warning)
-                ("PROJECT" :inherit font-lock-string-face))))
-#+end_src
-
-** Agenda Views
-#+begin_src emacs-lisp
 (use-package org
   :ensure t
   :hook (org-agenda-mode . hl-line-mode)
@@ -1859,23 +1369,10 @@ Basically just followed the directions from this cool blog.   https://colekillia
                                 (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
                         (org-tags-match-list-sublevels nil)
                         (org-agenda-sorting-strategy '(category-keep))))))))))
-#+end_src
 
-** Table of Contents
-
-   It's nice to have a table of contents section for long literate configuration files (like this one!) so I use =toc-org= to automatically update the TOC in any header with a property named =TOC=. Simply add a =:TOC:= tag to the header you want to be the table of contents. there are many TOC packages but I have found this one as it works in org files and rendered on GitLab.
-   *Note:* This package can also be used for markdown but is not configured for it.
-
-#+begin_src emacs-lisp
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
-#+end_src
 
-** Automatically "Tangle" on Save
-
-   Handy tip from [[https://leanpub.com/lit-config/read#leanpub-auto-configuring-emacs-and--org-mode-for-literate-programming][this book]] on literate programming.
-
-#+begin_src emacs-lisp
 (use-package org
  :ensure t
  :config
@@ -1888,21 +1385,11 @@ Basically just followed the directions from this cool blog.   https://colekillia
  (org-mode . (lambda ()
                (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
                          'run-at-end 'only-in-org-mode))))
-#+end_src
 
-** Org Screenshot
-
-#+BEGIN_SRC emacs-lisp
 (use-package org-attach-screenshot
   :config
   (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area") )
-#+END_SRC
 
-** PDF Tools
-
-   Better PDF viewer, lots of cool stuff.
-
-#+BEGIN_SRC emacs-lisp
 (use-package pdf-tools
   :magic ("%PDF" . pdf-view-mode)
   :hook (pdf-tools-enabled . hide-mode-line-mode)
@@ -1916,21 +1403,13 @@ Basically just followed the directions from this cool blog.   https://colekillia
          ("h" . pdf-annot-add-highlight-markup-annotation)
          ("t" . pdf-annot-add-text-annotation)
          ("D" . pdf-annot-delete)))
-#+END_SRC
 
-** Markdown
-
-#+begin_src emacs-lisp
 (use-package markdown-mode
   :config
   (add-auto-mode 'markdown-mode "\\.md\\.html\\'")
   (after-load 'whitespace-cleanup-mode
     (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)))
-#+end_src
 
-** Org Roam
-
-#+begin_src emacs-lisp
 (use-package org-roam
   :straight t
   :init
@@ -1959,11 +1438,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
            ("C-c n g"   . org-roam-graph)
          :map org-mode-map
          (("C-c n i" . org-roam-node-insert))))
-#+end_src
 
-*** Org Roam UI
-
-#+begin_src emacs-lisp
 (use-package org-roam-ui
   :straight
     (:host github :repo "org-roam/org-roam-ui" :branch "main" :files ("*.el" "out"))
@@ -1978,33 +1453,14 @@ Basically just followed the directions from this cool blog.   https://colekillia
           org-roam-ui-update-on-save t
           org-roam-ui-open-on-start nil))
 
-#+end_src
-
-** Google Calendar
-   Add my Gmail. Has secrets so don't push.
-#+begin_src emacs-lisp
 (when (require 'init-gcal nil 'noerror)
   (message "init-gcal loaded"))
-#+end_src
 
-* Code Languages & File Modes
-
-** Tree sitter
-   
-   Enable syntax highlighting based on the tree-sitter. already installed
-    
-#+begin_src emacs-lisp
 (use-package tree-sitter-langs
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
-#+end_src
 
-** LSP-Mode
-
-   We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
-
-#+begin_src emacs-lisp
 (use-package consult-lsp)
 (use-package lsp-mode
   :init
@@ -2028,13 +1484,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
                ("e" . consult-lsp-diagnostics)))
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
          (lsp-mode . lsp-enable-which-key-integration)))
-#+end_src
 
-** LSP-UI
-
-   [[https://emacs-lsp.github.io/lsp-ui/][lsp-ui]] is a set of UI enhancements built on top of =lsp-mode= which make Emacs feel even more like an IDE.  Check out the screenshots on the =lsp-ui= homepage (linked at the beginning of this paragraph) to see examples of what it can do.
-
-#+begin_src emacs-lisp
 (use-package lsp-ui
   :custom
   (lsp-ui-doc-position 'bottom)
@@ -2045,11 +1495,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-sideline-enable nil)
   :commands lsp-ui-mode)
-#+end_src
 
-** DAP
-
-#+begin_src emacs-lisp
 (use-package dap-mode
   :config
   (dap-mode 1)
@@ -2058,13 +1504,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (dap-tooltip-mode 1)
   (tooltip-mode 1)
   (dap-ui-controls-mode 1))
-#+end_src
 
-** Go
-
-   Don't forget to install golsp =go get golang.org/x/tools/gopls@latest=
-
-#+begin_src emacs-lisp
 (use-package go-mode
   :config
   (progn
@@ -2086,13 +1526,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
 ;;                   :server-id 'gopls-remote
 ;;                   :remote? t
 ;;                   ))
-#+end_src
 
-** C++
-
-   https://github.com/MaskRay/ccls/wiki/Build
-
-#+begin_src emacs-lisp
 (use-package ccls
   :straight t
   :config
@@ -2105,13 +1539,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (add-hook 'before-save-hook #'lsp-format-buffer t t)
   (add-hook 'before-save-hook #'lsp-organize-imports t t))
 (add-hook 'cc-mode-hook #'lsp-cpp-install-save-hooks)
-#+end_src
 
-** Rust
-
-Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
-
-#+begin_src emacs-lisp
 (use-package rustic
   :ensure
   :bind (:map rustic-mode-map
@@ -2140,86 +1568,27 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   ;; no longer be necessary.
   (when buffer-file-name
     (setq-local buffer-save-without-query t)))
-#+end_src
 
-** Python
+(use-package csv-mode)
+(add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
+(setq csv-separators '("," ";" "|" " " ", "))
 
-   install server pip install -U jedi-language-server
-   currently breaks lsp-mode for all lsp servers...
-
-#+begin_src emacs
-   (use-package lsp-jedi
-     :straight t
-     :config
-     (with-eval-after-load "lsp-mode"
-       (add-to-list 'lsp-disabled-clients 'pyls)
-       (add-to-list 'lsp-enabled-clients 'jedi)))
-#+end_src
-
-** CSV
-
-#+begin_src emacs-lisp
-  (use-package csv-mode)
-  (add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
-  (setq csv-separators '("," ";" "|" " " ", "))
-#+end_src
-
-** yaml
-
-#+begin_src emacs-lisp
 (use-package yaml-mode
   :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
   :hook (yaml-mode-hook .goto-address-prog-mode))
-#+end_src
 
-** Docker
+(use-package docker
+  :config
+  (fullframe docker-images tablist-quit)
+  (fullframe docker-machines tablist-quit)
+  (fullframe docker-volumes tablist-quit)
+  (fullframe docker-networks tablist-quit)
+  (fullframe docker-containers tablist-quit))
+(use-package dockerfile-mode)
+(use-package docker-compose-mode)
 
-#+begin_src emacs-lisp
-  (use-package docker
-    :config
-    (fullframe docker-images tablist-quit)
-    (fullframe docker-machines tablist-quit)
-    (fullframe docker-volumes tablist-quit)
-    (fullframe docker-networks tablist-quit)
-    (fullframe docker-containers tablist-quit))
-  (use-package dockerfile-mode)
-  (use-package docker-compose-mode)
-#+end_src
-
-** Terraform
-
-#+begin_src emacs-lisp
 (use-package terraform-mode)
-#+end_src
 
-** Yuck
-
-   Yuck is the eww configuration language.
-
-#+begin_src emacs-lisp
 (use-package yuck-mode)
-#+end_src
 
-* Runtime Performance
-
-Dial the GC threshold back down so that garbage collection happens more frequently but in less time.
-
-#+begin_src emacs-lisp
 (setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB, really high because I have 32 GB.
-#+end_src
-
-* Inspiration
-
-  [[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] has a good list of packages and themes to check out.
-
-Other dotfiles repos and blog posts for inspiration:
-
-- [[https://github.com/purcell/emacs.d][Purcell's Reasonable Emacs config]]
-- [[https://github.com/howardabrams/dot-files][Howard Abrams' dotfiles]]
-- [[https://github.com/daedreth/UncleDavesEmacs/blob/master/config.org][UncleDave's Emacs config]]
-- [[https://github.com/dakrone/dakrone-dotfiles][dakrone's dotfiles]]
-- [[https://github.com/jinnovation/dotemacs][jinnovation dotemacs]]
-- [[https://writequit.org/org/][writequit's config]]
-
-
-And of course [[https://systemcrafters.cc/][System Crafters]] !
