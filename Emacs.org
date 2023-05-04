@@ -375,18 +375,17 @@ Tramp was acting slow this helps...maybe
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'doom-one t)
+  (load-theme 'doom-gruvbox t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
 (add-hook 'after-make-frame-functions
-          (lambda (f
-rame)
+          (lambda (frame)
             (with-selected-frame frame
-              (load-theme 'doom-one t)
+              (load-theme 'doom-gruvbox t)
               (set-face-attribute 'default nil
                     :family "Source Code Pro"
-                    :height 120
+                    :height 110
                     :weight 'normal
                     :width 'normal)
               (fringe-mode '(10 . 10))
@@ -2025,8 +2024,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   
 ** GPT
    
-   This section contains an Emacs Lisp function that reads a text file c
-ontaining an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
+   This section contains an Emacs Lisp function that reads a text file containing an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
    
 #+begin_src emacs-lisp
 (defun gpt/read-openai-key ()

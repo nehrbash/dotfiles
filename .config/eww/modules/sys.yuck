@@ -5,4 +5,4 @@
     (button
         :class "song-cover-art"
         :style "background-image: url(\"${profile-image}\");"
-        :onclick "${EWW_CMD} open --toggle system-menu-closer --screen ${monitor.name}; ${EWW_CMD} open --toggle  system-menu --screen ${monitor.name}")))
+        :onclick "${EWW_CMD} open --toggle system-menu-closer --screen ${monitor.id}; ${EWW_CMD} open --toggle  system-menu --screen ${monitor.id}")))

@@ -159,18 +159,17 @@
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'doom-one t)
+  (load-theme 'doom-gruvbox t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
 (add-hook 'after-make-frame-functions
-          (lambda (f
-rame)
+          (lambda (frame)
             (with-selected-frame frame
-              (load-theme 'doom-one t)
+              (load-theme 'doom-gruvbox t)
               (set-face-attribute 'default nil
                     :family "Source Code Pro"
-                    :height 120
+                    :height 110
                     :weight 'normal
                     :width 'normal)
               (fringe-mode '(10 . 10))

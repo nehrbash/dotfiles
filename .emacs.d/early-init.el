@@ -13,13 +13,13 @@
 
 ;; Set default font
 (set-face-attribute 'default t
-                    :family "Source Code Pro Black"
-                    :height 120
+                    :family "Source Code Pro"
+                    :height 110
                     :weight 'normal
                     :width 'normal)
 
 ;; Set default font for new frames
-(add-to-list 'default-frame-alist '(font . "Source Code Pro Black-12"))
+(add-to-list 'default-frame-alist '(font . "Source Code Pro-11"))
 
 ;; Set fringe width
 (fringe-mode '(10 . 10))
