@@ -21,3 +21,4 @@
 *.ics
 /doc/*.org_archive
 *.org
+/.emacs.d/lisp/init-gcal.el

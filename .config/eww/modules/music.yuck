@@ -9,10 +9,8 @@
     (box
      :class "mr-15"
      :space-evenly false
-     (button
-        :onclick "${EWW_CMD} open --toggle music"
-        " ${music.title}")
-      (revealer
+     (label :text " ")
+     (revealer
         :transition "slideright"
         :reveal music_reveal
         :duration "350ms"
@@ -20,5 +18,8 @@
           :class "icon"
           (button :class "song-button" :onclick "playerctl previous" "")
           (button :class "song-button" :onclick "playerctl play-pause -p spotify" {music.status})
-          (button :class "song-button" :onclick "playerctl next" "")))))
+          (button :class "song-button" :onclick "playerctl next" "")))
+     (label
+      :text {music.title})
+      ))
    (box :class "spotify-left" (box :class "spotify-right-in" :width 15 ) )))

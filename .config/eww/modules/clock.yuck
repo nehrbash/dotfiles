@@ -1,7 +1,7 @@
 (defwidget clock_module []
   (eventbox
    :class "clock"
-   :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${hypr.id}; ${EWW_CMD} open --toggle control-menu --screen ${hypr.id}"
+   :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${monitor.name}; ${EWW_CMD} open --toggle control-menu --screen ${monitor.name}"
           (box
         :space-evenly false
         (label

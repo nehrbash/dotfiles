@@ -152,7 +152,6 @@
 
 (setq initial-major-mode 'org-mode)
 (setq initial-scratch-message "* Scratch\n\n#+begin_src emacs-lisp\n\n#+end_src")
-(add-hook 'emacs-startup-hook (lambda () (gtd)))
 
 (straight-use-package '(autothemer :type git :host github :repo "catppuccin/emacs"))
 (use-package doom-themes
@@ -160,14 +159,14 @@
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'catppuccin t)
+  (load-theme 'doom-miramare t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
 (add-hook 'after-make-frame-functions
           (lambda (frame)
             (with-selected-frame frame
-              (load-theme 'catppuccin t)
+              (load-theme 'doom-miramare t)
               (set-face-attribute 'default nil
                     :family "Source Code Pro"
                     :height 120
@@ -179,21 +178,15 @@
               )))
 (setq custom-safe-themes t)
 
-(use-package dimmer
-  :init (dimmer-mode)
-  :config (setq-default dimmer-fraction 0.15)
-  (advice-add 'frame-set-background-mode :after (lambda (&rest args) (dimmer-process-all)))
-  (defun sanityinc/display-non-graphic-p ()
-    (not (display-graphic-p)))
-  (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
-
 (use-package doom-modeline
   :init (doom-modeline-mode 1)
   :custom (
-           (doom-modeline-buffer-file-name-style 'truncate-upto-project)
-           (doom-modeline-vcs-max-length 30)
+           (doom-modeline-percent-position nil)
+           (doom-modeline-buffer-file-name-style 'auto)
+           (doom-modeline-vcs-max-length 18)
            (doom-modeline-height 40)
-           (doom-modeline-width 40)
+           (doom-modeline-buffer-state-icon t)
+           (doom-modeline-buffer-encoding nil)
            (all-the-icons-scale-factor 1)))
 
 (defun sanityinc/maybe-suspend-frame ()
@@ -786,8 +779,7 @@ This is useful when followed by an immediate kill."
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (require 'ox-extra)
   (require 'org-indent)
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-  (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f")
+  (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f")
         org-src-tab-acts-natively t
         org-src-fontify-natively t
         org-log-done t
@@ -987,7 +979,8 @@ This is useful when followed by an immediate kill."
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode)
   :config
-    (setq org-support-shift-select t))
+  (setq org-startup-with-latex-preview t)
+  (setq org-support-shift-select t))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -1403,5 +1396,20 @@ This is useful when followed by an immediate kill."
 (use-package terraform-mode)
 
 (use-package yuck-mode)
+
+(defun gpt/read-openai-key ()
+  (with-temp-buffer
+    (insert-file-contents "~/.gpt-key.txt")
+    (string-trim (buffer-string))))
+
+(use-package gptel
+  :straight t
+  :bind (("<f5>" . gptel)
+         ("C-<f5>" . gptel-menu))
+  :init
+  (setq-default gptel-model "gpt-3.5-turbo"
+                gptel-playback t
+                gptel-default-mode 'org-mode
+                gptel-api-key #'gpt/read-openai-key))
 
 (setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB, really high because I have 32 GB.

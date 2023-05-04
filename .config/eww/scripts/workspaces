@@ -52,7 +52,7 @@ monitor_event() {
 generate() {
   echo -n '['
 
-  for i in {1..10}; do
+  for i in {1..8}; do
     echo -n ''$([ $i -eq 1 ] || echo ,) '{ "number": "'"$i"'", "color": "'$(status "$i")'", "icon": "'$(icon $i)'" }'
   done
 

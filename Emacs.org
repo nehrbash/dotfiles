@@ -21,7 +21,6 @@
 - [[#ui][UI]]
   - [[#startup][Startup]]
   - [[#theme][Theme]]
-  - [[#dimmer][Dimmer]]
   - [[#modeline][Modeline]]
   - [[#gui-frames][GUI Frames]]
 - [[#dired][Dired]]
@@ -85,6 +84,8 @@
   - [[#docker][Docker]]
   - [[#terraform][Terraform]]
   - [[#yuck][Yuck]]
+- [[#ai-assistants][AI Assistants]]
+  - [[#gpt][GPT]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -149,6 +150,9 @@
 
   General editing configurations.
 
+  Packages I had at one point or another for UI.
+  - [[https://github.com/abo-abo/avy][avy]]
+    
 ** File Handler Functions
 *** Handier way to add modes to auto-mode-alist
 
@@ -347,6 +351,11 @@ Tramp was acting slow this helps...maybe
 
 * UI
 
+  Packages I had at one point or another for UI.
+  - [[https://github.com/gonewest818/dimmer.el][Dimmer]]
+  - [[https://github.com/emacs-dashboard/emacs-dashboard][Dashboard]]
+  - [[https://github.com/ema2159/centaur-tabs][Centaur tabs]]
+    
 ** Startup
 
    The default buffer.
@@ -354,7 +363,6 @@ Tramp was acting slow this helps...maybe
 #+begin_src emacs-lisp
 (setq initial-major-mode 'org-mode)
 (setq initial-scratch-message "* Scratch\n\n#+begin_src emacs-lisp\n\n#+end_src")
-(add-hook 'emacs-startup-hook (lambda () (gtd)))
 #+end_src
 
 ** Theme
@@ -366,14 +374,14 @@ Tramp was acting slow this helps...maybe
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'catppuccin t)
+  (load-theme 'doom-miramare t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
 (add-hook 'after-make-frame-functions
           (lambda (frame)
             (with-selected-frame frame
-              (load-theme 'catppuccin t)
+              (load-theme 'doom-miramare t)
               (set-face-attribute 'default nil
                     :family "Source Code Pro"
                     :height 120
@@ -386,30 +394,18 @@ Tramp was acting slow this helps...maybe
 (setq custom-safe-themes t)
 #+end_src
 
-** Dimmer
-
-   Dim the unfocused buffer.
-
-#+begin_src emacs-lisp
-   (use-package dimmer
-     :init (dimmer-mode)
-     :config (setq-default dimmer-fraction 0.15)
-     (advice-add 'frame-set-background-mode :after (lambda (&rest args) (dimmer-process-all)))
-     (defun sanityinc/display-non-graphic-p ()
-       (not (display-graphic-p)))
-     (add-to-list 'dimmer-exclusion-predicates 'sanityinc/display-non-graphic-p))
-#+end_src
-
 ** Modeline
 
  #+begin_src emacs-lisp
  (use-package doom-modeline
    :init (doom-modeline-mode 1)
    :custom (
-            (doom-modeline-buffer-file-name-style 'truncate-upto-project)
-            (doom-modeline-vcs-max-length 30)
+            (doom-modeline-percent-position nil)
+            (doom-modeline-buffer-file-name-style 'auto)
+            (doom-modeline-vcs-max-length 18)
             (doom-modeline-height 40)
-            (doom-modeline-width 40)
+            (doom-modeline-buffer-state-icon t)
+            (doom-modeline-buffer-encoding nil)
             (all-the-icons-scale-factor 1)))
  #+end_src
 
@@ -1140,6 +1136,7 @@ install rg and ag manually
 #+end_src
 
 ** projectile
+             
 
 #+begin_src emacs-lisp
 (use-package projectile
@@ -1203,8 +1200,7 @@ install rg and ag manually
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (require 'ox-extra)
   (require 'org-indent)
-  (setq org-format-latex-options (plist-put org-format-latex-options :scale 2.0))
-  (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -output-directory=%o -f %f")
+  (setq org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f")
         org-src-tab-acts-natively t
         org-src-fontify-natively t
         org-log-done t
@@ -1357,8 +1353,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
      (sqlite . t))))
 #+end_src
 
-
-
 ** Pomodoro Timer
 
 Basically just followed the directions from this cool blog.   https://colekillian.com/posts/org-pomodoro-and-polybar/
@@ -1450,7 +1444,8 @@ Basically just followed the directions from this cool blog.   https://colekillia
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode)
   :config
-    (setq org-support-shift-select t))
+  (setq org-startup-with-latex-preview t)
+  (setq org-support-shift-select t))
 #+end_src
 
 ** Auto Save PDF Toggle
@@ -2009,6 +2004,32 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package yuck-mode)
+#+end_src
+
+* AI Assistants
+   
+  Tools that are not human
+  
+** GPT
+   
+   This section contains an Emacs Lisp function that reads a text file c
+ontaining an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
+   
+#+begin_src emacs-lisp
+(defun gpt/read-openai-key ()
+  (with-temp-buffer
+    (insert-file-contents "~/.gpt-key.txt")
+    (string-trim (buffer-string))))
+
+(use-package gptel
+  :straight t
+  :bind (("<f5>" . gptel)
+         ("C-<f5>" . gptel-menu))
+  :init
+  (setq-default gptel-model "gpt-3.5-turbo"
+                gptel-playback t
+                gptel-default-mode 'org-mode
+                gptel-api-key #'gpt/read-openai-key))
 #+end_src
 
 * Runtime Performance
