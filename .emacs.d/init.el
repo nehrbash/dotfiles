@@ -159,14 +159,15 @@
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'doom-miramare t)
+  (load-theme 'doom-one t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
 (add-hook 'after-make-frame-functions
-          (lambda (frame)
+          (lambda (f
+rame)
             (with-selected-frame frame
-              (load-theme 'doom-miramare t)
+              (load-theme 'doom-one t)
               (set-face-attribute 'default nil
                     :family "Source Code Pro"
                     :height 120
@@ -207,6 +208,10 @@
       '((:eval (if (buffer-file-name)
                    (abbreviate-file-name (buffer-file-name))
                  "%b"))))
+
+(use-package rainbow-mode
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-mode))
 
 (use-package dired
   :straight (:type built-in)

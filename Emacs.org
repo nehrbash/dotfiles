@@ -18,11 +18,12 @@
   - [[#electri-pair][Electri Pair]]
   - [[#tramp][TRAMP]]
   - [[#init-path-environment-variable][Init PATH environment variable]]
-- [[#ui][UI]]
+- [[#ui-stuff][UI Stuff]]
   - [[#startup][Startup]]
   - [[#theme][Theme]]
   - [[#modeline][Modeline]]
   - [[#gui-frames][GUI Frames]]
+  - [[#hex-colors][Hex colors]]
 - [[#dired][Dired]]
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
@@ -349,7 +350,7 @@ Tramp was acting slow this helps...maybe
   (exec-path-from-shell-initialize))
 #+end_src
 
-* UI
+* UI Stuff
 
   Packages I had at one point or another for UI.
   - [[https://github.com/gonewest818/dimmer.el][Dimmer]]
@@ -374,14 +375,15 @@ Tramp was acting slow this helps...maybe
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t))
   :config
-  (load-theme 'doom-miramare t)
+  (load-theme 'doom-one t)
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
 (add-hook 'after-make-frame-functions
-          (lambda (frame)
+          (lambda (f
+rame)
             (with-selected-frame frame
-              (load-theme 'doom-miramare t)
+              (load-theme 'doom-one t)
               (set-face-attribute 'default nil
                     :family "Source Code Pro"
                     :height 120
@@ -464,9 +466,20 @@ Tramp was acting slow this helps...maybe
         (set-window-buffer nil (current-buffer))
     #+end_src
     
+** Hex colors
+
+   Show hex colors while coding   
+#+begin_src emacs-lisp
+(use-package rainbow-mode
+  :config
+  (add-hook 'prog-mode-hook #'rainbow-mode))
+#+end_src
+
+That should do it
+
 * Dired
 
-Need to revisit now that I am using dirvish.
+  Need to revisit now that I am using dirvish.
 
 #+begin_src emacs-lisp
 (use-package dired
@@ -535,7 +548,7 @@ Need to revisit now that I am using dirvish.
 
   Experimenting with new hype packages. replaces ivy and counsel aka completion framework. (What make Emacs Emacs IMO).
 
-#+BEGIN_SRC emacs-lisp
+#+begin_src emacs-lisp
 (use-package vertico
   :config
   :init (vertico-mode))
