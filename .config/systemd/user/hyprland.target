@@ -1,0 +1,6 @@
+[Unit]
+Description=Hyprland Target
+Documentation=man:systemd.special(7)
+Requires=hyprland.service
+After=hyprland.service
+AllowIsolate=yes

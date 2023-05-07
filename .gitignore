@@ -22,3 +22,8 @@
 /doc/*.org_archive
 *.org
 /.emacs.d/lisp/init-gcal.el
+/.config/systemd/user/default.target.wants/
+*.wants/
+/.config/systemd/user/pipewire-session-manager.service
+/.emacs.d/.cask/
+/doc/pdfs/

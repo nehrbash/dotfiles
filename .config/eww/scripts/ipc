@@ -1,0 +1,9 @@
+#!/usr/bin/env bash
+function handle {
+    echo "$1"
+}
+
+while true; do
+    socat - UNIX-CONNECT:/tmp/hypr/$HYPRLAND_INSTANCE_SIGNATURE/.socket2.sock | while read line; do handle $line; done
+done
+

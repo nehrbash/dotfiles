@@ -163,19 +163,19 @@
   (doom-themes-org-config))
 ;; to load theme properly when new client frame is created
 
-(add-hook 'after-make-frame-functions
-          (lambda (frame)
-            (with-selected-frame frame
-              (load-theme 'doom-gruvbox t)
-              (set-face-attribute 'default nil
-                    :family "Source Code Pro"
-                    :height 110
-                    :weight 'normal
-                    :width 'normal)
-              (fringe-mode '(10 . 10))
-              (pixel-scroll-precision-mode t)
-              (set-face-attribute 'header-line nil :height 100)
-              )))
+;; (add-hook 'after-make-frame-functions
+;;           (lambda (frame)
+;;             (with-selected-frame frame
+;;               (load-theme 'doom-gruvbox t)
+;;               (set-face-attribute 'default nil
+;;                     :family "Source Code Pro"
+;;                     :height 110
+;;                     :weight 'normal
+;;                     :width 'normal)
+;;               (fringe-mode '(10 . 10))
+;;               (pixel-scroll-precision-mode t)
+;;               (set-face-attribute 'header-line nil :height 100)
+;;               )))
 (setq custom-safe-themes t)
 
 (use-package doom-modeline
@@ -1202,17 +1202,12 @@ This is useful when followed by an immediate kill."
 
 (use-package pdf-tools
   :magic ("%PDF" . pdf-view-mode)
-  :hook (pdf-tools-enabled . hide-mode-line-mode)
-  :hook (pdf-tools-enabled . pdf-view-midnight-minor-mode)
-  :hook (pdf-tools-enabled . pdf-view-printer-minor-mode)
   :config
-  (pdf-tools-install 'no-query)
-  (setq-default pdf-view-display-size 'fit-page)
-  :bind (
-         :map pdf-view-mode-map
-         ("h" . pdf-annot-add-highlight-markup-annotation)
-         ("t" . pdf-annot-add-text-annotation)
-         ("D" . pdf-annot-delete)))
+  ;; midnite mode hook
+  (add-hook 'pdf-view-mode-hook (lambda ()
+                                 (pdf-view-midnight-minor-mode))) ; automatically turns on midnight-mode for pdfs
+
+(setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12")))
 
 (use-package markdown-mode
   :config

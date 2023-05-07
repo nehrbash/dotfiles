@@ -1,0 +1,15 @@
+[Unit]
+Description=Hyprland Wallpaper
+After=hyprland.target
+Wants=hyprland.target
+BindsTo=hyprland.target
+
+[Service]
+Type=simple
+EnvironmentFile=-/tmp/hypr/env
+ExecStart=/usr/bin/hyprpaper
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=hyprland.target

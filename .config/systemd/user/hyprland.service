@@ -1,0 +1,14 @@
+[Unit]
+Description=Start Hyprland with systemd for user %i
+BindsTo=hyprland.target
+Before=hyprland.target
+After=default.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/Hyprland
+Restart=always
+RestartSec=5s
+
+[Install]
+WantedBy=default.target

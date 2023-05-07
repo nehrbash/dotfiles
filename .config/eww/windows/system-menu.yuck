@@ -27,20 +27,11 @@
         :orientation "v"
         (box
           :class "element icon"
-          :space-evenly false
           (button
-            :class "wifi-button"
-            :onclick "scripts/net toggle"
-            {net.icon})
-          (label
-            :class "separator"
-            :text "|")
-          (button
-            :class "wifi-arrow-btn"
-            :onclick "eww close system-menu && nm-connection-editor &"
-            ""))
+            :onclick "eww close system-menu && eww close system-menu-closer && scripts/record toggle"
+            {record_state}))
         (label
-          :text {net.essid}
+          :text "Record"
           :xalign 0.5
           :limit-width 15))
 
@@ -50,22 +41,12 @@
         :orientation "v"
         (box
           :class "element icon"
-          :space-evenly false
           (button
-            :class "bluetooth-button"
-            :onclick "scripts/bluetooth toggle"
-            {bluetooth.icon})
-          (label
-            :class "separator"
-            :text "|")
-          (button
-            :class "bluetooth-arrow-btn"
-            :onclick "eww close system-menu && blueberry"
-            ""))
+            :onclick "eww close system-menu && eww close system-menu-closer && nwg-displays &"
+            ""))
         (label
-          :text {bluetooth.text}
+          :text "Moitors"
           :xalign 0.5
-          :tooltip "${bluetooth.text} ${bluetooth.batt_icon}"
           :limit-width 15))
 
       (box
@@ -73,11 +54,11 @@
         :space-evenly false
         :orientation "v"
         (box
-          :class "element"
+          :class "element icon"
           (button
             :class "airplane-button"
-            :onclick "scripts/inhibitor toggle"
-            inhibitor))
+            :onclick "eww close system-menu && eww close system-menu-closer && scripts/inhibitor toggle &"
+            {inhibitor}))
         (label
           :text "Inhibitor"
           :xalign 0.5
@@ -176,7 +157,7 @@
         (button
           :halign "end"
           :class "power-button icon"
-          :onclick "gnome-control-center"
+          :onclick "nwg-look &"
           :style "margin-right: 5px;"
           "⚙")
         (power)))))

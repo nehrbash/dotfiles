@@ -1,43 +1,57 @@
 #!/bin/bash
 
-# inhibitor on means that swayidle is not on and the screen will never fall asleep
+pid_file="/tmp/swayidle.pid"
 
-if [ -z "$(pgrep swayidle)" ]
+# Set the appropriate icon based on the existence of the PID file
+if [ -f "$pid_file" ]
 then
-    inhibitor="on"
-    icon=""
-else
-    inhibitor="off"
     icon=""
+else
+    icon=""
 fi
 
-function off {
+off() {
     swayidle -w \
              timeout 275 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
              timeout 300 'swaylock-fancy &' \
              timeout 600 'hyprctl dispatch dpms off' \
              resume 'hyprctl dispatch dpms on' \
              before-sleep 'swaylock-fancy' &
+
+    echo $! > "$pid_file"
+
+    notify-send "Inhibitor" "Deactivated"
+    eww update inhibitor=$icon
 }
 
-function toggle {
-    if [[ $inhibitor == "off" ]]
+on() {
+    pkill -F "$pid_file"
+    rm -f "$pid_file"
+
+    notify-send "Inhibitor" "Activated"
+    eww update inhibitor=$icon
+}
+
+toggle() {
+    if [ -f "$pid_file" ]
     then
-        pkill swayidle
-        notify-send "Inhibitor" "Activated"
+        on
     else
         off
-        notify-send "Inhibitor" "Deactivated"
     fi
 }
 
-
-if [[ $1 == "toggle" ]]
-then
-  toggle
-elif [[ $1 == "off" ]]
-then
-     off
-else # display icon
-    echo $icon
-fi
+case $1 in
+    "toggle")
+        toggle
+        ;;
+    "off")
+        off
+        ;;
+    "on")
+        on
+        ;;
+    *)
+        echo $icon
+        ;;
+esac

@@ -1,0 +1,14 @@
+[Unit]
+Description=Eww Daemon
+After=hyprshell.service
+Wants=hyprland.target
+BindsTo=hyprland.target
+
+[Service]
+Type=simple
+ExecStart=/usr/bin/eww daemon
+Restart=on-failure
+RestartSec=5
+
+[Install]
+WantedBy=hyprland.target

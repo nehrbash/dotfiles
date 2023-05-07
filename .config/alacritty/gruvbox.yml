@@ -135,3 +135,4 @@ schemes:
 
 # Apply the color scheme.
 colors: *gruvbox_material_medium_dark
+# colors: *gruvbox_material_soft_light
