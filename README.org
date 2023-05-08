@@ -11,8 +11,9 @@
 - Theme: Gruvbox
 - cursor theme: Dracula
 - Fonts
-  - eww: Product Sans, Material Icons Outlined
-  - Terminal, Emacs:  Source Code Pro
+  - Product Sans
+  - Material Icons Outlined
+  - Source Code Pro
 
 * Table Of Contents :TOC:
 - [[#install-steps][Install Steps]]
@@ -65,6 +66,8 @@ rm -r paru
 paru --needed -S - < pkglist.txt
 #+end_src
 
+*** Terminal Zsh
+
 #+begin_src txt :tangle pkglist.txt
 alacritty
 zsh
@@ -72,6 +75,12 @@ zsh-autosuggestions
 zsh-completions
 zsh-history-substring-search
 zsh-syntax-highlighting
+exa
+#+end_src
+
+#+begin_src sh :tangle install.sh
+mkdir -p "$HOME/.zsh"
+git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
 #+end_src
 
 ** Personal Software
@@ -80,12 +89,14 @@ zsh-syntax-highlighting
 
 #+begin_src txt :tangle pkglist.txt
 vlc
+steam
+downgrade
+android-messages-desktop-bin
 #+end_src
-
 
 ** List of all packages on my System
 
-   All installed packages In case you are crazy enough to want to use something and it's not working.
+   All installed packages
 
 #+begin_src sh :tangle no
 paru -Qqen
@@ -368,17 +379,40 @@ paru -Qqen
 
 * Keyboard
 
-  - [[https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
+[[images/keyboard.jpg]]
+
+  - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
   - [[https://github.com/manna-harbour/miryoku][Layout]]
 
-* Spicetify :OUTDATED:
+* Spicetify
 
   I use this (mocha) just follow the well made instructions.
   https://github.com/catppuccin/spicetify
 
+#+begin_src txt :tangle pkglist.txt
+spicetify-cli
+spicetify-themes-git
+spotify-launcher
+#+end_src
+
+#+begin_src sh :tangle install.sh
+spicetify config current_theme Onepunch color_scheme light
+spicetify apply
+#+end_src
+
+
+
 * Emacs
 
 My Emacs config can be found in [[file:Emacs.org][Here]]. Right now I am using *emacs-native-comp-git-enhanced* should work with emacs > 28.1
+
+#+begin_src txt :tangle pkglist.txt
+emacs-pdf-tools-git
+aspell
+aspell-en
+ripgrep
+#+end_src
+
 
 ** Setting XDG Defaults to Emacs
 
@@ -400,11 +434,25 @@ touch ~/doc/inbox.org
 
   I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
 
+#+begin_src txt :tangle pkglist.txt
+hyprland-nvidia-git
+xdg-desktop-portal-hyprland-git
+#+end_src
+
+
 ** TODO Hyprbar Plugin
 
 * TODO Eww
 
  Under refactor.
+
+#+begin_src :tangle pkglist.txt
+eww-wayland
+swayidle
+nwg-look
+jaq
+jq
+#+end_src
 
 * References
 - https://github.com/fufexan/dotfiles

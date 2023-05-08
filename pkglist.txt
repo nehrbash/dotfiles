@@ -4,5 +4,21 @@ zsh-autosuggestions
 zsh-completions
 zsh-history-substring-search
 zsh-syntax-highlighting
+exa
 
 vlc
+steam
+downgrade
+android-messages-desktop-bin
+
+spicetify-cli
+spicetify-themes-git
+spotify-launcher
+
+emacs-pdf-tools-git
+aspell
+aspell-en
+ripgrep
+
+hyprland-nvidia-git
+xdg-desktop-portal-hyprland-git
