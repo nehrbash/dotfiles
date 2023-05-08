@@ -21,6 +21,7 @@
   - [[#install-paruyay][Install Paru/yay]]
   - [[#installed-packages][Installed packages]]
   - [[#personal-software][Personal Software]]
+  - [[#autologin][Autologin]]
   - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
 - [[#keyboard][Keyboard]]
 - [[#spicetify][Spicetify]]
@@ -92,6 +93,34 @@ vlc
 steam
 downgrade
 android-messages-desktop-bin
+#+end_src
+
+** Autologin
+
+   I don't user a greater
+
+#+begin_src sh :tangle install.sh
+sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
+sudo touch /etc/systemd/system/getty@tty1.service.d/override.conf
+#+end_src
+
+*** override.conf
+
+#+begin_src conf :tangle no
+[Service]
+Environment=LIBSEAT_BACKEND=logind
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin nehrbash %I $TERM
+#+end_src
+
+*** My Services
+
+#+begin_src sh :tangle install.sh
+systemctl --user enable hyprland.service
+systemctl --user enable hyprpaper.service
+systemctl --user enable hyprshell.service
+systemctl --user enable eww.service
+# systemctl --user enable swaync.service
 #+end_src
 
 ** List of all packages on my System
@@ -376,7 +405,6 @@ paru -Qqen
 | zsh-history-substring-search    |
 | zsh-syntax-highlighting         |
 
-
 * Keyboard
 
 [[images/keyboard.jpg]]
@@ -399,8 +427,6 @@ spotify-launcher
 spicetify config current_theme Onepunch color_scheme light
 spicetify apply
 #+end_src
-
-
 
 * Emacs
 
