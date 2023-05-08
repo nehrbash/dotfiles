@@ -1,5 +1,0 @@
-:PROPERTIES:
-:ID:       a0806127-2ef2-468d-9214-b1e8dc637b42
-:END:
-#+title: 2023-01-23
-I worked on my EWW configuration instead of working today which is sad because i like my current task. but hopefully soon I'll

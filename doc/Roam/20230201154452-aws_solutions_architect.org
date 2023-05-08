@@ -1,7 +1,0 @@
-:PROPERTIES:
-:ID:       71aa985f-b678-4399-9f4c-63b525c178dc
-:END:
-#+title: AWS Solutions Architect
-what cloud services to use. instead of reinventing the wheel.
-
-lots of services

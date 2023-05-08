@@ -66,6 +66,7 @@ paru --needed -S - < pkglist.txt
 #+end_src
 
 #+begin_src txt :tangle pkglist.txt
+alacritty
 zsh
 zsh-autosuggestions
 zsh-completions

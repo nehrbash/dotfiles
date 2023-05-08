@@ -1,4 +1,0 @@
-:PROPERTIES:
-:ID:       7fe91f82-86df-416e-b0e1-453501265c06
-:END:
-#+title: 2023-02-01
