@@ -1,8 +1,4 @@
 #+TITLE:My Setup
-#+PROPERTY: header-args:sh :tangle ~/.local/bin/install
-
-Here are my configs, no they are not well maintained and are very volatile right now.
-
 - [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][Wallpaper]]
 - [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
 - [[https://github.com/hyprwm/Hyprland][Hyprland]]
@@ -18,69 +14,80 @@ Here are my configs, no they are not well maintained and are very volatile right
   - eww: Product Sans, Material Icons Outlined
   - Terminal, Emacs:  Source Code Pro
 
-* Instructions :TOC:
+* Table Of Contents :TOC:
+- [[#install-steps][Install Steps]]
+  - [[#clone-dots][Clone Dots]]
+  - [[#install-paruyay][Install Paru/yay]]
+  - [[#installed-packages][Installed packages]]
+  - [[#personal-software][Personal Software]]
+  - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
 - [[#keyboard][Keyboard]]
-- [[#install-paru][Install Paru]]
 - [[#spicetify][Spicetify]]
 - [[#emacs][Emacs]]
   - [[#setting-xdg-defaults-to-emacs][Setting XDG Defaults to Emacs]]
-  - [[#set-up-org-agenda-and-roam][set up org agenda and Roam]]
-- [[#installed-packages][Installed packages]]
-- [[#my-dots][My dots]]
+  - [[#set-up-org-agenda-and-roam][Set Up Org Agenda And Roam]]
 - [[#hyprland][Hyprland]]
+  - [[#hyprbar-plugin][Hyprbar Plugin]]
 - [[#eww][Eww]]
-  - [[#references][References]]
+- [[#references][References]]
 
-* Keyboard
-  - [[https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
-  - [[https://github.com/manna-harbour/miryoku][Layout]]
+* Install Steps
 
-* Install Paru
+  Follow steps or risk running install.sh
 
-  https://github.com/Morganamilo/paru#installation
+** Clone Dots
 
-#+begin_src sh
+    1. I use stow, you just clone the repo to ~~/.dotfiles~ and run ~stow .~ to symlink files into place.
+
+#+begin_src sh :tangle no
+git clone https://github.com/snehrbass/dotfiles.git
+cd .dotfiles
+stow .
+#+end_src
+
+** Install Paru/yay
+
+#+begin_src sh :tangle install.sh
 #! /bin/bash
 sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
 cd paru
 makepkg -si
 cd -
+rm -r paru
 #+end_src
 
-* Spicetify
+** Installed packages
 
-  I use this (mocha) just follow the well made instructions.
-  https://github.com/catppuccin/spicetify
+   Installed Required packages
 
-* Emacs
-
-My Emacs config can be found in Emacs.org. Right now I am using *emacs-native-comp-git-enhanced*
-
-** Setting XDG Defaults to Emacs
-
-https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mode-in-emacs
-
-#+begin_src sh
-xdg-mime default emacsclient.desktop application/pdf
-xdg-mime default emacsclient.desktop inode/directory
+#+begin_src sh :tangle install.sh
+paru --needed -S - < pkglist.txt
 #+end_src
 
-** set up org agenda and Roam
-
-#+begin_src sh
-mkdir -p ~/doc
-mkdir -p ~/doc/Roam/Journal
-[ -f "~/doc/inbox.org" ] && echo '#+CATEGORY: Inbox\n#+CATEGORY: Inbox\n' > ~/doc/inbox.org
+#+begin_src txt :tangle pkglist.txt
+zsh
+zsh-autosuggestions
+zsh-completions
+zsh-history-substring-search
+zsh-syntax-highlighting
 #+end_src
 
-* Installed packages
+** Personal Software
 
-  My installed packages In case you are crazy enough to want to use something and it's not working.
+   Packages On my system that aren't related to my setup.
+
+#+begin_src txt :tangle pkglist.txt
+vlc
+#+end_src
 
 
-#+begin_src sh :exports both
-paru -Qqe
+** List of all packages on my System
+
+   All installed packages In case you are crazy enough to want to use something and it's not working.
+
+#+begin_src sh :tangle no
+paru -Qqen
 #+end_src
 
 #+RESULTS:
@@ -358,24 +365,47 @@ paru -Qqe
 | zsh-syntax-highlighting         |
 
 
-* My dots
+* Keyboard
 
-I use stow, you just clone the repo to ~~/.dotfiles~ and run the following
+  - [[https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
+  - [[https://github.com/manna-harbour/miryoku][Layout]]
 
-#+begin_src sh
-cd .dotfiles
-stow .
+* Spicetify :OUTDATED:
+
+  I use this (mocha) just follow the well made instructions.
+  https://github.com/catppuccin/spicetify
+
+* Emacs
+
+My Emacs config can be found in [[file:Emacs.org][Here]]. Right now I am using *emacs-native-comp-git-enhanced* should work with emacs > 28.1
+
+** Setting XDG Defaults to Emacs
+
+https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mode-in-emacs
+
+#+begin_src sh :tangle install.sh
+xdg-mime default emacsclient.desktop application/pdf
+xdg-mime default emacsclient.desktop inode/directory
+#+end_src
+
+** Set Up Org Agenda And Roam
+
+#+begin_src sh :tangle install.sh
+mkdir -p ~/doc/Roam/Journal
+touch ~/doc/inbox.org
 #+end_src
 
 * Hyprland
 
-  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here. Currently, the biggest downside is that xwayland definitely does not work as well compared to gnome.
+  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
 
-* Eww
+** TODO Hyprbar Plugin
 
-  Used these configs to make mine or as references. Current version is heaveily based off fufexan. current work is to convert all scripts to a single golang daemon that uses dbus to give eww variables.
+* TODO Eww
 
-** References
+ Under refactor.
+
+* References
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
 - https://github.com/saimoomedits/eww-widgets

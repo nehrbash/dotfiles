@@ -150,7 +150,7 @@
 * Editing Utilities
 
   General editing configurations.
-
+  
   Packages I had at one point or another for UI.
   - [[https://github.com/abo-abo/avy][avy]]
     
