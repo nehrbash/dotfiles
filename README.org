@@ -7,14 +7,16 @@ Here are my configs, no they are not well maintained and are very volatile right
 - [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
 - [[https://github.com/hyprwm/Hyprland][Hyprland]]
 - [[https://archlinux.org/][Arch Linux]]
-- nwg-shell (menu, drawer, wrapper)
-- Bars: eww
+- nwg-shell (monitors, settings)
+- Bar: eww
 - pipewire, easyeffects
-- File Manager: Gnome Files, Dirvish (Emacs), Dired (Emacs) (mostly just use command line )
+- File Manager: Gnome Files, Dirvish (Emacs), Dired (Emacs)
 - PDF Viewer: pdf-tools (Emacs)
-- Theme: [[https://github.com/catppuccin/catppuccin][Catppuccin]] - I am basic I know
+- Theme: Gruvbox
 - cursor theme: Dracula
-- Fonts: (a complete mess, I have so many installed)
+- Fonts
+  - eww: Product Sans, Material Icons Outlined
+  - Terminal, Emacs:  Source Code Pro
 
 * Instructions :TOC:
 - [[#keyboard][Keyboard]]
@@ -102,6 +104,7 @@ paru -Qqe
 | bluez-utils                     |
 | bt-dualboot                     |
 | btrfs-progs                     |
+| cairo-dock                      |
 | catppuccin-gtk-theme-frappe     |
 | catppuccin-gtk-theme-latte      |
 | catppuccin-gtk-theme-macchiato  |
@@ -109,13 +112,13 @@ paru -Qqe
 | catppuccin-mocha-dark-cursors   |
 | cheese                          |
 | cmake                           |
-| cozette-ttf                     |
-| cronie                          |
+| cpio                            |
 | dart-sass                       |
 | debugedit                       |
-| discord_arch_electron             |
+| discord                         |
 | docker                          |
 | docker-compose                  |
+| downgrade                       |
 | dracula-cursors-git             |
 | dracula-gtk-theme-git           |
 | dracula-icons-git               |
@@ -124,6 +127,7 @@ paru -Qqe
 | efibootmgr                      |
 | electron-fiddle-bin             |
 | emacs-native-comp-git-enhanced  |
+| emacs-pdf-tools-git             |
 | eog                             |
 | epiphany                        |
 | evince                          |
@@ -138,6 +142,7 @@ paru -Qqe
 | gawk                            |
 | gcc                             |
 | gdm                             |
+| geticons                        |
 | gettext                         |
 | gimp                            |
 | git                             |
@@ -148,9 +153,11 @@ paru -Qqe
 | gnome-calculator                |
 | gnome-calendar                  |
 | gnome-characters                |
+| gnome-clocks                    |
 | gnome-color-manager             |
 | gnome-console                   |
 | gnome-contacts                  |
+| gnome-control-center            |
 | gnome-disk-utility              |
 | gnome-font-viewer               |
 | gnome-keyring                   |
@@ -164,10 +171,12 @@ paru -Qqe
 | gnome-session                   |
 | gnome-settings-daemon           |
 | gnome-shell                     |
+| gnome-shell-extensions          |
 | gnome-software                  |
 | gnome-system-monitor            |
 | gnome-text-editor               |
 | gnome-tweaks                    |
+| gnome-user-docs                 |
 | gnome-user-share                |
 | gnome-video-effects             |
 | gnome-weather                   |
@@ -180,6 +189,7 @@ paru -Qqe
 | grilo-plugins                   |
 | grim                            |
 | groff                           |
+| gruvbox-dark-gtk                |
 | gst-plugin-pipewire             |
 | gtk-engine-murrine              |
 | gtk-engines                     |
@@ -195,15 +205,20 @@ paru -Qqe
 | helvum                          |
 | htop                            |
 | hyprland-nvidia-git             |
+| hyprpaper-git                   |
+| i2c-tools                       |
 | inetutils                       |
 | iwd                             |
 | iwgtk                           |
 | jaq                             |
 | jq                              |
+| libgccjit                       |
 | libpulse                        |
 | libtool                         |
 | libu2f-server                   |
 | libva-mesa-driver               |
+| libva-nvidia-driver-git         |
+| libxnvctrl                      |
 | linux                           |
 | linux-firmware                  |
 | linux-headers                   |
@@ -212,14 +227,13 @@ paru -Qqe
 | lxappearance                    |
 | m4                              |
 | make                            |
-| malcontent                      |
 | man-db                          |
 | mkinitcpio-firmware             |
 | mutter                          |
 | nano                            |
 | nautilus                        |
+| neofetch                        |
 | net-tools                       |
-| network-manager-applet          |
 | networkmanager                  |
 | nfs-utils                       |
 | nix                             |
@@ -227,10 +241,13 @@ paru -Qqe
 | noto-fonts-cjk                  |
 | noto-fonts-extra                |
 | ntfs-3g                         |
-| nvidia-dkms                     |
+| nvidia-beta-dkms                |
+| nvidia-lts                      |
 | nvidia-settings                 |
-| nvidia-vaapi-driver-git         |
+| nwg-displays                    |
+| nwg-dock-hyprland               |
 | nwg-launchers-git               |
+| nwg-look                        |
 | nwg-menu                        |
 | oniguruma                       |
 | opensc                          |
@@ -238,11 +255,13 @@ paru -Qqe
 | orca                            |
 | otf-daddytimemono-git           |
 | otf-material-icons-git          |
+| otf-symbola                     |
 | pacman                          |
 | pacman-contrib                  |
 | paru-bin                        |
 | patch                           |
 | pavucontrol                     |
+| pcsc-tools                      |
 | pipewire                        |
 | pipewire-alsa                   |
 | pipewire-jack                   |
@@ -256,6 +275,7 @@ paru -Qqe
 | qt5-wayland                     |
 | qt5ct                           |
 | ripgrep                         |
+| rust                            |
 | rygel                           |
 | sed                             |
 | simple-scan                     |
@@ -265,14 +285,14 @@ paru -Qqe
 | socat                           |
 | softhsm                         |
 | spicetify-cli                   |
+| spicetify-themes-git            |
 | spotify-launcher                |
 | sshfs                           |
 | steam                           |
 | stow                            |
 | sudo                            |
 | sushi                           |
-| swaybg                          |
-| swayidle-git                    |
+| swayidle                        |
 | swaylock                        |
 | swaylock-fancy-git              |
 | swaync                          |
@@ -284,6 +304,7 @@ paru -Qqe
 | torbrowser-launcher             |
 | totem                           |
 | tracker3-miners                 |
+| tree-sitter                     |
 | ttf-clear-sans                  |
 | ttf-font-awesome                |
 | ttf-google-sans                 |
@@ -299,6 +320,8 @@ paru -Qqe
 | ttf-victor-mono-nerd            |
 | vim                             |
 | visual-studio-code-bin          |
+| vlc                             |
+| watershot-git                   |
 | wdisplays                       |
 | wf-recorder                     |
 | wget                            |
@@ -309,6 +332,7 @@ paru -Qqe
 | wl-clipboard                    |
 | wlogout-git                     |
 | wlr-randr                       |
+| wlroots                         |
 | wmctrl                          |
 | wofi                            |
 | wqy-zenhei                      |
@@ -332,7 +356,6 @@ paru -Qqe
 | zsh-completions                 |
 | zsh-history-substring-search    |
 | zsh-syntax-highlighting         |
-
 
 
 * My dots

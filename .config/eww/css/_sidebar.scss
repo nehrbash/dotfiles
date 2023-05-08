@@ -12,7 +12,10 @@
 .top-row {
   margin: 1rem 1.5rem 0;
 
-  .time { font-size: 2rem; }
+  .time {
+      font-size: 2rem;
+      margin-left: 10px;
+  }
 
   .date-box {
     margin: 0 1rem;

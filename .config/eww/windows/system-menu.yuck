@@ -7,6 +7,9 @@
       :class "top-row"
       :space-evenly false
       (label
+       :class "profile"
+       :style "background-image: url(\"${profile-image}\");")
+      (label
         :class "time"
         :text "${time.hour}:${time.minute}")
       (box
@@ -19,8 +22,9 @@
           :class "day"
           :text {time.day})))
 
-    (centerbox
+    (box
       :class "system-row"
+      :space-evenly true
       (box
         :class "wifi-box"
         :space-evenly false
@@ -46,8 +50,7 @@
             ""))
         (label
           :text "Moitors"
-          :xalign 0.5
-          :limit-width 15))
+          :xalign 0.5))
 
       (box
         :class "airplane-box"
@@ -156,10 +159,9 @@
         :halign "end"
         (button
           :halign "end"
-          :class "power-button icon"
           :onclick "nwg-look &"
           :style "margin-right: 5px;"
-          "⚙")
+          "")
         (power)))))
 
 ;; windows

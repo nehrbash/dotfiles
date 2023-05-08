@@ -7,12 +7,11 @@
 (defvar vol_reveal true)
 (defvar inhibitor "")
 (defvar record_state "")
-(defvar profile-image "/home/nehrbash/Pictures/gopherMe_small.png")
+(defvar profile-image "images/profile.png")
 (defpoll time :interval "1s" `date +'{"date": "%m/%d/%y", "hour": "%I", "minute": "%M %p", "day": "%A"}'`)
 (defpoll upgrades :interval "1h" `checkupdates | wc -l`)
 (defpoll pomo :interval "1s" `scripts/pomo`)
 (defpoll tasks :interval "1m" `scripts/tasks`)
-
 (deflisten battery "scripts/battery")
 (deflisten bluetooth "scripts/bluetooth")
 (deflisten brightness "scripts/brightness")

@@ -16,6 +16,10 @@
   background-color: $bg1;
 }
 
+.sys-icon {
+    color: $red;
+}
+
 .iconmem {
   color: $peach;
 }
@@ -32,6 +36,19 @@
 .sys-text-sub {
   color: $text;
 }
+
+.profile {
+  @include rounding;
+  background-position: center;
+  background-size: cover;
+  margin: 4px 5px 4px 0;
+  min-height: 48px;
+  min-width: 48px;
+  border-radius: 100%;
+  border: 4px solid $maroon;
+}
+
+
 
 .sys-text-mem,
 .sys-text-cpu {
@@ -73,8 +90,4 @@
   margin: .3em;
 
   box { margin-left: 1rem; }
-}
-
-.ws {
-    font-family: SourceCode;
 }
