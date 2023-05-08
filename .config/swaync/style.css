@@ -3,13 +3,15 @@
     font-size: 12px;
 }
 
+@import 'colors.scss';
+
 .notification-row {
   outline: none;
   margin-left: 20px;
 }
 .notification-row:focus,
 .notification-row:hover {
-  background: @bg-focus;
+  background: @sky;
 }
 
 .notification {

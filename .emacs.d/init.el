@@ -372,6 +372,15 @@
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   :config
+  (defun sn/consult-ripgrep ()
+    "Run `consult-ripgrep` from the project root directory if available, or the current directory otherwise."
+    (interactive)
+    (let ((default-directory (if (projectile-project-p)
+                                 (projectile-project-root)
+                               default-directory)))
+      (consult-ripgrep)))
+
+
   (setq consult-narrow-key "<")
   ;; (setq consult-preview-key (kbd "M-."))
   (consult-customize

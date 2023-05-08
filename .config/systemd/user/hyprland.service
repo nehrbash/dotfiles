@@ -1,20 +1,15 @@
 [Unit]
-Description=Start Hyprland with systemd for user %i
+Description=Start Hyprland with systemd
 BindsTo=hyprland.target
+PartOf=hyprland.target
 Before=hyprland.target
+After=systemd-user-sessions.target
 
 [Service]
-Environment=LIBSEAT_BACKEND=logind
-Environment=XDG_RUNTIME_DIR=/run/user/%U
-Environment=XDG_SESSION_CLASS=user
-Environment=XDG_CURRENT_DESKTOP=Hyprland
-Environment=XDG_SESSION_TYPE=wayland
-Environment=XDG_SESSION_DESKTOP=Hyprland
-Environment=XDG_DATA_DIRS=/home/%i/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share:/usr/local/share/:/usr/share/
 Type=simple
-ExecStart=/bin/bash -c 'cd %h && /usr/bin/Hyprland'
-Restart=always
-RestartSec=2s
+Environment=LIBSEAT_BACKEND=logind
+ExecStart=/usr/bin/Hyprland
+ExecStopPost=/usr/bin/loginctl kill-user %i
 
 [Install]
-WantedBy=hyprland.target
+WantedBy=default.target
