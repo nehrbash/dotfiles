@@ -2,4 +2,4 @@
 misc
 #LICENSE
 ^/.*\.org
-images/
+images*
