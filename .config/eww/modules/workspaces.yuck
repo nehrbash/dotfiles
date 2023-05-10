@@ -9,8 +9,8 @@
 		  (for i in workspace
                (box :class "ws" :style "background-color: ${i.color};"
 		    (button
-					:onclick "hyprctl dispatch workspace ${i.number}"
-                    :width 40 
+					:onclick "hyprctl --batch \"dispatch workspace ${i.number}; dispatch movecurrentworkspacetomonitor ${monitor.id}\""
+                    :width 40
 					:class "ws-icon"
 					:style "background-image: url('${i.icon}');"))))))
 

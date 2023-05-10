@@ -1124,13 +1124,13 @@ This is useful when followed by an immediate kill."
           org-agenda-start-on-weekday nil
           org-agenda-span 'day
           org-agenda-include-diary nil
+          org-agenda-use-time-grid nil
           org-agenda-window-setup 'current-window
           org-agenda-sorting-strategy
           '((agenda habit-down time-up user-defined-up effort-up category-keep)
             (todo category-up effort-up)
             (tags category-up effort-up)
             (search category-up)))
-  
       (setq org-agenda-custom-commands
         `(("g" "GTD"
            ((agenda "" nil)
