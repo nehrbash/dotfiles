@@ -1,13 +1,15 @@
 (defwidget control-menu-win []
            (box
             :class "system-menu-box"
-            :space-evenly false            
+            :space-evenly false
+            :vexpand "ture"
             (box
              :orientation "v"
              :space-evenly false
              (music)
              (weather-forecast)
-             (weather-moon))
+             (weather-moon)
+             (quote))
             (box
              :orientation "v"
              :space-evenly false
