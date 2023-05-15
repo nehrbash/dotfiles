@@ -3,6 +3,7 @@
    :class "clock"
    :onclick "${EWW_CMD} open --toggle control-menu-closer --screen ${monitor.id}; ${EWW_CMD} open --toggle control-menu --screen ${monitor.id}"
           (box
+           :class "module"
         :space-evenly false
         (label
           :text {time.day}
