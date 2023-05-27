@@ -10,6 +10,7 @@
   - [[#esc-cancels-all][ESC Cancels All]]
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line or Region]]
+  - [[#beginning-of-line-text-then-line][beginning of Line text then line]]
   - [[#file-modified-state][File Modified State]]
   - [[#sudo-editing][Sudo editing]]
 - [[#general-settings][General Settings]]
@@ -35,8 +36,8 @@
   - [[#wgrep--ripgrep][Wgrep / Ripgrep]]
   - [[#ibuffer][Ibuffer]]
   - [[#newline-behavior][Newline Behavior]]
-  - [[#show-hatching-parens][Show Hatching Parens]]
   - [[#expand-region][Expand Region]]
+  - [[#symbol-overlay][symbol-overlay]]
   - [[#kill-backwards][kill backwards]]
   - [[#define-backward-up-sexp][Define backward-up-sexp]]
   - [[#whitespaces][Whitespaces]]
@@ -48,6 +49,7 @@
   - [[#improve-window-switching][Improve window switching]]
   - [[#multi-vterm][Multi-Vterm]]
   - [[#dont-ask-to-kill-on-exit][Don't ask to kill on exit]]
+- [[#typing-practice][Typing Practice]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
   - [[#org-appear][Org Appear]]
@@ -99,16 +101,17 @@
    Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
 
 #+begin_src emacs-lisp
-(setq straight-check-for-modifications '(check-on-save))
+(setq straight-cache-autoloads t)
+(setq straight-check-for-modifications nil)
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
+      (bootstrap-version 6))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
          'silent 'inhibit-cookies)
       (goto-char (point-max))
       (eval-print-last-sexp)))
@@ -235,10 +238,42 @@ Cut/copy the current line if no region is active.
 
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
-  :defer nil
+  :defer t
   :config (whole-line-or-region-global-mode t)
   :bind ("M-j". comment-dwim))
 #+end_src
+
+** beginning of Line text then line
+
+#+begin_src emacs-lisp
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
+
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
+
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
+                'smarter-move-beginning-of-line)
+#+end_src
+   
 
 ** File Modified State
 
@@ -290,12 +325,16 @@ Cut/copy the current line if no region is active.
    When you perform =m-x b= you will see list of recent files
 
 #+begin_src emacs-lisp
-(setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-(recentf-mode 1)
-(add-hook 'find-file-hook 'recentf-save-list)
-(setq-default
- recentf-max-saved-items 300
- recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el"))
+(use-package recentf
+  :init
+  (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+  :config
+  (recentf-mode 1)
+  (add-hook 'find-file-hook 'recentf-save-list)
+  (setq-default
+   recentf-max-saved-items 300
+   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
+
 #+end_src
 
 ** Auto update file
@@ -361,7 +400,7 @@ Tramp was acting slow this helps...maybe
 
    The default buffer.
 
-#+begin_src emacs-lisp
+#+begin_src emacs
 (setq initial-major-mode 'org-mode)
 (setq initial-scratch-message "* Scratch\n\n#+begin_src emacs-lisp\n\n#+end_src")
 #+end_src
@@ -369,29 +408,15 @@ Tramp was acting slow this helps...maybe
 ** Theme
 
 #+begin_src emacs-lisp
-(straight-use-package '(autothemer :type git :host github :repo "catppuccin/emacs"))
 (use-package doom-themes
   :straight t
   :custom ((doom-themes-enable-bold t)
-           (doom-themes-enable-italic t))
+           (doom-themes-enable-italic t)
+           (doom-modeline-bar-inactive 'unspecified) ; suppress warning
+          )
   :config
   (load-theme 'doom-gruvbox t)
   (doom-themes-org-config))
-;; to load theme properly when new client frame is created
-
-;; (add-hook 'after-make-frame-functions
-;;           (lambda (frame)
-;;             (with-selected-frame frame
-;;               (load-theme 'doom-gruvbox t)
-;;               (set-face-attribute 'default nil
-;;                     :family "Source Code Pro"
-;;                     :height 110
-;;                     :weight 'normal
-;;                     :width 'normal)
-;;               (fringe-mode '(10 . 10))
-;;               (pixel-scroll-precision-mode t)
-;;               (set-face-attribute 'header-line nil :height 100)
-;;               )))
 (setq custom-safe-themes t)
 #+end_src
 
@@ -447,29 +472,12 @@ Tramp was acting slow this helps...maybe
                      "%b"))))
     #+end_src
 
-*** TODO Margins
-
-    What was I doing with this?
-    
-    #+begin_src emacs
-    (setq-default fringes-outside-margins t
-                      indicate-buffer-boundaries nil
-                      fringe-indicator-alist (delq (assq 'continuation fringe-indicator-alist)
-                                                   fringe-indicator-alist))
-
-        ;;(setq left-margin-width 12)
-        ;; (setq right-margin-width 12)
-        (setq internal-border 40)
-        (setq frame-internal-border-width 60)
-        (setq bottom-divider-width 20)
-        (set-window-buffer nil (current-buffer))
-    #+end_src
-    
 ** Hex colors
 
    Show hex colors while coding   
 #+begin_src emacs-lisp
 (use-package rainbow-mode
+  :defer t
   :config
   (add-hook 'prog-mode-hook #'rainbow-mode))
 #+end_src
@@ -749,10 +757,10 @@ That should do it
 
 ** Spelling
 
-#+begin_src emacs
+#+begin_src emacs-lisp
   (use-package ispell
     :if (not (bound-and-true-p disable-pkg-ispell))
-    :defer 15
+    :defer t
     :config
     (setq ispell-extra-args   '("--sug-mode=ultra"
                                     "--lang=en_US"))
@@ -894,14 +902,6 @@ install rg and ag manually
     (add-hook 'after-init-hook 'global-prettify-symbols-mode)))
 #+end_src
 
-** Show Hatching Parens
-
-#+begin_src emacs-lisp
-(use-package paren
-  :ensure nil
-  :hook (after-init . show-paren-mode))
-#+end_src
-
 ** Expand Region
 
 #+begin_src emacs-lisp
@@ -910,6 +910,18 @@ install rg and ag manually
          ("C-(" . er/mark-outside-pairs)))
 #+end_src
 
+** symbol-overlay
+ 
+#+begin_src emacs-lisp 
+(use-package symbol-overlay
+  :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
+  :delight symbol-overlay-mode
+  :config
+  (define-key symbol-overlay-mode-map (kbd "M-i") 'symbol-overlay-put)
+  (define-key symbol-overlay-mode-map (kbd "M-I") 'symbol-overlay-remove-all)
+  (define-key symbol-overlay-mode-map (kbd "M-n") 'symbol-overlay-jump-next)
+  (define-key symbol-overlay-mode-map (kbd "M-p") 'symbol-overlay-jump-prev))
+#+end_src
 ** kill backwards
 
 #+begin_src emacs-lisp
@@ -1187,9 +1199,7 @@ install rg and ag manually
                                multi-vterm-dedicated-window-height-percent 30
                                left-margin-width 1
                                right-margin-width 1
-                               mode-line-format nil
-                               cursor-type 'bar)
-                         (buffer-face-set 'my-vterm-buffer-face)))
+                               cursor-type 'bar)))
    :bind (
           ( "C-c t" . multi-vterm-dedicated-toggle)
           ( "M-t" . multi-vterm)
@@ -1204,6 +1214,13 @@ install rg and ag manually
 #+begin_src emacs-lisp
 (setq confirm-kill-processes nil)
 #+end_src
+
+* Typing Practice
+  Game like typing practice inside Emacs.  
+  
+#+begin_src emacs-lisp :tangle yes
+(use-package speed-type)
+#+end_src  
 
 * Org Mode
 
@@ -1273,7 +1290,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 ** Org File Locations
 
-   Set registers to jump to certain files like type C-x r j e to open .emacs
+    Set registers to jump to certain files like type C-x r j e to open .emacs
 
 #+begin_src emacs-lisp
 (setq org-directory "~/doc")
@@ -1730,13 +1747,11 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :magic ("%PDF" . pdf-view-mode)
   :config
-  ;; midnite mode hook
-  (add-hook 'pdf-view-mode-hook (lambda ()
-                                 (pdf-view-midnight-minor-mode))) ; automatically turns on midnight-mode for pdfs
+  (add-hook 'doc-view-mode-hook #'pdf-tools-install)
+  (setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12"))
+  (setq-default pdf-view-display-size 'fit-width))
 
-(setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12")))
 #+end_src
 5
 ** Markdown
@@ -1816,6 +1831,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
     
 #+begin_src emacs-lisp
 (use-package tree-sitter-langs
+  :defer t
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
@@ -1840,6 +1856,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (lsp-completion-provider :none)
   (lsp-idle-delay 0.5)
   (lsp-rust-analyzer-server-display-inlay-hints t)
+  :config (lsp-enable-which-key-integration t)
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("s" . lsp-ui-doc-show)

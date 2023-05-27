@@ -1,16 +1,27 @@
+(defwidget app-launcher []
+           (box
+
+            :class "app-launcher"
+            (button
+             :class "app-launcher"
+             :onclick "nwggrid &"
+            (label
+             :class "app-launcher icon"
+             :text ""))))
 (defwidget apps []
            (box
             :class "sidebar"
             :orientation "v"
             (box
-             :class "apps"
              :orientation "v"
              :vexpand true
              :space-evenly false
              :spacing 16
              :valign "center"
+             (app-launcher)
              (for a in apps
                   (box
+                   :class "apps"
                    :orientation "v"
                    :space-evenly false
                   (button
@@ -36,7 +47,7 @@
       :anchor "left center")
     :stacking "fg"
     :exclusive true
-    (apps))
+     (apps))
 
 (defwindow leftbar2
     :monitor 1

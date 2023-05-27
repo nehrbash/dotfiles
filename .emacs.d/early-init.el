@@ -34,7 +34,6 @@
 
 ;; Disable package.el at startup, I use straight.
 (setq package-enable-at-startup nil)
-
 ;; Enable pixel scrolling
 (pixel-scroll-precision-mode t)
 

@@ -108,3 +108,10 @@
 
 .settings-button {
 }
+
+.app-launcher {
+    font-size: 190px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    @include hoverable;
+}

@@ -23,7 +23,10 @@ elif [ $COUNTER -eq 2 ]; then
             keyword general:gaps_in 0;\
             keyword general:gaps_out 0;\
             keyword general:border_size 1;\
-            keyword decoration:rounding 0"
+            keyword decoration:rounding 0;\
+            keyword decoration:active_opacity 1;\
+            keyword decoration:inactive_opacity 1;\
+            "
     hyprctl plugin unload /home/nehrbash/src/sn-hyprland-plugins/hyprbars/hyprbars.so
     eww close corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 3 ]; then

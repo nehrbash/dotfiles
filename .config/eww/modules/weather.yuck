@@ -11,6 +11,12 @@
                           (label :class "weather-max" :text "${max}°F")
                           (label :class "weather-min" :text "${min}°F"))))
                      (label :class "weather-state" :max 20 :text {desc})))
+(defwidget weather-hour [time temp icon]
+           (box  :orientation "v" :space-evenly "false" :valign "end"
+                 (label :class "weather-time" :text {time})
+                 (label :class "weather-icon" :text {icon})
+                 (label :class "weather-max" :text "${temp}°F")))
+
 
 (defwidget weather-forecast []
            (box
@@ -30,25 +36,12 @@
                               :class "weather-label"
                               :text {weather.location}
                               :style "padding-right: 15px;"))
-            (centerbox :style "padding-top: 15px;"
-             (weather-day :min "${weather.day1.min}"
-                          :max "${weather.day1.max}"
-                          :icon "${weather.day1.icon}"
-                          :desc "${weather.day1.desc}"
-                          :day "${weather.day1.day}"
-                          :month "${weather.day1.month}")
-             (weather-day :min "${weather.day2.min}"
-                          :max "${weather.day2.max}"
-                          :icon "${weather.day2.icon}"
-                          :desc "${weather.day2.desc}"
-                          :day "${weather.day2.day}"
-                          :month "${weather.day2.month}")
-             (weather-day :min "${weather.day3.min}"
-                          :max "${weather.day3.max}"
-                          :icon "${weather.day3.icon}"
-                          :desc "${weather.day3.desc}"
-                          :day "${weather.day3.day}"
-                          :month "${weather.day3.month}"))))
+            (box :style "padding-top: 15px;"
+                       (for h in {weather.hours}
+                            (weather-hour
+                             :time {h.time}
+                             :temp {h.temp}
+                             :icon {h.icon} )))))
 
 
 (defwidget weather-moon []

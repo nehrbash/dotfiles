@@ -12,7 +12,7 @@ _BG_COLOR_='#1e1e2e00'
 _BG_SIZE_=0
 # Border Size Applied when value greater than or equal 3
 _BORDER_SIZE_=0
-_SHADOW_SIZE_='100x18+8+12'  # [ weight ] x [ radius ] + [ horizontal ] x [ vertical ]
+_SHADOW_SIZE_='100x18+12+16'  # [ weight ] x [ radius ] + [ horizontal ] x [ vertical ]
 _ROUNDED_CORNER_=30
 
 function check() {

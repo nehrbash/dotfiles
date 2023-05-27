@@ -1,13 +1,14 @@
-(setq straight-check-for-modifications '(check-on-save))
+(setq straight-cache-autoloads t)
+(setq straight-check-for-modifications nil)
 (setq straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 5))
+      (bootstrap-version 6))
   (unless (file-exists-p bootstrap-file)
     (with-current-buffer
         (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/raxod502/straight.el/develop/install.el"
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
          'silent 'inhibit-cookies)
       (goto-char (point-max))
       (eval-print-last-sexp)))
@@ -85,9 +86,36 @@
          ("C-c u" . move-dup-duplicate-up)))
 
 (use-package whole-line-or-region
-  :defer nil
+  :defer t
   :config (whole-line-or-region-global-mode t)
   :bind ("M-j". comment-dwim))
+
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
+
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
+
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
+
+  ;; Move lines first
+  (when (/= arg 1)
+    (let ((line-move-visual nil))
+      (forward-line (1- arg))))
+
+  (let ((orig-point (point)))
+    (back-to-indentation)
+    (when (= orig-point (point))
+      (move-beginning-of-line 1))))
+
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
+                'smarter-move-beginning-of-line)
 
 (use-package unmodified-buffer
   :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
@@ -119,12 +147,15 @@
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
 
-(setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-(recentf-mode 1)
-(add-hook 'find-file-hook 'recentf-save-list)
-(setq-default
- recentf-max-saved-items 300
- recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el"))
+(use-package recentf
+  :init
+  (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+  :config
+  (recentf-mode 1)
+  (add-hook 'find-file-hook 'recentf-save-list)
+  (setq-default
+   recentf-max-saved-items 300
+   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
 
 (global-auto-revert-mode 1)
 (add-hook 'dired-mode-hook 'auto-revert-mode)
@@ -150,32 +181,15 @@
     (add-to-list 'exec-path-from-shell-variables var))
   (exec-path-from-shell-initialize))
 
-(setq initial-major-mode 'org-mode)
-(setq initial-scratch-message "* Scratch\n\n#+begin_src emacs-lisp\n\n#+end_src")
-
-(straight-use-package '(autothemer :type git :host github :repo "catppuccin/emacs"))
 (use-package doom-themes
   :straight t
   :custom ((doom-themes-enable-bold t)
-           (doom-themes-enable-italic t))
+           (doom-themes-enable-italic t)
+           (doom-modeline-bar-inactive 'unspecified) ; suppress warning
+          )
   :config
   (load-theme 'doom-gruvbox t)
   (doom-themes-org-config))
-;; to load theme properly when new client frame is created
-
-;; (add-hook 'after-make-frame-functions
-;;           (lambda (frame)
-;;             (with-selected-frame frame
-;;               (load-theme 'doom-gruvbox t)
-;;               (set-face-attribute 'default nil
-;;                     :family "Source Code Pro"
-;;                     :height 110
-;;                     :weight 'normal
-;;                     :width 'normal)
-;;               (fringe-mode '(10 . 10))
-;;               (pixel-scroll-precision-mode t)
-;;               (set-face-attribute 'header-line nil :height 100)
-;;               )))
 (setq custom-safe-themes t)
 
 (use-package doom-modeline
@@ -209,6 +223,7 @@
                  "%b"))))
 
 (use-package rainbow-mode
+  :defer t
   :config
   (add-hook 'prog-mode-hook #'rainbow-mode))
 
@@ -452,6 +467,34 @@
         try-expand-dabbrev-all-buffers
         try-expand-dabbrev-from-kill))
 
+(use-package ispell
+  :if (not (bound-and-true-p disable-pkg-ispell))
+  :defer t
+  :config
+  (setq ispell-extra-args   '("--sug-mode=ultra"
+                                  "--lang=en_US"))
+  ;; Save a new word to personal dictionary without asking
+  (setq ispell-silently-savep t))
+(use-package flyspell
+    :init  (progn
+        ;; Below variables need to be set before `flyspell' is loaded.
+        (setq flyspell-use-meta-tab nil)
+        ;; Binding for `flyspell-auto-correct-previous-word'.
+        (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
+    :config  (progn
+        (add-hook 'prog-mode-hook #'flyspell-prog-mode)
+        (with-eval-after-load 'auto-complete
+          (ac-flyspell-workaround))
+        ;; https://github.com/larstvei/dot-emacs#flyspell
+        (add-hook 'text-mode-hook #'turn-on-flyspell)
+        (add-hook 'org-mode-hook  #'turn-on-flyspell)
+        (bind-keys
+         :map flyspell-mode-map
+         ;; Stop flyspell overriding other key bindings
+         ("C-," . nil)
+         ("C-." . nil)
+         ("<C-f12>" . flyspell-goto-next-error))))
+
 (use-package flycheck
   :defer t
   :config
@@ -539,13 +582,18 @@ This is useful when followed by an immediate kill."
   (when (fboundp 'global-prettify-symbols-mode)
     (add-hook 'after-init-hook 'global-prettify-symbols-mode)))
 
-(use-package paren
-  :ensure nil
-  :hook (after-init . show-paren-mode))
-
 (use-package expand-region
   :bind (("M-[" . er/expand-region)
          ("C-(" . er/mark-outside-pairs)))
+
+(use-package symbol-overlay
+  :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
+  :delight symbol-overlay-mode
+  :config
+  (define-key symbol-overlay-mode-map (kbd "M-i") 'symbol-overlay-put)
+  (define-key symbol-overlay-mode-map (kbd "M-I") 'symbol-overlay-remove-all)
+  (define-key symbol-overlay-mode-map (kbd "M-n") 'symbol-overlay-jump-next)
+  (define-key symbol-overlay-mode-map (kbd "M-p") 'symbol-overlay-jump-prev))
 
 (defun kill-back-to-indentation ()
   "Kill from point back to the first non-whitespace character on the line."
@@ -770,9 +818,7 @@ This is useful when followed by an immediate kill."
                               multi-vterm-dedicated-window-height-percent 30
                               left-margin-width 1
                               right-margin-width 1
-                              mode-line-format nil
-                              cursor-type 'bar)
-                        (buffer-face-set 'my-vterm-buffer-face)))
+                              cursor-type 'bar)))
   :bind (
          ( "C-c t" . multi-vterm-dedicated-toggle)
          ( "M-t" . multi-vterm)
@@ -1210,13 +1256,10 @@ This is useful when followed by an immediate kill."
   (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area") )
 
 (use-package pdf-tools
-  :magic ("%PDF" . pdf-view-mode)
   :config
-  ;; midnite mode hook
-  (add-hook 'pdf-view-mode-hook (lambda ()
-                                 (pdf-view-midnight-minor-mode))) ; automatically turns on midnight-mode for pdfs
-
-(setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12")))
+  (add-hook 'doc-view-mode-hook #'pdf-tools-install)
+  (setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12"))
+  (setq-default pdf-view-display-size 'fit-width))
 
 (use-package markdown-mode
   :config
@@ -1271,6 +1314,7 @@ This is useful when followed by an immediate kill."
   (message "init-gcal loaded"))
 
 (use-package tree-sitter-langs
+  :defer t
   :config
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
@@ -1289,6 +1333,7 @@ This is useful when followed by an immediate kill."
   (lsp-completion-provider :none)
   (lsp-idle-delay 0.5)
   (lsp-rust-analyzer-server-display-inlay-hints t)
+  :config (lsp-enable-which-key-integration t)
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("s" . lsp-ui-doc-show)
