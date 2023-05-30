@@ -1,3 +1,6 @@
+(defvar doom--file-name-handler-alist file-name-handler-alist) ;; temp restore later
+(setq file-name-handler-alist nil)
+
 (setq straight-cache-autoloads t)
 (setq straight-check-for-modifications nil)
 (setq straight-use-package-by-default t)
@@ -117,6 +120,21 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key [remap move-beginning-of-line]
                 'smarter-move-beginning-of-line)
 
+(use-package switch-window
+  :config
+  (setq switch-window-shortcut-style 'alphabet
+        switch-window-timeout nil)
+  :bind
+  ("C-x o" . switch-window))
+
+(use-package windswap
+  :commands (windmove-default-keybindings windswap-default-keybindings)
+  :config
+  (add-hook 'after-init-hook
+            (lambda ()
+              (windmove-default-keybindings 'control)
+              (windswap-default-keybindings 'shift 'control))))
+
 (use-package unmodified-buffer
   :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
   :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
@@ -180,6 +198,13 @@ point reaches the beginning or end of the buffer, stop there."
   (dolist (var '("LSP_USE_PLISTS"))
     (add-to-list 'exec-path-from-shell-variables var))
   (exec-path-from-shell-initialize))
+
+(add-hook 'emacs-startup-hook
+  (lambda ()
+    (pixel-scroll-precision-mode t) ;; enable pixel scrolling
+    (fringe-mode '(10 . 10))
+    (set-face-attribute 'header-line nil :height 100)
+    ))
 
 (use-package doom-themes
   :straight t
@@ -437,70 +462,129 @@ point reaches the beginning or end of the buffer, stop there."
   "Docker candiadate source for `consult-dir'.")
 (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
-(setq tab-always-indent 'complete)
 (use-package corfu
   :init (global-corfu-mode)
-  :custom (corfu-auto t)
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator))
+  :custom
+  (tab-always-indent 'complete)
+  (corfu-auto t)
+  (corfu-quit-no-match 'separator)
+  (corfu-auto-delay 0.1) ;; fine at 0.0 but a little annoying
+  (corfu-auto-prefix 2)
   :config 
-  (setq-default corfu-auto t
-                corfu-quit-no-match 'separator)
   (when (featurep 'corfu-popupinfo)
     (with-eval-after-load 'corfu
-      (corfu-popupinfo-mode))))
+      (corfu-popupinfo-mode)))
+  (defun orderless-fast-dispatch (word index total)
+    (and (= index 0) (= total 1) (length< word 4)
+         `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
+
+  (orderless-define-completion-style orderless-fast
+    (orderless-style-dispatchers '(orderless-fast-dispatch))
+    (orderless-matching-styles '(orderless-literal orderless-regexp)))
+
+  (setq completion-styles '(orderless-fast basic)))
+
+(use-package corfu-terminal
+  :when (not (display-graphic-p))
+  :straight (:type git
+                   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
+
 (use-package kind-icon
-  :after corfu
+  :commands kind-icon-margin-formatter
+  :init
+  (add-hook 'corfu-margin-formatters #'kind-icon-margin-formatter)
   :custom
   (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
   :config
+  (setq kind-icon-default-face 'corfu-default
+        kind-icon-blend-background t
+        kind-icon-blend-frac 0.2)
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-;; for terminal use
-(use-package corfu-terminal
-  :straight (:type git
-   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
 
-(global-set-key (kbd "M-/") 'hippie-expand)
-(setq hippie-expand-try-functions-list
-      '(try-complete-file-name-partially
-        try-complete-file-name
-        try-expand-dabbrev
-        try-expand-dabbrev-all-buffers
-        try-expand-dabbrev-from-kill))
+(use-package dabbrev
+  :after corfu
+  :bind (("M-/" . dabbrev-completion)
+         ("C-M-/" . dabbrev-expand))
+  :custom
+  (read-extended-command-predicate
+      #'command-completion-default-include-p)
+  (add-to-list 'completion-at-point-functions #'hippie-expand)
+  (dabbrev-ignored-buffer-modes '(archive-mode image-mode pdf-view-mode)))
 
-(use-package ispell
-  :if (not (bound-and-true-p disable-pkg-ispell))
-  :defer t
+(use-package cape
+  :after corfu
+  :commands (cape-dabbrev
+             cape-file
+             cape-history
+             cape-keyword
+             cape-tex
+             cape-sgml
+             cape-rfc1345
+             cape-abbrev
+             cape-dict
+             cape-symbol
+             cape-line)
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (defalias 'corfu--ispell-in-comments-and-strings
+      (cape-super-capf (cape-capf-inside-comment #'cape-dict)
+                       (cape-capf-inside-string #'cape-dict))))
+
+(use-package flyspell ; built-in
+  :hook ((org-mode . flyspell-mode)
+         (markdown-mode . flyspell-mode)
+         (TeX-mode . flyspell-mode)
+         (git-commit-mode . flyspell-mode)
+         (yaml-mode . flyspell-mode)
+         (conf-mode . flyspell-mode)
+         (prog-mode . flyspell-prog-mode))
   :config
-  (setq ispell-extra-args   '("--sug-mode=ultra"
-                                  "--lang=en_US"))
-  ;; Save a new word to personal dictionary without asking
-  (setq ispell-silently-savep t))
-(use-package flyspell
-    :init  (progn
-        ;; Below variables need to be set before `flyspell' is loaded.
-        (setq flyspell-use-meta-tab nil)
-        ;; Binding for `flyspell-auto-correct-previous-word'.
-        (setq flyspell-auto-correct-binding (kbd "<S-f12>")))
-    :config  (progn
-        (add-hook 'prog-mode-hook #'flyspell-prog-mode)
-        (with-eval-after-load 'auto-complete
-          (ac-flyspell-workaround))
-        ;; https://github.com/larstvei/dot-emacs#flyspell
-        (add-hook 'text-mode-hook #'turn-on-flyspell)
-        (add-hook 'org-mode-hook  #'turn-on-flyspell)
-        (bind-keys
-         :map flyspell-mode-map
-         ;; Stop flyspell overriding other key bindings
-         ("C-," . nil)
-         ("C-." . nil)
-         ("<C-f12>" . flyspell-goto-next-error))))
+  (use-package ispell
+    :config
+    (setq ispell-program-name "aspell"
+          ispell-extra-args '("--sug-mode=ultra"
+                              "--run-together")))
+  (setq flyspell-issue-welcome-flag nil
+        ;; Significantly speeds up flyspell, which would otherwise print
+        ;; messages for every word when checking the entire buffer
+        flyspell-issue-message-flag nil)
+  
+  (use-package flyspell-correct
+    :after flyspell
+    :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+
+  (use-package flyspell-lazy
+    :after flyspell
+    :config
+    (setq flyspell-lazy-idle-seconds 1
+          flyspell-lazy-window-idle-seconds 3)))
 
 (use-package flycheck
-  :defer t
+  :commands flycheck-list-errors flycheck-buffer
+  :hook (emacs-startup-hook . global-flycheck-mode)
   :config
-    (setq flycheck-check-syntax-automatically '(mode-enabled save new-line)) ;to ignore idel flycheck
-   (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
-    (global-flycheck-mode 1))
+  (setq flycheck-emacs-lisp-load-path 'inherit)
+  ;; Rerunning checks on every newline is a mote excessive.
+  (delq 'new-line flycheck-check-syntax-automatically)
+  ;; And don't recheck on idle as often
+  (setq flycheck-idle-change-delay 1.0)
+  (setq flycheck-display-errors-delay 0.25)
+  (setq flycheck-buffer-switch-check-intermediate-buffers t)
+  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
+  
+  ;; (use-package flycheck-popup-tip
+  ;; :commands flycheck-popup-tip-show-popup flycheck-popup-tip-delete-popup
+  ;; :hook (flycheck-mode .flycheck-popup-tip-mode)
+  ;; :config
+  ;; ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
+  ;; )
+ ;; TODO does this work with corfu
+(use-package flycheck-posframe
+  :hook (flycheck-mode . flycheck-posframe-mode)
+  :config
+  (flycheck-posframe-configure-pretty-defaults)
+))
 
 ;; Show number of matches while searching
 (use-package anzu
@@ -542,8 +626,8 @@ This is useful when followed by an immediate kill."
     (define-key grep-mode-map key 'wgrep-change-to-wgrep-mode)))
 (when (executable-find "ag")
            (use-package ag))
-  (when (executable-find "rg")
-    (use-package rg))
+(when (executable-find "rg")
+  (use-package rg))
 
 (use-package ibuffer-vc
   :bind ("C-x C-b" . ibuffer)
@@ -558,18 +642,16 @@ This is useful when followed by an immediate kill."
 (use-package emacs
   :config
   (setq ad-redefinition-action 'accept)
+  (defun sanityinc/newline-at-end-of-line ()
+    "Move to end of line, enter a newline, and reindent."
+    (interactive)
+    (move-end-of-line 1)
+    (newline-and-indent))
   :bind
   (("RET" . newline-and-indent)
    ("C-<return>" . sanityinc/newline-at-end-of-line)))
 
-(defun sanityinc/newline-at-end-of-line ()
-  "Move to end of line, enter a newline, and reindent."
-  (interactive)
-  (move-end-of-line 1)
-  (newline-and-indent))
-
 (use-package display-line-numbers
-  :ensure nil
   :if (fboundp 'display-line-numbers-mode)
   :init
   (setq-default display-line-numbers-width 3)
@@ -810,7 +892,77 @@ This is useful when followed by an immediate kill."
   (projectile-mode))
 (use-package ibuffer-projectile)
 
-(require 'init-windows)
+(use-package winner
+  :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
+         ("C-x 3" . split-window-func-with-other-buffer-horizontally)
+         ("C-x 1" . sanityinc/toggle-delete-other-windows)
+         ("C-x |" . split-window-horizontally-instead)
+         ("C-x _" . split-window-vertically-instead)
+         ("<f7>" . sanityinc/split-window)
+         ("C-c <down>" . sanityinc/toggle-current-window-dedication))
+  :config
+  (defun split-window-func-with-other-buffer-vertically ()
+    "Split this window vertically and switch to the new window."
+    (interactive)
+    (split-window-vertically)
+    (let ((target-window (next-window)))
+      (set-window-buffer target-window (other-buffer))
+      (select-window target-window)))
+
+  (defun split-window-func-with-other-buffer-horizontally ()
+    "Split this window horizontally and switch to the new window."
+    (interactive)
+    (split-window-horizontally)
+    (let ((target-window (next-window)))
+      (set-window-buffer target-window (other-buffer))
+      (select-window target-window)))
+
+  (defun sanityinc/toggle-delete-other-windows ()
+    "Delete other windows in frame if any, or restore previous window config."
+    (interactive)
+    (if (and (bound-and-true-p winner-mode)
+           (equal (selected-window) (next-window)))
+        (winner-undo)
+      (delete-other-windows)))
+
+  (defun split-window-horizontally-instead ()
+    "Kill any other windows and re-split such that the current window is on the top half of the frame."
+    (interactive)
+    (let ((other-buffer (and (next-window) (window-buffer (next-window)))))
+      (delete-other-windows)
+      (split-window-horizontally)
+      (when other-buffer
+        (set-window-buffer (next-window) other-buffer))))
+
+  (defun split-window-vertically-instead ()
+    "Kill any other windows and re-split such that the current window is on the left half of the frame."
+    (interactive)
+    (let ((other-buffer (and (next-window) (window-buffer (next-window)))))
+      (delete-other-windows)
+      (split-window-vertically)
+      (when other-buffer
+        (set-window-buffer (next-window) other-buffer))))
+
+  (defun sanityinc/split-window()
+    "Split the window to see the most recent buffer in the other window.
+Call a second time to restore the original window configuration."
+    (interactive)
+    (if (eq last-command 'sanityinc/split-window)
+        (progn
+          (jump-to-register :sanityinc/split-window)
+          (setq this-command 'sanityinc/unsplit-window))
+      (window-configuration-to-register :sanityinc/split-window)
+      (switch-to-buffer-other-window nil)))
+
+  (defun sanityinc/toggle-current-window-dedication ()
+    "Toggle whether the current window is dedicated to its current buffer."
+    (interactive)
+    (let* ((window (selected-window))
+           (was-dedicated (window-dedicated-p window)))
+      (set-window-dedicated-p window (not was-dedicated))
+      (message "Window %sdedicated to %s"
+               (if was-dedicated "no longer " "")
+               (buffer-name)))))
 
 (use-package multi-vterm
   :hook (vterm-mode . (lambda ()
@@ -828,6 +980,8 @@ This is useful when followed by an immediate kill."
          ( "C-y" . vterm-yank)))
 
 (setq confirm-kill-processes nil)
+
+(use-package speed-type)
 
 (use-package org
   :straight org-contrib
@@ -1329,10 +1483,8 @@ This is useful when followed by an immediate kill."
   :commands (lsp lsp-deferered)
   :custom
   (read-process-output-max (* 3 1024 1024)) ;; 3mb
-  (lsp-prefer-flymake nil)                  ;; use flycheck, not flymake
-  (lsp-completion-provider :none)
-  (lsp-idle-delay 0.5)
-  (lsp-rust-analyzer-server-display-inlay-hints t)
+  (lsp-completion-provider :none)           ;; corfu instaed
+  (lsp-idle-delay 0.8)
   :config (lsp-enable-which-key-integration t)
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
@@ -1365,32 +1517,43 @@ This is useful when followed by an immediate kill."
   (dap-ui-controls-mode 1))
 
 (use-package go-mode
-  :config
-  (progn
-    (setq compile-command "go build -v && go test -v -cover && go vet") )
-   (define-key go-mode-map (kbd "C-,") go-goto-map)
   :hook ((go-mode . lsp-deferred)
-   (before-save . lsp-format-buffer)
-   (before-save . lsp-organize-imports))
+         (before-save . lsp-format-buffer)
+         (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
-               ("C-c C-c" . compile)))
-;; remote go
-(add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-(lsp-register-client
- (make-lsp-client :new-connection (lsp-tramp-connection
-                                   (lambda ()
-                     (cons "gopls" lsp-gopls-server-args)))
-                  :major-modes '(go-mode)
-                  :priority 10
-                  :server-id 'gopls-remote
-                  :remote? t
-                  ))
+              ("C-," . go-goto-map)
+              ("C-c C-c" . compile))
+  :custom(lsp-register-custom-settings
+          '(("gopls.completeUnimported" t t)
+            ("gopls.staticcheck" t t)))
+  :config
+  (use-package flycheck-golangci-lint
+    :config
+    :hook (lsp-diagnostics-mode . (lambda ()
+                     (flycheck-add-next-checker 'lsp 'golangci-lint)
+                     (flycheck-add-next-checker 'lsp 'go-gofmt)
+                     )))
+  
+  (use-package gorepl-mode
+    :commands gorepl-run-load-current-file)
+  
+  (setq compile-command "go build -v && go test -v -cover && go vet") 
+  ;; remote go
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-tramp-connection
+                                     (lambda ()
+                                       (cons "gopls" lsp-gopls-server-args)))
+                    :major-modes '(go-mode)
+                    :priority 10
+                    :server-id 'gopls-remote
+                    :remote? t
+                    )))
 
 (use-package ccls
   :straight t
   :config
   (setq ccls-executable "ccls")
-  (setq lsp-prefer-flymake nil)
   (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
   :hook ((c-mode c++-mode objc-mode) .
          (lambda () (require 'ccls) (lsp))))
@@ -1400,7 +1563,6 @@ This is useful when followed by an immediate kill."
 (add-hook 'cc-mode-hook #'lsp-cpp-install-save-hooks)
 
 (use-package rustic
-  :ensure
   :bind (:map rustic-mode-map
               ("M-j" . lsp-ui-imenu)
               ("M-?" . lsp-find-references)
@@ -1410,23 +1572,50 @@ This is useful when followed by an immediate kill."
               ("C-c C-c q" . lsp-workspace-restart)
               ("C-c C-c Q" . lsp-workspace-shutdown)
               ("C-c C-c s" . lsp-rust-analyzer-status))
+  :custom
+    (lsp-rust-analyzer-server-display-inlay-hints t)
   :config
-  ;; uncomment for less flashiness
-  ;; (setq lsp-eldoc-hook nil)
-  ;; (setq lsp-enable-symbol-highlighting nil)
-  ;; (setq lsp-signature-auto-activate nil)
+  (setq rustic-format-on-save t))
 
-  ;; comment to disable rustfmt on save
-  (setq rustic-format-on-save t)
-  (add-hook 'rustic-mode-hook 'rk/rustic-mode-hook))
+(use-package python
+  :config
+  (use-package conda
+    :after python
+    :config
+  ;; The location of your anaconda home will be guessed from a list of common
+  ;; possibilities, starting with `conda-anaconda-home''s default value (which
+  ;; will consult a ANACONDA_HOME envvar, if it exists).
+  ;;
+  ;; If none of these work for you, `conda-anaconda-home' must be set
+  ;; explicitly. Afterwards, run M-x `conda-env-activate' to switch between
+  ;; environments
+  (or (cl-loop for dir in (list conda-anaconda-home
+                                "~/.anaconda"
+                                "~/.miniconda"
+                                "~/.miniconda3"
+                                "~/.miniforge3"
+                                "~/anaconda3"
+                                "~/miniconda3"
+                                "~/miniforge3"
+                                "~/opt/miniconda3"
+                                "/usr/bin/anaconda3"
+                                "/usr/local/anaconda3"
+                                "/usr/local/miniconda3"
+                                "/usr/local/Caskroom/miniconda/base"
+                                "~/.conda")
+               if (file-directory-p dir)
+               return (setq conda-anaconda-home (expand-file-name dir)
+                            conda-env-home-directory (expand-file-name dir)))
+      (message "Cannot find Anaconda installation"))
 
-(defun rk/rustic-mode-hook ()
-  ;; so that run C-c C-c C-r works without having to confirm, but don't try to
-  ;; save rust buffers that are not file visiting. Once
-  ;; https://github.com/brotzeit/rustic/issues/253 has been resolved this should
-  ;; no longer be necessary.
-  (when buffer-file-name
-    (setq-local buffer-save-without-query t)))
+  ;; integration with term/eshell
+  (conda-env-initialize-interactive-shells)
+
+  (add-to-list 'global-mode-string
+               '(conda-env-current-name (" conda:" conda-env-current-name " "))
+               'append))
+  (use-package lsp-python-ms
+    :after lsp-mode))
 
 (use-package csv-mode)
 (add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
@@ -1450,19 +1639,35 @@ This is useful when followed by an immediate kill."
 
 (use-package yuck-mode)
 
-(defun gpt/read-openai-key ()
-  (with-temp-buffer
-    (insert-file-contents "~/.gpt-key.txt")
-    (string-trim (buffer-string))))
-
 (use-package gptel
   :straight t
   :bind (("<f5>" . gptel)
          ("C-<f5>" . gptel-menu))
-  :init
-  (setq-default gptel-model "gpt-3.5-turbo"
+  :config
+  (defun gpt/read-openai-key ()
+    (with-temp-buffer
+      (insert-file-contents "~/.gpt-key.txt")
+      (string-trim (buffer-string))))
+  (setq gptel-model "gpt-3.5-turbo"
                 gptel-playback t
                 gptel-default-mode 'org-mode
                 gptel-api-key #'gpt/read-openai-key))
 
-(setq gc-cons-threshold (* 100 1024 1024)) ;; 100 MB, really high because I have 32 GB.
+(defun doom-defer-garbage-collection-h ()
+  (setq gc-cons-threshold most-positive-fixnum))
+
+(defun doom-restore-garbage-collection-h ()
+  ;; Defer it so that commands launched immediately after will enjoy the
+  ;; benefits.
+  (run-at-time
+   1 nil (lambda () (setq gc-cons-threshold 16777216 ; 16mb
+                          ))))
+
+(add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
+(add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
+
+(add-hook 'emacs-startup-hook
+  (lambda ()
+    (setq gc-cons-threshold 16777216 ; 16mb
+          gc-cons-percentage 0.1
+          file-name-handler-alist doom--file-name-handler-alist)))

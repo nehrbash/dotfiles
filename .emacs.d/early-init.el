@@ -2,30 +2,20 @@
 ;;; Commentary:
 ;;; Code:
 
-;; Increase garbage collection threshold
-(setq gc-cons-threshold (* 50 1000 1000))
+;; Increase garbage collection threshold and seed optimizations
+(setq gc-cons-threshold most-positive-fixnum
+      gc-cons-percentage 0.6
+      frame-inhibit-implied-resize t
+      initial-major-mode 'fundamental-mode)
 
 ;; Reduce startup visual clutter
-(setq inhibit-startup-screen t)
-(setq inhibit-startup-message t)
-(setq inhibit-startup-echo-area-message t)
-(setq initial-scratch-message nil)
-
-;; Set default font
-(set-face-attribute 'default t
-                    :family "Source Code Pro"
-                    :height 110
-                    :weight 'normal
-                    :width 'normal)
+(setq inhibit-startup-screen t
+      inhibit-startup-message t
+      inhibit-startup-echo-area-message t
+      initial-scratch-message nil)
 
 ;; Set default font for new frames
 (add-to-list 'default-frame-alist '(font . "Source Code Pro-11"))
-
-;; Set fringe width
-(fringe-mode '(10 . 10))
-
-;; Set header-line height
-(set-face-attribute 'header-line nil :height 100)
 
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)
@@ -33,9 +23,9 @@
 (menu-bar-mode -1)
 
 ;; Disable package.el at startup, I use straight.
-(setq package-enable-at-startup nil)
-;; Enable pixel scrolling
-(pixel-scroll-precision-mode t)
+(setq package-enable-at-startup nil
+      ;; don't add that `custom-set-variables' block to my init.el!
+      package--init-file-ensured t)
 
 (provide 'early-init)
 ;;; early-init.el ends here
