@@ -75,7 +75,6 @@
   - [[#markdown][Markdown]]
   - [[#org-roam][Org Roam]]
   - [[#google-calendar][Google Calendar]]
-  - [[#example-gcal-emacs][example ~/.gcal-emacs]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
   - [[#tree-sitter][Tree sitter]]
   - [[#lsp-mode][LSP-Mode]]
@@ -849,7 +848,8 @@ That should do it
          (git-commit-mode . flyspell-mode)
          (yaml-mode . flyspell-mode)
          (conf-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
+         (prog-mode . flyspell-prog-mode)
+         )
   :config
   (use-package ispell
     :config
@@ -1989,7 +1989,9 @@ Basically just followed the directions from this cool blog.   https://colekillia
 #+end_src
 
 ** Google Calendar
+   
    Add my Gmail. Has secrets so don't push.
+   
 #+begin_src emacs-lisp
 (use-package org-gcal
   :init
@@ -2006,16 +2008,15 @@ Basically just followed the directions from this cool blog.   https://colekillia
          ("M-g" . org-gcal-sync)))
 #+end_src
 
-** example ~/.gcal-emacs
-#+begin_src json
-{
-  "client-id": "foo.apps.googleusercontent.com",
-  "client-secret": "my-secret",
-  "mail": "foo.bar@gmail.com"
-}
-#+end_src
+*** example ~/.gcal-emacs
+ #+begin_src json
+ {
+   "client-id": "foo.apps.googleusercontent.com",
+   "client-secret": "my-secret",
+   "mail": "foo.bar@gmail.com"
+ }
+ #+end_src
    
-
 * Code Languages & File Modes
 
 ** Tree sitter
@@ -2047,14 +2048,22 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (read-process-output-max (* 3 1024 1024)) ;; 3mb
   (lsp-completion-provider :none)           ;; corfu instaed
   (lsp-idle-delay 0.8)
-  :config (lsp-enable-which-key-integration t)
+  :config
+  (lsp-enable-which-key-integration t)
+
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
+               ("C-r" . lsp-workspace-restart)g
+               ("C-q" . lsp-workspace-shutdown)
                ("s" . lsp-ui-doc-show)
                ("i" . lsp-find-implementation)
-               ("r" . lsp-find-references)
-               ("R" . lsp-rename)
-               ("e" . consult-lsp-diagnostics)))
+               ("?" . lsp-find-references)
+               ("r" . lsp-rename)
+               ("e" . consult-lsp-diagnostics)
+               ("j" . lsp-ui-imenu)
+               ("c" . compile)          
+               ("C" . recompile)
+               ))
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
          (lsp-mode . lsp-enable-which-key-integration)))
 #+end_src
@@ -2099,8 +2108,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
          (before-save . lsp-format-buffer)
          (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
-              ("C-," . go-goto-map)
-              ("C-c C-c" . compile))
+              ("C-," . go-goto-map))
   :custom(lsp-register-custom-settings
           '(("gopls.completeUnimported" t t)
             ("gopls.staticcheck" t t)))
@@ -2154,13 +2162,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+begin_src emacs-lisp
 (use-package rustic
   :bind (:map rustic-mode-map
-              ("M-j" . lsp-ui-imenu)
-              ("M-?" . lsp-find-references)
               ("C-c C-c l" . flycheck-list-errors)
               ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c r" . lsp-rename)
-              ("C-c C-c q" . lsp-workspace-restart)
-              ("C-c C-c Q" . lsp-workspace-shutdown)
               ("C-c C-c s" . lsp-rust-analyzer-status))
   :custom
     (lsp-rust-analyzer-server-display-inlay-hints t)
