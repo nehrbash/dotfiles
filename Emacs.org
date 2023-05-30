@@ -75,6 +75,7 @@
   - [[#markdown][Markdown]]
   - [[#org-roam][Org Roam]]
   - [[#google-calendar][Google Calendar]]
+  - [[#example-gcal-emacs][example ~/.gcal-emacs]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
   - [[#tree-sitter][Tree sitter]]
   - [[#lsp-mode][LSP-Mode]]
@@ -1990,9 +1991,30 @@ Basically just followed the directions from this cool blog.   https://colekillia
 ** Google Calendar
    Add my Gmail. Has secrets so don't push.
 #+begin_src emacs-lisp
-(when (require 'init-gcal nil 'noerror)
-  (message "init-gcal loaded"))
+(use-package org-gcal
+  :init
+  (defun load-gcal-credentials ()
+    "Load Google Calendar credentials from a JSON file."
+    (let* ((json-file "~/.gcal-emacs")
+           (json-data (json-read-file json-file)))
+      (setq plstore-cache-passphrase-for-symmetric-encryption t)
+      (setq org-gcal-client-id (cdr (assoc 'client-id json-data)))
+      (setq org-gcal-client-secret (cdr (assoc 'client-secret json-data)))
+      (setq org-gcal-fetch-file-alist `((,(cdr (assoc 'mail json-data)) .  "~/doc/gcal.org")))))
+  (load-gcal-credentials)
+  :bind (:map org-agenda-mode-map
+         ("M-g" . org-gcal-sync)))
 #+end_src
+
+** example ~/.gcal-emacs
+#+begin_src json
+{
+  "client-id": "foo.apps.googleusercontent.com",
+  "client-secret": "my-secret",
+  "mail": "foo.bar@gmail.com"
+}
+#+end_src
+   
 
 * Code Languages & File Modes
 

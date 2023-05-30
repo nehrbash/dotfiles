@@ -1464,8 +1464,19 @@ Call a second time to restore the original window configuration."
           org-roam-ui-update-on-save t
           org-roam-ui-open-on-start nil))
 
-(when (require 'init-gcal nil 'noerror)
-  (message "init-gcal loaded"))
+(use-package org-gcal
+  :init
+  (defun load-gcal-credentials ()
+    "Load Google Calendar credentials from a JSON file."
+    (let* ((json-file "~/.gcal-emacs")
+           (json-data (json-read-file json-file)))
+      (setq plstore-cache-passphrase-for-symmetric-encryption t)
+      (setq org-gcal-client-id (cdr (assoc 'client-id json-data)))
+      (setq org-gcal-client-secret (cdr (assoc 'client-secret json-data)))
+      (setq org-gcal-fetch-file-alist `((,(cdr (assoc 'mail json-data)) .  "~/doc/gcal.org")))))
+  (load-gcal-credentials)
+  :bind (:map org-agenda-mode-map
+         ("M-g" . org-gcal-sync)))
 
 (use-package tree-sitter-langs
   :defer t
