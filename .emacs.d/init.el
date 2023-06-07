@@ -381,7 +381,7 @@ point reaches the beginning or end of the buffer, stop there."
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g f" . consult-flycheck)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
@@ -538,7 +538,8 @@ point reaches the beginning or end of the buffer, stop there."
          (git-commit-mode . flyspell-mode)
          (yaml-mode . flyspell-mode)
          (conf-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
+         (prog-mode . flyspell-prog-mode)
+         )
   :config
   (use-package ispell
     :config
@@ -1117,38 +1118,38 @@ Call a second time to restore the original window configuration."
      (sqlite . t))))
 
 (use-package org-pomodoro
-  :commands (org-pomodoro)
+  :after org-agenda
+  :commands (org-pomodoro snehrbass/org-pomodoro-time snehrbass/org-pomodoro-task)
   :bind ((:map org-agenda-mode-map
-              ("P" . org-pomodoro)))
+               ("P" . org-pomodoro)))
   :config
-  (setq org-pomodoro-keep-killed-pomodoro-time t)
-  (setq
-   alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil))))
-  (setq org-pomodoro-finished-sound "~/Music/bell.wav"
+  (defun snehrbass/org-pomodoro-time ()
+    "Return the remaining pomodoro time in sec"
+    (if (org-pomodoro-active-p)
+        (format "%d" (org-pomodoro-remaining-seconds))
+      "0"))
+
+  (defun snehrbass/org-pomodoro-task ()
+    "Return the current task"
+    (if (org-pomodoro-active-p)
+        (cl-case org-pomodoro-state
+          (:pomodoro
+           (format "%s" org-clock-heading))
+          (:short-break
+           (format "Short Break" ))
+          (:long-break
+           (format "Long Break" ))
+          (:overtime
+           (format "Overtime!" )))
+      "No Active Pomodoro"))
+
+  (setq org-pomodoro-keep-killed-pomodoro-time t
+        alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil)))
+        org-pomodoro-finished-sound "~/Music/bell.wav"
         org-pomodoro-long-break-sound "~/Music/bell.wav"
         org-pomodoro-short-break-sound "~/Music/bell.wav"
         org-pomodoro-start-sound "~/Music/bell.wav"
         org-pomodoro-killed-sound "~/Music/bell.wav"))
-
-(defun snehrbass/org-pomodoro-time ()
-  "Return the remaining pomodoro time in sec"
-  (if (org-pomodoro-active-p)
-      (format "%d" (org-pomodoro-remaining-seconds))
-    "0"))
-
-(defun snehrbass/org-pomodoro-task ()
-  "Return the current task"
-  (if (org-pomodoro-active-p)
-      (cl-case org-pomodoro-state
-        (:pomodoro
-           (format "%s" org-clock-heading))
-        (:short-break
-         (format "Short Break" ))
-        (:long-break
-         (format "Long Break" ))
-        (:overtime
-         (format "Overtime!" )))
-    "No Active Pomodoro"))
 
 (defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
@@ -1496,14 +1497,22 @@ Call a second time to restore the original window configuration."
   (read-process-output-max (* 3 1024 1024)) ;; 3mb
   (lsp-completion-provider :none)           ;; corfu instaed
   (lsp-idle-delay 0.8)
-  :config (lsp-enable-which-key-integration t)
+  :config
+  (lsp-enable-which-key-integration t)
+
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
+               ("C-r" . lsp-workspace-restart)
+               ("C-q" . lsp-workspace-shutdown)
                ("s" . lsp-ui-doc-show)
                ("i" . lsp-find-implementation)
-               ("r" . lsp-find-references)
-               ("R" . lsp-rename)
-               ("e" . consult-lsp-diagnostics)))
+               ("?" . lsp-find-references)
+               ("r" . lsp-rename)
+               ("e" . consult-lsp-diagnostics)
+               ("j" . lsp-ui-imenu)
+               ("c" . compile)          
+               ("C" . recompile)
+               ))
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
          (lsp-mode . lsp-enable-which-key-integration)))
 
@@ -1532,8 +1541,7 @@ Call a second time to restore the original window configuration."
          (before-save . lsp-format-buffer)
          (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
-              ("C-," . go-goto-map)
-              ("C-c C-c" . compile))
+              ("C-," . go-goto-map))
   :custom(lsp-register-custom-settings
           '(("gopls.completeUnimported" t t)
             ("gopls.staticcheck" t t)))
@@ -1575,13 +1583,8 @@ Call a second time to restore the original window configuration."
 
 (use-package rustic
   :bind (:map rustic-mode-map
-              ("M-j" . lsp-ui-imenu)
-              ("M-?" . lsp-find-references)
               ("C-c C-c l" . flycheck-list-errors)
               ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c r" . lsp-rename)
-              ("C-c C-c q" . lsp-workspace-restart)
-              ("C-c C-c Q" . lsp-workspace-shutdown)
               ("C-c C-c s" . lsp-rust-analyzer-status))
   :custom
     (lsp-rust-analyzer-server-display-inlay-hints t)

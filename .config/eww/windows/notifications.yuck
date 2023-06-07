@@ -28,7 +28,8 @@
         (button
           :class "notification-action"
           :tooltip "Refresh"
-          :onclick "dunstctl history > $XDG_CACHE_HOME/dunst-history.json" "")
+          ;; :onclick "dunstctl history > $XDG_CACHE_HOME/dunst-history.json" ""
+          )
         (button
           :class "notification-action"
           :tooltip "Pause/Resume Notifications"
@@ -48,7 +49,7 @@
         :space-evenly false
         (for i in notifications
           (eventbox
-            :onclick "dunstctl history-pop ${i.id} && dunstctl action 0 && dunstctl close"
+            ;; :onclick "dunstctl history-pop ${i.id} && dunstctl action 0 && dunstctl close"
             (box
               :class "notification"
               :orientation "v"

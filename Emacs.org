@@ -662,7 +662,7 @@ That should do it
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flymake)               ;; Alternative: consult-flycheck
+         ("M-g f" . consult-flycheck)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
@@ -1569,38 +1569,38 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package org-pomodoro
-  :commands (org-pomodoro)
+  :after org-agenda
+  :commands (org-pomodoro snehrbass/org-pomodoro-time snehrbass/org-pomodoro-task)
   :bind ((:map org-agenda-mode-map
-              ("P" . org-pomodoro)))
+               ("P" . org-pomodoro)))
   :config
-  (setq org-pomodoro-keep-killed-pomodoro-time t)
-  (setq
-   alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil))))
-  (setq org-pomodoro-finished-sound "~/Music/bell.wav"
+  (defun snehrbass/org-pomodoro-time ()
+    "Return the remaining pomodoro time in sec"
+    (if (org-pomodoro-active-p)
+        (format "%d" (org-pomodoro-remaining-seconds))
+      "0"))
+
+  (defun snehrbass/org-pomodoro-task ()
+    "Return the current task"
+    (if (org-pomodoro-active-p)
+        (cl-case org-pomodoro-state
+          (:pomodoro
+           (format "%s" org-clock-heading))
+          (:short-break
+           (format "Short Break" ))
+          (:long-break
+           (format "Long Break" ))
+          (:overtime
+           (format "Overtime!" )))
+      "No Active Pomodoro"))
+
+  (setq org-pomodoro-keep-killed-pomodoro-time t
+        alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil)))
+        org-pomodoro-finished-sound "~/Music/bell.wav"
         org-pomodoro-long-break-sound "~/Music/bell.wav"
         org-pomodoro-short-break-sound "~/Music/bell.wav"
         org-pomodoro-start-sound "~/Music/bell.wav"
         org-pomodoro-killed-sound "~/Music/bell.wav"))
-
-(defun snehrbass/org-pomodoro-time ()
-  "Return the remaining pomodoro time in sec"
-  (if (org-pomodoro-active-p)
-      (format "%d" (org-pomodoro-remaining-seconds))
-    "0"))
-
-(defun snehrbass/org-pomodoro-task ()
-  "Return the current task"
-  (if (org-pomodoro-active-p)
-      (cl-case org-pomodoro-state
-        (:pomodoro
-           (format "%s" org-clock-heading))
-        (:short-break
-         (format "Short Break" ))
-        (:long-break
-         (format "Long Break" ))
-        (:overtime
-         (format "Overtime!" )))
-    "No Active Pomodoro"))
 #+end_src
 
 ** Clock In/Out
@@ -2053,7 +2053,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
-               ("C-r" . lsp-workspace-restart)g
+               ("C-r" . lsp-workspace-restart)
                ("C-q" . lsp-workspace-shutdown)
                ("s" . lsp-ui-doc-show)
                ("i" . lsp-find-implementation)
