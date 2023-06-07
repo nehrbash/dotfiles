@@ -1,9 +1,6 @@
-(defvar doom--file-name-handler-alist file-name-handler-alist) ;; temp restore later
-(setq file-name-handler-alist nil)
-
-(setq straight-cache-autoloads t)
-(setq straight-check-for-modifications nil)
-(setq straight-use-package-by-default t)
+(setq straight-cache-autoloads t
+      straight-check-for-modifications nil
+      straight-use-package-by-default t)
 (defvar bootstrap-version)
 (let ((bootstrap-file
        (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
@@ -22,9 +19,8 @@
 
 ;; now built-in
 (require 'use-package)
-;; Change the user-emacs-directory to keep unwanted things out of ~/.emacs.d
-;; (setq user-emacs-directory (expand-file-name "~/.cache/emacs/")
-;;       url-history-file (expand-file-name "url/history" user-emacs-directory))
+(setq use-package-compute-statistics t) 
+(use-package delight) ;; for use-package
 
 ;; Keep customization settings in a temporary file
 (setq custom-file
@@ -32,16 +28,9 @@
           (expand-file-name "custom.el" server-socket-dir)
         (expand-file-name (format "emacs-custom-%s.el" (user-uid)) temporary-file-directory)))
 (load custom-file t)
-;; Load path 
-(push "~/.emacs.d/lisp" load-path)
 
 ;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
-
-(use-package delight)
-(use-package htmlize)
-(use-package dsvn)
-(use-package daemons)
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -89,7 +78,6 @@
          ("C-c u" . move-dup-duplicate-up)))
 
 (use-package whole-line-or-region
-  :defer t
   :config (whole-line-or-region-global-mode t)
   :bind ("M-j". comment-dwim))
 
@@ -139,7 +127,8 @@ point reaches the beginning or end of the buffer, stop there."
   :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
   :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
 
-(use-package sudo-edit)
+(use-package sudo-edit
+  :commands (sudo-edit))
 
 (setq-default
  bookmark-save-flag 1
@@ -166,17 +155,17 @@ point reaches the beginning or end of the buffer, stop there."
 (setq browse-url-browser-function #'browse-url-firefox)
 
 (use-package recentf
-  :init
-  (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+  :hook ((after-init . recentf-mode)
+         (find-file . recentf-save-list))
   :config
-  (recentf-mode 1)
-  (add-hook 'find-file-hook 'recentf-save-list)
+  (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (setq-default
    recentf-max-saved-items 300
    recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
 
-(global-auto-revert-mode 1)
-(add-hook 'dired-mode-hook 'auto-revert-mode)
+(use-package autorevert
+  :hook (after-init . global-auto-revert-mode)
+  :delight auto-revert-mode)
 
 (when (fboundp 'electric-pair-mode)
   (add-hook 'after-init-hook 'electric-pair-mode))
@@ -194,6 +183,7 @@ point reaches the beginning or end of the buffer, stop there."
   "-o ControlMaster=auto -o ControlPersist=yes"))
 
 (use-package exec-path-from-shell
+  :after emacs-init
   :config
   (dolist (var '("LSP_USE_PLISTS"))
     (add-to-list 'exec-path-from-shell-variables var))
@@ -207,18 +197,16 @@ point reaches the beginning or end of the buffer, stop there."
     ))
 
 (use-package doom-themes
-  :straight t
+  :hook (after-init . (lambda ()
+                        (load-theme 'doom-gruvbox t)
+                        (doom-themes-treemacs-config)
+                        (doom-themes-org-config)))
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t)
-           (doom-modeline-bar-inactive 'unspecified) ; suppress warning
-          )
-  :config
-  (load-theme 'doom-gruvbox t)
-  (doom-themes-org-config))
-(setq custom-safe-themes t)
+           (custom-safe-themes t)))
 
 (use-package doom-modeline
-  :init (doom-modeline-mode 1)
+  :hook (after-init . doom-modeline-mode)
   :custom (
            (doom-modeline-percent-position nil)
            (doom-modeline-buffer-file-name-style 'auto)
@@ -254,7 +242,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package dired
   :straight (:type built-in)
-  :defer 1
   :commands (dired dired-jump)
   :config
 
@@ -289,7 +276,7 @@ point reaches the beginning or end of the buffer, stop there."
               (hl-line-mode 1)))
 
   (use-package dired-ranger
-    :defer t
+    :after dired
     :config
     (put 'dired-find-alternate-file 'disabled nil)
     (define-key dired-mode-map "b" 'dired-single-up-directory)
@@ -301,13 +288,14 @@ point reaches the beginning or end of the buffer, stop there."
     (define-key dired-mode-map "p" 'dired-ranger-paste))
 
   (use-package dired-collapse
-    :defer t)
+    :after dired)
 
   (use-package all-the-icons-dired
-    :defer t
+    :after dired
     :hook (dired-mode . all-the-icons-dired-mode)))
 
 (use-package dired-hide-dotfiles
+  :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :config
   (define-key dired-mode-map "." #'dired-hide-dotfiles-mode)
@@ -339,7 +327,8 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package embark-consult
   :after (embark consult)
   :hook (embark-collect-mode . consult-preview-at-point-mode))
-(use-package consult-flycheck)
+(use-package consult-flycheck
+  :after consult)
 (use-package savehist :init (savehist-mode))
 (use-package marginalia
   :after vertico
@@ -619,16 +608,8 @@ This is useful when followed by an immediate kill."
   (goto-char isearch-other-end))
 (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
 
-(setq-default grep-highlight-matches t
-              grep-scroll-output t)
 (use-package wgrep
-  :config
-   (dolist (key (list (kbd "C-c C-q") (kbd "w")))
-    (define-key grep-mode-map key 'wgrep-change-to-wgrep-mode)))
-(when (executable-find "ag")
-           (use-package ag))
-(when (executable-find "rg")
-  (use-package rg))
+  :defer 2) ; load later
 
 (use-package ibuffer-vc
   :bind ("C-x C-b" . ibuffer)
@@ -718,19 +699,15 @@ This is useful when followed by an immediate kill."
   :config
   (setq-default show-trailing-whitespace nil))
 
-(use-package emacs
+(use-package whitespace-cleanup-mode
   :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
+  :delight
+  :hook (after-init . global-whitespace-cleanup-mode)
   :config
+  (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
   (defun sanityinc/show-trailing-whitespace ()
     "Enable display of trailing whitespace in this buffer."
     (setq-local show-trailing-whitespace t)))
-
-(use-package whitespace-cleanup-mode
-  :delight
-  :hook (after-init . global-whitespace-cleanup-mode))
-
-(use-package emacs
-  :bind ([remap just-one-space] . cycle-spacing))
 
 (use-package diff-hl
   :defer t
@@ -740,71 +717,31 @@ This is useful when followed by an immediate kill."
          (magit-post-refresh . diff-hl-magit-post-refresh))
   :bind (:map diff-hl-mode-map
          ([left-fringe mouse-2] . diff-hl-diff-goto-hunk)))
-(use-package browse-at-remote) ;; open in web
+(use-package browse-at-remote
+  :commands (browse-at-remote browse-at-remote-kill))
 
 (use-package git-blamed)
 ;;  (use-package gitignore-mode)
 ;;  (use-package gitconfig-mode)
-  (use-package git-time-machine
-    :config
-    (global-set-key (kbd "C-x v t") 'git-timemachine-toggle))
+(use-package git-time-machine
+  :config
+  (global-set-key (kbd "C-x v t") 'git-timemachine-toggle))
 
-  (use-package magit
-    :defer t
-    :config
-    (setq-default magit-diff-refine-hunk t)
-    ;; Hint: customize `magit-repository-directories' so that you can use C-u M-F12 to
-    ;; quickly open magit on any one of your projects.
-    (global-set-key [(meta f12)] 'magit-status)
-    (global-set-key (kbd "C-x g") 'magit-status)
-    (global-set-key (kbd "C-x M-g") 'magit-dispatch)
-
-    (defun sanityinc/magit-or-vc-log-file (&optional prompt)
-      (interactive "P")
-      (if (and (buffer-file-name)
-               (eq 'Git (vc-backend (buffer-file-name))))
-          (if prompt
-              (magit-log-buffer-file-popup)
-            (magit-log-buffer-file t))
-        (vc-print-log)))
-    (with-eval-after-load 'vc
-      (define-key vc-prefix-map (kbd "l") 'sanityinc/magit-or-vc-log-file)))
-(with-eval-after-load 'magit
-  (define-key magit-status-mode-map (kbd "C-M-<up>") 'magit-section-up))
+(use-package magit
+  :config
+  (fullframe magit-status magit-mode-quit-window)
+  (setq-default magit-diff-refine-hunk t)
+  :bind (("C-x g" . magit-status)
+         ("C-x M-g" . magit-dispatch)
+         (:map magit-status-mode-map
+               ("C-M-<up>" . magit-section-up))))
 (use-package magit-todos
   :after magit
   :config (magit-todos-mode 1))
-;; (use-package forge
-;;   :after magit)
-(use-package fullframe)
-(with-eval-after-load 'magit
-  (fullframe magit-status magit-mode-quit-window))
-(use-package git-commit
-  :config
-  (add-hook 'git-commit-mode-hook 'goto-address-mode))
-
-;; Convenient binding for vc-git-grep
-(with-eval-after-load 'vc
-  (define-key vc-prefix-map (kbd "f") 'vc-git-grep))
+(use-package forge
+  :after magit)
 
 (setq-default compilation-scroll-output t)
-(use-package alert)
-;; Customize `alert-default-style' to get messages after compilation
-(defun sanityinc/alert-after-compilation-finish (buf result)
-  "Use `alert' to report compilation RESULT if BUF is hidden."
-  (when (buffer-live-p buf)
-    (unless (catch 'is-visible
-              (walk-windows (lambda (w)
-                              (when (eq (window-buffer w) buf)
-                                (throw 'is-visible t))))
-              nil)
-      (alert (concat "Compilation " result)
-             :buffer buf
-             :category 'compilation))))
-
-(with-eval-after-load 'compile
-  (add-hook 'compilation-finish-functions
-            'sanityinc/alert-after-compilation-finish))
 
 (defvar sanityinc/last-compilation-buffer nil
   "The last buffer in which compilation took place.")
@@ -842,33 +779,18 @@ This is useful when followed by an immediate kill."
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
+(use-package yasnippet-snippets
+    :after yasnippet)
+
 (use-package yasnippet
-  :straight t
+  :after emacs-init
+  :hook (after-init . yas-global-mode)
+  :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
   :config
   (setq yas-verbosity 1)                      ; No need to be so verbose
   (setq yas-wrap-around-region t)
-  (use-package yasnippet-snippets
-    :straight t)
-  (with-eval-after-load 'yasnippet
-    (setq yas-snippet-dirs '(yasnippet-snippets-dir)))
-
-  (yas-reload-all)
-  (yas-global-mode t)
-  (define-key yas-minor-mode-map (kbd "C-c s") #'yas-insert-snippet)
-
-  (defun company-yasnippet-or-completion ()
-    "Solve company yasnippet conflicts."
-    (interactive)
-    (let ((yas-fallback-behavior
-           (apply 'company-complete-common nil)))
-      (yas-expand)))
-
-  (add-hook 'company-mode-hook
-            (lambda ()
-              (substitute-key-definition
-               'company-complete-common
-               'company-yasnippet-or-completion
-               company-active-map))))
+  (setq yas-snippet-dirs '(yasnippet-snippets-dir))
+  (yas-reload-all))
 
 (use-package paredit
   :delight paredit-mode " Par"
@@ -891,7 +813,14 @@ This is useful when followed by an immediate kill."
     (setq-default projectile-generic-command "rg --files --hidden"))
   (setq-default projectile-mode-line-prefix " Proj")   ;; Shorter modeline
   (projectile-mode))
-(use-package ibuffer-projectile)
+(use-package ibuffer-projectile
+  :commands (ibuffer)
+  :hook (ibuffer . 
+    (lambda ()
+      (ibuffer-projectile-set-filter-groups)
+      (unless (eq ibuffer-sorting-mode 'alphabetic)
+        (ibuffer-do-sort-by-alphabetic))))
+  :after ibuffer)
 
 (use-package winner
   :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
@@ -982,7 +911,9 @@ Call a second time to restore the original window configuration."
 
 (setq confirm-kill-processes nil)
 
-(use-package speed-type)
+(use-package speed-type
+  :defer 3 ;; wait 3 sec
+)
 
 (use-package org
   :straight org-contrib
@@ -1411,16 +1342,13 @@ Call a second time to restore the original window configuration."
   (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area") )
 
 (use-package pdf-tools
+  :hook (doc-view-mode . pdf-tools-install)
   :config
-  (add-hook 'doc-view-mode-hook #'pdf-tools-install)
   (setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12"))
   (setq-default pdf-view-display-size 'fit-width))
 
 (use-package markdown-mode
-  :config
-  (add-auto-mode 'markdown-mode "\\.md\\.html\\'")
-  (with-eval-after-load 'whitespace-cleanup-mode
-    (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)))
+  :mode ("\\.md\\'" . markdown-mode))
 
 (use-package org-roam
   :straight t
@@ -1429,7 +1357,7 @@ Call a second time to restore the original window configuration."
   :delight(org-roam-mode)
   :config
     (org-roam-db-autosync-mode)
-  :custom
+  :custom 
   (org-roam-directory "~/doc/Roam/")
   (org-roam-completion-everywhere t)
   (org-roam-completion-system 'default)
@@ -1466,6 +1394,8 @@ Call a second time to restore the original window configuration."
           org-roam-ui-open-on-start nil))
 
 (use-package org-gcal
+  :after (org-agenda)
+  :requires json
   :init
   (defun load-gcal-credentials ()
     "Load Google Calendar credentials from a JSON file."
@@ -1485,21 +1415,19 @@ Call a second time to restore the original window configuration."
   (global-tree-sitter-mode)
   (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
 
-(use-package consult-lsp)
 (use-package lsp-mode
-  :init
-  (defun my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(orderless)))
-  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
   :commands (lsp lsp-deferered)
   :custom
   (read-process-output-max (* 3 1024 1024)) ;; 3mb
   (lsp-completion-provider :none)           ;; corfu instaed
   (lsp-idle-delay 0.8)
-  :config
   (lsp-enable-which-key-integration t)
-
+  :config
+  (use-package consult-lsp)
+  (defun my/lsp-mode-setup-completion ()
+    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
+          '(orderless)))
+  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("C-r" . lsp-workspace-restart)
@@ -1513,8 +1441,7 @@ Call a second time to restore the original window configuration."
                ("c" . compile)          
                ("C" . recompile)
                ))
-  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
-         (lsp-mode . lsp-enable-which-key-integration)))
+  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)))
 
 (use-package lsp-ui
   :custom
@@ -1528,6 +1455,7 @@ Call a second time to restore the original window configuration."
   :commands lsp-ui-mode)
 
 (use-package dap-mode
+  :after lsp
   :config
   (dap-mode 1)
   (require 'dap-dlv-go)
@@ -1570,16 +1498,11 @@ Call a second time to restore the original window configuration."
                     )))
 
 (use-package ccls
-  :straight t
+  :after
+  (:any c-mode c++-mode objc-mode)
   :config
   (setq ccls-executable "ccls")
-  (setq-default flycheck-disabled-checkers '(c/c++-clang c/c++-cppcheck c/c++-gcc))
-  :hook ((c-mode c++-mode objc-mode) .
-         (lambda () (require 'ccls) (lsp))))
-(defun lsp-cpp-install-save-hooks ()
-  (add-hook 'before-save-hook #'lsp-format-buffer t t)
-  (add-hook 'before-save-hook #'lsp-organize-imports t t))
-(add-hook 'cc-mode-hook #'lsp-cpp-install-save-hooks)
+  :hook ((c-mode c++-mode objc-mode) . (lambda () (require 'ccls) (lsp))))
 
 (use-package rustic
   :bind (:map rustic-mode-map
@@ -1592,9 +1515,17 @@ Call a second time to restore the original window configuration."
   (setq rustic-format-on-save t))
 
 (use-package python
-  :config
-  (use-package conda
+  :mode ("\\.py\\'" . python-mode)
+  :interpreter ("python" . python-mode))
+(use-package lsp-python-ms
+  :commands (lsp lsp-deferered)
+  :init (setq lsp-python-ms-auto-install-server t)
+  :hook (python-mode . (lambda ()
+                          (require 'lsp-python-ms)
+                          (lsp))))
+(use-package conda
     :after python
+    :commands (conda-env-list conda-env-activate)
     :config
   ;; The location of your anaconda home will be guessed from a list of common
   ;; possibilities, starting with `conda-anaconda-home''s default value (which
@@ -1628,33 +1559,36 @@ Call a second time to restore the original window configuration."
   (add-to-list 'global-mode-string
                '(conda-env-current-name (" conda:" conda-env-current-name " "))
                'append))
-  (use-package lsp-python-ms
-    :after lsp-mode))
 
-(use-package csv-mode)
-(add-auto-mode 'csv-mode "\\.[Cc][Ss][Vv]\\'")
-(setq csv-separators '("," ";" "|" " " ", "))
+(use-package csv-mode
+  :mode ("\\.[Cc][Ss][Vv]\\'" . python-mode)
+  :config
+  (setq csv-separators '("," ";" "|" " " ", ")))
 
 (use-package yaml-mode
   :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
   :hook (yaml-mode-hook .goto-address-prog-mode))
 
 (use-package docker
+  :bind ("C-c d" . docker)
   :config
   (fullframe docker-images tablist-quit)
   (fullframe docker-machines tablist-quit)
   (fullframe docker-volumes tablist-quit)
   (fullframe docker-networks tablist-quit)
   (fullframe docker-containers tablist-quit))
-(use-package dockerfile-mode)
-(use-package docker-compose-mode)
+(use-package dockerfile-mode
+  :mode ("\\.dockerfile\\'" . dockerfile-mode))           
+(use-package docker-compose-mode
+  :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 
-(use-package terraform-mode)
+(use-package terraform-mode
+  :mode ("\\.dockerfile\\'" . dockerfile-mode))
 
-(use-package yuck-mode)
+(use-package yuck-mode
+  :mode ("\\.yuck\\'" . yuck-mode))
 
 (use-package gptel
-  :straight t
   :bind (("<f5>" . gptel)
          ("C-<f5>" . gptel-menu))
   :config
@@ -1680,8 +1614,4 @@ Call a second time to restore the original window configuration."
 (add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
 (add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
 
-(add-hook 'emacs-startup-hook
-  (lambda ()
-    (setq gc-cons-threshold 16777216 ; 16mb
-          gc-cons-percentage 0.1
-          file-name-handler-alist doom--file-name-handler-alist)))
+

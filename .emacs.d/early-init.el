@@ -2,11 +2,22 @@
 ;;; Commentary:
 ;;; Code:
 
+
+(defvar doom--file-name-handler-alist file-name-handler-alist) ;; temp restore later
+(setq file-name-handler-alist nil)
+
 ;; Increase garbage collection threshold and seed optimizations
 (setq gc-cons-threshold most-positive-fixnum
       gc-cons-percentage 0.6
       frame-inhibit-implied-resize t
       initial-major-mode 'fundamental-mode)
+
+;; dial back down
+(add-hook 'emacs-startup-hook
+  (lambda ()
+    (setq gc-cons-threshold 16777216 ; 16mb
+          gc-cons-percentage 0.1
+          file-name-handler-alist doom--file-name-handler-alist)))
 
 ;; Reduce startup visual clutter
 (setq inhibit-startup-screen t
