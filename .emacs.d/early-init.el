@@ -35,8 +35,9 @@
 
 ;; Disable package.el at startup, I use straight.
 (setq package-enable-at-startup nil
-      ;; don't add that `custom-set-variables' block to my init.el!
-      package--init-file-ensured t)
+      straight-enable-package-integration nil)
+;; don't add that `custom-set-variables' block to my init.el!
+(setq package--init-file-ensured t)
 
 (provide 'early-init)
 ;;; early-init.el ends here

@@ -65,7 +65,7 @@
 (autoload 'mwheel-install "mwheel")
 (defun sanityinc/console-frame-setup ()
   (xterm-mouse-mode 1) ; Mouse in a terminal (Use shift to paste with middle button)
-  (mwheel-install))
+  (mouse-wheel-mode 1))
 (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
 
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
@@ -130,6 +130,8 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package sudo-edit
   :commands (sudo-edit))
 
+(use-package fullframe)
+
 (setq-default
  bookmark-save-flag 1
  blink-cursor-interval 0.4
@@ -170,11 +172,11 @@ point reaches the beginning or end of the buffer, stop there."
 (when (fboundp 'electric-pair-mode)
   (add-hook 'after-init-hook 'electric-pair-mode))
 
-(setq remote-file-name-inhibit-cache nil)
-(setq vc-ignore-dir-regexp
-      (format "%s\\|%s"
-                    vc-ignore-dir-regexp
-                    tramp-file-name-regexp))
+(use-package tramp
+  :straight (:type built-in)
+  :config
+  (setq remote-file-name-inhibit-cache nil)
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)) ;; use remote path
 
 (customize-set-variable
  'tramp-ssh-controlmaster-options
@@ -262,11 +264,6 @@ point reaches the beginning or end of the buffer, stop there."
 
   (use-package dired-single
     :commands (dired dired-jump))
-
-  (add-hook 'dired-load-hook
-            (lambda ()
-              (interactive)
-              (dired-collapse)))
 
   (add-hook 'dired-mode-hook
             (lambda ()
@@ -402,7 +399,8 @@ point reaches the beginning or end of the buffer, stop there."
         xref-show-definitions-function #'consult-xref)
   :config
   (defun sn/consult-ripgrep ()
-    "Run `consult-ripgrep` from the project root directory if available, or the current directory otherwise."
+    "Run `consult-ripgrep` from the project root directory if available,"
+    "or the current directory otherwise."
     (interactive)
     (let ((default-directory (if (projectile-project-p)
                                  (projectile-project-root)
@@ -421,13 +419,13 @@ point reaches the beginning or end of the buffer, stop there."
    sanityinc/affe-grep-at-point affe-grep))
 
 (use-package consult-dir
-  :ensure t
+  :after (consult)
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
          ("C-x C-d" . consult-dir)
          ("C-x C-j" . consult-dir-jump-file))
   :config
-  (setq consult-dir-project-list-function nil)
+  (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (setq consult-dir-project-list-function #'consult-dir-projectile-dirs)
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
@@ -720,17 +718,21 @@ This is useful when followed by an immediate kill."
 (use-package browse-at-remote
   :commands (browse-at-remote browse-at-remote-kill))
 
-(use-package git-blamed)
+(use-package git-blamed
+  :after magit)
 ;;  (use-package gitignore-mode)
 ;;  (use-package gitconfig-mode)
 (use-package git-time-machine
+  :after magit
   :config
   (global-set-key (kbd "C-x v t") 'git-timemachine-toggle))
-
 (use-package magit
+  :commands (magit-status magit-dispatch)
+  :after fullframe
   :config
   (fullframe magit-status magit-mode-quit-window)
   (setq-default magit-diff-refine-hunk t)
+  (use-package forge)
   :bind (("C-x g" . magit-status)
          ("C-x M-g" . magit-dispatch)
          (:map magit-status-mode-map
@@ -738,8 +740,6 @@ This is useful when followed by an immediate kill."
 (use-package magit-todos
   :after magit
   :config (magit-todos-mode 1))
-(use-package forge
-  :after magit)
 
 (setq-default compilation-scroll-output t)
 
@@ -783,7 +783,6 @@ This is useful when followed by an immediate kill."
     :after yasnippet)
 
 (use-package yasnippet
-  :after emacs-init
   :hook (after-init . yas-global-mode)
   :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
   :config
@@ -1422,12 +1421,23 @@ Call a second time to restore the original window configuration."
   (lsp-completion-provider :none)           ;; corfu instaed
   (lsp-idle-delay 0.8)
   (lsp-enable-which-key-integration t)
+  (lsp-log-io t)
   :config
   (use-package consult-lsp)
   (defun my/lsp-mode-setup-completion ()
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless)))
   (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-tramp-connection
+                                     (lambda ()
+                                       (cons "gopls" " -remote=auto -logfile=auto -debug=:0 -remote.debug=:0 -rpc.trace")))
+                    :major-modes '(go-mode)
+                    :language-id "go"
+                    :priority 0
+                    :server-id 'gopls-remote
+                    :remote? t
+                    ))
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("C-r" . lsp-workspace-restart)
@@ -1456,6 +1466,7 @@ Call a second time to restore the original window configuration."
 
 (use-package dap-mode
   :after lsp
+  :requires all-the-icons
   :config
   (dap-mode 1)
   (require 'dap-dlv-go)
@@ -1474,28 +1485,13 @@ Call a second time to restore the original window configuration."
           '(("gopls.completeUnimported" t t)
             ("gopls.staticcheck" t t)))
   :config
-  (use-package flycheck-golangci-lint
-    :config
-    :hook (lsp-diagnostics-mode . (lambda ()
-                     (flycheck-add-next-checker 'lsp 'golangci-lint)
-                     (flycheck-add-next-checker 'lsp 'go-gofmt)
-                     )))
-  
-  (use-package gorepl-mode
-    :commands gorepl-run-load-current-file)
-  
-  (setq compile-command "go build -v && go test -v -cover && go vet") 
-  ;; remote go
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection
-                                     (lambda ()
-                                       (cons "gopls" lsp-gopls-server-args)))
-                    :major-modes '(go-mode)
-                    :priority 10
-                    :server-id 'gopls-remote
-                    :remote? t
-                    )))
+    (setq compile-command "go build -v && go test -v -cover && go vet"))
+(use-package gorepl-mode
+  :after go-mode
+  :commands gorepl-run-load-current-file)
+(use-package flycheck-golangci-lint
+    :after (lsp go-mode)
+    :hook (go-mode . flycheck-golangci-lint-setup))
 
 (use-package ccls
   :after
@@ -1571,6 +1567,7 @@ Call a second time to restore the original window configuration."
 
 (use-package docker
   :bind ("C-c d" . docker)
+  :after fullframe
   :config
   (fullframe docker-images tablist-quit)
   (fullframe docker-machines tablist-quit)
