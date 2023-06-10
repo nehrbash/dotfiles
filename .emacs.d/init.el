@@ -389,6 +389,14 @@ point reaches the beginning or end of the buffer, stop there."
   (setq xref-show-xrefs-function #'consult-xref
         xref-show-definitions-function #'consult-xref)
   :config
+  (consult-customize
+   consult-line
+   :add-history (seq-some #'thing-at-point '(region symbol)))
+  (defalias 'consult-line-thing-at-point 'consult-line)
+  (consult-customize
+   consult-line-thing-at-point
+   :initial (thing-at-point 'symbol))
+  
   (defun sn/consult-ripgrep ()
     "Run `consult-ripgrep` from the project root directory if available,"
     "or the current directory otherwise."
@@ -736,8 +744,6 @@ This is useful when followed by an immediate kill."
     (setq-local show-trailing-whitespace t)))
 
 (use-package diff-hl
-  :defer t
-  :config
   :hook ((dired-mode . diff-hl-dired-mode)
          (after-init . global-diff-hl-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh))
@@ -930,9 +936,12 @@ Call a second time to restore the original window configuration."
   :bind (
          ( "M-t" . toggle-vterm-buffer)
          :map vterm-mode-map
-         ( "M-t" . toggle-vterm-buffer)
+         ("M-t" . toggle-vterm-buffer)
+         ("C-M-t" . (lambda ()
+                     (interactive)
+                     (consult-buffer v)))
          ("M-w" . copy-region-as-kill)
-         ( "C-y" . vterm-yank))
+         ("C-y" . vterm-yank))
   :config
   (setq vterm-buffer-name-string "Term %s")
   (defun toggle-vterm-buffer ()
@@ -1468,9 +1477,8 @@ Call a second time to restore the original window configuration."
   :custom
   (read-process-output-max (* 3 1024 1024)) ;; 3mb
   (lsp-completion-provider :none)           ;; corfu instaed
-  (lsp-idle-delay 0.8)
+  (lsp-idle-delay 0.3)
   (lsp-enable-which-key-integration t)
-  (lsp-log-io t)
   :config
   (use-package consult-lsp)
   (defun my/lsp-mode-setup-completion ()
@@ -1498,6 +1506,7 @@ Call a second time to restore the original window configuration."
                ("j" . lsp-ui-imenu)
                ("c" . compile)
                ("C" . recompile)
+               ("d" . dap-hydra)
                ))
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)))
 
@@ -1516,7 +1525,6 @@ Call a second time to restore the original window configuration."
   :after lsp
   :requires all-the-icons
   :config
-  (dap-mode 1)
   (require 'dap-dlv-go)
   (dap-ui-mode 1)
   (dap-tooltip-mode 1)
