@@ -28,6 +28,19 @@ vterm_printf(){
     fi
 }
 
+# set terminal window title to program name
+case $TERM in
+  (*xterm* | rxvt | rxvt-unicode-256color)
+    function precmd {
+      print -Pn "\e]0;%(1j,%j job%(2j|s|); ,)%~\a"
+    }
+    function preexec {
+      printf "\033]0;%s\a" "$1"
+    }
+  ;;
+esac
+
+
 vterm_prompt_end() {
     vterm_printf "51;A$(whoami)@$(hostname):$(pwd)";
 }

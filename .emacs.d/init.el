@@ -16,11 +16,13 @@
 
 ;; Silence compiler warnings as they can be pretty disruptive
 (setq comp-async-report-warnings-errors nil)
-
+(setq warning-minimum-level :emergency)
 ;; now built-in
 (require 'use-package)
-(setq use-package-compute-statistics t) 
+;; (straight-use-package 'delight)
+(setq use-package-compute-statistics t)
 (use-package delight) ;; for use-package
+
 
 ;; Keep customization settings in a temporary file
 (setq custom-file
@@ -173,16 +175,18 @@ point reaches the beginning or end of the buffer, stop there."
   (add-hook 'after-init-hook 'electric-pair-mode))
 
 (use-package tramp
+  :commands tramp-mode
   :straight (:type built-in)
-  :config
+  :init
   (setq remote-file-name-inhibit-cache nil)
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)) ;; use remote path
-
-(customize-set-variable
- 'tramp-ssh-controlmaster-options
- (concat
-  "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
-  "-o ControlMaster=auto -o ControlPersist=yes"))
+  (customize-set-variable
+   'tramp-ssh-controlmaster-options
+   (concat
+    "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
+    "-o ControlMaster=auto -o ControlPersist=yes"))
+  :config
+   ;; use remote path
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 (use-package exec-path-from-shell
   :after emacs-init
@@ -244,59 +248,43 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package dired
   :straight (:type built-in)
-  :commands (dired dired-jump)
+  :commands (dired dired-jump dired-omit-mode)
+  :hook (dired-mode . my-dired-mode-hook)
+  :delight dired-omit-mode
+  :init
+  (defun my-dired-mode-hook ()
+  (dired-omit-mode 1)
+  (auto-revert-mode 1)
+  (setq mode-line-format nil)
+  (hl-line-mode 1))
   :config
-
+  (setq dired-omit-files "^\\.\\.?$")
   (setq-default dired-dwim-target t)
-  (use-package diredfl
-    :config
-    (require 'dired-x)
-    :hook (dired-mode . diredfl-mode)
-    )
-  ;; Prefer g-prefixed coreutils version of standard utilities when available
-  (let ((gls (executable-find "gls")))
-    (when gls (setq insert-directory-program gls)))
-
   (setq dired-listing-switches "-agho --group-directories-first"
         dired-omit-verbose nil)
-  (setq dired-recursive-deletes 'top)
-  (autoload 'dired-omit-mode "dired-x")
-
-  (use-package dired-single
-    :commands (dired dired-jump))
-
-  (add-hook 'dired-mode-hook
-            (lambda ()
-              (interactive)
-              (dired-omit-mode 1)
-              (setq mode-line-format nil)
-              (hl-line-mode 1)))
-
-  (use-package dired-ranger
-    :after dired
-    :config
-    (put 'dired-find-alternate-file 'disabled nil)
-    (define-key dired-mode-map "b" 'dired-single-up-directory)
-    (define-key dired-mode-map "f" 'dired-find-alternate-file)
-    (define-key dired-mode-map "l" 'dired-single-buffer)
-    (define-key dired-mode-map "y" 'dired-ranger-copy)
-    (define-key dired-mode-map "X" 'dired-ranger-move)
-    (define-key dired-mode-map "H" 'dired-omit-mode)
-    (define-key dired-mode-map "p" 'dired-ranger-paste))
-
-  (use-package dired-collapse
-    :after dired)
-
-  (use-package all-the-icons-dired
-    :after dired
-    :hook (dired-mode . all-the-icons-dired-mode)))
-
-(use-package dired-hide-dotfiles
+  (setq dired-recursive-deletes 'top))
+(use-package dired-single
   :after dired
+  :bind (:map dired-mode-map
+              ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
+              ("f" . dired-single-buffer)))
+(use-package dired-ranger
+  :after dired
+  :bind (:map dired-mode-map
+              ("w" . dired-ranger-copy)
+              ("m" . dired-ranger-move)
+              ("H" . dired-omit-mode)
+              ("y" . dired-ranger-paste)))
+(use-package all-the-icons-dired
+    :hook (dired-mode . all-the-icons-dired-mode))
+(use-package dired-collapse
+    :hook  (dired-mode . dired-collapse-mode))
+(use-package diredfl
+    :hook (dired-mode . diredfl-mode))
+(use-package dired-hide-dotfiles
   :hook (dired-mode . dired-hide-dotfiles-mode)
-  :config
-  (define-key dired-mode-map "." #'dired-hide-dotfiles-mode)
-  (setq dired-omit-files "^\\(?:\\..*\\|.*~\\)$"))
+  :bind (:map dired-mode-map
+              ("." . dired-hide-dotfiles-mode)))
 
 (use-package vertico
   :config
@@ -318,15 +306,18 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless  basic)
+  (setq completion-styles '(orderless  orderless-flex)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
 (use-package embark-consult
   :after (embark consult)
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 (use-package consult-flycheck
-  :after consult)
-(use-package savehist :init (savehist-mode))
+  :commands consult-flycheck
+  :after (consult flycheck))
+(use-package savehist
+  :after no-littering
+  :config (savehist-mode))
 (use-package marginalia
   :after vertico
   :ensure t
@@ -389,7 +380,7 @@ point reaches the beginning or end of the buffer, stop there."
   ;; Optionally configure the register formatting. This improves the register
   ;; preview for `consult-register', `consult-register-load',
   ;; `consult-register-store' and the Emacs built-ins.
-  (setq register-preview-delay 0
+  (setq register-preview-delay 0.2
         register-preview-function #'consult-register-format)
   ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
@@ -406,8 +397,6 @@ point reaches the beginning or end of the buffer, stop there."
                                  (projectile-project-root)
                                default-directory)))
       (consult-ripgrep)))
-
-
   (setq consult-narrow-key "<")
   ;; (setq consult-preview-key (kbd "M-."))
   (consult-customize
@@ -416,10 +405,50 @@ point reaches the beginning or end of the buffer, stop there."
    consult-ripgrep consult-git-grep consult-grep consult-find
    consult-bookmark consult-recent-file consult-xref
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   sanityinc/affe-grep-at-point affe-grep))
+   sanityinc/affe-grep-at-point affe-grep)
+  (defvar org-source
+  (list :name     "Org"
+        :category 'buffer
+        :narrow   ?o
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)
+          (with-current-buffer (get-buffer-create name)
+            (insert "#+title: " name "\n\n")
+            (org-mode)
+            (consult--buffer-action (current-buffer))))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'org-mode))
+                   (buffer-list))))))
+  (add-to-list 'consult-buffer-sources 'org-source 'append)
+  (defvar term-source
+  (list :name     "Term"
+        :category 'buffer
+        :narrow   ?v
+        :face     'consult-buffer
+        :history  'buffer-name-history
+        :state    #'consult--buffer-state
+        :new
+        (lambda (name)       
+          (vterm (concat "Term " name))
+          (setq-local vterm-buffer-name-string nil))
+        :items
+        (lambda ()
+          (mapcar #'buffer-name
+                  (seq-filter
+                   (lambda (x)
+                     (eq (buffer-local-value 'major-mode x) 'vterm-mode))
+                   (buffer-list))))))
+  (add-to-list 'consult-buffer-sources 'term-source 'append))
 
 (use-package consult-dir
-  :after (consult)
+  :after (consult tramp)
   :bind (("C-x C-d" . consult-dir)
          :map vertico-map
          ("C-x C-d" . consult-dir)
@@ -550,7 +579,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
-  :hook (emacs-startup-hook . global-flycheck-mode)
+  :hook (after-init . global-flycheck-mode)
   :config
   (setq flycheck-emacs-lisp-load-path 'inherit)
   ;; Rerunning checks on every newline is a mote excessive.
@@ -576,12 +605,19 @@ point reaches the beginning or end of the buffer, stop there."
 
 ;; Show number of matches while searching
 (use-package anzu
+  :hook (after-init . global-anzu-mode)
+  :custom
+  (anzu-mode-lighter "")
   :config
-  (add-hook 'after-init-hook 'global-anzu-mode)
-  (setq anzu-mode-lighter "")
   (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
-  (global-set-key [remap query-replace] 'anzu-query-replace))
-
+  (global-set-key [remap query-replace] 'anzu-query-replace)
+  (defun sanityinc/isearch-exit-other-end ()
+  "Exit isearch, but at the other end of the search string.
+This is useful when followed by an immediate kill."
+  (interactive)
+  (isearch-exit)
+  (goto-char isearch-other-end))
+(define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
 ;; Search back/forth for the symbol at point
 ;; See http://www.emacswiki.org/emacs/SearchAtPoint
 (defun isearch-yank-symbol ()
@@ -596,18 +632,10 @@ point reaches the beginning or end of the buffer, stop there."
                 isearch-yank-flag t))
       (ding)))
   (isearch-search-and-update))
-
-(define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol)
-(defun sanityinc/isearch-exit-other-end ()
-  "Exit isearch, but at the other end of the search string.
-This is useful when followed by an immediate kill."
-  (interactive)
-  (isearch-exit)
-  (goto-char isearch-other-end))
-(define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
+(define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol))
 
 (use-package wgrep
-  :defer 2) ; load later
+  :commands (wgrep wgrep-change-to-wgrep-mode))
 
 (use-package ibuffer-vc
   :bind ("C-x C-b" . ibuffer)
@@ -718,28 +746,27 @@ This is useful when followed by an immediate kill."
 (use-package browse-at-remote
   :commands (browse-at-remote browse-at-remote-kill))
 
-(use-package git-blamed
-  :after magit)
-;;  (use-package gitignore-mode)
-;;  (use-package gitconfig-mode)
 (use-package git-time-machine
   :after magit
   :config
   (global-set-key (kbd "C-x v t") 'git-timemachine-toggle))
 (use-package magit
   :commands (magit-status magit-dispatch)
-  :after fullframe
+  :requires fullframe
   :config
   (fullframe magit-status magit-mode-quit-window)
   (setq-default magit-diff-refine-hunk t)
-  (use-package forge)
   :bind (("C-x g" . magit-status)
          ("C-x M-g" . magit-dispatch)
          (:map magit-status-mode-map
                ("C-M-<up>" . magit-section-up))))
+(use-package git-blamed
+  :after magit)
+(use-package forge
+  :after magit)
 (use-package magit-todos
   :after magit
-  :config (magit-todos-mode 1))
+  :hook(magit-mode . magit-todos-mode))
 
 (setq-default compilation-scroll-output t)
 
@@ -779,15 +806,15 @@ This is useful when followed by an immediate kill."
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
-(use-package yasnippet-snippets
-    :after yasnippet)
-
 (use-package yasnippet
   :hook (after-init . yas-global-mode)
   :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
   :config
-  (setq yas-verbosity 1)                      ; No need to be so verbose
-  (setq yas-wrap-around-region t)
+  (setq yas-verbosity 1)           ; No need to be so verbose
+  (setq yas-wrap-around-region t))
+(use-package yasnippet-snippets
+  :after yasnippet
+  :config
   (setq yas-snippet-dirs '(yasnippet-snippets-dir))
   (yas-reload-all))
 
@@ -893,20 +920,43 @@ Call a second time to restore the original window configuration."
                (if was-dedicated "no longer " "")
                (buffer-name)))))
 
-(use-package multi-vterm
-  :hook (vterm-mode . (lambda ()
-                        (setq vterm-buffer-maximum-size 1000
-                              multi-vterm-dedicated-window-height-percent 30
-                              left-margin-width 1
-                              right-margin-width 1
-                              cursor-type 'bar)))
+(use-package vterm
+  :hook ((vterm-mode . (lambda ()
+                         (toggle-mode-line)
+                         (setq vterm-buffer-maximum-size 1000
+                               left-margin-width 1
+                               right-margin-width 1
+                               cursor-type 'bar))))
   :bind (
-         ( "C-c t" . multi-vterm-dedicated-toggle)
-         ( "M-t" . multi-vterm)
+         ( "M-t" . toggle-vterm-buffer)
          :map vterm-mode-map
-         ("C-c t" . multi-vterm-dedicated-toggle)
+         ( "M-t" . toggle-vterm-buffer)
          ("M-w" . copy-region-as-kill)
-         ( "C-y" . vterm-yank)))
+         ( "C-y" . vterm-yank))
+  :config
+  (setq vterm-buffer-name-string "Term %s")
+  (defun toggle-vterm-buffer ()
+    "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
+    (interactive)
+    (let ((vterm-buffer (seq-find (lambda (buffer)
+                                    (string-prefix-p "Term" (buffer-name buffer)))
+                                  (buffer-list))))
+      (if vterm-buffer
+          (if (eq (current-buffer) vterm-buffer)
+              (if (get-buffer-window vterm-buffer)
+                  (delete-windows-on vterm-buffer)
+                (vterm))
+            (if (get-buffer-window vterm-buffer)
+                (select-window (get-buffer-window vterm-buffer))
+              (progn (display-buffer vterm-buffer)
+               (select-window (get-buffer-window vterm-buffer)))))
+        (vterm))))
+  (add-to-list 'display-buffer-alist `(,vterm-buffer-name
+                                       (display-buffer-reuse-window display-buffer-at-bottom)
+                                       (dedicated . t)
+                                       (reusable-frames . visible)
+                                       (window-height . 0.3)
+                                       )))
 
 (setq confirm-kill-processes nil)
 
@@ -1193,14 +1243,12 @@ Call a second time to restore the original window configuration."
       (visual-line-mode -1))))
 
 (use-package visual-fill-column
-  :defer t
+  :hook (org-mode . dw/org-mode-visual-fill)
   :init
   (defun dw/org-mode-visual-fill ()
-  (setq visual-fill-column-width 110
-        visual-fill-column-center-text t)
-  (visual-fill-column-mode 1))
-
-  :hook (org-mode . dw/org-mode-visual-fill))
+    (setq visual-fill-column-width 120
+          visual-fill-column-center-text t)
+  (visual-fill-column-mode 1)))
 
 (setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
@@ -1232,17 +1280,18 @@ Call a second time to restore the original window configuration."
 ;; Allow refile to create parent tasks with confirmation
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 
-(setq org-todo-keywords
+(use-package org
+  :custom
+  (org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
               (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
               (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
       org-todo-repeat-to-state "NEXT")
-(setq org-todo-keyword-faces
+  (org-todo-keyword-faces
       (quote (("NEXT" :inherit warning)
-              ("PROJECT" :inherit font-lock-string-face))))
+              ("PROJECT" :inherit font-lock-string-face)))))
 
 (use-package org
-  :ensure t
   :hook (org-agenda-mode . hl-line-mode)
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
@@ -1431,9 +1480,8 @@ Call a second time to restore the original window configuration."
   (lsp-register-client
    (make-lsp-client :new-connection (lsp-tramp-connection
                                      (lambda ()
-                                       (cons "gopls" " -remote=auto -logfile=auto -debug=:0 -remote.debug=:0 -rpc.trace")))
+                                       (cons "gopls" '("-remote=auto"))))
                     :major-modes '(go-mode)
-                    :language-id "go"
                     :priority 0
                     :server-id 'gopls-remote
                     :remote? t
@@ -1448,7 +1496,7 @@ Call a second time to restore the original window configuration."
                ("r" . lsp-rename)
                ("e" . consult-lsp-diagnostics)
                ("j" . lsp-ui-imenu)
-               ("c" . compile)          
+               ("c" . compile)
                ("C" . recompile)
                ))
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)))
