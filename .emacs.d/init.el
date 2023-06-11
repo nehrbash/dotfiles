@@ -287,43 +287,41 @@ point reaches the beginning or end of the buffer, stop there."
               ("." . dired-hide-dotfiles-mode)))
 
 (use-package vertico
-  :config
-  :init (vertico-mode))
+  :hook (after-init . vertico-mode))
 (use-package embark
   :after vertico
   :bind (("M-a" . embark-act)
+         ("C-:" . embark-dwin)
          :map vertico-map
-             ("C-c C-o" . embark-export)
-             ("C-c C-c" . embark-act)
-             ("C-h B" . embark-bindings))
+         ("M-o" . embark-export)
+         ("C-h B" . embark-bindings))
   :config
   (setq embark-action-indicator
       (lambda (map _target)
         (which-key--show-keymap "Embark" map nil nil 'no-paging)
         #'which-key--hide-popup-ignore-command)
       embark-become-indicator embark-action-indicator))
-
 (use-package orderless
   :after vertico
   :init
-  (setq completion-styles '(orderless  orderless-flex)
+  (setq completion-styles '(orderless)
         completion-category-defaults nil
         completion-category-overrides '((file (styles . (partial-completion))))))
 (use-package embark-consult
   :after (embark consult)
   :hook (embark-collect-mode . consult-preview-at-point-mode))
-(use-package consult-flycheck
-  :commands consult-flycheck
-  :after (consult flycheck))
 (use-package savehist
   :after no-littering
   :config (savehist-mode))
 (use-package marginalia
   :after vertico
-  :ensure t
+  :hook (vertico-mode . marginalia-mode)
   :custom
-  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :init (marginalia-mode))
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
+(use-package all-the-icons-completion
+  :after marginalia
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
+
 (defun consult-ripgrep-symbol-at-point ()
   "Run `consult-ripgrep' with the symbol at point as the initial input."
   (interactive)
@@ -376,18 +374,12 @@ point reaches the beginning or end of the buffer, stop there."
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)) 
   :init
-  (setq-default consult-project-root-function 'projectile-project-root)
-  ;; Optionally configure the register formatting. This improves the register
-  ;; preview for `consult-register', `consult-register-load',
-  ;; `consult-register-store' and the Emacs built-ins.
   (setq register-preview-delay 0.2
         register-preview-function #'consult-register-format)
-  ;; Optionally tweak the register preview window.
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
   ;; Use Consult to select xref locations with preview
-  (setq xref-show-xrefs-function #'consult-xref
-        xref-show-definitions-function #'consult-xref)
+  (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
   :config
   (consult-customize
    consult-line
@@ -454,6 +446,9 @@ point reaches the beginning or end of the buffer, stop there."
                      (eq (buffer-local-value 'major-mode x) 'vterm-mode))
                    (buffer-list))))))
   (add-to-list 'consult-buffer-sources 'term-source 'append))
+(use-package consult-flycheck
+  :commands consult-flycheck
+  :after (consult flycheck))
 
 (use-package consult-dir
   :after (consult tramp)
@@ -489,6 +484,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package corfu
   :init (global-corfu-mode)
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator))
+  :after orderless
   :custom
   (tab-always-indent 'complete)
   (corfu-auto t)
@@ -562,8 +558,10 @@ point reaches the beginning or end of the buffer, stop there."
          (git-commit-mode . flyspell-mode)
          (yaml-mode . flyspell-mode)
          (conf-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode)
-         )
+         (prog-mode . flyspell-prog-mode))
+  :bind (:map flyspell-mode-map
+              ("C-." . nil)) ;; unbind 
+              
   :config
   (use-package ispell
     :config
@@ -577,7 +575,7 @@ point reaches the beginning or end of the buffer, stop there."
   
   (use-package flyspell-correct
     :after flyspell
-    :bind (:map flyspell-mode-map ("C-;" . flyspell-correct-wrapper)))
+    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
 
   (use-package flyspell-lazy
     :after flyspell
@@ -939,7 +937,7 @@ Call a second time to restore the original window configuration."
          ("M-t" . toggle-vterm-buffer)
          ("C-M-t" . (lambda ()
                      (interactive)
-                     (consult-buffer v)))
+                     (consult-buffer '(term-source))))
          ("M-w" . copy-region-as-kill)
          ("C-y" . vterm-yank))
   :config
@@ -961,11 +959,63 @@ Call a second time to restore the original window configuration."
                (select-window (get-buffer-window vterm-buffer)))))
         (vterm))))
   (add-to-list 'display-buffer-alist `(,vterm-buffer-name
-                                       (display-buffer-reuse-window display-buffer-at-bottom)
-                                       (dedicated . t)
-                                       (reusable-frames . visible)
-                                       (window-height . 0.3)
-                                       )))
+                                      (display-buffer-reuse-window display-buffer-at-bottom)
+                                      (dedicated . t)
+                                      (reusable-frames . visible)
+                                      (window-height . 0.3)
+                                      )))
+
+(use-package powerline)
+(use-package tab-line
+  :hook (vterm-mode . tab-line-mode)
+  :custom
+  (tab-line-new-button-show nil)  ;; do not show add-new button
+  (tab-line-close-button-show nil)  ;; do not show close button
+  (tab-line-separator "")
+  :config
+  (defvar my/tab-height 28)
+  (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
+  (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
+  (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+    (powerline-render (list my/tab-left
+                            (format "%s" (buffer-name buffer))
+                            my/tab-right)))
+  (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
+  (set-face-attribute 'tab-line nil ;; background behind tabs
+                      :background "#1d2021")
+  (set-face-attribute 'tab-line-tab nil ;; active tab in another window
+                      :inherit 'tab-line
+                      :background "#8ec07c"  :foreground "#0d1011" :box nil)
+  (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
+                      :background "#8ec07c" :foreground "#0d1011" :box nil)
+  (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
+                      :background "#689d6a" :foreground "#0d1011" :box nil)
+  (set-face-attribute 'tab-line-highlight nil ;; mouseover
+                      :background "#fbf1c7" :foreground "#0d1011")
+  (defun sn/tabbar-buffer-groups ()
+    "Return the list of group names the current buffer belongs to.
+        Return a list of one element based on major mode."
+    (list
+     (cond
+      ((string-equal "*" (substring (buffer-name) 0 1))
+       "Hidden")
+      ((eq major-mode 'dired-mode)
+       "Dired")
+      ((memq major-mode 'org-mode)
+       "Org")
+      ((eq major-mode 'vterm-mode)
+       "Term")
+      ((memq major-mode
+             '(help-mode apropos-mode Info-mode Man-mode))
+       "Help")
+      (t ;; Return `mode-name' if not blank, `major-mode' otherwise.
+       (if (and (stringp mode-name)
+                ;; Take care of preserving the match-data because this
+                ;; function is called when updating the header line.
+                (save-match-data (string-match "[^ ]" mode-name)))
+           mode-name
+         (symbol-name major-mode))))))
+  (setq tabbar-buffer-groups-function 'sn/tabbar-buffer-groups))
 
 (setq confirm-kill-processes nil)
 
