@@ -936,8 +936,8 @@ Call a second time to restore the original window configuration."
          :map vterm-mode-map
          ("M-t" . toggle-vterm-buffer)
          ("C-M-t" . (lambda ()
-                     (interactive)
-                     (consult-buffer '(term-source))))
+                      (interactive)
+                      (consult-buffer '(term-source))))
          ("M-w" . copy-region-as-kill)
          ("C-y" . vterm-yank))
   :config
@@ -951,19 +951,21 @@ Call a second time to restore the original window configuration."
       (if vterm-buffer
           (if (eq (current-buffer) vterm-buffer)
               (if (get-buffer-window vterm-buffer)
-                  (delete-windows-on vterm-buffer)
+                  (delete-window (get-buffer-window vterm-buffer))
                 (vterm))
             (if (get-buffer-window vterm-buffer)
                 (select-window (get-buffer-window vterm-buffer))
-              (progn (display-buffer vterm-buffer)
-               (select-window (get-buffer-window vterm-buffer)))))
-        (vterm))))
+              (progn
+                (display-buffer vterm-buffer)
+                (select-window (get-buffer-window vterm-buffer)))))
+        (vterm))
+      ))
   (add-to-list 'display-buffer-alist `(,vterm-buffer-name
-                                      (display-buffer-reuse-window display-buffer-at-bottom)
-                                      (dedicated . t)
-                                      (reusable-frames . visible)
-                                      (window-height . 0.3)
-                                      )))
+                                     (display-buffer-reuse-window display-buffer-at-bottom)
+                                     (dedicated . t)
+                                     (reusable-frames . visible)
+                                     (window-height . 0.3)
+                                     )))
 
 (use-package powerline)
 (use-package tab-line
@@ -992,30 +994,7 @@ Call a second time to restore the original window configuration."
                       :background "#689d6a" :foreground "#0d1011" :box nil)
   (set-face-attribute 'tab-line-highlight nil ;; mouseover
                       :background "#fbf1c7" :foreground "#0d1011")
-  (defun sn/tabbar-buffer-groups ()
-    "Return the list of group names the current buffer belongs to.
-        Return a list of one element based on major mode."
-    (list
-     (cond
-      ((string-equal "*" (substring (buffer-name) 0 1))
-       "Hidden")
-      ((eq major-mode 'dired-mode)
-       "Dired")
-      ((memq major-mode 'org-mode)
-       "Org")
-      ((eq major-mode 'vterm-mode)
-       "Term")
-      ((memq major-mode
-             '(help-mode apropos-mode Info-mode Man-mode))
-       "Help")
-      (t ;; Return `mode-name' if not blank, `major-mode' otherwise.
-       (if (and (stringp mode-name)
-                ;; Take care of preserving the match-data because this
-                ;; function is called when updating the header line.
-                (save-match-data (string-match "[^ ]" mode-name)))
-           mode-name
-         (symbol-name major-mode))))))
-  (setq tabbar-buffer-groups-function 'sn/tabbar-buffer-groups))
+  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 
 (setq confirm-kill-processes nil)
 
