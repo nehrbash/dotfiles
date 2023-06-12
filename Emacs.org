@@ -647,12 +647,12 @@ That should do it
          ("M-s k" . consult-keep-lines)
          ("M-s u" . consult-focus-lines)) 
   :init
-  (setq register-preview-delay 0.2
-        register-preview-function #'consult-register-format)
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
   ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format)
   :config
   (consult-customize
    consult-line
@@ -671,15 +671,8 @@ That should do it
                                default-directory)))
       (consult-ripgrep)))
   (setq consult-narrow-key "<")
-  ;; (setq consult-preview-key (kbd "M-."))
-  (consult-customize
-   consult-theme
-   :preview-key '(:debounce 0.8 any)
-   consult-ripgrep consult-git-grep consult-grep consult-find
-   consult-bookmark consult-recent-file consult-xref
-   consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
-   sanityinc/affe-grep-at-point affe-grep)
-  (defvar org-source
+  (setq consult-preview-key '(:debounce 0.3 any)) ;; Preview on any key press, but delay 0.3s
+  (defvar consult--source-org
     (list :name     "Org"
           :category 'buffer
           :narrow   ?o
@@ -699,8 +692,7 @@ That should do it
                      (lambda (x)
                        (eq (buffer-local-value 'major-mode x) 'org-mode))
                      (buffer-list))))))
-  (add-to-list 'consult-buffer-sources 'org-source 'append)
-  (defvar term-source
+  (defvar consult--source-vterm
     (list :name     "Term"
           :category 'buffer
           :narrow   ?v
@@ -712,45 +704,35 @@ That should do it
             (vterm (concat "Term " name))
             (setq-local vterm-buffer-name-string nil))
           :items
-          (lambda ()
-            (mapcar #'buffer-name
-                    (seq-filter
-                     (lambda (x)
-                       (eq (buffer-local-value 'major-mode x) 'vterm-mode))
-                     (buffer-list))))))
+          (lambda () (consult--buffer-query :sort 'visibility
+                                       :as #'buffer-name
+                                       :include '("Term\\ ")))))
   (defvar star-source
-    (list :name     "*Star*"
+    (list :name     "*Star-Buffers*"
           :category 'buffer
           :narrow   ?s
           :face     'consult-buffer
           :history  'buffer-name-history
           :state    #'consult--buffer-state
           :items
-          (lambda ()
-            (mapcar #'buffer-name
-                    (seq-filter
-                     (lambda (x)
-                       (string-prefix-p "*" (buffer-name x)))
-                     (buffer-list))))))
+          (lambda () (consult--buffer-query :sort 'visibility
+                                       :as #'buffer-name
+                                       :include '("\\*.")))))
   ;; remove org and vterm buffers from buffer list
   (setq consult--source-buffer
         (plist-put
          consult--source-buffer :items
-         (lambda ()
-           (mapcar #'buffer-name
-                   (seq-filter
-                    (lambda (x)
-                      (and (not (string-prefix-p "*" (buffer-name x)))
-                           (not (string-prefix-p " " (buffer-name x)))
-                           (not (string-prefix-p "Term " (buffer-name x)))
-                           (not (string-suffix-p ".org" (buffer-name x)))))
-                    (buffer-list))))))
-  
+         (lambda () (consult--buffer-query :sort 'visibility
+                                       :as #'buffer-name
+                                       :exclude '("\\*."           ; star buffer
+                                                  "Term\\ "        ; Term buffer
+                                                  "[\\.]org$"))))) ; org files
+  ;; reorder, mainly to move recent-file down and org
   (setq consult-buffer-sources '(consult--source-hidden-buffer
                            consult--source-modified-buffer
                            consult--source-buffer
-                           org-source
-                           term-source
+                           consult--source-org
+                           consult--source-vterm
                            consult--source-bookmark
                            consult--source-recent-file
                            consult--source-file-register
