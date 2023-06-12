@@ -356,7 +356,7 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (setq-default
-   recentf-max-saved-items 300
+   recentf-max-saved-items 30
    recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
 
 #+end_src
@@ -388,14 +388,15 @@ Tramp was acting slow this helps...maybe
 (use-package tramp
   :commands tramp-mode
   :straight (:type built-in)
-  :init
-  (setq remote-file-name-inhibit-cache nil)
-  (customize-set-variable
-   'tramp-ssh-controlmaster-options
-   (concat
+  :custom
+  ;; (tramp-default-method "ssh")
+  (tramp-verbose 0)
+  (tramp-encoding-shell "/bin/bash")
+  (tramp-ssh-controlmaster-options (concat
     "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
     "-o ControlMaster=auto -o ControlPersist=yes"))
   :config
+  (setq vc-handled-backends '(Git))
    ;; use remote path
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 #+end_src
@@ -405,11 +406,7 @@ Tramp was acting slow this helps...maybe
 
 #+begin_src emacs-lisp
 (use-package exec-path-from-shell
-  :after emacs-init
-  :config
-  (dolist (var '("LSP_USE_PLISTS"))
-    (add-to-list 'exec-path-from-shell-variables var))
-  (exec-path-from-shell-initialize))
+  :hook (after-init . exec-path-from-shell-initialize))
 #+end_src
 
 * UI Stuff
@@ -683,45 +680,83 @@ That should do it
    consult--source-recent-file consult--source-project-recent-file consult--source-bookmark
    sanityinc/affe-grep-at-point affe-grep)
   (defvar org-source
-  (list :name     "Org"
-        :category 'buffer
-        :narrow   ?o
-        :face     'consult-buffer
-        :history  'buffer-name-history
-        :state    #'consult--buffer-state
-        :new
-        (lambda (name)
-          (with-current-buffer (get-buffer-create name)
-            (insert "#+title: " name "\n\n")
-            (org-mode)
-            (consult--buffer-action (current-buffer))))
-        :items
-        (lambda ()
-          (mapcar #'buffer-name
-                  (seq-filter
-                   (lambda (x)
-                     (eq (buffer-local-value 'major-mode x) 'org-mode))
-                   (buffer-list))))))
+    (list :name     "Org"
+          :category 'buffer
+          :narrow   ?o
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :new
+          (lambda (name)
+            (with-current-buffer (get-buffer-create name)
+              (insert "#+title: " name "\n\n")
+              (org-mode)
+              (consult--buffer-action (current-buffer))))
+          :items
+          (lambda ()
+            (mapcar #'buffer-name
+                    (seq-filter
+                     (lambda (x)
+                       (eq (buffer-local-value 'major-mode x) 'org-mode))
+                     (buffer-list))))))
   (add-to-list 'consult-buffer-sources 'org-source 'append)
   (defvar term-source
-  (list :name     "Term"
-        :category 'buffer
-        :narrow   ?v
-        :face     'consult-buffer
-        :history  'buffer-name-history
-        :state    #'consult--buffer-state
-        :new
-        (lambda (name)       
-          (vterm (concat "Term " name))
-          (setq-local vterm-buffer-name-string nil))
-        :items
-        (lambda ()
-          (mapcar #'buffer-name
-                  (seq-filter
-                   (lambda (x)
-                     (eq (buffer-local-value 'major-mode x) 'vterm-mode))
-                   (buffer-list))))))
-  (add-to-list 'consult-buffer-sources 'term-source 'append))
+    (list :name     "Term"
+          :category 'buffer
+          :narrow   ?v
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :new
+          (lambda (name)
+            (vterm (concat "Term " name))
+            (setq-local vterm-buffer-name-string nil))
+          :items
+          (lambda ()
+            (mapcar #'buffer-name
+                    (seq-filter
+                     (lambda (x)
+                       (eq (buffer-local-value 'major-mode x) 'vterm-mode))
+                     (buffer-list))))))
+  (defvar star-source
+    (list :name     "*Star*"
+          :category 'buffer
+          :narrow   ?s
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :items
+          (lambda ()
+            (mapcar #'buffer-name
+                    (seq-filter
+                     (lambda (x)
+                       (string-prefix-p "*" (buffer-name x)))
+                     (buffer-list))))))
+  ;; remove org and vterm buffers from buffer list
+  (setq consult--source-buffer
+        (plist-put
+         consult--source-buffer :items
+         (lambda ()
+           (mapcar #'buffer-name
+                   (seq-filter
+                    (lambda (x)
+                      (and (not (string-prefix-p "*" (buffer-name x)))
+                           (not (string-prefix-p " " (buffer-name x)))
+                           (not (string-prefix-p "Term " (buffer-name x)))
+                           (not (string-suffix-p ".org" (buffer-name x)))))
+                    (buffer-list))))))
+  
+  (setq consult-buffer-sources '(consult--source-hidden-buffer
+                           consult--source-modified-buffer
+                           consult--source-buffer
+                           org-source
+                           term-source
+                           consult--source-bookmark
+                           consult--source-recent-file
+                           consult--source-file-register
+                           consult--source-project-buffer-hidden
+                           consult--source-project-recent-file-hidden
+                           star-source)))
 (use-package consult-flycheck
   :commands consult-flycheck
   :after (consult flycheck))
@@ -1321,21 +1356,30 @@ Call a second time to restore the original window configuration."
  (use-package vterm
    :hook ((vterm-mode . (lambda ()
                           (toggle-mode-line)
-                          (setq vterm-buffer-maximum-size 1000
-                                left-margin-width 1
+                          (setq left-margin-width 1
                                 right-margin-width 1
                                 cursor-type 'bar))))
-   :bind (
-          ( "M-t" . toggle-vterm-buffer)
+   :bind (( "M-t" . toggle-vterm-buffer)
           :map vterm-mode-map
           ("M-t" . toggle-vterm-buffer)
-          ("C-M-t" . (lambda ()
+          ("C-M-r" . (lambda ()
+                      (interactive)
+                      (setq-local vterm-buffer-name-string nil)
+                      (rename-buffer (concat "Term " (read-string "Term: ")))))
+          ("C-M-t" .(lambda ()
+                      (interactive)
+                      (vterm "Term")))
+          ("C-M-f" . tab-line-switch-to-next-tab)
+          ("C-M-b" . tab-line-switch-to-prev-tab)
+          ("C-M-s" . (lambda ()
                        (interactive)
                        (consult-buffer '(term-source))))
           ("M-w" . copy-region-as-kill)
           ("C-y" . vterm-yank))
+   :custom
+   (vterm-buffer-name-string "Term %s")
+   (vterm-buffer-maximum-size 1000)
    :config
-   (setq vterm-buffer-name-string "Term %s")
    (defun toggle-vterm-buffer ()
      "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
      (interactive)
@@ -1343,23 +1387,21 @@ Call a second time to restore the original window configuration."
                                      (string-prefix-p "Term" (buffer-name buffer)))
                                    (buffer-list))))
        (if vterm-buffer
-           (if (eq (current-buffer) vterm-buffer)
-               (if (get-buffer-window vterm-buffer)
-                   (delete-window (get-buffer-window vterm-buffer))
-                 (vterm))
+           (if (and (eq (current-buffer) vterm-buffer)
+                    (get-buffer-window vterm-buffer))
+               (delete-window (get-buffer-window vterm-buffer))
              (if (get-buffer-window vterm-buffer)
                  (select-window (get-buffer-window vterm-buffer))
                (progn
                  (display-buffer vterm-buffer)
                  (select-window (get-buffer-window vterm-buffer)))))
-         (vterm))
-       ))
+         (vterm "Term"))))
    (add-to-list 'display-buffer-alist `(,vterm-buffer-name
-                                      (display-buffer-reuse-window display-buffer-at-bottom)
-                                      (dedicated . t)
-                                      (reusable-frames . visible)
-                                      (window-height . 0.3)
-                                      )))
+                                        (display-buffer-reuse-window display-buffer-at-bottom)
+                                        (dedicated . t)
+                                        (reusable-frames . visible)
+                                        (window-height . 0.3)
+                                        )))
  #+end_src
 
 *** Centaur Tabs for Terms
@@ -1372,8 +1414,8 @@ Call a second time to restore the original window configuration."
 (use-package tab-line
   :hook (vterm-mode . tab-line-mode)
   :custom
-  (tab-line-new-button-show nil)  ;; do not show add-new button
-  (tab-line-close-button-show nil)  ;; do not show close button
+  (tab-line-new-button-show nil)
+  (tab-line-close-button-show nil)
   (tab-line-separator "")
   :config
   (defvar my/tab-height 28)
@@ -1384,17 +1426,19 @@ Call a second time to restore the original window configuration."
                             (format "%s" (buffer-name buffer))
                             my/tab-right)))
   (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
+  ;; Set face attributes for the tab-line
   (set-face-attribute 'tab-line nil ;; background behind tabs
                       :background "#1d2021")
   (set-face-attribute 'tab-line-tab nil ;; active tab in another window
                       :inherit 'tab-line
-                      :background "#8ec07c"  :foreground "#0d1011" :box nil)
+                      :background "#8ec07c" :foreground "#0d1011" :box nil)
   (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
                       :background "#8ec07c" :foreground "#0d1011" :box nil)
   (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
                       :background "#689d6a" :foreground "#0d1011" :box nil)
   (set-face-attribute 'tab-line-highlight nil ;; mouseover
-                      :background "#fbf1c7" :foreground "#0d1011")
+                      :background "#928374" :foreground "#0d1011")
+
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 #+end_src
     
