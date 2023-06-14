@@ -31,7 +31,7 @@
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
   - [[#corfu][Corfu]]
-  - [[#working-with-other-completion-list][Working with other completion list]]
+  - [[#working-with-other-completion-lists][Working with other completion lists]]
   - [[#spelling][Spelling]]
 - [[#other][Other]]
   - [[#i-search][I-Search]]
@@ -353,12 +353,10 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package recentf
   :hook ((after-init . recentf-mode)
          (find-file . recentf-save-list))
-  :config
-  (setq recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (setq-default
-   recentf-max-saved-items 30
-   recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
-
+  :custom
+  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+  (recentf-max-saved-items 30)
+  (recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
 #+end_src
 
 ** Auto update file
@@ -516,10 +514,10 @@ That should do it
   :delight dired-omit-mode
   :init
   (defun my-dired-mode-hook ()
-  (dired-omit-mode 1)
-  (auto-revert-mode 1)
-  (setq mode-line-format nil)
-  (hl-line-mode 1))
+    (dired-omit-mode 1)
+    (auto-revert-mode 1)
+    (setq mode-line-format nil)
+    (hl-line-mode 1))
   :config
   (setq dired-omit-files "^\\.\\.?$")
   (setq-default dired-dwim-target t)
@@ -539,11 +537,11 @@ That should do it
               ("H" . dired-omit-mode)
               ("y" . dired-ranger-paste)))
 (use-package all-the-icons-dired
-    :hook (dired-mode . all-the-icons-dired-mode))
+  :hook (dired-mode . all-the-icons-dired-mode))
 (use-package dired-collapse
-    :hook  (dired-mode . dired-collapse-mode))
+  :hook  (dired-mode . dired-collapse-mode))
 (use-package diredfl
-    :hook (dired-mode . diredfl-mode))
+  :hook (dired-mode . diredfl-mode))
 (use-package dired-hide-dotfiles
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (:map dired-mode-map
@@ -653,6 +651,9 @@ That should do it
   (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
   (setq register-preview-delay 0.5
         register-preview-function #'consult-register-format)
+  :custom
+  (consult-narrow-key "<")
+  (consult-preview-key '(:debounce 0.3 any)) ;; Preview on any key press, but delay 0.3s
   :config
   (consult-customize
    consult-line
@@ -670,8 +671,6 @@ That should do it
                                  (projectile-project-root)
                                default-directory)))
       (consult-ripgrep)))
-  (setq consult-narrow-key "<")
-  (setq consult-preview-key '(:debounce 0.3 any)) ;; Preview on any key press, but delay 0.3s
   (defvar consult--source-org
     (list :name     "Org"
           :category 'buffer
@@ -717,15 +716,16 @@ That should do it
           :items
           (lambda () (consult--buffer-query :sort 'visibility
                                        :as #'buffer-name
-                                       :include '("\\*.")))))
+                                       :include '("\\*." "^magit")))))
   ;; remove org and vterm buffers from buffer list
   (setq consult--source-buffer
         (plist-put
          consult--source-buffer :items
          (lambda () (consult--buffer-query :sort 'visibility
                                        :as #'buffer-name
-                                       :exclude '("\\*."           ; star buffer
-                                                  "Term\\ "        ; Term buffer
+                                       :exclude '("\\*."           ; star buffers
+                                                  "Term\\ "        ; Term buffers
+                                                  "^magit"          ; magit buffers
                                                   "[\\.]org$"))))) ; org files
   ;; reorder, mainly to move recent-file down and org
   (setq consult-buffer-sources '(consult--source-hidden-buffer
@@ -834,7 +834,7 @@ That should do it
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src    
 
-** Working with other completion list
+** Working with other completion lists 
 
 #+begin_src emacs-lisp
 (use-package dabbrev
@@ -843,7 +843,7 @@ That should do it
          ("C-M-/" . dabbrev-expand))
   :custom
   (read-extended-command-predicate
-      #'command-completion-default-include-p)
+   #'command-completion-default-include-p)
   (add-to-list 'completion-at-point-functions #'hippie-expand)
   (dabbrev-ignored-buffer-modes '(archive-mode image-mode pdf-view-mode)))
 
@@ -863,8 +863,8 @@ That should do it
   :init
   (add-to-list 'completion-at-point-functions #'cape-file)
   (defalias 'corfu--ispell-in-comments-and-strings
-      (cape-super-capf (cape-capf-inside-comment #'cape-dict)
-                       (cape-capf-inside-string #'cape-dict))))
+    (cape-super-capf (cape-capf-inside-comment #'cape-dict)
+                     (cape-capf-inside-string #'cape-dict))))
 #+end_src
 
 ** Spelling
@@ -873,6 +873,12 @@ That should do it
 
    
 #+begin_src emacs-lisp
+(use-package ispell
+  :defer t
+  :config
+  (setq ispell-program-name "aspell"
+        ispell-extra-args '("--sug-mode=ultra"
+                            "--run-together")))
 (use-package flyspell ; built-in
   :hook ((org-mode . flyspell-mode)
          (markdown-mode . flyspell-mode)
@@ -883,13 +889,7 @@ That should do it
          (prog-mode . flyspell-prog-mode))
   :bind (:map flyspell-mode-map
               ("C-." . nil)) ;; unbind 
-              
   :config
-  (use-package ispell
-    :config
-    (setq ispell-program-name "aspell"
-          ispell-extra-args '("--sug-mode=ultra"
-                              "--run-together")))
   (setq flyspell-issue-welcome-flag nil
         ;; Significantly speeds up flyspell, which would otherwise print
         ;; messages for every word when checking the entire buffer
@@ -1355,7 +1355,7 @@ Call a second time to restore the original window configuration."
           ("C-M-b" . tab-line-switch-to-prev-tab)
           ("C-M-s" . (lambda ()
                        (interactive)
-                       (consult-buffer '(term-source))))
+                       (consult-buffer '(consult--source-vterm))))
           ("M-w" . copy-region-as-kill)
           ("C-y" . vterm-yank))
    :custom
@@ -2088,17 +2088,15 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (lsp-idle-delay 0.3)
   (lsp-enable-which-key-integration t)
   :config
-  (use-package consult-lsp)
   (defun my/lsp-mode-setup-completion ()
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless)))
-  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols)
   (lsp-register-client
    (make-lsp-client :new-connection (lsp-tramp-connection
                                      (lambda ()
                                        (cons "gopls" '("-remote=auto"))))
                     :major-modes '(go-mode)
-                    :priority 0
+                    :priority 10
                     :server-id 'gopls-remote
                     :remote? t
                     ))
@@ -2110,13 +2108,18 @@ Basically just followed the directions from this cool blog.   https://colekillia
                ("i" . lsp-find-implementation)
                ("?" . lsp-find-references)
                ("r" . lsp-rename)
-               ("e" . consult-lsp-diagnostics)
                ("j" . lsp-ui-imenu)
                ("c" . compile)
                ("C" . recompile)
                ("d" . dap-hydra)
                ))
   :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)))
+(use-package consult-lsp
+  :after (consult lsp-mode)
+  :bind ((:map lsp-common-map
+               ("e" . consult-lsp-diagnostics)))
+  :config
+  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols))
 #+end_src
 
 ** LSP-UI
