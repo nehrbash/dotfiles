@@ -959,13 +959,12 @@ Call a second time to restore the original window configuration."
               (progn
                 (display-buffer vterm-buffer)
                 (select-window (get-buffer-window vterm-buffer)))))
-        (vterm "Term"))))
+        (vterm))))
   (add-to-list 'display-buffer-alist `(,vterm-buffer-name
                                        (display-buffer-reuse-window display-buffer-at-bottom)
                                        (dedicated . t)
                                        (reusable-frames . visible)
-                                       (window-height . 0.3)
-                                       )))
+                                       (window-height . 0.3))))
 
 (use-package tab-line
   :hook (vterm-mode . tab-line-mode)
@@ -1000,8 +999,7 @@ Call a second time to restore the original window configuration."
 
 (setq confirm-kill-processes nil)
 
-(use-package speed-type
-  :defer 3) ;; wait 3 sec of idel?
+(use-package speed-type :defer 3)
 
 (use-package org
   :straight org-contrib
@@ -1673,10 +1671,6 @@ Call a second time to restore the original window configuration."
   ;; Defer it so that commands launched immediately after will enjoy the
   ;; benefits.
   (run-at-time
-   1 nil (lambda () (setq gc-cons-threshold 16777216 ; 16mb
-                          ))))
-
+   1 nil (lambda () (setq gc-cons-threshold 16777216)))) ; 16mb
 (add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
 (add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
-
-

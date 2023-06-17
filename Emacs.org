@@ -93,7 +93,6 @@
   - [[#gpt][GPT]]
 - [[#runtime-performance][Runtime Performance]]
   - [[#minibuffer-turn-off-gc-for-large-lists-and-commands][Minibuffer turn off GC for large lists and commands]]
-  - [[#gc][GC]]
 - [[#inspiration][Inspiration]]
 
 * Straight Package Manager
@@ -1352,13 +1351,12 @@ Call a second time to restore the original window configuration."
                (progn
                  (display-buffer vterm-buffer)
                  (select-window (get-buffer-window vterm-buffer)))))
-         (vterm "Term"))))
+         (vterm))))
    (add-to-list 'display-buffer-alist `(,vterm-buffer-name
                                         (display-buffer-reuse-window display-buffer-at-bottom)
                                         (dedicated . t)
                                         (reusable-frames . visible)
-                                        (window-height . 0.3)
-                                        )))
+                                        (window-height . 0.3))))
  #+end_src
 
 *** Centaur Tabs for Terms
@@ -1407,12 +1405,12 @@ Call a second time to restore the original window configuration."
 #+end_src
 
 * Typing Practice
-  Game like typing practice inside Emacs.  
+  
+  Typing practice inside Emacs.  
   
 #+begin_src emacs-lisp
-(use-package speed-type
-  :defer 3) ;; wait 3 sec of idel?
-#+end_src  
+(use-package speed-type :defer 3)
+#+end_src
 
 * Org Mode
 
@@ -2295,18 +2293,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   ;; Defer it so that commands launched immediately after will enjoy the
   ;; benefits.
   (run-at-time
-   1 nil (lambda () (setq gc-cons-threshold 16777216 ; 16mb
-                          ))))
-
+   1 nil (lambda () (setq gc-cons-threshold 16777216)))) ; 16mb
 (add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
 (add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
-#+end_src   
-** GC
-
-   Dial the GC threshold back down so that garbage collection happens more frequently but in less time.
-
-#+begin_src emacs-lisp
-
 #+end_src
 
 * Inspiration
