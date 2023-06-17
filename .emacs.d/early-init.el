@@ -2,7 +2,6 @@
 ;;; Commentary:
 ;;; Code:
 
-
 (defvar doom--file-name-handler-alist file-name-handler-alist) ;; temp restore later
 (setq file-name-handler-alist nil)
 
@@ -33,11 +32,34 @@
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)
 
+;; Note: does not seem to make a difference where I put this so I prefer it here
+;; so that Emacs.org can only be about configuring package.
+
 ;; Disable package.el at startup, I use straight.
-(setq package-enable-at-startup nil
-      straight-enable-package-integration nil)
+(setq package-enable-at-startup nil)
 ;; don't add that `custom-set-variables' block to my init.el!
 (setq package--init-file-ensured t)
+
+(setq straight-cache-autoloads t
+      straight-enable-package-integration nil
+      straight-check-for-modifications nil
+      straight-use-package-by-default t)
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
+;; Silence compiler warnings as they can be pretty disruptive
+(setq comp-async-report-warnings-errors nil)
+(setq warning-minimum-level :emergency)
 
 (provide 'early-init)
 ;;; early-init.el ends here

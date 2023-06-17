@@ -27,3 +27,4 @@
 /.config/systemd/user/pipewire-session-manager.service
 /.emacs.d/.cask/
 /doc/pdfs/
+/.emacs.d/tree-sitter/

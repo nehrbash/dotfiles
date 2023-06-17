@@ -1,22 +1,3 @@
-(setq straight-cache-autoloads t
-      straight-check-for-modifications nil
-      straight-use-package-by-default t)
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-;; Silence compiler warnings as they can be pretty disruptive
-(setq comp-async-report-warnings-errors nil)
-(setq warning-minimum-level :emergency)
 ;; now built-in
 (require 'use-package)
 ;; (straight-use-package 'delight)
@@ -62,6 +43,14 @@
       (set-visited-file-name new-name)
       (rename-buffer new-name))))
 
+(defun toggle-mode-line ()
+  "toggles the modeline on and off"
+       (interactive)
+       (setq mode-line-format
+             (if (equal mode-line-format nil)
+                 (default-value 'mode-line-format)))
+       (redraw-display))
+
 (global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
 (global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
 (autoload 'mwheel-install "mwheel")
@@ -73,8 +62,8 @@
 (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package move-dup
-  :config(global-move-dup-mode)
-  :bind( ("M-<up>" . move-dup-move-lines-up)
+  :hook (after-init . global-move-dup-mode)
+  :bind(("M-<up>" . move-dup-move-lines-up)
          ("M-<down>" . move-dup-move-lines-down)
          ("C-c d" . move-dup-duplicate-down)
          ("C-c u" . move-dup-duplicate-up)))
@@ -163,7 +152,7 @@ point reaches the beginning or end of the buffer, stop there."
          (find-file . recentf-save-list))
   :custom
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 30)
+  (recentf-max-saved-items 80)
   (recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
 
 (use-package autorevert
@@ -191,32 +180,33 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package exec-path-from-shell
   :hook (after-init . exec-path-from-shell-initialize))
 
-(add-hook 'emacs-startup-hook
+(add-hook 'after-init-hook
   (lambda ()
-    (pixel-scroll-precision-mode t) ;; enable pixel scrolling
+    (pixel-scroll-precision-mode t) 
     (fringe-mode '(10 . 10))
-    (set-face-attribute 'header-line nil :height 100)
-    ))
+    (set-face-attribute 'header-line nil :height 100)))
 
 (use-package doom-themes
   :hook (after-init . (lambda ()
                         (load-theme 'doom-gruvbox t)
                         (doom-themes-treemacs-config)
-                        (doom-themes-org-config)))
+                        (doom-themes-org-config)
+                        (set-frame-parameter nil 'alpha-background 90)))
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t)
-           (custom-safe-themes t)))
+           (custom-safe-themes t))
+  :config
+  (add-to-list 'default-frame-alist '(alpha-background . 90)))
+(use-package solaire-mode
+  :after doom-themes
+  :hook (after-init . solaire-global-mode))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
-  :custom (
-           (doom-modeline-percent-position nil)
-           (doom-modeline-buffer-file-name-style 'auto)
-           (doom-modeline-vcs-max-length 18)
+  :custom ((doom-modeline-percent-position nil)
+           (doom-modeline-buffer-file-name-style 'auto)         
            (doom-modeline-height 40)
-           (doom-modeline-buffer-state-icon t)
-           (doom-modeline-buffer-encoding nil)
-           (all-the-icons-scale-factor 1)))
+           (doom-modeline-buffer-state-icon t)))
 
 (defun sanityinc/maybe-suspend-frame ()
   (interactive)
@@ -227,20 +217,12 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
 (global-set-key (kbd "C-z") 'undo)
 
-;; Change global font size easily
 (use-package default-text-scale)
 (add-hook 'after-init-hook 'default-text-scale-mode)
 (setq-default tab-width 4)
 
-(setq frame-title-format
-      '((:eval (if (buffer-file-name)
-                   (abbreviate-file-name (buffer-file-name))
-                 "%b"))))
-
 (use-package rainbow-mode
-  :defer t
-  :config
-  (add-hook 'prog-mode-hook #'rainbow-mode))
+  :hook (prog-mode . rainbow-mode))
 
 (use-package dired
   :straight (:type built-in)
@@ -609,23 +591,17 @@ point reaches the beginning or end of the buffer, stop there."
   ;; Rerunning checks on every newline is a mote excessive.
   (delq 'new-line flycheck-check-syntax-automatically)
   ;; And don't recheck on idle as often
-  (setq flycheck-idle-change-delay 1.0)
-  (setq flycheck-display-errors-delay 0.25)
   (setq flycheck-buffer-switch-check-intermediate-buffers t)
-  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
-  
+  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list))
+;; TODO: use this when in terminal 
   ;; (use-package flycheck-popup-tip
-  ;; :commands flycheck-popup-tip-show-popup flycheck-popup-tip-delete-popup
   ;; :hook (flycheck-mode .flycheck-popup-tip-mode)
-  ;; :config
   ;; ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
   ;; )
- ;; TODO does this work with corfu
 (use-package flycheck-posframe
   :hook (flycheck-mode . flycheck-posframe-mode)
   :config
-  (flycheck-posframe-configure-pretty-defaults)
-))
+  (flycheck-posframe-configure-pretty-defaults))
 
 ;; Show number of matches while searching
 (use-package anzu
@@ -837,7 +813,6 @@ This is useful when followed by an immediate kill."
 (use-package yasnippet-snippets
   :after yasnippet
   :config
-  (setq yas-snippet-dirs '(yasnippet-snippets-dir))
   (yas-reload-all))
 
 (use-package paredit
@@ -992,7 +967,6 @@ Call a second time to restore the original window configuration."
                                        (window-height . 0.3)
                                        )))
 
-(use-package powerline)
 (use-package tab-line
   :hook (vterm-mode . tab-line-mode)
   :custom
@@ -1000,6 +974,7 @@ Call a second time to restore the original window configuration."
   (tab-line-close-button-show nil)
   (tab-line-separator "")
   :config
+  (use-package powerline)
   (defvar my/tab-height 28)
   (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
   (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
@@ -1026,8 +1001,7 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 
 (use-package speed-type
-  :defer 3 ;; wait 3 sec
-)
+  :defer 3) ;; wait 3 sec of idel?
 
 (use-package org
   :straight org-contrib
@@ -1085,7 +1059,6 @@ Call a second time to restore the original window configuration."
                           "~/doc/repeater.org"))
 
 (use-package org
-  :ensure t
   :bind
   (("C-c c" . org-capture))
   :config
@@ -1125,7 +1098,6 @@ Call a second time to restore the original window configuration."
             (lambda ()  (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
 
 (use-package org-bullets
-  :straight t
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
@@ -1149,7 +1121,6 @@ Call a second time to restore the original window configuration."
   (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
   (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
   (add-to-list 'org-structure-template-alist '("py" . "src python"))
-
   (org-babel-do-load-languages
    'org-babel-load-languages
    `((dot . t)
@@ -1220,17 +1191,6 @@ Call a second time to restore the original window configuration."
 (setq org-time-clocksum-format
       '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
 
-               ;;; Show the clocked-in task - if any - in the header line
-(defun sanityinc/show-org-clock-in-header-line ()
-  (setq-default header-line-format '((" " org-mode-line-string " "))))
-
-(defun sanityinc/hide-org-clock-from-header-line ()
-  (setq-default header-line-format nil))
-
-(add-hook 'org-clock-in-hook 'sanityinc/show-org-clock-in-header-line)
-(add-hook 'org-clock-out-hook 'sanityinc/hide-org-clock-from-header-line)
-(add-hook 'org-clock-cancel-hook 'sanityinc/hide-org-clock-from-header-line)
-
 (with-eval-after-load 'org-clock
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
@@ -1258,14 +1218,6 @@ Call a second time to restore the original window configuration."
         (message "Disabled org html export on save for current buffer..."))
     (add-hook 'after-save-hook 'org-html-export-to-html nil t)
     (message "Enabled org html export on save for current buffer...")))
-
-(defun toggle-mode-line ()
-  "toggles the modeline on and off"
-       (interactive)
-       (setq mode-line-format
-             (if (equal mode-line-format nil)
-                 (default-value 'mode-line-format)))
-       (redraw-display))
 
 (use-package org-pretty-table
   :straight (:host github :repo "Fuco1/org-pretty-table"
@@ -1438,7 +1390,6 @@ Call a second time to restore the original window configuration."
   :hook (org-mode . toc-org-mode))
 
 (use-package org
- :ensure t
  :config
  (defun sn/org-babel-tangle-dont-ask ()
    "Tangle Org file without asking for confirmation."
@@ -1455,9 +1406,11 @@ Call a second time to restore the original window configuration."
   (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area") )
 
 (use-package pdf-tools
-  :hook (doc-view-mode . pdf-tools-install)
+  :hook ((doc-view-mode . (lambda ()
+                            (toggle-mode-line)
+                            (pdf-tools-install)
+                            (pdf-view-midnight-minor-mode))))
   :config
-  (setq pdf-view-midnight-colors '("#ff9900" . "#0a0a12"))
   (setq-default pdf-view-display-size 'fit-width))
 
 (use-package markdown-mode
@@ -1596,9 +1549,9 @@ Call a second time to restore the original window configuration."
          (before-save . lsp-organize-imports))
   :bind (:map go-mode-map
               ("C-," . go-goto-map))
-  :custom(lsp-register-custom-settings
-          '(("gopls.completeUnimported" t t)
-            ("gopls.staticcheck" t t)))
+  ;; :custom(lsp-register-custom-settings
+  ;;         '(("gopls.completeUnimported" t t)
+  ;;           ("gopls.staticcheck" t t)))
   :config
     (setq compile-command "go build -v && go test -v -cover && go vet"))
 (use-package gorepl-mode
