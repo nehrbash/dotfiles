@@ -197,9 +197,6 @@ point reaches the beginning or end of the buffer, stop there."
            (custom-safe-themes t))
   :config
   (add-to-list 'default-frame-alist '(alpha-background . 90)))
-(use-package solaire-mode
-  :after doom-themes
-  :hook (after-init . solaire-global-mode))
 
 (use-package doom-modeline
   :hook (after-init . doom-modeline-mode)
@@ -411,9 +408,9 @@ point reaches the beginning or end of the buffer, stop there."
             (setq-local vterm-buffer-name-string nil))
           :items
           (lambda () (consult--buffer-query :sort 'visibility
-                                       :as #'buffer-name
-                                       :include '("Term\\ ")))))
-  (defvar star-source
+                                            :as #'buffer-name
+                                            :include '("Term\\ ")))))
+  (defvar consult--source-star
     (list :name     "*Star-Buffers*"
           :category 'buffer
           :narrow   ?s
@@ -429,23 +426,23 @@ point reaches the beginning or end of the buffer, stop there."
         (plist-put
          consult--source-buffer :items
          (lambda () (consult--buffer-query :sort 'visibility
-                                       :as #'buffer-name
-                                       :exclude '("\\*."           ; star buffers
-                                                  "Term\\ "        ; Term buffers
-                                                  "^magit"          ; magit buffers
-                                                  "[\\.]org$"))))) ; org files
+                                      :as #'buffer-name
+                                      :exclude '("\\*."           ; star buffers
+                                                 "Term\\ "        ; Term buffers
+                                                 "^magit"         ; magit buffers
+                                                 "[\\.]org$"))))) ; org files
   ;; reorder, mainly to move recent-file down and org
   (setq consult-buffer-sources '(consult--source-hidden-buffer
-                           consult--source-modified-buffer
-                           consult--source-buffer
-                           consult--source-org
-                           consult--source-vterm
-                           consult--source-bookmark
-                           consult--source-recent-file
-                           consult--source-file-register
-                           consult--source-project-buffer-hidden
-                           consult--source-project-recent-file-hidden
-                           star-source)))
+                                 consult--source-modified-buffer
+                                 consult--source-buffer
+                                 consult--source-org
+                                 consult--source-vterm
+                                 consult--source-bookmark
+                                 consult--source-recent-file
+                                 consult--source-file-register
+                                 consult--source-project-buffer-hidden
+                                 consult--source-project-recent-file-hidden
+                                 consult--source-star)))
 (use-package consult-flycheck
   :commands consult-flycheck
   :after (consult flycheck))
@@ -810,10 +807,10 @@ This is useful when followed by an immediate kill."
   :config
   (setq yas-verbosity 1)           ; No need to be so verbose
   (setq yas-wrap-around-region t))
-(use-package yasnippet-snippets
-  :after yasnippet
-  :config
-  (yas-reload-all))
+;; (use-package yasnippet-snippets
+;;   :after yasnippet
+;;   :config
+;;   (yas-reload-all))
 
 (use-package paredit
   :delight paredit-mode " Par"
@@ -1666,11 +1663,9 @@ Call a second time to restore the original window configuration."
 
 (defun doom-defer-garbage-collection-h ()
   (setq gc-cons-threshold most-positive-fixnum))
-
 (defun doom-restore-garbage-collection-h ()
   ;; Defer it so that commands launched immediately after will enjoy the
   ;; benefits.
-  (run-at-time
-   1 nil (lambda () (setq gc-cons-threshold 16777216)))) ; 16mb
+  (run-at-time 1 nil (lambda () (setq gc-cons-threshold 16777216)))) ; 16mb
 (add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
 (add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
