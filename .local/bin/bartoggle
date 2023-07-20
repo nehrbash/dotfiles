@@ -16,7 +16,7 @@ if [ $COUNTER -eq 1 ]; then
     swaync-client -df
     hyprctl reload
     hyprctl plugin load /home/nehrbash/src/sn-hyprland-plugins/hyprbars/hyprbars.so
-    eww open-many bar bar2 leftbar leftbar2 corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
+    eww open-many bar bar2 leftbar leftbarapps leftbar2 leftbar2apps corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 2 ]; then
     hyprctl --batch "keyword animations:enabled 0;\
             keyword decoration:drop_shadow 0;\

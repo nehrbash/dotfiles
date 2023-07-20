@@ -3,6 +3,7 @@
 (defvar music_reveal false)
 (defvar notif_rev false)
 (defvar net_rev false)
+(defvar app_rev "-1")
 (defvar time_rev false)
 (defvar vol_reveal true)
 (defvar inhibitor "")

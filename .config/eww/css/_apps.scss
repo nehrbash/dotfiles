@@ -1,20 +1,77 @@
+.app {
+    padding: 3px;
+    padding-left: 0px;
+    background-color: $maroon;
+}
+
 .apps {
+     background-color: $maroon;
+}
+
+.apps-sidebar {
+    background-color: transparent;
+}
+
+
+.app-icon {
+    background-repeat: no-repeat;
+    background-position: center;
+    background-size: 38px;
+    border-radius: 30%;
+    &:hover {
+        background-repeat: no-repeat;
+        background: $overlay1;
+        background-size: 100%;
+        background-position: 50% 50%;
+        min-width: 44px;
+        min-height: 44px;
+    }
+}
+.app-focused {
+    background-color: $surface0;
+}
+
+
+.app-active-bar, .app-dot {
+    margin-left: 3px;
+    background-color: $crust;
+    border-radius: 2px;
+}
+
+.round-right {
+    border-top-right-radius: 16px;
+    border-bottom-right-radius: 16px;
+}
+
+.app-launcher {
+    font-size: 39px;
+    padding: 3px;
+    @include hoverable;
+    &:hover {
+        background: $surface0;
+    }
+}
+
+.apps-tr {
+    border-top-right-radius: 25px;
+}
+
+.apps-br {
+    border-bottom-right-radius: 25px;
+}
+
+.apps-br, .apps-tr, .apps-b {
+    background-color: $maroon;
+}
+.apps-tl, .apps-bl {
     background-color: $base;
 }
 
-.app-icon, .app-active {
-    margin: 4px;
-    background-position: center;
-    background-size: cover;
-    // &:hover {
-    //     background: $surface0;
-    // }
+.apps-tl {
+    border-bottom-left-radius: 25px;
+
 }
 
-.app-active-bar, .app-dot {
-    background-color: $yellow;
-    border-radius: 2px;
-}
-.app-dot {
-
+.apps-bl {
+border-top-left-radius: 25px;
 }

@@ -21,37 +21,38 @@
 (include "./windows/control-menu.yuck")
 
 (defwidget notif-toggle []
-  (button
-    :class "module"
-    :onclick "sleep .15; swaync-client -t"
-    :onrightclick "swaync-client -d"
-    {notif.Icon}))
+           (button
+            :class "module"
+            :onclick "sleep .15; swaync-client -t"
+            :onrightclick "swaync-client -d"
+            {notif.Icon}))
 
 (defwidget left []
-  (box
-    :space-evenly false
-    :halign "start"
-    (workspaces)
-    (mode)
-    (music-module)))
+           (box
+            :space-evenly false
+            :halign "start"
+            (workspaces)
+            (mode)
+            (music-module)))
 
 (defwidget right []
-  (box
-    :space-evenly false
-    :halign "end"
-    (pomo)
-    (volume-module)
-    (bluetooth)
-    (net)
-    (sys)))
+           (box
+            :space-evenly false
+            :halign "end"
+            (pomo)
+            (systray)
+            (volume-module)
+            (bluetooth)
+            (net)
+            (sys)))
 
 (defwidget center []
-  (box
-    :class "clock ${notif.Class}"
-    :space-evenly false
-    :halign "center"
-    (clock_module)
-    (notif-toggle)))
+           (box
+            :class "clock ${notif.Class}"
+            :space-evenly false
+            :halign "center"
+            (clock_module)
+            (notif-toggle)))
 
 (defwidget bar []
            (centerbox
@@ -61,78 +62,78 @@
             (right)))
 
 (defwindow bar
-    :monitor 0
-    :geometry (geometry
-      :width "100%"
-      :height "48px"
-      :anchor "top center")
-    :stacking "fg"
-    :exclusive true
-  (bar))
+           :monitor 0
+           :geometry (geometry
+                      :width "100%"
+                      :height "48px"
+                      :anchor "top center")
+           :stacking "fg"
+           :exclusive true
+           (bar))
 
 (defwindow bar2
-    :monitor 1
-    :geometry (geometry
-      :width "100%"
-      :height "48px"
-      :anchor "top center")
-    :stacking "fg"
-    :exclusive true
-  (bar))
+           :monitor 1
+           :geometry (geometry
+                      :width "100%"
+                      :height "48px"
+                      :anchor "top center")
+           :stacking "fg"
+           :exclusive true
+           (bar))
 
 (defwindow corner-ul
-  :geometry (geometry :width "30px" :height "30px" :anchor "top left")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-ul"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "top left")
+           :stacking "fg"
+           :focusable false
+           :monitor 0
+           (box :class "corners-ul"))
 
 (defwindow corner-ur
-  :geometry (geometry :width "30px" :height "30px" :anchor "top right")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-ur"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "top right")
+           :stacking "fg"
+           :focusable false
+           :monitor 0
+           (box :class "corners-ur"))
 
 (defwindow corner-bl
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom left")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-bl"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "bottom left")
+           :stacking "fg"
+           :focusable false
+           :monitor 0
+           (box :class "corners-bl"))
 
 (defwindow corner-br
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-br"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
+           :stacking "fg"
+           :focusable false
+           :monitor 0
+           (box :class "corners-br"))
 
 
 (defwindow corner2-ul
-  :geometry (geometry :width "30px" :height "30px" :anchor "top left")
-  :stacking "fg"
-  :focusable false
-  :monitor 1
-  (box :class "corners-ul"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "top left")
+           :stacking "fg"
+           :focusable false
+           :monitor 1
+           (box :class "corners-ul"))
 
 (defwindow corner2-ur
-  :geometry (geometry :width "30px" :height "30px" :anchor "top right")
-  :stacking "fg"
-  :focusable false
-  :monitor 1
-  (box :class "corners-ur"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "top right")
+           :stacking "fg"
+           :focusable false
+           :monitor 1
+           (box :class "corners-ur"))
 
 (defwindow corner2-bl
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom left")
-  :stacking "fg"
-  :focusable false
-  :monitor 1
-  (box :class "corners-bl"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "bottom left")
+           :stacking "fg"
+           :focusable false
+           :monitor 1
+           (box :class "corners-bl"))
 
 (defwindow corner2-br
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
-  :stacking "fg"
-  :focusable false
-  :monitor 1
-  (box :class "corners-br"))
+           :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
+           :stacking "fg"
+           :focusable false
+           :monitor 1
+           (box :class "corners-br"))

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 _CURRENT_MONITOR=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name')
-_OUTPUT_DIR="~/Videos/ScreenRecords"
+_OUTPUT_DIR="$HOME/Videos/ScreenRecords"
 _TIMESTAP=$(date +%Y-%m-%d%H:%M:%S)
 _EXT=".mp4"
 _PID_FILE="/tmp/wf-recorder.pid"

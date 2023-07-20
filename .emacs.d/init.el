@@ -807,10 +807,10 @@ This is useful when followed by an immediate kill."
   :config
   (setq yas-verbosity 1)           ; No need to be so verbose
   (setq yas-wrap-around-region t))
-;; (use-package yasnippet-snippets
-;;   :after yasnippet
-;;   :config
-;;   (yas-reload-all))
+(use-package yasnippet-snippets
+  :after yasnippet
+  :config
+  (yas-reload-all))
 
 (use-package paredit
   :delight paredit-mode " Par"
@@ -1060,28 +1060,26 @@ Call a second time to restore the original window configuration."
   (setq org-capture-templates
         `(("t" "Tasks")
           ("tt" "Todo" entry (file "~/doc/inbox.org") 
-           "* TODO %?\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t)
+           "* TODO %?\n%U\n%a\n" :clock-keep t)
+          ("tt" "Todo" entry (file "~/doc/inbox.org") 
+           "* TODO %?\n%U\n%a\n" :clock-keep t)
           ("tn" "Next" entry (file "~/doc/inbox.org")
-           "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-resume t)
-          ("n" "Notes")
-          ("nn" "General Note" entry (file "")
-           "* %? :NOTE:\n%U\n%a\n" :clock-resume t)
-          ("nm" "Meeting Note" entry (file "")
-           "* %? :MEETING:\n%U\n%a\n" :clock-resume t)))
-  
-  ;; add roam nav to org capture
-  (setq org-capture-templates
-      (append org-capture-templates
-              '(("r" "Roam")
-                ("rt" "Go to today's daily note" entry (function (lambda ()
-                                                                    (org-roam-dailies-goto-today)
+           "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-keep t)
+          ("ti" "Inprogress" entry (file "~/doc/inbox.org")
+           "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-keep t :clock-in t)
+          ("p" "New Project (clock-in)" entry (file "~/doc/projects.org")
+           "* PROJECT %?\n" :clock-keep t :clock-in t)
+          ("c" "Current task" checkitem (clock))
+          ("r" "Roam")
+          ("rt" "Go to today's daily note" entry (function (lambda ()
+                                                             (org-roam-dailies-goto-today)
+                                                             (org-capture-finalize))))
+          ("rf" "Find or create an Org-roam node" entry (function (lambda ()
+                                                                    (org-roam-node-find)
                                                                     (org-capture-finalize))))
-                ("rf" "Find or create an Org-roam node" entry (function (lambda ()
-                                                                          (org-roam-node-find)
-                                                                          (org-capture-finalize))))
-                ("rv" "Open Roam UI in browser" entry (function (lambda ()
-                                                                          (org-roam-ui-open)
-                                                                          (org-capture-finalize))))))))
+          ("rv" "Open Roam UI in browser" entry (function (lambda ()
+                                                            (org-roam-ui-open)
+                                                            (org-capture-finalize)))))))
 
 (with-eval-after-load 'org-agenda
   (add-hook 'org-agenda-mode-hook
@@ -1487,15 +1485,15 @@ Call a second time to restore the original window configuration."
   (defun my/lsp-mode-setup-completion ()
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless)))
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection
-                                     (lambda ()
-                                       (cons "gopls" '("-remote=auto"))))
-                    :major-modes '(go-mode)
-                    :priority 10
-                    :server-id 'gopls-remote
-                    :remote? t
-                    ))
+  ;; (lsp-register-client
+  ;;  (make-lsp-client :new-connection (lsp-tramp-connection
+  ;;                                    (lambda ()
+  ;;                                      (cons "gopls" '("-remote=auto"))))
+  ;;                   :major-modes '(go-mode)
+  ;;                   :priority 10
+  ;;                   :server-id 'gopls-remote
+  ;;                   :remote? t
+  ;;                   ))
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("C-r" . lsp-workspace-restart)

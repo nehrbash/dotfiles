@@ -32,7 +32,7 @@
         (box
           :class "element icon"
           (button
-            :onclick "eww close system-menu && eww close system-menu-closer && scripts/record toggle"
+            :onclick "eww close system-menu ; eww close system-menu-closer ; scripts/record toggle"
             {record_state}))
         (label
           :text "Record"
@@ -168,8 +168,8 @@
 (defwindow system-menu
   :stacking "fg" 
   :geometry (geometry
-    :x "0"
-    :y "0"
+    :y 10
+    :x 10
     :width "0%"
     :height "0%"
     :anchor "right top")

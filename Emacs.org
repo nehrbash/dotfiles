@@ -89,8 +89,9 @@
   - [[#docker][Docker]]
   -  [[#terraform][Terraform]]
   - [[#yuck][Yuck]]
-- [[#ai-assistants][AI Assistants]]
+- [[#fancy-bloat][Fancy Bloat]]
   - [[#gpt][GPT]]
+  - [[#hold-web-tabs][HOLD Web Tabs]]
 - [[#runtime-performance][Runtime Performance]]
   - [[#minibuffer-turn-off-gc-for-large-lists-and-commands][Minibuffer turn off GC for large lists and commands]]
 - [[#inspiration][Inspiration]]
@@ -1181,10 +1182,10 @@ Now use consult-ripgrep mostly. wgrep lets you edit  directly (good with embark)
   :config
   (setq yas-verbosity 1)           ; No need to be so verbose
   (setq yas-wrap-around-region t))
-;; (use-package yasnippet-snippets
-;;   :after yasnippet
-;;   :config
-;;   (yas-reload-all))
+(use-package yasnippet-snippets
+  :after yasnippet
+  :config
+  (yas-reload-all))
 #+end_src
 
 ** paredit parenthicy completion
@@ -1498,28 +1499,26 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (setq org-capture-templates
         `(("t" "Tasks")
           ("tt" "Todo" entry (file "~/doc/inbox.org") 
-           "* TODO %?\nSCHEDULED: %t\n%U\n%a\n" :clock-in t :clock-resume t)
+           "* TODO %?\n%U\n%a\n" :clock-keep t)
+          ("tt" "Todo" entry (file "~/doc/inbox.org") 
+           "* TODO %?\n%U\n%a\n" :clock-keep t)
           ("tn" "Next" entry (file "~/doc/inbox.org")
-           "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-resume t)
-          ("n" "Notes")
-          ("nn" "General Note" entry (file "")
-           "* %? :NOTE:\n%U\n%a\n" :clock-resume t)
-          ("nm" "Meeting Note" entry (file "")
-           "* %? :MEETING:\n%U\n%a\n" :clock-resume t)))
-  
-  ;; add roam nav to org capture
-  (setq org-capture-templates
-      (append org-capture-templates
-              '(("r" "Roam")
-                ("rt" "Go to today's daily note" entry (function (lambda ()
-                                                                    (org-roam-dailies-goto-today)
+           "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-keep t)
+          ("ti" "Inprogress" entry (file "~/doc/inbox.org")
+           "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-keep t :clock-in t)
+          ("p" "New Project (clock-in)" entry (file "~/doc/projects.org")
+           "* PROJECT %?\n" :clock-keep t :clock-in t)
+          ("c" "Current task" checkitem (clock))
+          ("r" "Roam")
+          ("rt" "Go to today's daily note" entry (function (lambda ()
+                                                             (org-roam-dailies-goto-today)
+                                                             (org-capture-finalize))))
+          ("rf" "Find or create an Org-roam node" entry (function (lambda ()
+                                                                    (org-roam-node-find)
                                                                     (org-capture-finalize))))
-                ("rf" "Find or create an Org-roam node" entry (function (lambda ()
-                                                                          (org-roam-node-find)
-                                                                          (org-capture-finalize))))
-                ("rv" "Open Roam UI in browser" entry (function (lambda ()
-                                                                          (org-roam-ui-open)
-                                                                          (org-capture-finalize))))))))
+          ("rv" "Open Roam UI in browser" entry (function (lambda ()
+                                                            (org-roam-ui-open)
+                                                            (org-capture-finalize)))))))
 #+end_src
 
 ** Dynamic Re-align tags
@@ -2037,15 +2036,15 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (defun my/lsp-mode-setup-completion ()
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless)))
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection
-                                     (lambda ()
-                                       (cons "gopls" '("-remote=auto"))))
-                    :major-modes '(go-mode)
-                    :priority 10
-                    :server-id 'gopls-remote
-                    :remote? t
-                    ))
+  ;; (lsp-register-client
+  ;;  (make-lsp-client :new-connection (lsp-tramp-connection
+  ;;                                    (lambda ()
+  ;;                                      (cons "gopls" '("-remote=auto"))))
+  ;;                   :major-modes '(go-mode)
+  ;;                   :priority 10
+  ;;                   :server-id 'gopls-remote
+  ;;                   :remote? t
+  ;;                   ))
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("C-r" . lsp-workspace-restart)
@@ -2256,10 +2255,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :mode ("\\.yuck\\'" . yuck-mode))
 #+end_src
 
-* AI Assistants
-   
-  Tools that are not human
-  
+* Fancy Bloat 
 ** GPT
    
    This section contains an Emacs Lisp function that reads a text file containing an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
@@ -2279,6 +2275,14 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
                 gptel-api-key #'gpt/read-openai-key))
 #+end_src
 
+** HOLD Web Tabs
+   wait for firefox to implement protocol
+   
+#+begin_src emacs
+(use-package ibrowse
+  :bind ("<f8>" . ibrowse-tab-select))  
+#+end_src
+   
 * Runtime Performance
 ** Minibuffer turn off GC for large lists and commands 
 

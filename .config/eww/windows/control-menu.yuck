@@ -19,7 +19,8 @@
 
 (defwindow control-menu
            :geometry (geometry
-                      :anchor "top center")
+                      :anchor "top center"
+                      :y 10)
            (control-menu-win))
 
 (defwindow control-menu-closer
