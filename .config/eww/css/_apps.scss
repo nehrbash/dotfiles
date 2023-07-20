@@ -3,15 +3,13 @@
     padding-left: 0px;
     background-color: $maroon;
 }
-
-.apps {
+.app, .apps {
      background-color: $maroon;
 }
 
 .apps-sidebar {
     background-color: transparent;
 }
-
 
 .app-icon {
     background-repeat: no-repeat;
@@ -27,10 +25,10 @@
         min-height: 44px;
     }
 }
+
 .app-focused {
     background-color: $surface0;
 }
-
 
 .app-active-bar, .app-dot {
     margin-left: 3px;

@@ -58,7 +58,8 @@
                      :space-evenly false
                      (button
                       :class "app-icon"
-                      :height 44
+
+                      :width "60px"                      :height 44
                       :width 44
                       :onrightclick "gtk-launch ${appList.Desktop}"
                       :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
@@ -66,7 +67,7 @@
                       :style "background-image: url('${appList.Icon}');"))
                     (showapps :applist "${appList.Apps}"
                               :icon "${appList.Icon}"
-                              :revealid "${appList.ID}"s
+                              :revealid "${appList.ID}"
                               :show {arraylength(appList.Apps) > 1 ? true : false})))))))
 
 (defwidget showapps [applist icon revealid show]
