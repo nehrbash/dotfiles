@@ -1647,7 +1647,9 @@ Call a second time to restore the original window configuration."
   :mode ("\\.dockerfile\\'" . dockerfile-mode))
 
 (use-package yuck-mode
-  :mode ("\\.yuck\\'" . yuck-mode))
+  :mode ("\\.yuck\\'" . yuck-mode)
+  :config
+  (setq lisp-indent-offset 2))
 
 (use-package gptel
   :bind (("<f5>" . gptel)

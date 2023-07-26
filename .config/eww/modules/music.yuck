@@ -1,25 +1,38 @@
 (defwidget music-module []
-  (box :space-evenly false
-   (box :class "spotify-left" (box :class "spotify-left-in" :width 15 ))
-  (box :class "spotify-left-transition" (box :class "spotify-left-transition-in" :width 15 ))
-   (eventbox
-   :class "spotify"
-    :onhover "${EWW_CMD} update music_reveal=true"
-    :onhoverlost "${EWW_CMD} update music_reveal=false"
+  (box
+    :space-evenly false
     (box
-     :class "mr-15"
-     :space-evenly false
-     (label :text " ")
-     (revealer
-        :transition "slideright"
-        :reveal music_reveal
-        :duration "350ms"
-        (box
-          :class "icon"
-          (button :class "song-button" :onclick "playerctl previous" "")
-          (button :class "song-button" :onclick "playerctl play-pause -p spotify" {music.status})
-          (button :class "song-button" :onclick "playerctl next" "")))
-     (label
-      :text {music.title})
-      ))
-   (box :class "spotify-left" (box :class "spotify-right-in" :width 15 ) )))
+      :class "spotify-left"
+      (box
+        :class "spotify-left-in"
+        :width 15 ))
+    (box
+      :class "spotify-left-transition"
+      (box
+        :class "spotify-left-transition-in"
+        :width 15 ))
+    (eventbox
+      :class "spotify"
+      :onhover "${EWW_CMD} update music_reveal=true"
+      :onhoverlost "${EWW_CMD} update music_reveal=false"
+      (box
+        :class "mr-15"
+        :space-evenly false
+        (label
+          :text " ")
+        (revealer
+          :transition "slideright"
+          :reveal music_reveal
+          :duration "350ms"
+          (box
+            :class "icon"
+            (button :class "song-button" :onclick "playerctl previous" "")
+            (button :class "song-button" :onclick "playerctl play-pause -p spotify" {music.status})
+            (button :class "song-button" :onclick "playerctl next" "")))
+        (label
+          :text {music.title})))
+    (box
+      :class "spotify-left"
+      (box
+        :class "spotify-right-in"
+        :width 15 ))))

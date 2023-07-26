@@ -1,17 +1,17 @@
 (defvar workspace-icons "[]")
 (defwidget workspaces []
   (eventbox
-		:onscroll "echo {} | sed -e \"s/up/-1/g\" -e \"s/down/+1/g\" | xargs hyprctl dispatch workspace"
-		(box
-			:class "module workspaces"
-			:spacing 20
+	:onscroll "echo {} | sed -e \"s/up/-1/g\" -e \"s/down/+1/g\" | xargs hyprctl dispatch workspace"
+	(box
+	  :class "module workspaces"
+	  :spacing 20
 
-		  (for i in workspace
-               (box :class "ws" :style "background-color: ${i.color};"
-		    (button
-					:onclick "hyprctl --batch \"dispatch moveworkspacetomonitor ${i.number} ${monitor.id}; dispatch workspace ${i.number}\""
-                    :width 40
-					:class "ws-icon"
-					:style "background-image: url('${i.icon}');"))))))
+	  (for i in workspace
+        (box :class "ws" :style "background-color: ${i.color};"
+		  (button
+			:onclick "hyprctl --batch \"dispatch moveworkspacetomonitor ${i.number} ${monitor.id}; dispatch workspace ${i.number}\""
+            :width 40
+			:class "ws-icon"
+			:style "background-image: url('${i.icon}');"))))))
 
 

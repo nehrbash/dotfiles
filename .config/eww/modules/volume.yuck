@@ -8,6 +8,6 @@
       :onrightclick "scripts/volume mute SINK"
       :class "module"
       (label
-       :class "vol-icon module"
-       :tooltip "volume ${volume.percent}%"
-       :text {volume.icon}))))
+        :class "vol-icon module"
+        :tooltip "volume ${volume.percent}%"
+        :text {volume.icon}))))

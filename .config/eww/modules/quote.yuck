@@ -1,17 +1,21 @@
 (defwidget quote []
-  (box :class "ct_box" :orientation "v" :space-evenly "false" :vexpand "true"
-       :halign "center"
-      (box
-       :yalign 0.5
-       (label
+  (box
+    :class "ct_box"
+    :orientation "v"
+    :space-evenly "false"
+    :vexpand "true"
+    :halign "center"
+    (box
+      :yalign 0.5
+      (label
         :class "quote"
-       :justify "center"
-       :wrap true
-       :text "        ${quote.quote}"))
-      (box
-       :vexpand "true"
-       :orientation "h"
-       (label
+        :justify "center"
+        :wrap true
+        :text "{quote.quote}"))
+    (box
+      :vexpand "true"
+      :orientation "h"
+      (label
         :class "author"
         :xalign 0.9
         :text "-  ${quote.author}"))))

@@ -2255,7 +2255,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package yuck-mode
-  :mode ("\\.yuck\\'" . yuck-mode))
+  :mode ("\\.yuck\\'" . yuck-mode)
+  :config
+  (setq lisp-indent-offset 2))
 #+end_src
 
 * Fancy Bloat 

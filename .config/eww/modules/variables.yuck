@@ -1,4 +1,5 @@
 (defvar bright_reveal false)
+(defvar power false)
 (defvar bt_rev false)
 (defvar music_reveal false)
 (defvar notif_rev false)

@@ -1,228 +1,227 @@
 (defwidget app-launcher []
-           (box
-            :class "apps"
-                   :orientation "h"
-                   :space-evenly false
-                   :hexpand false
-                   :halign "start"
-                   (box
-                    :halign "left"
-                    :hexpand false
-                    :vexpand false
-                    :width 48
-                    :space-evenly false
-                    :spacing 16
-                    :class "app-launcher"
-                    (button
-                     :class "app-launcher"
-                     :onclick "nwggrid &"
-                     (label
-                      :class "app-launcher icon"
-                      :text "")))))
+  (box
+    :class "apps"
+    :orientation "h"
+    :space-evenly false
+    :hexpand false
+    :halign "start"
+    (box
+      :halign "left"
+      :hexpand false
+      :vexpand false
+      :width 48
+      :space-evenly false
+      :spacing 16
+      :class "app-launcher"
+      (button
+        :class "app-launcher"
+        :onclick "nwggrid &"
+        (label
+          :class "app-launcher icon"
+          :text "")))))
 
 (defwidget apps []
-           (box
-            :class "apps-sidebar"
-            :orientation "v"
+  (box
+    :class "apps-sidebar"
+    :orientation "v"
+    :width 48
+    (box
+      :orientation "v"
+      :vexpand true
+      :space-evenly false
+      :width 48
+      :valign "center"
+
+      (app-launcher)
+      (for appList in apps
+        (eventbox
+          :onhover "${EWW_CMD} update app_rev=${appList.ID}"
+          :onhoverlost "${EWW_CMD} update app_rev=-1"
+          :hexpand false
+          :width 44
+          (box
+            :orientation "h"
+            :space-evenly false
+            :hexpand false
+            :halign "start"
             :width 48
             (box
-             :orientation "v"
-             :vexpand true
-             :space-evenly false
-             :width 48
-             :valign "center"
+              :class "app"
+              (box
+                :orientation "h"
+                :valign "center"
+                :height {appList.Focused ? 24 :4}
+                :width 7 ; 4+3 bc apps css
+                :class {appList.Focused ? "app-active-bar" : "app-dot"}))
+            (box
+              :class "app"
+              :valign "center"
+              :orientation "v"
+              :space-evenly false
+              (button
+                :class "app-icon"
 
-       (app-launcher)
-             (for appList in apps
-                  (eventbox
-                   :onhover "${EWW_CMD} update app_rev=${appList.ID}"
-                   :onhoverlost "${EWW_CMD} update app_rev=-1"
-                   :hexpand false
-                   :width 44
-                   (box
-                    :orientation "h"
-                    :space-evenly false
-                    :hexpand false
-                    :halign "start"
-                    :width 48
-                    (box
-                       :class "app"
-                    (box
-                     :orientation "h"
-                     :valign "center"
-                     :height {appList.Focused ? 24 :4}
-                     :width 7 ; 4+3 bc apps css
-                     :class {appList.Focused ? "app-active-bar" : "app-dot"}))
-                    (box
-                     :class "app"
-                     :valign "center"
-                     :orientation "v"
-                     :space-evenly false
-                     (button
-                      :class "app-icon"
-
-                      :width "60px"                      :height 44
-                      :width 44
-                      :onrightclick "gtk-launch ${appList.Desktop}"
-                      :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
-                      :onclick "hyprctl dispatch focuswindow address:${appList.LastFocused}"
-                      :style "background-image: url('${appList.Icon}');"))
-                    (showapps :applist "${appList.Apps}"
-                              :icon "${appList.Icon}"
-                              :revealid "${appList.ID}"
-                              :show {arraylength(appList.Apps) > 1 ? true : false})))))))
+                :width "60px"                      :height 44
+                :width 44
+                :onrightclick "gtk-launch ${appList.Desktop}"
+                :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
+                :onclick "hyprctl dispatch focuswindow address:${appList.LastFocused}"
+                :style "background-image: url('${appList.Icon}');"))
+            (showapps :applist "${appList.Apps}"
+              :icon "${appList.Icon}"
+              :revealid "${appList.ID}"
+              :show {arraylength(appList.Apps) > 1 ? true : false})))))))
 
 (defwidget showapps [applist icon revealid show]
-           (revealer
-            :transition "slideright"
-            :reveal {"${app_rev}" == "${revealid}"  ? show : false}
-            :duration "350ms"
-            :class "apps-sidebar"
-            (box
-              :valign "center"
-             :class "app round-right"
-             :spacing 4
-             (for a in applist
-                  (box
-                   :orientation "v"
-                   :space-evenly false
-                   (button
-                    :class {a.Focused ? "app-icon app-focused": "app-icon"}
-                    :height 44
-                    :width 44
-                    :tooltip "${a.Class}: ${a.Title}"
-                    :onclick "hyprctl dispatch focuswindow address:${a.Address}"
-                    :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
-                    :style "background-image: url('${icon}');")
-                   )))))
+  (revealer
+    :transition "slideright"
+    :reveal {"${app_rev}" == "${revealid}"  ? show : false}
+    :duration "350ms"
+    :class "apps-sidebar"
+    (box
+      :valign "center"
+      :class "app round-right"
+      :spacing 4
+      (for a in applist
+        (box
+          :orientation "v"
+          :space-evenly false
+          (button
+            :class {a.Focused ? "app-icon app-focused": "app-icon"}
+            :height 44
+            :width 44
+            :tooltip "${a.Class}: ${a.Title}"
+            :onclick "hyprctl dispatch focuswindow address:${a.Address}"
+            :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
+            :style "background-image: url('${icon}');")
+          )))))
 
 (defwindow leftbar2
-           :monitor 1
-           :geometry (geometry
-                      :width "60px"
-                      :height "100%"
-                      :anchor "left center")
-           :stacking "bg"
-           :exclusive true
-           (box
-            :class "sidebar"))
+  :monitor 1
+  :geometry (geometry
+              :width "60px"
+              :height "100%"
+              :anchor "left center")
+  :stacking "bg"
+  :exclusive true
+  (box
+    :class "sidebar"))
 
 (defwindow leftbar2apps
-           :monitor 1
-           :geometry (geometry
-                      :width "58px"
-                      :x "-60px"
-                      :height "100%"
-                      :anchor "left center")
-           :stacking "fg"
-           :exclusive false
-           (box
-            :orientation "v"
-            :space-evenly false
-            :valign "center"
-            :anchor "center"
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-b"
-              (box :class "apps-tl")))
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-tr"))
-            (apps)
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-br"))
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-b"
-              (box
-               :orientation "h"
-               :height 25
-               :width 57
-               :anchor "left"
-               :hexpand false
-               :vexpand false
-               :space-evenly false
-               :class "apps-bl")))))
-
+  :monitor 1
+  :geometry (geometry
+              :width "58px"
+              :x "-60px"
+              :height "100%"
+              :anchor "left center")
+  :stacking "fg"
+  :exclusive false
+  (box
+    :orientation "v"
+    :space-evenly false
+    :valign "center"
+    :anchor "center"
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-b"
+        (box :class "apps-tl")))
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-tr"))
+    (apps)
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-br"))
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-b"
+        (box
+          :orientation "h"
+          :height 25
+          :width 57
+          :anchor "left"
+          :hexpand false
+          :vexpand false
+          :space-evenly false
+          :class "apps-bl")))))
 
 (defwindow leftbar
-           :monitor 0
-           :geometry (geometry
-                      :width "60px"
-                      :height "100%"
-                      :anchor "left center")
-           :stacking "bg"
-           :exclusive true
-           (box
-            :class "sidebar"))
+  :monitor 0
+  :geometry (geometry
+              :width "60px"
+              :height "100%"
+              :anchor "left center")
+  :stacking "bg"
+  :exclusive true
+  (box
+    :class "sidebar"))
 
 (defwindow leftbarapps
-           :monitor 0
-           :geometry (geometry
-                      :width "58px"
-                      :x "-60px"
-                      :height "100%"
-                      :anchor "left center")
-           :stacking "fg"
-           :exclusive false
-           (box
-            :orientation "v"
-            :space-evenly false
-            :valign "center"
-            :anchor "center"
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-b"
-              (box :class "apps-tl")))
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-tr"))
-            (apps)
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-br"))
-            (box
-             :space-evenly false
-             :orientation "h"
-             (box
-              :height 25
-              :width 57
-              :class "apps-b"
-              (box
-               :orientation "h"
-               :height 25
-               :width 57
-               :anchor "left"
-               :hexpand false
-               :vexpand false
-               :space-evenly false
-               :class "apps-bl")))))
+  :monitor 0
+  :geometry (geometry
+              :width "58px"
+              :x "-60px"
+              :height "100%"
+              :anchor "left center")
+  :stacking "fg"
+  :exclusive false
+  (box
+    :orientation "v"
+    :space-evenly false
+    :valign "center"
+    :anchor "center"
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-b"
+        (box :class "apps-tl")))
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-tr"))
+    (apps)
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-br"))
+    (box
+      :space-evenly false
+      :orientation "h"
+      (box
+        :height 25
+        :width 57
+        :class "apps-b"
+        (box
+          :orientation "h"
+          :height 25
+          :width 57
+          :anchor "left"
+          :hexpand false
+          :vexpand false
+          :space-evenly false
+          :class "apps-bl")))))

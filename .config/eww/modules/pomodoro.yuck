@@ -1,48 +1,81 @@
 (defwidget pomo []
-           (box
-            :space-evenly false
-            :class "module"
-            (box :class "pomo-left" (box :class "pomo-left-in" :width 15 ))
-            (label
-             :text " ${pomo.summary}"
-             :class "pomo" )
-            (box :class "pomo-right" (box :class "pomo-right-in" :width 15 ))))
+  (box
+    :space-evenly false
+    :class "module"
+    (box
+      :class "pomo-left"
+      (box
+        :class "pomo-left-in"
+        :width 15 ))
+    (label
+      :text " ${pomo.summary}"
+      :class "pomo" )
+    (box
+      :class "pomo-right"
+      (box
+        :class "pomo-right-in"
+        :width 15 ))))
 
 (defwidget pomodoro []
-  (box :class "ct_box" :orientation "v" :space-evenly "false" :hexpand "false" :vexpand "false"
-      (box :orientation "h"  :space-evenly "false" :valign "center"
-           (circular-progress :value {pomo.percent} :class "pomo_circle" :thickness 10 :clockwise false :start-at 75
-                              (label :halign "center" :valign "center"
-                                     :class "pomo_icon"
-                                     :wrap false
-                                     ))
-           (box :orientation "v" :space-evenly "true" :halign "center" :valign "center"
-                (label :class "pomo_time" :text {pomo.time})))
-
-      (label :class "pomo_task" :wrap true :text {pomo.task})))
+  (box
+    :class "ct_box"
+    :orientation "v"
+    :space-evenly "false"
+    :hexpand "false"
+    :vexpand "false"
+    (box
+      :orientation "h"
+      :space-evenly "false"
+      :valign "center"
+      (circular-progress
+        :value {pomo.percent}
+        :class "pomo_circle"
+        :thickness 10
+        :clockwise false
+        :start-at 75
+        (label
+          :halign "center"
+          :valign "center"
+          :class "pomo_icon"
+          :wrap false))
+      (box
+        :orientation "v"
+        :space-evenly "true"
+        :halign "center"
+        :valign "center"
+        (label
+          :class "pomo_time"
+          :text {pomo.time})))
+    (label :class "pomo_task" :wrap true :text {pomo.task})))
 
 (defwindow pomo-break
-  :geometry (geometry :width "100%" :height "100%" :anchor "top center")
+  :geometry (geometry
+              :width "100%"
+              :height "100%"
+              :anchor "top center")
   :stacking "fg"
   :focusable false
   :monitor 0
   (button
-   :onclick "${EWW_CMD} open-many --toggle pomo-break pomo-break2"
-  (box
-   :class "pomo_break"
-  (label
-   :text {pomo.summary}
-   :class "pomo_break_in" ))))
+    :onclick "${EWW_CMD} open-many --toggle pomo-break pomo-break2"
+    (box
+      :class "pomo_break"
+      (label
+        :text {pomo.summary}
+        :class "pomo_break_in" ))))
 
 (defwindow pomo-break2
-  :geometry (geometry :width "100%" :height "100%" :anchor "top center")
+  :geometry (geometry
+              :width "100%"
+              :height "100%"
+              :anchor "top center")
   :stacking "fg"
   :focusable false
   :monitor 1
   (button
-   :onclick "${EWW_CMD} open-many --toggle pomo-break pomo-break2"
-  (box
-   :class "pomo_break"
-  (label
-   :text {pomo.summary}
-   :class "pomo_break_in" ))))
+    :onclick "${EWW_CMD} open-many --toggle pomo-break pomo-break2"
+    (box
+      :class "pomo_break"
+      (label
+        :text {pomo.summary}
+        :class "pomo_break_in" ))))

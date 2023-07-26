@@ -2,8 +2,8 @@
   (box
     :class "icon"
     (eventbox
-        :onclick "${EWW_CMD} open --toggle system-menu-closer --screen ${monitor.id}; ${EWW_CMD} open --toggle  system-menu --screen ${monitor.id}"
-        :class "module"
-        (label
-         :class "module sys-icon"
-         :text ""))))
+      :onclick "${EWW_CMD} open --toggle system-menu-closer --screen ${monitor.id}; ${EWW_CMD} open --toggle  system-menu --screen ${monitor.id}"
+      :class "module"
+      (label
+        :class "module sys-icon"
+        :text ""))))
