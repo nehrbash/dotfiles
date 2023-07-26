@@ -153,7 +153,7 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 80)
-  (recentf-exclude '("/tmp/" "/ssh:" "/scp:" "/docker:" "/bookmarks.el")))
+  (recentf-exclude '("/tmp/" "/bookmarks.el")))
 
 (use-package autorevert
   :hook (after-init . global-auto-revert-mode)
@@ -172,6 +172,7 @@ point reaches the beginning or end of the buffer, stop there."
   (tramp-ssh-controlmaster-options (concat
     "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
     "-o ControlMaster=auto -o ControlPersist=yes"))
+  (tramp-connection-properties (quote ((file-remote-p (tramp-file-name nil host port)) " ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p ")))
   :config
   (setq vc-handled-backends '(Git))
    ;; use remote path
@@ -1134,13 +1135,13 @@ Call a second time to restore the original window configuration."
   :config
   (defun snehrbass/org-pomodoro-time ()
     "Return the remaining pomodoro time in sec"
-    (if (org-pomodoro-active-p)
+    (if (org-pomodoro-remaining-seconds)
         (format "%d" (org-pomodoro-remaining-seconds))
       "0"))
 
   (defun snehrbass/org-pomodoro-task ()
     "Return the current task"
-    (if (org-pomodoro-active-p)
+    (if org-pomodoro-state
         (cl-case org-pomodoro-state
           (:pomodoro
            (format "%s" org-clock-heading))
@@ -1149,7 +1150,9 @@ Call a second time to restore the original window configuration."
           (:long-break
            (format "Long Break" ))
           (:overtime
-           (format "Overtime!" )))
+           (format "Overtime!" ))
+          (:none
+           (format "No Active Pomodoro" )))
       "No Active Pomodoro"))
 
   (setq org-pomodoro-keep-killed-pomodoro-time t
@@ -1468,11 +1471,10 @@ Call a second time to restore the original window configuration."
   :bind (:map org-agenda-mode-map
          ("M-g" . org-gcal-sync)))
 
-(use-package tree-sitter-langs
-  :defer t
+(use-package treesit-auto
   :config
-  (global-tree-sitter-mode)
-  (add-hook 'tree-sitter-after-on-hook #'tree-sitter-hl-mode))
+  (setq treesit-font-lock-level 4)
+  (global-treesit-auto-mode))
 
 (use-package lsp-mode
   :commands (lsp lsp-deferered)
@@ -1485,15 +1487,16 @@ Call a second time to restore the original window configuration."
   (defun my/lsp-mode-setup-completion ()
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless)))
-  ;; (lsp-register-client
-  ;;  (make-lsp-client :new-connection (lsp-tramp-connection
-  ;;                                    (lambda ()
-  ;;                                      (cons "gopls" '("-remote=auto"))))
-  ;;                   :major-modes '(go-mode)
-  ;;                   :priority 10
-  ;;                   :server-id 'gopls-remote
-  ;;                   :remote? t
-  ;;                   ))
+  (lsp-register-client
+   (make-lsp-client :new-connection (lsp-tramp-connection
+                                     (lambda ()
+                                       (setq-local lsp-enable-file-watchers nil)
+                                       (cons "gopls" '("-remote=auto"))))
+                    :major-modes '(go-ts-mode)
+                    :priority 10
+                    :server-id 'gopls-remote
+                    :remote? t
+                    ))
   :bind-keymap ("C-." . lsp-command-map)
   :bind ((:map lsp-command-map
                ("C-r" . lsp-workspace-restart)
@@ -1537,10 +1540,10 @@ Call a second time to restore the original window configuration."
   (dap-ui-controls-mode 1))
 
 (use-package go-mode
-  :hook ((go-mode . lsp-deferred)
+  :hook ((go-ts-mode . lsp-deferred)
          (before-save . lsp-format-buffer)
          (before-save . lsp-organize-imports))
-  :bind (:map go-mode-map
+  :bind (:map go-ts-mode-map
               ("C-," . go-goto-map))
   ;; :custom(lsp-register-custom-settings
   ;;         '(("gopls.completeUnimported" t t)
@@ -1548,11 +1551,11 @@ Call a second time to restore the original window configuration."
   :config
     (setq compile-command "go build -v && go test -v -cover && go vet"))
 (use-package gorepl-mode
-  :after go-mode
+  :after go-ts-mode
   :commands gorepl-run-load-current-file)
 (use-package flycheck-golangci-lint
-    :after (lsp go-mode)
-    :hook (go-mode . flycheck-golangci-lint-setup))
+    :after (lsp go-ts-mode)
+    :hook (go-ts-mode . flycheck-golangci-lint-setup))
 
 (use-package ccls
   :after

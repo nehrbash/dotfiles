@@ -12,13 +12,11 @@ _BG_COLOR_='#1e1e2e00'
 _BG_SIZE_=0
 # Border Size Applied when value greater than or equal 3
 _BORDER_SIZE_=0
-_SHADOW_SIZE_='100x18+12+16'  # [ weight ] x [ radius ] + [ horizontal ] x [ vertical ]
-_ROUNDED_CORNER_=30
 
 function check() {
     if [[ $? -eq 1 && ${PIPESTATUS[0]} -eq 1 ]]; then
         _end_job_=$(date +%s)
-        summary $_start_job_ $_end_job_ 'failed' && dunstify -u critical -t 3000 -a "Screenshot Tool" "Screensht" >> $_LOG_FILE_ 2>&1
+        summary $_start_job_ $_end_job_ 'failed' && notify-send -u critical -t 3000 -a "Screenshot Tool" "Screensht" >> $_LOG_FILE_ 2>&1
         exit 1
     fi
 }
@@ -34,6 +32,14 @@ function check_dir() {
 
 function get_latest_img() {
     _LATEST_IMAGE_=$(/bin/ls -th $_SCREENSHOT_DIR_ | grep -vE '.screensht.png$' | grep -E '.png$' | head -n 1)
+    _IMAGE_WIDTH_=$(identify -format "%w" "$_LATEST_IMAGE_")
+    _IMAGE_HEIGHT_=$(identify -format "%h" "$_LATEST_IMAGE_")
+    _SHADOW_WIDTH_=$(( _IMAGE_WIDTH_ * 26 / 1000 + 4))
+    _SHADOW_HEIGHT_=$(( _IMAGE_HEIGHT_ * 13 / 1000 + 2))
+    _ROUNDED_CORNER_=$(( _IMAGE_WIDTH_ * 13 / 1000 + 2))
+    # [ weight ] x [ radius ] + [ horizontal ] x [ vertical ]
+    _SHADOW_SIZE_="97x${_ROUNDED_CORNER_}+${_SHADOW_WIDTH_}+${_SHADOW_HEIGHT_}"
+    echo "100x${_ROUNDED_CORNER_}+${_SHADOW_WIDTH_}+${_SHADOW_HEIGHT_}"
 
     if [[ $( echo "$_LATEST_IMAGE_" | wc -w ) -eq 0 ]]; then
         exit 1
@@ -95,7 +101,7 @@ function summary() {
         wl-copy < "$_target_file_" >> $_LOG_FILE_ 2>&1
 
         message="${_notif_message_} Runtime: $hours hours, $minutes minutes, $seconds seconds"
-        dunstify -i "$_target_file_" -t 10000 "Screenshot Tool" "$message" -a "Screenshot Tool"
+        notify-send -i "$_target_file_" -t 10000 "Screenshot Tool" "$message" -a "Screenshot Tool"
     fi
 }
 

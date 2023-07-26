@@ -16,6 +16,10 @@ fpath+=$HOME/.zsh/pure
 autoload -U promptinit; promptinit
 prompt pure
 
+# Bash-like navigation
+autoload -U select-word-style
+select-word-style bash
+
 # highlight colors
 source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.sh
 

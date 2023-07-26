@@ -1,14 +1,31 @@
 (defwidget task-list []
-           (box :orientation "v" :class "ct_box" :space-evenly "false" :vexpand "true"
-            (label :class "task-label" :text "Task List [${tasks.num-tasks} of ${tasks.num-total}]")
-           (box :orientation "v" :space-evenly "false" :hexpand "false" :halign "center"
-                (box :orientation "h" :space-evenly "false"
-                     (label :class "project" :text "● INBOX"))
-                (for t in {tasks.tasks}
-                     (box :orientation "h" :space-evenly "false"
-                          (label :class {t.state}
-                                 :text "● ${t.state} " )
-                          (label :class {t.state == "PROJECT" ? "project" : "task"}
-                                 :text "${t.title}"
-                                 :show_truncated "true"
-                                 :limit-width "30"))))))
+           (box
+            :orientation "v"
+            :class "ct_box"
+            :space-evenly "false"
+            :vexpand "true"
+            (label
+             :class "task-label"
+             :text "Task List [${tasks.num-tasks} of ${tasks.num-total}]")
+            (box
+             :orientation "v"
+             :space-evenly "false"
+             :hexpand "false"
+             :halign "center"
+             (box
+              :orientation "h"
+              :space-evenly "false"
+              (label
+               :class "project"
+               :text "● INBOX"))
+             (for t in {tasks.tasks}
+                  (box
+                   :orientation "h"
+                   :space-evenly "false"
+                   (label
+                    :class {t.state}
+                    :text "● ${t.state} " )
+                   (label
+                    :class {t.state == "PROJECT" ? "project" : "task"}
+                    :text "${t.title}"
+                    :limit-width "30"))))))

@@ -19,6 +19,7 @@
                      (label
                       :class "app-launcher icon"
                       :text "")))))
+
 (defwidget apps []
            (box
             :class "apps-sidebar"
@@ -30,7 +31,8 @@
              :space-evenly false
              :width 48
              :valign "center"
-             (app-launcher)
+
+       (app-launcher)
              (for appList in apps
                   (eventbox
                    :onhover "${EWW_CMD} update app_rev=${appList.ID}"

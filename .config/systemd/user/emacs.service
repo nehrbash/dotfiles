@@ -5,8 +5,8 @@ After=graphical.target
 
 [Service]
 Type=forking
-ExecStart=/usr/bin/emacs --daemon
-ExecStop=/user/bin/emacsclient --eval "(save-buffers-kill-emacs)"
+ExecStart=/bin/bash -c '/usr/bin/emacs --daemon'
+ExecStop=/user/bin/emacsclient --eval '(save-buffers-kill-emacs)'
 
 Environment=SSH_AUTH_SOCK=%t/keyring/ssh
 Environment=LSP_USE_PLIST=true

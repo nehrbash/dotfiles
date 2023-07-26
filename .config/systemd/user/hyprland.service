@@ -8,8 +8,9 @@ After=systemd-user-sessions.target
 [Service]
 Type=simple
 Environment=LIBSEAT_BACKEND=logind
-ExecStart=/usr/bin/Hyprland
-ExecStopPost=/usr/bin/loginctl kill-user %i
+ExecStart=/bin/bash -c '/usr/bin/Hyprland'
+Restart=on-failure
+RestartSec=10s
 
 [Install]
 WantedBy=default.target
