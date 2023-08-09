@@ -76,6 +76,7 @@
   - [[#org-roam][Org Roam]]
   - [[#google-calendar][Google Calendar]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
+  - [[#indent-bars][Indent Bars]]
   - [[#tree-sitter][Tree sitter]]
   - [[#lsp-mode][LSP-Mode]]
   - [[#lsp-ui][LSP-UI]]
@@ -87,9 +88,10 @@
   - [[#csv][CSV]]
   - [[#yaml][yaml]]
   - [[#docker][Docker]]
-  -  [[#terraform][Terraform]]
+  - [[#terraform][Terraform]]
   - [[#yuck][Yuck]]
 - [[#fancy-bloat][Fancy Bloat]]
+  - [[#voice-to-text][Voice to Text]]
   - [[#gpt][GPT]]
   - [[#hold-web-tabs][HOLD Web Tabs]]
 - [[#runtime-performance][Runtime Performance]]
@@ -105,6 +107,26 @@
    Custom Emacs Lisp libraries which must be added to the load path. No littering will help keep .emacs.d clean.
 
 #+begin_src emacs-lisp
+;; Configure straight.el settings
+(setq straight-cache-autoloads t
+      straight-enable-package-integration nil
+      straight-check-for-modifications nil
+      straight-use-package-by-default t)
+
+;; Install straight.el if not present
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
 ;; now built-in
 (require 'use-package)
 ;; (straight-use-package 'delight)
@@ -122,7 +144,10 @@
 ;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
 #+end_src
-            
+   
+
+This configuration block sets up the straight.el package manager, installs it if necessary, configures various settings related to package management, and loads other packages and configurations. It also sets a custom file for storing customization settings and configures the use of the no-littering package for managing file paths in Emacs.
+
 * Editing Utilities
 
   General editing configurations.
@@ -142,6 +167,9 @@
     (add-to-list 'auto-mode-alist (cons pattern mode))))
 #+end_src
 
+
+This Emacs Lisp block defines a function called =add-auto-mode= which allows you to easily add entries to =auto-mode-alist=. This allows you to associate a major mode with a specific file pattern. The function takes a =MODE= argument and a variable number of =PATTERNS= arguments, and it adds each pattern-mode pair to =auto-mode-alist=.
+
 *** Delete the current file
 
 #+begin_src emacs-lisp
@@ -155,6 +183,8 @@
     (delete-file (buffer-file-name))
     (kill-this-buffer)))
 #+end_src
+
+This Emacs Lisp config block defines a function called =delete-this-file=. It deletes the current file and kills the buffer associated with it. It first checks if there is a file being edited in the buffer. If not, it throws an error. Then, it prompts the user for confirmation to delete the file. If the user confirms, it proceeds to delete the file using =delete-file= and kills the buffer using =kill-this-buffer
 
 *** Rename the current file
     
@@ -173,6 +203,8 @@
       (rename-buffer new-name))))
 #+end_src
 
+This Emacs Lisp configuration block defines a function called =rename-this-file-and-buffer= which renames both the current buffer and the file it's visiting to a new name specified by the user. It takes user input for the new name using the =interactive= keyword, checks if the buffer is visiting a file, renames the file if it exists, updates the visited file name, and renames the buffer accordingly.
+
 *** Toggle Mode Line
 
 #+begin_src emacs-lisp
@@ -184,6 +216,9 @@
                  (default-value 'mode-line-format)))
        (redraw-display))
 #+end_src
+
+
+This Emacs Lisp block defines a function called "toggle-mode-line" that toggles the display of the mode line on and off. When called interactively, it checks if the mode line is currently visible by comparing it to nil. If it is visible, it sets the mode-line-format to the default value, effectively hiding the mode line. If it is not visible, it sets the mode-line-format to nil, showing the mode line. Finally, it redraws the display to reflect the changes.
 
 ** Xterm Integration In Terminals (Mouse)
 
@@ -197,11 +232,15 @@
   (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
 #+end_src
 
+This Emacs Lisp config block sets up mouse scrolling and mouse support in the terminal. It binds the mouse scroll up and down events to scroll functions, autoloads the =mwheel= package, defines a frame setup function for the console, enables mouse mode in the terminal, and activates mouse wheel mode.
+
 ** ESC Cancels All
 
 #+begin_src emacs-lisp
   (global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 #+end_src
+
+This Emacs Lisp code maps the "<escape>" key to the function =keyboard-escape-quit= globally.
 
 ** Move & Duplicating Lines
 
@@ -219,6 +258,8 @@
          ("C-c u" . move-dup-duplicate-up)))
 #+end_src
 
+This configuration block uses the =use-package= macro to manage the =move-dup= package. It sets up several keybindings and enables =move-dup= globally after initialization with the =after-init= hook. The keybindings allow you to move lines up and down, duplicate lines up and down using different key combinations.
+
 ** Whole Line Or Region
 
 Cut/copy the current line if no region is active.
@@ -228,6 +269,8 @@ Cut/copy the current line if no region is active.
   :config (whole-line-or-region-global-mode t)
   :bind ("M-j". comment-dwim))
 #+end_src
+
+This Emacs Lisp code block configures the =whole-line-or-region= package, enabling global mode and binding the key combination "M-j" to the function =comment-dwim=.
 
 ** Beginning Of Line Text Then Line
 
@@ -259,7 +302,11 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key [remap move-beginning-of-line]
                 'smarter-move-beginning-of-line)
 #+end_src
-   
+  
+This Emacs Lisp configuration block defines a function called =smarter-move-beginning-of-line=. This function moves the cursor to the indentation of the beginning of the current line. If the cursor is already at the indentation, it moves to the actual beginning of the line. The function also accepts an argument =ARG= which, if non-nil or non-zero, moves the cursor forward =ARG - 1= lines before executing the main logic. 
+
+This configuration also remaps =C-a= (the default keybinding for =move-beginning-of-line=) to the =smarter-move-beginning-of-line= function using the =global-set-key= function.
+
 ** Switch Windows Via Letters
 
 #+begin_src emacs-lisp
@@ -270,6 +317,8 @@ point reaches the beginning or end of the buffer, stop there."
   :bind
   ("C-x o" . switch-window))
 #+end_src
+
+This config block sets up the Emacs package "switch-window" by configuring its options and binding the key combination "C-x o" to activate it.
 
 ** Swap Windows
 
@@ -286,12 +335,15 @@ point reaches the beginning or end of the buffer, stop there."
               (windswap-default-keybindings 'shift 'control))))
 #+end_src   
 
+This Emacs Lisp code configures the =windswap= package, which provides functions to navigate and rearrange windows. It sets up keybindings for both =windmove= (to move between windows) and =windswap= (to swap windows) using the control and shift keys. This configuration is executed after Emacs initializes.
+
 ** File Modified State
 
    Marks a file as unmodified based on diff not if edits have been made. Nice for when you add a character accidentally and then delete it. Normally the file would be marked as edited (slightly annoying).
+   
 #+begin_src emacs-lisp
 (use-package unmodified-buffer
-  :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
+  :straight (:host github :repo "arthurcgusmao/unmodified-buffer") 
   :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
 #+end_src
 
@@ -312,11 +364,11 @@ point reaches the beginning or end of the buffer, stop there."
 
 * General Settings
 
+  Slowly organizing these.
+
 #+begin_src emacs-lisp
 (setq-default
- bookmark-save-flag 1
  blink-cursor-interval 0.4
- bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory)
  buffers-menu-max-size 30
  case-fold-search t
  column-number-mode t
@@ -326,7 +378,6 @@ point reaches the beginning or end of the buffer, stop there."
  make-backup-files nil
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
- scroll-preserve-screen-position 'always
  set-mark-command-repeat-pop t
  tooltip-delay 1.5
  truncate-lines nil
@@ -344,9 +395,10 @@ point reaches the beginning or end of the buffer, stop there."
 
 #+begin_src emacs-lisp
 (use-package recentf
-  :hook ((after-init . recentf-mode)
-         (find-file . recentf-save-list))
+  :hook ((after-init . recentf-mode))
   :custom
+  (bookmark-save-flag 1)
+  (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 80)
   (recentf-exclude '("/tmp/" "/bookmarks.el")))
@@ -393,7 +445,6 @@ Tramp was acting slow this helps...maybe
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 #+end_src
 
-
 ** Init PATH environment variable
 
 #+begin_src emacs-lisp
@@ -411,10 +462,10 @@ Tramp was acting slow this helps...maybe
 ** general stuff 
 
 #+begin_src emacs-lisp
+(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
   (lambda ()
     (pixel-scroll-precision-mode t) 
-    (fringe-mode '(10 . 10))
     (set-face-attribute 'header-line nil :height 100)))
 #+end_src
 
@@ -794,8 +845,7 @@ Tramp was acting slow this helps...maybe
 #+begin_src emacs-lisp
 (use-package corfu-terminal
   :when (not (display-graphic-p))
-  :straight (:type git
-                   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
+  :straight (:type git :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
 #+end_src
     
 *** Icons for list
@@ -849,46 +899,43 @@ Tramp was acting slow this helps...maybe
 
 ** Spelling
 
-   using =flyspell-correct= as it uses =completing-read= by default so that it uses consult for it's completions frontend
+   usingz =flyspell-correct= as it uses =completing-read= by default so that it uses consult for it's completions frontend
 
    
 #+begin_src emacs-lisp
 (use-package ispell
-  :defer t
+  :after flyspell
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra"
                             "--run-together")))
 (use-package flyspell ; built-in
-  :hook ((org-mode . flyspell-mode)
-         (markdown-mode . flyspell-mode)
-         (TeX-mode . flyspell-mode)
-         (git-commit-mode . flyspell-mode)
-         (yaml-mode . flyspell-mode)
-         (conf-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
+  :hook ((org-mode markdown-mode TeX-mode git-commit-mode
+           yaml-mode conf-mode prog-mode) . flyspell-mode)
   :bind (:map flyspell-mode-map
-              ("C-." . nil)) ;; unbind 
+              ("C-." . nil)) ;; Unbind the key
   :config
   (setq flyspell-issue-welcome-flag nil
         ;; Significantly speeds up flyspell, which would otherwise print
         ;; messages for every word when checking the entire buffer
-        flyspell-issue-message-flag nil)
-  
-  (use-package flyspell-correct
-    :after flyspell
-    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
-
-  (use-package flyspell-lazy
-    :after flyspell
-    :config
-    (setq flyspell-lazy-idle-seconds 1
-          flyspell-lazy-window-idle-seconds 3)))
+        flyspell-issue-message-flag nil))
 #+end_src
+
+*** Define words
+
+#+begin_src emacs-lisp
+(use-package define-word
+  :commands define-word)
+(use-package flyspell-correct
+  :after flyspell
+    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
+#+end_src
+
+This config block sets up the =define-word= package and =flyspell-correct= package in Emacs. The =define-word= package provides a command for looking up definitions of words, while the =flyspell-correct= package adds a keybinding to correct spelling mistakes when using =flyspell= mode.
 
 *** Flycheck
 
-    Modern on-the-fly syntax checking extension for GNU Emacs.
+    Modernz on-the-fly syntax checking extension for GNU Emacs.
 
 #+begin_src emacs-lisp
 (use-package flycheck
@@ -1096,13 +1143,21 @@ Now use consult-ripgrep mostly. wgrep lets you edit  directly (good with embark)
 
 ** Git & Version control support
 
+   Show diff in fringe if local files only to minimize remote work. 
+
 #+begin_src emacs-lisp
 (use-package diff-hl
   :hook ((dired-mode . diff-hl-dired-mode)
-         (after-init . global-diff-hl-mode)
+         (prog-mode . diff-hl-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh))
   :bind (:map diff-hl-mode-map
-         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk)))
+         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk))
+  :config
+  (defun my/disable-diff-hl-for-remote-buffers ()
+    (when (and buffer-file-name (file-remote-p buffer-file-name))
+      (diff-hl-dired-mode -1)
+      (diff-hl-mode -1)))
+  (add-hook 'find-file-hook #'my/disable-diff-hl-for-remote-buffers))
 (use-package browse-at-remote
   :commands (browse-at-remote browse-at-remote-kill))
 #+end_src
@@ -1136,7 +1191,6 @@ Now use consult-ripgrep mostly. wgrep lets you edit  directly (good with embark)
 
 #+begin_src emacs-lisp
   (setq-default compilation-scroll-output t)
-  
   (defvar sanityinc/last-compilation-buffer nil
     "The last buffer in which compilation took place.")
 
@@ -1908,15 +1962,15 @@ Basically just followed the directions from this cool blog.   https://colekillia
 ** PDF Tools
 
    Better PDF viewer, lots of cool stuff.
+   make sure  pdf-info-epdfinfo-program in path
 
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :hook ((doc-view-mode . (lambda ()
-                            (toggle-mode-line)
-                            (pdf-tools-install)
-                            (pdf-view-midnight-minor-mode))))
+  :mode ("%PDF" . pdf-view-mode)
   :config
-  (setq-default pdf-view-display-size 'fit-width))
+  (pdf-tools-install :no-query)
+  (setq-default pdf-view-display-size 'fit-width)
+  (pdf-view-midnight-minor-mode))
 #+end_src
 
 ** Markdown
@@ -2010,7 +2064,18 @@ Basically just followed the directions from this cool blog.   https://colekillia
  #+end_src
    
 * Code Languages & File Modes
+** Indent Bars
 
+   don't know how I feel about this implementation requiring no tabs
+   
+#+begin_src emacs
+(use-package indent-bars
+  :straight (indent-bars :type git :host github :repo "jdtsmith/indent-bars")
+  :hook ((prog-mode yaml-mode) . indent-bars-mode)
+  :config
+  (setq indent-tabs-mode nil)) 
+#+end_src
+   
 ** Tree sitter
    
    Enable syntax highlighting based on the tree-sitter. already installed
@@ -2104,12 +2169,21 @@ Basically just followed the directions from this cool blog.   https://colekillia
 ** Go
 
    Don't forget to install golsp =go get golang.org/x/tools/gopls@latest=
+   other tools
+-  gotests
+- gomodifytags
+- impl
+- goplay
+- staticcheck
+- gopls
+
 
 #+begin_src emacs-lisp
 (use-package go-mode
-  :hook ((go-ts-mode . lsp-deferred)
-         (before-save . lsp-format-buffer)
-         (before-save . lsp-organize-imports))
+   :hook ((go-ts-mode . (lambda ()
+                      (add-hook 'before-save-hook 'lsp-format-buffer nil t)
+                      (add-hook 'before-save-hook 'lsp-organize-imports nil t)
+                      (lsp-deferred))))
   :bind (:map go-ts-mode-map
               ("C-," . go-goto-map))
   ;; :custom(lsp-register-custom-settings
@@ -2117,9 +2191,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
   ;;           ("gopls.staticcheck" t t)))
   :config
     (setq compile-command "go build -v && go test -v -cover && go vet"))
-(use-package gorepl-mode
-  :after go-ts-mode
-  :commands gorepl-run-load-current-file)
 (use-package flycheck-golangci-lint
     :after (lsp go-ts-mode)
     :hook (go-ts-mode . flycheck-golangci-lint-setup))
@@ -2242,7 +2313,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 #+end_src
 
-**  Terraform
+** Terraform
    
 #+begin_src emacs-lisp
 (use-package terraform-mode
@@ -2260,7 +2331,22 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (setq lisp-indent-offset 2))
 #+end_src
 
-* Fancy Bloat 
+* Fancy Bloat
+** Voice to Text
+
+   Speech-to-Text interface for Emacs using OpenAI’s whisper speech recognition model. For the inference engine it uses the awesome C/C++ port whisper.cpp that can run on consumer grade CPU (without requiring a high end GPU). push to talk
+
+#+begin_src emacs-lisp 
+(use-package whisper
+    :straight (:host github :repo "natrys/whisper.el")
+  :bind ("C-h w" . whisper-run)
+  :config
+  (setq whisper-install-directory "~/.cache/"
+        whisper-model "base"
+        whisper-language "en"
+        whisper-translate nil))
+#+end_src
+   
 ** GPT
    
    This section contains an Emacs Lisp function that reads a text file containing an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
@@ -2303,7 +2389,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+end_src
 
 * Inspiration
-
+  
   [[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] has a good list of packages and themes to check out.
 
 Other dotfiles repos and blog posts for inspiration:

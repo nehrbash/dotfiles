@@ -52,7 +52,8 @@
                 :valign "center"
                 :height {appList.Focused ? 24 :4}
                 :width 7 ; 4+3 bc apps css
-                :class {appList.Focused ? "app-active-bar" : "app-dot"}))
+                :class {appList.Focused ? "app-active-bar" : "app-dot" }
+                :class {appList.LastFocused == "" ? "app-no-dot" : "app-dot"}))
             (box
               :class "app"
               :valign "center"
@@ -60,8 +61,8 @@
               :space-evenly false
               (button
                 :class "app-icon"
-
-                :width "60px"                      :height 44
+                :width "60px"
+                :height 44
                 :width 44
                 :onrightclick "gtk-launch ${appList.Desktop}"
                 :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
@@ -93,8 +94,7 @@
             :tooltip "${a.Class}: ${a.Title}"
             :onclick "hyprctl dispatch focuswindow address:${a.Address}"
             :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
-            :style "background-image: url('${icon}');")
-          )))))
+            :style "background-image: url('${icon}');"))))))
 
 (defwindow leftbar2
   :monitor 1

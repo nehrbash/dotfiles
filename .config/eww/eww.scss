@@ -20,8 +20,11 @@
 
 * {
   all: unset;
-  transition: 200ms ease;
-  font-family: Product Sans, Material Icons Outlined;
+  transition: 250ms ease;
+  font-family: Product Sans, Material Icons;
+}
+.icon {
+    font-family: Material Icons;
 }
 
 @import 'css/calendar';
@@ -67,11 +70,6 @@ tooltip {
   label {
     font-size: 1rem;
   }
-}
-
-.icon {
-    font-family: Material Icons Outlined;
-
 }
 
 .workspaces {

@@ -16,13 +16,10 @@
   - Source Code Pro
 
 * Table Of Contents :TOC:
-- [[#install-steps][Install Steps]]
-  - [[#clone-dots][Clone Dots]]
-  - [[#install-paruyay][Install Paru/yay]]
-  - [[#installed-packages][Installed packages]]
-  - [[#personal-software][Personal Software]]
-  - [[#autologin][Autologin]]
-  - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
+- [[#arch-auto-install][Arch Auto Install]]
+  - [[#tools][Tools]]
+  - [[#terminal][Terminal]]
+  - [[#my-services][My Services]]
 - [[#keyboard][Keyboard]]
 - [[#spicetify][Spicetify]]
 - [[#emacs][Emacs]]
@@ -31,26 +28,35 @@
 - [[#hyprland][Hyprland]]
   - [[#hyprbar-plugin][Hyprbar Plugin]]
 - [[#eww][Eww]]
+  - [[#packages][Packages]]
+- [[#personal-software][Personal Software]]
+- [[#autologin][Autologin]]
 - [[#references][References]]
+  - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
 
-* Install Steps
+* Arch Auto Install
 
-  Follow steps or risk running install.sh
+  1. set up os, install correct graphics driver, internet.
+  2. clone the repo to ~~/.dotfiles~ and run ~stow .~ to symlink files into place.
+  3. run install script.
 
-** Clone Dots
-
-    1. I use stow, you just clone the repo to ~~/.dotfiles~ and run ~stow .~ to symlink files into place.
-
-#+begin_src sh :tangle no
-git clone https://github.com/snehrbass/dotfiles.git
+#+begin_src shell :tangle no
+sudo pacman -S stow git --noconfirm
+git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
 cd .dotfiles
 stow .
+sudo ./install.sh
 #+end_src
 
-** Install Paru/yay
+** Tools
+
+*** Bootstrap Paru
+
+   Paru is an Arch Linux package manager written in Rust. It is a community-driven project aiming to be a feature-rich and user-friendly alternative to the default package manager, Pacman. Paru allows users to install, upgrade, and remove packages from the Arch User Repository (AUR) as well as from the official Arch Linux repositories. It provides additional functionality like dependency resolution, parallel downloads, and automatic conflict resolution.
 
 #+begin_src sh :tangle install.sh
 #! /bin/bash
+set -e
 sudo pacman -S --needed base-devel
 git clone https://aur.archlinux.org/paru.git
 cd paru
@@ -59,16 +65,23 @@ cd -
 rm -r paru
 #+end_src
 
-** Installed packages
+*** Installed packages
 
    Installed Required packages
 
 #+begin_src sh :tangle install.sh
-paru --needed -S - < pkglist.txt
+paru --needed -S - < pkglist
 #+end_src
 
-*** Terminal Zsh
+** Terminal
 
+   I like a simple zsh prompt. set shell to zsh
+
+#+begin_src sh :tangle install.sh
+chsh -s $(which zsh)
+#+end_src
+
+*** Terminal Packages
 #+begin_src txt :tangle pkglist.txt
 alacritty
 zsh
@@ -79,331 +92,15 @@ zsh-syntax-highlighting
 exa
 #+end_src
 
-#+begin_src sh :tangle install.sh
-mkdir -p "$HOME/.zsh"
-git clone https://github.com/sindresorhus/pure.git "$HOME/.zsh/pure"
-#+end_src
-
-** Personal Software
-
-   Packages On my system that aren't related to my setup.
-
-#+begin_src txt :tangle pkglist.txt
-vlc
-steam
-downgrade
-android-messages-desktop-bin
-#+end_src
-
-** Autologin
-
-   I don't user a greater
-
-#+begin_src sh :tangle install.sh
-sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
-sudo touch /etc/systemd/system/getty@tty1.service.d/override.conf
-#+end_src
-
-*** override.conf
-
-#+begin_src conf :tangle no
-[Service]
-Environment=LIBSEAT_BACKEND=logind
-ExecStart=
-ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin nehrbash %I $TERM
-#+end_src
-
-*** My Services
+** My Services
 
 #+begin_src sh :tangle install.sh
 systemctl --user enable hyprland.service
 systemctl --user enable hyprpaper.service
 systemctl --user enable hyprshell.service
 systemctl --user enable eww.service
-# systemctl --user enable swaync.service
+systemctl --user enable swaync.service
 #+end_src
-
-** List of all packages on my System
-
-   All installed packages
-
-#+begin_src sh :tangle no
-paru -Qqen
-#+end_src
-
-#+RESULTS:
-| adobe-source-sans-fonts         |
-| alacritty                       |
-| amd-ucode                       |
-| android-messages-desktop-bin    |
-| archlinux-keyring               |
-| aspell                          |
-| aspell-en                       |
-| autoconf                        |
-| automake                        |
-| aws-cli                         |
-| baobab                          |
-| base                            |
-| bc                              |
-| betterdiscord-installer         |
-| binutils                        |
-| bison                           |
-| blueberry                       |
-| bluez-utils                     |
-| bt-dualboot                     |
-| btrfs-progs                     |
-| cairo-dock                      |
-| catppuccin-gtk-theme-frappe     |
-| catppuccin-gtk-theme-latte      |
-| catppuccin-gtk-theme-macchiato  |
-| catppuccin-gtk-theme-mocha      |
-| catppuccin-mocha-dark-cursors   |
-| cheese                          |
-| cmake                           |
-| cpio                            |
-| dart-sass                       |
-| debugedit                       |
-| discord                         |
-| docker                          |
-| docker-compose                  |
-| downgrade                       |
-| dracula-cursors-git             |
-| dracula-gtk-theme-git           |
-| dracula-icons-git               |
-| dunst                           |
-| easyeffects                     |
-| efibootmgr                      |
-| electron-fiddle-bin             |
-| emacs-native-comp-git-enhanced  |
-| emacs-pdf-tools-git             |
-| eog                             |
-| epiphany                        |
-| evince                          |
-| eww-wayland                     |
-| exa                             |
-| fakeroot                        |
-| file                            |
-| file-roller                     |
-| findutils                       |
-| firefox-beta-bin                |
-| flex                            |
-| gawk                            |
-| gcc                             |
-| gdm                             |
-| geticons                        |
-| gettext                         |
-| gimp                            |
-| git                             |
-| glfw-wayland                    |
-| gnome-applets                   |
-| gnome-backgrounds               |
-| gnome-bluetooth                 |
-| gnome-calculator                |
-| gnome-calendar                  |
-| gnome-characters                |
-| gnome-clocks                    |
-| gnome-color-manager             |
-| gnome-console                   |
-| gnome-contacts                  |
-| gnome-control-center            |
-| gnome-disk-utility              |
-| gnome-font-viewer               |
-| gnome-keyring                   |
-| gnome-logs                      |
-| gnome-maps                      |
-| gnome-menus                     |
-| gnome-music                     |
-| gnome-nettool                   |
-| gnome-photos                    |
-| gnome-remote-desktop            |
-| gnome-session                   |
-| gnome-settings-daemon           |
-| gnome-shell                     |
-| gnome-shell-extensions          |
-| gnome-software                  |
-| gnome-system-monitor            |
-| gnome-text-editor               |
-| gnome-tweaks                    |
-| gnome-user-docs                 |
-| gnome-user-share                |
-| gnome-video-effects             |
-| gnome-weather                   |
-| gnu-free-fonts                  |
-| go-task                         |
-| gojq                            |
-| gopsuinfo                       |
-| gotop                           |
-| grep                            |
-| grilo-plugins                   |
-| grim                            |
-| groff                           |
-| gruvbox-dark-gtk                |
-| gst-plugin-pipewire             |
-| gtk-engine-murrine              |
-| gtk-engines                     |
-| gvfs                            |
-| gvfs-afc                        |
-| gvfs-goa                        |
-| gvfs-google                     |
-| gvfs-gphoto2                    |
-| gvfs-mtp                        |
-| gvfs-nfs                        |
-| gvfs-smb                        |
-| gzip                            |
-| helvum                          |
-| htop                            |
-| hyprland-nvidia-git             |
-| hyprpaper-git                   |
-| i2c-tools                       |
-| inetutils                       |
-| iwd                             |
-| iwgtk                           |
-| jaq                             |
-| jq                              |
-| libgccjit                       |
-| libpulse                        |
-| libtool                         |
-| libu2f-server                   |
-| libva-mesa-driver               |
-| libva-nvidia-driver-git         |
-| libxnvctrl                      |
-| linux                           |
-| linux-firmware                  |
-| linux-headers                   |
-| lsp-plugins                     |
-| lutris                          |
-| lxappearance                    |
-| m4                              |
-| make                            |
-| man-db                          |
-| mkinitcpio-firmware             |
-| mutter                          |
-| nano                            |
-| nautilus                        |
-| neofetch                        |
-| net-tools                       |
-| networkmanager                  |
-| nfs-utils                       |
-| nix                             |
-| noto-fonts                      |
-| noto-fonts-cjk                  |
-| noto-fonts-extra                |
-| ntfs-3g                         |
-| nvidia-beta-dkms                |
-| nvidia-lts                      |
-| nvidia-settings                 |
-| nwg-displays                    |
-| nwg-dock-hyprland               |
-| nwg-launchers-git               |
-| nwg-look                        |
-| nwg-menu                        |
-| oniguruma                       |
-| opensc                          |
-| openssl-1.1                     |
-| orca                            |
-| otf-daddytimemono-git           |
-| otf-material-icons-git          |
-| otf-symbola                     |
-| pacman                          |
-| pacman-contrib                  |
-| paru-bin                        |
-| patch                           |
-| pavucontrol                     |
-| pcsc-tools                      |
-| pipewire                        |
-| pipewire-alsa                   |
-| pipewire-jack                   |
-| pipewire-pulse                  |
-| pkcs11-helper                   |
-| pkgconf                         |
-| playerctl                       |
-| polkit-gnome                    |
-| python-pip                      |
-| qmk                             |
-| qt5-wayland                     |
-| qt5ct                           |
-| ripgrep                         |
-| rust                            |
-| rygel                           |
-| sed                             |
-| simple-scan                     |
-| slack-desktop                   |
-| slurp                           |
-| smartmontools                   |
-| socat                           |
-| softhsm                         |
-| spicetify-cli                   |
-| spicetify-themes-git            |
-| spotify-launcher                |
-| sshfs                           |
-| steam                           |
-| stow                            |
-| sudo                            |
-| sushi                           |
-| swayidle                        |
-| swaylock                        |
-| swaylock-fancy-git              |
-| swaync                          |
-| terraform                       |
-| texinfo                         |
-| texlive-fontsextra              |
-| tk                              |
-| tmux                            |
-| torbrowser-launcher             |
-| totem                           |
-| tracker3-miners                 |
-| tree-sitter                     |
-| ttf-clear-sans                  |
-| ttf-font-awesome                |
-| ttf-google-sans                 |
-| ttf-icomoon-feather             |
-| ttf-iosevka                     |
-| ttf-linux-libertine             |
-| ttf-material-icons-git          |
-| ttf-ms-win10-auto               |
-| ttf-opensans                    |
-| ttf-roboto-mono                 |
-| ttf-segoewp                     |
-| ttf-symbola-free                |
-| ttf-victor-mono-nerd            |
-| vim                             |
-| visual-studio-code-bin          |
-| vlc                             |
-| watershot-git                   |
-| wdisplays                       |
-| wf-recorder                     |
-| wget                            |
-| which                           |
-| wine                            |
-| wireless_tools                   |
-| wireplumber                     |
-| wl-clipboard                    |
-| wlogout-git                     |
-| wlr-randr                       |
-| wlroots                         |
-| wmctrl                          |
-| wofi                            |
-| wqy-zenhei                      |
-| xclicker                        |
-| xdg-desktop-portal-hyprland-git |
-| xdg-user-dirs-gtk               |
-| xdg-utils                       |
-| xf86-video-nouveau              |
-| xorg-server                     |
-| xorg-xinit                      |
-| yelp                            |
-| yubico-c                        |
-| yubico-c-client                 |
-| yubico-piv-tool                 |
-| yubikey-manager                 |
-| yubikey-personalization         |
-| zoom                            |
-| zram-generator                  |
-| zsh                             |
-| zsh-autosuggestions             |
-| zsh-completions                 |
-| zsh-history-substring-search    |
-| zsh-syntax-highlighting         |
 
 * Keyboard
 
@@ -430,15 +127,16 @@ spicetify apply
 
 * Emacs
 
-My Emacs config can be found in [[file:Emacs.org][Here]]. Right now I am using *emacs-native-comp-git-enhanced* should work with emacs > 28.1
+My Emacs config can be found in [[file:Emacs.org][Here]]. Right now I am using *emacs-native-comp-git-enhanced* should probably work with emacs >= 29.1.
+- Note: longest package to
 
 #+begin_src txt :tangle pkglist.txt
+emacs-native-comp-git-enhanced
 emacs-pdf-tools-git
 aspell
 aspell-en
 ripgrep
 #+end_src
-
 
 ** Setting XDG Defaults to Emacs
 
@@ -453,7 +151,27 @@ xdg-mime default emacsclient.desktop inode/directory
 
 #+begin_src sh :tangle install.sh
 mkdir -p ~/doc/Roam/Journal
-touch ~/doc/inbox.org
+if [ ! -f ~/doc/inbox.org ]; then
+    cat << EOF > ~/doc/inbox.org
+#+CATEGORY: INBOX
+#+FILETAGS: INBOX
+EOF
+fi
+if [ ! -f ~/doc/projects.org ]; then
+    cat << EOF > ~/doc/projects.org
+#+CATEGORY: PROJECT
+#+FILETAGS: PROJECT
+EOF
+fi
+if [ ! -f ~/doc/repeater.org ]; then
+    cat << EOF > ~/doc/repeater.org
+#+CATEGORY: REPEATER
+#+FILETAGS: REPEATER
+EOF
+fi
+if [ ! -f ~/doc/gcal.org ]; then
+    touch ~/doc/gcal.org
+fi
 #+end_src
 
 * Hyprland
@@ -463,15 +181,26 @@ touch ~/doc/inbox.org
 #+begin_src txt :tangle pkglist.txt
 hyprland-nvidia-git
 xdg-desktop-portal-hyprland-git
+swaync-client
+#+end_src
+
+** Hyprbar Plugin
+
+#+begin_src shell :tangle install.sh
+
 #+end_src
 
 
-** TODO Hyprbar Plugin
+An alternative to *package.el* that is closer to go.mod is needed. This alternative should track packages to specific git commit versions and be compatible with use-package. Since straight may not fully load it, it should focus only on pre-loading.
+* Eww
 
-* TODO Eww
+  Lisp like graphical widget system
 
- Under refactor.
+#+begin_src shell :tangle install.sh
+go install github.com/nehrbash/hyprshell@latest
+#+end_src
 
+** Packages
 #+begin_src :tangle pkglist.txt
 eww-wayland
 swayidle
@@ -480,7 +209,256 @@ jaq
 jq
 #+end_src
 
+* Personal Software
+
+   Packages On my system that aren't related to my setup.
+
+#+begin_src txt :tangle pkglist.txt
+vlc
+steam
+downgrade
+android-messages-desktop-bin
+#+end_src
+
+* Autologin
+
+I don't care it's my desktop.  Do this step manually
+
+#+begin_src :tangle no
+sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
+sudo touch /etc/systemd/system/getty@tty1.service.d/override.conf
+#+end_src
+
+*** override.conf
+
+#+begin_src conf
+[Service]
+Environment=LIBSEAT_BACKEND=logind
+ExecStart=
+ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin nehrbash %I $TERM
+#+end_src
+
 * References
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
 - https://github.com/saimoomedits/eww-widgets
+** List of all packages on my System
+
+   All installed packages on my system.
+
+#+begin_src sh :tangle no
+paru -Qqen
+#+end_src
+
+#+RESULTS:
+| adobe-source-sans-fonts      |
+| alacritty                    |
+| amd-ucode                    |
+| archlinux-keyring            |
+| aspell                       |
+| aspell-en                    |
+| autoconf                     |
+| automake                     |
+| aws-cli                      |
+| baobab                       |
+| base                         |
+| bc                           |
+| binutils                     |
+| bison                        |
+| blueberry                    |
+| bluez-utils                  |
+| btrfs-progs                  |
+| cairo-dock                   |
+| cheese                       |
+| cmake                        |
+| cpio                         |
+| dart-sass                    |
+| debugedit                    |
+| discord                      |
+| docker                       |
+| docker-compose               |
+| easyeffects                  |
+| efibootmgr                   |
+| eog                          |
+| epiphany                     |
+| evince                       |
+| exa                          |
+| fakeroot                     |
+| file                         |
+| file-roller                  |
+| findutils                    |
+| flex                         |
+| gawk                         |
+| gcc                          |
+| gdm                          |
+| gettext                      |
+| gimp                         |
+| git                          |
+| glfw-wayland                 |
+| gnome-applets                |
+| gnome-backgrounds            |
+| gnome-bluetooth              |
+| gnome-calculator             |
+| gnome-calendar               |
+| gnome-characters             |
+| gnome-clocks                 |
+| gnome-color-manager          |
+| gnome-console                |
+| gnome-contacts               |
+| gnome-control-center         |
+| gnome-disk-utility           |
+| gnome-font-viewer            |
+| gnome-keyring                |
+| gnome-logs                   |
+| gnome-maps                   |
+| gnome-menus                  |
+| gnome-music                  |
+| gnome-nettool                |
+| gnome-photos                 |
+| gnome-remote-desktop         |
+| gnome-session                |
+| gnome-settings-daemon        |
+| gnome-shell                  |
+| gnome-shell-extensions       |
+| gnome-software               |
+| gnome-system-monitor         |
+| gnome-text-editor            |
+| gnome-tweaks                 |
+| gnome-user-docs              |
+| gnome-user-share             |
+| gnome-video-effects          |
+| gnome-weather                |
+| gnu-free-fonts               |
+| grep                         |
+| grilo-plugins                |
+| grim                         |
+| groff                        |
+| gst-plugin-pipewire          |
+| gtk-engine-murrine           |
+| gtk-engines                  |
+| gvfs                         |
+| gvfs-afc                     |
+| gvfs-goa                     |
+| gvfs-google                  |
+| gvfs-gphoto2                 |
+| gvfs-mtp                     |
+| gvfs-nfs                     |
+| gvfs-smb                     |
+| gzip                         |
+| helvum                       |
+| htop                         |
+| i2c-tools                    |
+| inetutils                    |
+| iwd                          |
+| jq                           |
+| libgccjit                    |
+| libpulse                     |
+| libtool                      |
+| libu2f-server                |
+| libva-mesa-driver            |
+| libxnvctrl                   |
+| linux                        |
+| linux-firmware               |
+| linux-headers                |
+| lsp-plugins                  |
+| lutris                       |
+| lxappearance                 |
+| m4                           |
+| make                         |
+| man-db                       |
+| mutter                       |
+| nano                         |
+| nautilus                     |
+| net-tools                    |
+| network-manager-applet       |
+| networkmanager               |
+| nfs-utils                    |
+| nix                          |
+| noto-fonts                   |
+| noto-fonts-cjk               |
+| noto-fonts-extra             |
+| ntfs-3g                      |
+| nvidia-dkms                  |
+| nvidia-settings              |
+| nvidia-utils                 |
+| oniguruma                    |
+| opensc                       |
+| openssl-1.1                  |
+| orca                         |
+| pacman                       |
+| pacman-contrib               |
+| patch                        |
+| pavucontrol                  |
+| pcsc-tools                   |
+| pipewire                     |
+| pipewire-alsa                |
+| pipewire-jack                |
+| pipewire-pulse               |
+| pkcs11-helper                |
+| pkgconf                      |
+| playerctl                    |
+| polkit-gnome                 |
+| python-pip                   |
+| qmk                          |
+| qt5-wayland                  |
+| qt5ct                        |
+| ripgrep                      |
+| rustup                       |
+| rygel                        |
+| sed                          |
+| simple-scan                  |
+| slurp                        |
+| smartmontools                |
+| socat                        |
+| softhsm                      |
+| spotify-launcher             |
+| sshfs                        |
+| steam                        |
+| stow                         |
+| sudo                         |
+| sushi                        |
+| swayidle                     |
+| swaylock                     |
+| terraform                    |
+| texinfo                      |
+| texlive-fontsextra           |
+| the_silver_searcher            |
+| tk                           |
+| tmux                         |
+| torbrowser-launcher          |
+| totem                        |
+| tracker3-miners              |
+| tree-sitter                  |
+| ttf-font-awesome             |
+| ttf-linux-libertine          |
+| ttf-opensans                 |
+| ttf-roboto-mono              |
+| ttf-victor-mono-nerd         |
+| vlc                          |
+| wf-recorder                  |
+| wget                         |
+| which                        |
+| wine                         |
+| wireless_tools                |
+| wireplumber                  |
+| wl-clipboard                 |
+| wlroots                      |
+| wmctrl                       |
+| wofi                         |
+| wqy-zenhei                   |
+| xdg-user-dirs-gtk            |
+| xdg-utils                    |
+| xf86-video-nouveau           |
+| xorg-server                  |
+| xorg-xinit                   |
+| yelp                         |
+| yubico-c                     |
+| yubico-c-client              |
+| yubikey-manager              |
+| yubikey-personalization      |
+| zram-generator               |
+| zsh                          |
+| zsh-autosuggestions          |
+| zsh-completions              |
+| zsh-history-substring-search |
+| zsh-syntax-highlighting      |

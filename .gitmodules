@@ -1,0 +1,4 @@
+[submodule ".zsh/pure"]
+	path = .zsh/pure
+	url = https://github.com/sindresorhus/pure.git
+	branch = main

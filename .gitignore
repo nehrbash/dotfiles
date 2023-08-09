@@ -1,4 +1,3 @@
-/.zsh/pure/
 /.zsh/history
 /bin/install
 *.elc
@@ -28,3 +27,4 @@
 /.emacs.d/.cask/
 /doc/pdfs/
 /.emacs.d/tree-sitter/
+/.emacs.d/org-clock-save.el

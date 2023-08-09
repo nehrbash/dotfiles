@@ -1,5 +1,7 @@
 #!/bin/bash
 
+set -e
+
 # Define the counter file
 COUNTER_FILE=/tmp/.eww_script_counter
 
@@ -8,14 +10,14 @@ if [ ! -f "$COUNTER_FILE" ] || [ ! -s "$COUNTER_FILE" ]; then
     echo 1 > $COUNTER_FILE
 fi
 
-# Read the current counter value
-COUNTER=$(cat $COUNTER_FILE)
+# Read the current counter value or use first arg
+COUNTER=${1:-$(cat $COUNTER_FILE)}
 
 # Based on the counter value, decide which command to run
 if [ $COUNTER -eq 1 ]; then
     swaync-client -df
     hyprctl reload
-    hyprctl plugin load /home/nehrbash/src/sn-hyprland-plugins/hyprbars/hyprbars.so
+    hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
     eww open-many bar bar2 leftbar leftbarapps leftbar2 leftbar2apps corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 2 ]; then
     hyprctl --batch "keyword animations:enabled 0;\
@@ -28,7 +30,7 @@ elif [ $COUNTER -eq 2 ]; then
             keyword decoration:active_opacity 1;\
             keyword decoration:inactive_opacity 1;\
             "
-    hyprctl plugin unload /home/nehrbash/src/sn-hyprland-plugins/hyprbars/hyprbars.so
+    hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
     eww close corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 3 ]; then
     swaync-client -dn

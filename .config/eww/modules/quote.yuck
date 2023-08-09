@@ -11,7 +11,7 @@
         :class "quote"
         :justify "center"
         :wrap true
-        :text "{quote.quote}"))
+        :text "${quote.quote}"))
     (box
       :vexpand "true"
       :orientation "h"

@@ -6,15 +6,11 @@ zsh-history-substring-search
 zsh-syntax-highlighting
 exa
 
-vlc
-steam
-downgrade
-android-messages-desktop-bin
-
 spicetify-cli
 spicetify-themes-git
 spotify-launcher
 
+emacs-native-comp-git-enhanced
 emacs-pdf-tools-git
 aspell
 aspell-en
@@ -22,3 +18,9 @@ ripgrep
 
 hyprland-nvidia-git
 xdg-desktop-portal-hyprland-git
+swaync-client
+
+vlc
+steam
+downgrade
+android-messages-desktop-bin

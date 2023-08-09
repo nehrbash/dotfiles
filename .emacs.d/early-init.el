@@ -24,9 +24,8 @@
       inhibit-startup-echo-area-message t
       initial-scratch-message nil)
 
-;; Set default font for new frames
-(add-to-list 'default-frame-alist '(font . "Source Code Pro-11"))
-
+;; Set default font for new frames overwritten by default-frame-alist
+(setq initial-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)
@@ -35,31 +34,12 @@
 ;; Note: does not seem to make a difference where I put this so I prefer it here
 ;; so that Emacs.org can only be about configuring package.
 
-;; Disable package.el at startup, I use straight.
+;; Disable package.el at startup since we're using straight.el
 (setq package-enable-at-startup nil)
-;; don't add that `custom-set-variables' block to my init.el!
-(setq package--init-file-ensured t)
 
-(setq straight-cache-autoloads t
-      straight-enable-package-integration nil
-      straight-check-for-modifications nil
-      straight-use-package-by-default t)
-(defvar bootstrap-version)
-(let ((bootstrap-file
-       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
-      (bootstrap-version 6))
-  (unless (file-exists-p bootstrap-file)
-    (with-current-buffer
-        (url-retrieve-synchronously
-         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
-         'silent 'inhibit-cookies)
-      (goto-char (point-max))
-      (eval-print-last-sexp)))
-  (load bootstrap-file nil 'nomessage))
-
-;; Silence compiler warnings as they can be pretty disruptive
-(setq comp-async-report-warnings-errors nil)
-(setq warning-minimum-level :emergency)
+;; Silence compiler warnings to avoid disruption
+(setq-default comp-async-report-warnings-errors nil)
+(setq-default warning-minimum-level :emergency)
 
 (provide 'early-init)
 ;;; early-init.el ends here

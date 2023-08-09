@@ -1,3 +1,23 @@
+;; Configure straight.el settings
+(setq straight-cache-autoloads t
+      straight-enable-package-integration nil
+      straight-check-for-modifications nil
+      straight-use-package-by-default t)
+
+;; Install straight.el if not present
+(defvar bootstrap-version)
+(let ((bootstrap-file
+       (expand-file-name "straight/repos/straight.el/bootstrap.el" user-emacs-directory))
+      (bootstrap-version 6))
+  (unless (file-exists-p bootstrap-file)
+    (with-current-buffer
+        (url-retrieve-synchronously
+         "https://raw.githubusercontent.com/radian-software/straight.el/develop/install.el"
+         'silent 'inhibit-cookies)
+      (goto-char (point-max))
+      (eval-print-last-sexp)))
+  (load bootstrap-file nil 'nomessage))
+
 ;; now built-in
 (require 'use-package)
 ;; (straight-use-package 'delight)
@@ -115,7 +135,7 @@ point reaches the beginning or end of the buffer, stop there."
               (windswap-default-keybindings 'shift 'control))))
 
 (use-package unmodified-buffer
-  :straight (:host github :repo "arthurcgusmao/unmodified-buffer")
+  :straight (:host github :repo "arthurcgusmao/unmodified-buffer") 
   :hook (after-init . unmodified-buffer-global-mode)) ;; Optional
 
 (use-package sudo-edit
@@ -124,9 +144,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package fullframe)
 
 (setq-default
- bookmark-save-flag 1
  blink-cursor-interval 0.4
- bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory)
  buffers-menu-max-size 30
  case-fold-search t
  column-number-mode t
@@ -136,7 +154,6 @@ point reaches the beginning or end of the buffer, stop there."
  make-backup-files nil
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
- scroll-preserve-screen-position 'always
  set-mark-command-repeat-pop t
  tooltip-delay 1.5
  truncate-lines nil
@@ -148,9 +165,10 @@ point reaches the beginning or end of the buffer, stop there."
 (setq browse-url-browser-function #'browse-url-firefox)
 
 (use-package recentf
-  :hook ((after-init . recentf-mode)
-         (find-file . recentf-save-list))
+  :hook ((after-init . recentf-mode))
   :custom
+  (bookmark-save-flag 1)
+  (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 80)
   (recentf-exclude '("/tmp/" "/bookmarks.el")))
@@ -181,10 +199,10 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package exec-path-from-shell
   :hook (after-init . exec-path-from-shell-initialize))
 
+(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
   (lambda ()
     (pixel-scroll-precision-mode t) 
-    (fringe-mode '(10 . 10))
     (set-face-attribute 'header-line nil :height 100)))
 
 (use-package doom-themes
@@ -505,8 +523,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package corfu-terminal
   :when (not (display-graphic-p))
-  :straight (:type git
-                   :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
+  :straight (:type git :repo "https://codeberg.org/akib/emacs-corfu-terminal.git"))
 
 (use-package kind-icon
   :commands kind-icon-margin-formatter
@@ -550,36 +567,27 @@ point reaches the beginning or end of the buffer, stop there."
                      (cape-capf-inside-string #'cape-dict))))
 
 (use-package ispell
-  :defer t
+  :after flyspell
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra"
                             "--run-together")))
 (use-package flyspell ; built-in
-  :hook ((org-mode . flyspell-mode)
-         (markdown-mode . flyspell-mode)
-         (TeX-mode . flyspell-mode)
-         (git-commit-mode . flyspell-mode)
-         (yaml-mode . flyspell-mode)
-         (conf-mode . flyspell-mode)
-         (prog-mode . flyspell-prog-mode))
+  :hook ((org-mode markdown-mode TeX-mode git-commit-mode
+           yaml-mode conf-mode prog-mode) . flyspell-mode)
   :bind (:map flyspell-mode-map
-              ("C-." . nil)) ;; unbind 
+              ("C-." . nil)) ;; Unbind the key
   :config
   (setq flyspell-issue-welcome-flag nil
         ;; Significantly speeds up flyspell, which would otherwise print
         ;; messages for every word when checking the entire buffer
-        flyspell-issue-message-flag nil)
-  
-  (use-package flyspell-correct
-    :after flyspell
-    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
+        flyspell-issue-message-flag nil))
 
-  (use-package flyspell-lazy
-    :after flyspell
-    :config
-    (setq flyspell-lazy-idle-seconds 1
-          flyspell-lazy-window-idle-seconds 3)))
+(use-package define-word
+  :commands define-word)
+(use-package flyspell-correct
+  :after flyspell
+    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
 
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
@@ -735,10 +743,16 @@ This is useful when followed by an immediate kill."
 
 (use-package diff-hl
   :hook ((dired-mode . diff-hl-dired-mode)
-         (after-init . global-diff-hl-mode)
+         (prog-mode . diff-hl-mode)
          (magit-post-refresh . diff-hl-magit-post-refresh))
   :bind (:map diff-hl-mode-map
-         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk)))
+         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk))
+  :config
+  (defun my/disable-diff-hl-for-remote-buffers ()
+    (when (and buffer-file-name (file-remote-p buffer-file-name))
+      (diff-hl-dired-mode -1)
+      (diff-hl-mode -1)))
+  (add-hook 'find-file-hook #'my/disable-diff-hl-for-remote-buffers))
 (use-package browse-at-remote
   :commands (browse-at-remote browse-at-remote-kill))
 
@@ -765,7 +779,6 @@ This is useful when followed by an immediate kill."
   :hook(magit-mode . magit-todos-mode))
 
 (setq-default compilation-scroll-output t)
-
 (defvar sanityinc/last-compilation-buffer nil
   "The last buffer in which compilation took place.")
 
@@ -1402,12 +1415,11 @@ Call a second time to restore the original window configuration."
   (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area") )
 
 (use-package pdf-tools
-  :hook ((doc-view-mode . (lambda ()
-                            (toggle-mode-line)
-                            (pdf-tools-install)
-                            (pdf-view-midnight-minor-mode))))
+  :mode ("%PDF" . pdf-view-mode)
   :config
-  (setq-default pdf-view-display-size 'fit-width))
+  (pdf-tools-install :no-query)
+  (setq-default pdf-view-display-size 'fit-width)
+  (pdf-view-midnight-minor-mode))
 
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
@@ -1540,9 +1552,10 @@ Call a second time to restore the original window configuration."
   (dap-ui-controls-mode 1))
 
 (use-package go-mode
-  :hook ((go-ts-mode . lsp-deferred)
-         (before-save . lsp-format-buffer)
-         (before-save . lsp-organize-imports))
+   :hook ((go-ts-mode . (lambda ()
+                      (add-hook 'before-save-hook 'lsp-format-buffer nil t)
+                      (add-hook 'before-save-hook 'lsp-organize-imports nil t)
+                      (lsp-deferred))))
   :bind (:map go-ts-mode-map
               ("C-," . go-goto-map))
   ;; :custom(lsp-register-custom-settings
@@ -1550,9 +1563,6 @@ Call a second time to restore the original window configuration."
   ;;           ("gopls.staticcheck" t t)))
   :config
     (setq compile-command "go build -v && go test -v -cover && go vet"))
-(use-package gorepl-mode
-  :after go-ts-mode
-  :commands gorepl-run-load-current-file)
 (use-package flycheck-golangci-lint
     :after (lsp go-ts-mode)
     :hook (go-ts-mode . flycheck-golangci-lint-setup))
@@ -1650,6 +1660,15 @@ Call a second time to restore the original window configuration."
   :mode ("\\.yuck\\'" . yuck-mode)
   :config
   (setq lisp-indent-offset 2))
+
+(use-package whisper
+    :straight (:host github :repo "natrys/whisper.el")
+  :bind ("C-h w" . whisper-run)
+  :config
+  (setq whisper-install-directory "~/.cache/"
+        whisper-model "base"
+        whisper-language "en"
+        whisper-translate nil))
 
 (use-package gptel
   :bind (("<f5>" . gptel)
