@@ -17,9 +17,6 @@ systemctl --user enable hyprshell.service
 systemctl --user enable eww.service
 systemctl --user enable swaync.service
 
-spicetify config current_theme Onepunch color_scheme light
-spicetify apply
-
 xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory
 
@@ -49,3 +46,10 @@ fi
 
 
 go install github.com/nehrbash/hyprshell@latest
+
+PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+# Create the symlink
+ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
+
+spicetify config current_theme Onepunch color_scheme light
+spicetify apply

@@ -21,7 +21,6 @@
   - [[#terminal][Terminal]]
   - [[#my-services][My Services]]
 - [[#keyboard][Keyboard]]
-- [[#spicetify][Spicetify]]
 - [[#emacs][Emacs]]
   - [[#setting-xdg-defaults-to-emacs][Setting XDG Defaults to Emacs]]
   - [[#set-up-org-agenda-and-roam][Set Up Org Agenda And Roam]]
@@ -30,6 +29,9 @@
 - [[#eww][Eww]]
   - [[#packages][Packages]]
 - [[#personal-software][Personal Software]]
+- [[#firefox][Firefox]]
+  - [[#extentions][Extentions]]
+  - [[#spicetify][Spicetify]]
 - [[#autologin][Autologin]]
 - [[#references][References]]
   - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
@@ -108,22 +110,6 @@ systemctl --user enable swaync.service
 
   - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
   - [[https://github.com/manna-harbour/miryoku][Layout]]
-
-* Spicetify
-
-  I use this (mocha) just follow the well made instructions.
-  https://github.com/catppuccin/spicetify
-
-#+begin_src txt :tangle pkglist.txt
-spicetify-cli
-spicetify-themes-git
-spotify-launcher
-#+end_src
-
-#+begin_src sh :tangle install.sh
-spicetify config current_theme Onepunch color_scheme light
-spicetify apply
-#+end_src
 
 * Emacs
 
@@ -218,6 +204,42 @@ vlc
 steam
 downgrade
 android-messages-desktop-bin
+#+end_src
+
+* Firefox
+
+Get the active profile from profiles.ini and symlink chrome folder into place. Required extentions are installed via my firefox account after login.
+1. go to ~about:config~ and set ~toolkit.legacyUserProfileCustomizations.stylesheets~ to true.
+2. restart firefox fully.
+3. import sidebery data and customize bar to remove refresh buttons.
+
+#+begin_src shell :tangle install.sh
+PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+# Create the symlink
+ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
+#+end_src
+
+** Extentions
+   - Sidebery
+   - Infintiy New Tabs
+   - Gruvbox Dark Theme
+   - Ad blocker
+   - password manager
+
+** Spicetify
+
+  I use this (mocha) just follow the well made instructions.
+  https://github.com/catppuccin/spicetify
+
+#+begin_src txt :tangle pkglist.txt
+spicetify-cli
+spicetify-themes-git
+spotify-launcher
+#+end_src
+
+#+begin_src sh :tangle install.sh
+spicetify config current_theme Onepunch color_scheme light
+spicetify apply
 #+end_src
 
 * Autologin

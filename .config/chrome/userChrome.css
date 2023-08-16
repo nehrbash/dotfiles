@@ -1,0 +1,74 @@
+/*
+  Title: Drannex42's FirefoxSidebar / Vertical Tabs
+  Description: Vertical tab design for Firefox with dynamic indentation::
+    Sideberry and TreeStyleTabs (Legacy) themes available!
+  Repository URL: https://github.com/drannex42/FirefoxSidebar
+  Version: 12022.04.17
+*/
+
+/*
+  Preferences / Settings ::
+  Use this file to set your preferences this will save them in one place for easier future updating
+  =========================================================================
+*/
+
+@import url("./prefs.css");
+
+/* ========================================================================= */
+
+/* Sidebar (Core) :: This file is for the sidebar implementation */
+  @import url("./extensions/sidebar.css");
+
+/*
+  Extensions :: 
+  To enable/disable specific extensions just comment/uncomment the line below. 
+  =========================================================================
+*/
+
+  /* CSD / Window Controls */
+    @import url("./extensions/window_controls.css");
+
+  /* Bookmark Arrows :: add a little arrow next to folders in bookmarks toolbar */
+   @import url("./extensions/bookmark_arrow.css");
+
+  /* Superbox Removal :: heavily customize superbox (flat look, colors, smaller entries,...) */
+    @import url("./extensions/superbox_removal.css");
+
+  /* Avatar Size :: change the avatar size for the Firefox Account to what makes sense */
+    @import url("./extensions/avatar_size.css");
+
+  /* fix sidebar switcher if bookmarks toolbar is hidden */
+    /* @import url("./extensions/fix_hidden_bookmarks.css"); */
+
+  /* hide sidebar switcher */
+    @import url("./extensions/hide_sidebar_switcher.css");
+
+/* END EXTENSIONS ========================================================== */
+
+/*
+  Themes ::
+  To enable/disable specific theme just comment/uncomment the line below.
+  Please enable only one theme at a time!
+  =========================================================================
+*/
+
+  /* GTK Adwaita */
+    /* @import url("./themes/gtk_adwaita.css"); */
+
+  /* GTK Breeze */
+    /* @import url("./themes/gtk_breeze.css"); */
+
+/* END THEMES ========================================================== */
+
+/*
+  Custom tweaks ::
+  If you have any custom CSS for Firefox, place them in this file.
+  =========================================================================
+*/
+
+  @import url("./custom.css");
+
+/* ========================================================================= */
+
+
+

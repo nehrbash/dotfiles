@@ -1,0 +1,35 @@
+/* Custom Styles */
+
+/* #titlebar { */
+/* appearance: none !important; */
+/* } */
+
+/* #sidebar-header { */
+/*   padding: 5px 8px !important; */
+/*   padding-top: 11px !important; */
+/* } */
+
+/* #nav-bar { */
+/*   padding-top: none !important; */
+/* } */
+
+/* Remove close button*/
+.titlebar-buttonbox-container{ display:none }
+
+/* Remove extention button */
+#unified-extensions-button, #unified-extensions-button > .toolbarbutton-icon{
+width: 0px !important;
+padding: 0px !important;
+}
+/* Remove nav buttons */
+@namespace url("http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul");
+
+#context-navigation,
+#context-sep-navigation {
+  display:none !important;
+}
+
+#back-button,
+#forward-button {
+  display: none !important;
+}

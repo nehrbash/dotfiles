@@ -6,10 +6,6 @@ zsh-history-substring-search
 zsh-syntax-highlighting
 exa
 
-spicetify-cli
-spicetify-themes-git
-spotify-launcher
-
 emacs-native-comp-git-enhanced
 emacs-pdf-tools-git
 aspell
@@ -24,3 +20,7 @@ vlc
 steam
 downgrade
 android-messages-desktop-bin
+
+spicetify-cli
+spicetify-themes-git
+spotify-launcher
