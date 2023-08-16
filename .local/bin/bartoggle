@@ -1,5 +1,4 @@
 #!/bin/bash
-
 set -e
 
 # Define the counter file
@@ -17,7 +16,7 @@ COUNTER=${1:-$(cat $COUNTER_FILE)}
 if [ $COUNTER -eq 1 ]; then
     swaync-client -df
     hyprctl reload
-    hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
+    # hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
     eww open-many bar bar2 leftbar leftbarapps leftbar2 leftbar2apps corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 2 ]; then
     hyprctl --batch "keyword animations:enabled 0;\
@@ -30,7 +29,7 @@ elif [ $COUNTER -eq 2 ]; then
             keyword decoration:active_opacity 1;\
             keyword decoration:inactive_opacity 1;\
             "
-    hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
+    # hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
     eww close corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 3 ]; then
     swaync-client -dn

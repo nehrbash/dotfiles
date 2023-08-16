@@ -209,20 +209,30 @@ point reaches the beginning or end of the buffer, stop there."
   :hook (after-init . (lambda ()
                         (load-theme 'doom-gruvbox t)
                         (doom-themes-treemacs-config)
-                        (doom-themes-org-config)
-                        (set-frame-parameter nil 'alpha-background 90)))
+                        (doom-themes-org-config)))
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t)
-           (custom-safe-themes t))
-  :config
-  (add-to-list 'default-frame-alist '(alpha-background . 90)))
+           (custom-safe-themes t)))
 
 (use-package doom-modeline
-  :hook (after-init . doom-modeline-mode)
-  :custom ((doom-modeline-percent-position nil)
-           (doom-modeline-buffer-file-name-style 'auto)         
+  :hook ((after-init . doom-modeline-mode))
+  :init
+  (line-number-mode -1)
+  (column-number-mode -1)
+  (setq mode-line-position nil)
+  :custom ((doom-modeline-project-detection 'project)
+           (doom-modeline-hud t)
+           (doom-modeline-env-version t)
+           (doom-modeline-buffer-encoding nil)
+           (doom-modeline-workspace-name t)
+           (doom-modeline-buffer-file-name-style 'auto)
            (doom-modeline-height 40)
            (doom-modeline-buffer-state-icon t)))
+
+(use-package treemacs
+  :commands (treemacs)
+  :bind ("C-c C-t" . treemacs)
+  :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
 
 (defun sanityinc/maybe-suspend-frame ()
   (interactive)
@@ -233,12 +243,8 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
 (global-set-key (kbd "C-z") 'undo)
 
-(use-package default-text-scale)
-(add-hook 'after-init-hook 'default-text-scale-mode)
-(setq-default tab-width 4)
-
-(use-package rainbow-mode
-  :hook (prog-mode . rainbow-mode))
+(use-package default-text-scale
+  :hook (after-init . default-text-scale-mode))
 
 (use-package dired
   :straight (:type built-in)
@@ -316,20 +322,8 @@ point reaches the beginning or end of the buffer, stop there."
   :after marginalia
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
 
-(defun consult-ripgrep-symbol-at-point ()
-  "Run `consult-ripgrep' with the symbol at point as the initial input."
-  (interactive)
-  (let ((initial (when-let ((symbol (symbol-at-point)))
-                   (concat "" (regexp-quote (symbol-name symbol)) ""))))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (when initial
-            (insert initial)))
-      (consult-ripgrep))))
-(global-set-key (kbd "C-r") #'consult-ripgrep-symbol-at-point)
-
 (use-package consult
-  :bind (
+  :bind (("C-r" . consult-ripgrep-symbol-at-point)
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
          ("C-c C-m" . consult-mode-command)
@@ -378,6 +372,16 @@ point reaches the beginning or end of the buffer, stop there."
   (consult-narrow-key "<")
   (consult-preview-key '(:debounce 0.3 any)) ;; Preview on any key press, but delay 0.3s
   :config
+  (defun consult-ripgrep-symbol-at-point ()
+    "Run `consult-ripgrep' with the symbol at point as the initial input."
+    (interactive)
+    (let ((initial (when-let ((symbol (symbol-at-point)))
+                     (concat "" (regexp-quote (symbol-name symbol)) ""))))
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (when initial
+              (insert initial)))
+        (consult-ripgrep))))
   (consult-customize
    consult-line
    :add-history (seq-some #'thing-at-point '(region symbol)))
@@ -386,14 +390,14 @@ point reaches the beginning or end of the buffer, stop there."
    consult-line-thing-at-point
    :initial (thing-at-point 'symbol))
   
-  (defun sn/consult-ripgrep ()
-    "Run `consult-ripgrep` from the project root directory if available,"
-    "or the current directory otherwise."
-    (interactive)
-    (let ((default-directory (if (projectile-project-p)
-                                 (projectile-project-root)
-                               default-directory)))
-      (consult-ripgrep)))
+  ;; (defun sn/consult-ripgrep ()
+  ;;   "Run `consult-ripgrep` from the project root directory if available,"
+  ;;   "or the current directory otherwise."
+  ;;   (interactive)
+  ;;   (let ((default-directory (if (projectile-project-p)
+  ;;                                (projectile-project-root)
+  ;;                              default-directory)))
+  ;;     (consult-ripgrep)))
   (defvar consult--source-org
     (list :name     "Org"
           :category 'buffer
@@ -427,8 +431,8 @@ point reaches the beginning or end of the buffer, stop there."
             (setq-local vterm-buffer-name-string nil))
           :items
           (lambda () (consult--buffer-query :sort 'visibility
-                                            :as #'buffer-name
-                                            :include '("Term\\ ")))))
+                                       :as #'buffer-name
+                                       :include '("Term\\ ")))))
   (defvar consult--source-star
     (list :name     "*Star-Buffers*"
           :category 'buffer
@@ -1005,12 +1009,9 @@ Call a second time to restore the original window configuration."
                       :background "#689d6a" :foreground "#0d1011" :box nil)
   (set-face-attribute 'tab-line-highlight nil ;; mouseover
                       :background "#928374" :foreground "#0d1011")
-
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 
 (setq confirm-kill-processes nil)
-
-(use-package speed-type :defer 3)
 
 (use-package org
   :straight org-contrib
@@ -1051,7 +1052,6 @@ Call a second time to restore the original window configuration."
 (straight-use-package '(org-appear :type git :host github :repo "awth13/org-appear"))
 (add-hook 'org-mode-hook 'org-appear-mode)
 
-(setq header-line-format " ")
 (custom-set-faces
    '(org-document-title ((t (:height 3.2))))
    '(header-line ((t (:height 3 :weight bold))))
@@ -1141,10 +1141,14 @@ Call a second time to restore the original window configuration."
      (sqlite . t))))
 
 (use-package org-pomodoro
-  :after org-agenda
+  :ensure t
   :commands (org-pomodoro snehrbass/org-pomodoro-time snehrbass/org-pomodoro-task)
   :bind ((:map org-agenda-mode-map
                ("P" . org-pomodoro)))
+  :hook ((org-pomodoro-started . gopar/load-window-config-and-close-work-agenda)
+         (org-pomodoro-finished . gopar/save-window-config-and-show-work-agenda))
+  :custom ((org-pomodoro-clock-break t)
+           (org-pomodoro-manual-break t))
   :config
   (defun snehrbass/org-pomodoro-time ()
     "Return the remaining pomodoro time in sec"
@@ -1167,14 +1171,18 @@ Call a second time to restore the original window configuration."
           (:none
            (format "No Active Pomodoro" )))
       "No Active Pomodoro"))
-
-  (setq org-pomodoro-keep-killed-pomodoro-time t
-        alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil)))
-        org-pomodoro-finished-sound "~/Music/bell.wav"
-        org-pomodoro-long-break-sound "~/Music/bell.wav"
-        org-pomodoro-short-break-sound "~/Music/bell.wav"
-        org-pomodoro-start-sound "~/Music/bell.wav"
-        org-pomodoro-killed-sound "~/Music/bell.wav"))
+  
+   (defun gopar/save-window-config-and-show-work-agenda ()
+    (interactive)
+    (window-configuration-to-register ?`)
+    (delete-other-windows)
+    (org-save-all-org-buffers)
+    (org-agenda nil "w"))
+   
+  (defun gopar/load-window-config-and-close-work-agenda ()
+    (interactive)
+    (org-save-all-org-buffers)
+    (jump-to-register ?`)))
 
 (defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
@@ -1661,6 +1669,9 @@ Call a second time to restore the original window configuration."
   :config
   (setq lisp-indent-offset 2))
 
+(use-package rainbow-mode
+  :hook (prog-mode . rainbow-mode))
+
 (use-package whisper
     :straight (:host github :repo "natrys/whisper.el")
   :bind ("C-h w" . whisper-run)
@@ -1682,6 +1693,8 @@ Call a second time to restore the original window configuration."
                 gptel-playback t
                 gptel-default-mode 'org-mode
                 gptel-api-key #'gpt/read-openai-key))
+
+(use-package speed-type :commands speed-type-top-x)
 
 (defun doom-defer-garbage-collection-h ()
   (setq gc-cons-threshold most-positive-fixnum))

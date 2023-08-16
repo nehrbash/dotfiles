@@ -22,11 +22,11 @@
   - [[#tramp][TRAMP]]
   - [[#init-path-environment-variable][Init PATH environment variable]]
 - [[#ui-stuff][UI Stuff]]
-  - [[#general-stuff][general stuff]]
+  - [[#general-config][General Config]]
   - [[#theme][Theme]]
   - [[#modeline][Modeline]]
+  - [[#treemacs][Treemacs]]
   - [[#gui-frames][GUI Frames]]
-  - [[#hex-colors][Hex colors]]
 - [[#dired][Dired]]
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
   - [[#consult][Consult]]
@@ -51,7 +51,6 @@
   - [[#improve-window-switching][Improve window switching]]
   - [[#better-terminal][Better Terminal]]
   - [[#dont-ask-to-kill-on-exit][Don't ask to kill on exit]]
-- [[#typing-practice][Typing Practice]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
   - [[#org-appear][Org Appear]]
@@ -62,6 +61,7 @@
   - [[#pretty-symbol-replacement][Pretty Symbol Replacement]]
   - [[#pomodoro-timer][Pomodoro Timer]]
   - [[#clock-inout][Clock In/Out]]
+  - [[#type-breaks][Type Breaks]]
   - [[#latex-fragments][Latex Fragments]]
   - [[#auto-save-pdf-toggle][Auto Save PDF Toggle]]
   - [[#writing-mode][Writing Mode]]
@@ -90,10 +90,12 @@
   - [[#docker][Docker]]
   - [[#terraform][Terraform]]
   - [[#yuck][Yuck]]
+  - [[#hex-colors][Hex colors]]
 - [[#fancy-bloat][Fancy Bloat]]
   - [[#voice-to-text][Voice to Text]]
   - [[#gpt][GPT]]
   - [[#hold-web-tabs][HOLD Web Tabs]]
+  - [[#typing-practice][Typing Practice]]
 - [[#runtime-performance][Runtime Performance]]
   - [[#minibuffer-turn-off-gc-for-large-lists-and-commands][Minibuffer turn off GC for large lists and commands]]
 - [[#inspiration][Inspiration]]
@@ -154,8 +156,6 @@ This configuration block sets up the straight.el package manager, installs it if
   
   Packages I had at one point or another for UI.
   - [[https://github.com/abo-abo/avy][avy]]
-
-  
     
 ** File Handler Functions
 *** Handier way to add modes to auto-mode-alist
@@ -459,7 +459,7 @@ Tramp was acting slow this helps...maybe
   - [[https://github.com/emacs-dashboard/emacs-dashboard][Dashboard]]
   - [[https://github.com/ema2159/centaur-tabs][Centaur tabs]]
     
-** general stuff 
+** General Config 
 
 #+begin_src emacs-lisp
 (setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
@@ -476,26 +476,41 @@ Tramp was acting slow this helps...maybe
   :hook (after-init . (lambda ()
                         (load-theme 'doom-gruvbox t)
                         (doom-themes-treemacs-config)
-                        (doom-themes-org-config)
-                        (set-frame-parameter nil 'alpha-background 90)))
+                        (doom-themes-org-config)))
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t)
-           (custom-safe-themes t))
-  :config
-  (add-to-list 'default-frame-alist '(alpha-background . 90)))
+           (custom-safe-themes t)))
 #+end_src
 
 ** Modeline
 
  #+begin_src emacs-lisp
  (use-package doom-modeline
-   :hook (after-init . doom-modeline-mode)
-   :custom ((doom-modeline-percent-position nil)
-            (doom-modeline-buffer-file-name-style 'auto)         
+   :hook ((after-init . doom-modeline-mode))
+   :init
+   (line-number-mode -1)
+   (column-number-mode -1)
+   (setq mode-line-position nil)
+   :custom ((doom-modeline-project-detection 'project)
+            (doom-modeline-hud t)
+            (doom-modeline-env-version t)
+            (doom-modeline-buffer-encoding nil)
+            (doom-modeline-workspace-name t)
+            (doom-modeline-buffer-file-name-style 'auto)
             (doom-modeline-height 40)
             (doom-modeline-buffer-state-icon t)))
+
  #+end_src
 
+** Treemacs 
+
+#+begin_src emacs-lisp
+(use-package treemacs
+  :commands (treemacs)
+  :bind ("C-c C-t" . treemacs)
+  :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
+#+end_src
+ 
 ** GUI Frames
 
    UI Features that are related to the Emacs GUI.
@@ -520,18 +535,8 @@ Tramp was acting slow this helps...maybe
     Change global font size easily
     
 #+begin_src emacs-lisp
-(use-package default-text-scale)
-(add-hook 'after-init-hook 'default-text-scale-mode)
-(setq-default tab-width 4)
-#+end_src
-
-** Hex colors
-
-   Show hex colors while coding or editing themes.
-   
-#+begin_src emacs-lisp
-(use-package rainbow-mode
-  :hook (prog-mode . rainbow-mode))
+(use-package default-text-scale
+  :hook (after-init . default-text-scale-mode))
 #+end_src
 
 * Dired
@@ -580,8 +585,7 @@ Tramp was acting slow this helps...maybe
 
 * Minibuffer / Completion Framework
 
-  What make Emacs Emacs.
-  - Far better integration than nvim telescope.
+  What make Emacs, Emacs.
 
 #+begin_src emacs-lisp
 (use-package vertico
@@ -619,25 +623,13 @@ Tramp was acting slow this helps...maybe
 (use-package all-the-icons-completion
   :after marginalia
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
-
-(defun consult-ripgrep-symbol-at-point ()
-  "Run `consult-ripgrep' with the symbol at point as the initial input."
-  (interactive)
-  (let ((initial (when-let ((symbol (symbol-at-point)))
-                   (concat "" (regexp-quote (symbol-name symbol)) ""))))
-    (minibuffer-with-setup-hook
-        (lambda ()
-          (when initial
-            (insert initial)))
-      (consult-ripgrep))))
-(global-set-key (kbd "C-r") #'consult-ripgrep-symbol-at-point)
 #+end_src
 
 ** Consult
 
 #+begin_src emacs-lisp
 (use-package consult
-  :bind (
+  :bind (("C-r" . consult-ripgrep-symbol-at-point)
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
          ("C-c C-m" . consult-mode-command)
@@ -686,6 +678,16 @@ Tramp was acting slow this helps...maybe
   (consult-narrow-key "<")
   (consult-preview-key '(:debounce 0.3 any)) ;; Preview on any key press, but delay 0.3s
   :config
+  (defun consult-ripgrep-symbol-at-point ()
+    "Run `consult-ripgrep' with the symbol at point as the initial input."
+    (interactive)
+    (let ((initial (when-let ((symbol (symbol-at-point)))
+                     (concat "" (regexp-quote (symbol-name symbol)) ""))))
+      (minibuffer-with-setup-hook
+          (lambda ()
+            (when initial
+              (insert initial)))
+        (consult-ripgrep))))
   (consult-customize
    consult-line
    :add-history (seq-some #'thing-at-point '(region symbol)))
@@ -694,14 +696,14 @@ Tramp was acting slow this helps...maybe
    consult-line-thing-at-point
    :initial (thing-at-point 'symbol))
   
-  (defun sn/consult-ripgrep ()
-    "Run `consult-ripgrep` from the project root directory if available,"
-    "or the current directory otherwise."
-    (interactive)
-    (let ((default-directory (if (projectile-project-p)
-                                 (projectile-project-root)
-                               default-directory)))
-      (consult-ripgrep)))
+  ;; (defun sn/consult-ripgrep ()
+  ;;   "Run `consult-ripgrep` from the project root directory if available,"
+  ;;   "or the current directory otherwise."
+  ;;   (interactive)
+  ;;   (let ((default-directory (if (projectile-project-p)
+  ;;                                (projectile-project-root)
+  ;;                              default-directory)))
+  ;;     (consult-ripgrep)))
   (defvar consult--source-org
     (list :name     "Org"
           :category 'buffer
@@ -735,8 +737,8 @@ Tramp was acting slow this helps...maybe
             (setq-local vterm-buffer-name-string nil))
           :items
           (lambda () (consult--buffer-query :sort 'visibility
-                                            :as #'buffer-name
-                                            :include '("Term\\ ")))))
+                                       :as #'buffer-name
+                                       :include '("Term\\ ")))))
   (defvar consult--source-star
     (list :name     "*Star-Buffers*"
           :category 'buffer
@@ -1262,7 +1264,6 @@ Now use consult-ripgrep mostly. wgrep lets you edit  directly (good with embark)
 
 ** projectile
              
-
 #+begin_src emacs-lisp
 (use-package projectile
   :bind(:map projectile-mode-map ("C-c p" . projectile-command-map))
@@ -1446,7 +1447,6 @@ Call a second time to restore the original window configuration."
                       :background "#689d6a" :foreground "#0d1011" :box nil)
   (set-face-attribute 'tab-line-highlight nil ;; mouseover
                       :background "#928374" :foreground "#0d1011")
-
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 #+end_src
     
@@ -1455,14 +1455,6 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (setq confirm-kill-processes nil)
-#+end_src
-
-* Typing Practice
-  
-  Typing practice inside Emacs.  
-  
-#+begin_src emacs-lisp
-(use-package speed-type :defer 3)
 #+end_src
 
 * Org Mode
@@ -1521,7 +1513,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 ** Sizes
 
 #+begin_src emacs-lisp
-(setq header-line-format " ")
+
 (custom-set-faces
    '(org-document-title ((t (:height 3.2))))
    '(header-line ((t (:height 3 :weight bold))))
@@ -1635,10 +1627,14 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package org-pomodoro
-  :after org-agenda
+  :ensure t
   :commands (org-pomodoro snehrbass/org-pomodoro-time snehrbass/org-pomodoro-task)
   :bind ((:map org-agenda-mode-map
                ("P" . org-pomodoro)))
+  :hook ((org-pomodoro-started . gopar/load-window-config-and-close-work-agenda)
+         (org-pomodoro-finished . gopar/save-window-config-and-show-work-agenda))
+  :custom ((org-pomodoro-clock-break t)
+           (org-pomodoro-manual-break t))
   :config
   (defun snehrbass/org-pomodoro-time ()
     "Return the remaining pomodoro time in sec"
@@ -1661,14 +1657,18 @@ Basically just followed the directions from this cool blog.   https://colekillia
           (:none
            (format "No Active Pomodoro" )))
       "No Active Pomodoro"))
-
-  (setq org-pomodoro-keep-killed-pomodoro-time t
-        alert-user-configuration (quote ((((:category . "org-pomodoro")) libnotify nil)))
-        org-pomodoro-finished-sound "~/Music/bell.wav"
-        org-pomodoro-long-break-sound "~/Music/bell.wav"
-        org-pomodoro-short-break-sound "~/Music/bell.wav"
-        org-pomodoro-start-sound "~/Music/bell.wav"
-        org-pomodoro-killed-sound "~/Music/bell.wav"))
+  
+   (defun gopar/save-window-config-and-show-work-agenda ()
+    (interactive)
+    (window-configuration-to-register ?`)
+    (delete-other-windows)
+    (org-save-all-org-buffers)
+    (org-agenda nil "w"))
+   
+  (defun gopar/load-window-config-and-close-work-agenda ()
+    (interactive)
+    (org-save-all-org-buffers)
+    (jump-to-register ?`)))
 #+end_src
 
 ** Clock In/Out
@@ -1704,6 +1704,53 @@ Basically just followed the directions from this cool blog.   https://colekillia
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
 #+end_src
+
+** Type Breaks
+
+#+begin_src emacs
+(use-package type-break
+  :straight (:type built-in)
+  :hook ((org-pomodoro-killed . type-break-mode)
+         (org-pomodoro-break-finished . type-break-mode)
+         (org-pomodoro-started . (lambda () (type-break-mode -1)))
+         (after-init . type-break-mode))
+  :init
+  (defun type-break-demo-agenda ()
+    "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
+    (let ((buffer-name "*Typing Break Org Agenda*")
+          lines)
+      (condition-case ()
+          (progn
+            (org-agenda-list)
+            (setq buffer-name (buffer-name))
+            ;; Set the buffer to read-only
+            (with-current-buffer buffer-name
+              (read-only-mode 1))
+            ;; Message to be displayed at the bottom
+            (let ((msg (if type-break-terse-messages
+                           ""
+                         "Press any key to resume from typing break")))
+              ;; Loop until key is pressed
+              (while (not (input-pending-p))
+                (sit-for 60))
+              ;; Clean up after key is pressed
+              (read-event)
+              (type-break-catch-up-event)
+              (kill-buffer buffer-name)))
+        (quit
+         (and (get-buffer buffer-name)
+              (kill-buffer buffer-name))))))
+
+  :custom
+  ;; Setting interval of that of a pomodoro session
+  (type-break-interval (* 25 60)) ;; 25 mins
+  (type-break-good-rest-interval (* 9 60)) ;; 9 mins
+  (type-break-good-break-interval (* 5 60)) ;; 5 mins
+  (type-break-query-mode t)
+  (type-break-keystroke-threshold '(nil . 2625))
+  (type-break-demo-boring-stats t)
+  (type-break-demo-functions '(type-break-demo-agenda)))
+#+end_src   
 
 ** Latex Fragments
 
@@ -2331,6 +2378,15 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (setq lisp-indent-offset 2))
 #+end_src
 
+** Hex colors
+
+   Show hex colors while coding or editing themes.
+   
+#+begin_src emacs-lisp
+(use-package rainbow-mode
+  :hook (prog-mode . rainbow-mode))
+#+end_src
+
 * Fancy Bloat
 ** Voice to Text
 
@@ -2373,7 +2429,15 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 (use-package ibrowse
   :bind ("<f8>" . ibrowse-tab-select))  
 #+end_src
-   
+
+** Typing Practice
+  
+  Typing practice inside Emacs.  
+  
+#+begin_src emacs-lisp
+(use-package speed-type :commands speed-type-top-x)
+#+end_src
+
 * Runtime Performance
 ** Minibuffer turn off GC for large lists and commands 
 

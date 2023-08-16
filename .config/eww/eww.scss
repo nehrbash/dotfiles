@@ -43,7 +43,8 @@
 
 
 .systray {
-    background: $crust;
+   @include rounding;
+   background: $surface0;
 }
 
 
