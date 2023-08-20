@@ -16,29 +16,27 @@
   - Source Code Pro
 
 * Table Of Contents :TOC:
-- [[#arch-auto-install][Arch Auto Install]]
-  - [[#tools][Tools]]
-  - [[#terminal][Terminal]]
-  - [[#my-services][My Services]]
+- [[#arch-install-script][Arch Install script]]
+  - [[#bootstrap-paru][Bootstrap Paru]]
+  - [[#install-packages][Install Packages]]
 - [[#keyboard][Keyboard]]
-- [[#emacs][Emacs]]
-  - [[#setting-xdg-defaults-to-emacs][Setting XDG Defaults to Emacs]]
-  - [[#set-up-org-agenda-and-roam][Set Up Org Agenda And Roam]]
-- [[#hyprland][Hyprland]]
-  - [[#hyprbar-plugin][Hyprbar Plugin]]
-- [[#eww][Eww]]
-  - [[#packages][Packages]]
+- [[#wm-hyprland][WM Hyprland]]
+  - [[#services][Services]]
+  - [[#eww][Eww]]
+  - [[#fonts][Fonts]]
 - [[#personal-software][Personal Software]]
-- [[#firefox][Firefox]]
-  - [[#extentions][Extentions]]
+  - [[#terminal][Terminal]]
+  - [[#firefox][Firefox]]
   - [[#spicetify][Spicetify]]
+  - [[#slack][Slack]]
+  - [[#emacs][Emacs]]
 - [[#autologin][Autologin]]
 - [[#references][References]]
   - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
 
-* Arch Auto Install
+* Arch Install script
 
-  1. set up os, install correct graphics driver, internet.
+  1. set up os, install correct graphics driver, internet. pipewire
   2. clone the repo to ~~/.dotfiles~ and run ~stow .~ to symlink files into place.
   3. run install script.
 
@@ -47,12 +45,10 @@ sudo pacman -S stow git --noconfirm
 git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
 cd .dotfiles
 stow .
-sudo ./install.sh
+./install.sh
 #+end_src
 
-** Tools
-
-*** Bootstrap Paru
+** Bootstrap Paru
 
    Paru is an Arch Linux package manager written in Rust. It is a community-driven project aiming to be a feature-rich and user-friendly alternative to the default package manager, Pacman. Paru allows users to install, upgrade, and remove packages from the Arch User Repository (AUR) as well as from the official Arch Linux repositories. It provides additional functionality like dependency resolution, parallel downloads, and automatic conflict resolution.
 
@@ -67,13 +63,80 @@ cd -
 rm -r paru
 #+end_src
 
-*** Installed packages
+** Install Packages
 
-   Installed Required packages
+   Installed Required packages + optional ones.
 
 #+begin_src sh :tangle install.sh
 paru --needed -S - < pkglist
 #+end_src
+
+* Keyboard
+
+[[images/keyboard.jpg]]
+
+  - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
+  - [[https://github.com/manna-harbour/miryoku][Layout]]
+
+* WM Hyprland
+
+  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
+
+#+begin_src txt :tangle pkglist.txt
+hyprland-nvidia-git
+xdg-desktop-portal-hyprland-git
+swaync-client
+#+end_src
+
+** Services
+
+#+begin_src sh :tangle install.sh
+systemctl --user enable hyprland.service
+systemctl --user enable hyprpaper.service
+systemctl --user enable hyprshell.service
+systemctl --user enable eww.service
+systemctl --user enable swaync.service
+#+end_src
+
+** Eww
+
+  Lisp like graphical widget system
+
+#+begin_src shell :tangle install.sh
+go install github.com/nehrbash/hyprshell@latest
+#+end_src
+
+*** Packages
+#+begin_src :tangle pkglist.txt
+eww-wayland
+swayidle
+nwg-look
+jaq
+jq
+#+end_src
+
+** Fonts
+
+#+begin_src :tangle pkglist.txt
+ttf-material-icons-git
+ttf-google-sans
+ttf-font-awesome
+ttf-icomoon-feather
+#+end_src
+
+* Personal Software
+
+   Packages On my system and there configuration.
+
+#+begin_src txt :tangle pkglist.txt
+vlc
+steam
+downgrade
+android-messages-desktop-bin
+firefox-beta-bin
+slack-desktop
+#+end_src
+
 
 ** Terminal
 
@@ -94,24 +157,52 @@ zsh-syntax-highlighting
 exa
 #+end_src
 
-** My Services
+** Firefox
 
-#+begin_src sh :tangle install.sh
-systemctl --user enable hyprland.service
-systemctl --user enable hyprpaper.service
-systemctl --user enable hyprshell.service
-systemctl --user enable eww.service
-systemctl --user enable swaync.service
+Get the active profile from profiles.ini and symlink chrome folder into place. Required extentions are installed via my firefox account after login.
+1. go to ~about:config~ and set ~toolkit.legacyUserProfileCustomizations.stylesheets~ to true.
+2. restart firefox fully.
+
+3. import sidebery data and customize bar to remove refresh buttons.
+4. set font to Product Sans
+
+#+begin_src shell :tangle install.sh
+PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+# Create the symlink
+ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
 #+end_src
 
-* Keyboard
+*** Extentions
+   - Sidebery
+   - Infintiy New Tabs
+   - Gruvbox Dark Theme
+   - Ad blocker
+   - password manager
 
-[[images/keyboard.jpg]]
+** Spicetify
 
-  - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
-  - [[https://github.com/manna-harbour/miryoku][Layout]]
+  I use this (mocha) just follow the well made instructions.
+  https://github.com/catppuccin/spicetify
 
-* Emacs
+#+begin_src txt :tangle pkglist.txt
+spicetify-cli
+spicetify-themes-git
+spotify-launcher
+#+end_src
+
+#+begin_src sh :tangle install.sh
+spicetify config current_theme Onepunch color_scheme light
+spicetify apply
+#+end_src
+
+** Slack
+Set the theme to dark and paste values.
+
+#+begin_src :tangle no
+#3C3836,#1A0404,#3C3836,#D5C4A1,#665C54,#EBDBB2,#FB4934,#D5C4A1,#D5C4A1,#282828
+#+end_src
+
+** Emacs
 
 My Emacs config can be found in [[file:Emacs.org][Here]]. Right now I am using *emacs-native-comp-git-enhanced* should probably work with emacs >= 29.1.
 - Note: longest package to
@@ -124,7 +215,7 @@ aspell-en
 ripgrep
 #+end_src
 
-** Setting XDG Defaults to Emacs
+*** Setting XDG Defaults to Emacs
 
 https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mode-in-emacs
 
@@ -133,7 +224,7 @@ xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory
 #+end_src
 
-** Set Up Org Agenda And Roam
+*** Set Up Org Agenda And Roam
 
 #+begin_src sh :tangle install.sh
 mkdir -p ~/doc/Roam/Journal
@@ -158,88 +249,6 @@ fi
 if [ ! -f ~/doc/gcal.org ]; then
     touch ~/doc/gcal.org
 fi
-#+end_src
-
-* Hyprland
-
-  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
-
-#+begin_src txt :tangle pkglist.txt
-hyprland-nvidia-git
-xdg-desktop-portal-hyprland-git
-swaync-client
-#+end_src
-
-** Hyprbar Plugin
-
-#+begin_src shell :tangle install.sh
-
-#+end_src
-
-
-An alternative to *package.el* that is closer to go.mod is needed. This alternative should track packages to specific git commit versions and be compatible with use-package. Since straight may not fully load it, it should focus only on pre-loading.
-* Eww
-
-  Lisp like graphical widget system
-
-#+begin_src shell :tangle install.sh
-go install github.com/nehrbash/hyprshell@latest
-#+end_src
-
-** Packages
-#+begin_src :tangle pkglist.txt
-eww-wayland
-swayidle
-nwg-look
-jaq
-jq
-#+end_src
-
-* Personal Software
-
-   Packages On my system that aren't related to my setup.
-
-#+begin_src txt :tangle pkglist.txt
-vlc
-steam
-downgrade
-android-messages-desktop-bin
-#+end_src
-
-* Firefox
-
-Get the active profile from profiles.ini and symlink chrome folder into place. Required extentions are installed via my firefox account after login.
-1. go to ~about:config~ and set ~toolkit.legacyUserProfileCustomizations.stylesheets~ to true.
-2. restart firefox fully.
-3. import sidebery data and customize bar to remove refresh buttons.
-
-#+begin_src shell :tangle install.sh
-PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
-# Create the symlink
-ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
-#+end_src
-
-** Extentions
-   - Sidebery
-   - Infintiy New Tabs
-   - Gruvbox Dark Theme
-   - Ad blocker
-   - password manager
-
-** Spicetify
-
-  I use this (mocha) just follow the well made instructions.
-  https://github.com/catppuccin/spicetify
-
-#+begin_src txt :tangle pkglist.txt
-spicetify-cli
-spicetify-themes-git
-spotify-launcher
-#+end_src
-
-#+begin_src sh :tangle install.sh
-spicetify config current_theme Onepunch color_scheme light
-spicetify apply
 #+end_src
 
 * Autologin

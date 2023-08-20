@@ -31,15 +31,15 @@
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)
 
-;; Note: does not seem to make a difference where I put this so I prefer it here
-;; so that Emacs.org can only be about configuring package.
-
-;; Disable package.el at startup since we're using straight.el
-(setq package-enable-at-startup nil)
-
 ;; Silence compiler warnings to avoid disruption
 (setq-default comp-async-report-warnings-errors nil)
 (setq-default warning-minimum-level :emergency)
+
+;; Change where cache is stored
+(setq-default package-quickstart-file "~/.emacs.d/var/package-quickstart.el")
+(setq-default package-user-dir "~/.emacs.d/var/elpa/")
+(when (boundp 'native-comp-eln-load-path)
+  (startup-redirect-eln-cache (expand-file-name "~/.emacs.d/var/eln-cache" user-emacs-directory)))
 
 (provide 'early-init)
 ;;; early-init.el ends here
