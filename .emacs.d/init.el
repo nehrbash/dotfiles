@@ -227,6 +227,11 @@ point reaches the beginning or end of the buffer, stop there."
   :commands (treemacs)
   :bind ("C-c C-t" . treemacs)
   :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
+(use-package treemacs-magit
+  :after (treemacs magit))
+(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+  :after (treemacs)
+  :config (treemacs-set-scope-type 'Tabs))
 
 (defun sanityinc/maybe-suspend-frame ()
   (interactive)
@@ -573,14 +578,14 @@ point reaches the beginning or end of the buffer, stop there."
   (setq flycheck-buffer-switch-check-intermediate-buffers t)
   (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list))
 ;; TODO: use this when in terminal 
-  ;; (use-package flycheck-popup-tip
-  ;; :hook (flycheck-mode .flycheck-popup-tip-mode)
-  ;; ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
-  ;; )
-(use-package flycheck-posframe
-  :hook (flycheck-mode . flycheck-posframe-mode)
-  :config
-  (flycheck-posframe-configure-pretty-defaults))
+  (use-package flycheck-popup-tip
+  :hook (flycheck-mode . flycheck-popup-tip-mode)
+  ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
+  )
+;; (use-package flycheck-posframe
+;;   :hook (flycheck-mode . flycheck-posframe-mode)
+;;   :config
+;;   (flycheck-posframe-configure-pretty-defaults))
 
 ;; Show number of matches while searching
 (use-package anzu
@@ -1492,7 +1497,7 @@ Call a second time to restore the original window configuration."
   :config (global-treesit-auto-mode))
 
 (use-package lsp-mode
-  :commands (lsp lsp-deferered)
+  :commands (lsp lsp-deferred)
   :custom
   (read-process-output-max (* 3 1024 1024)) ;; 3mb
   (lsp-completion-provider :none)           ;; corfu instead
@@ -1503,7 +1508,7 @@ Call a second time to restore the original window configuration."
     (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
           '(orderless))) ;; Configure orderless
  :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
-        (go-ts-mode . lsp))
+        (go-ts-mode . lsp-deferred))
   :config
   (lsp-register-client
    (make-lsp-client :new-connection (lsp-tramp-connection
