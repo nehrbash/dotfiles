@@ -3,3 +3,5 @@ misc
 #LICENSE
 ^/.*\.org
 images*
+install.sh
+pkglist.txt

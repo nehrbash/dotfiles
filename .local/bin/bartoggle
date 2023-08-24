@@ -14,8 +14,12 @@ COUNTER=${1:-$(cat $COUNTER_FILE)}
 
 # Based on the counter value, decide which command to run
 if [ $COUNTER -eq 1 ]; then
-    swaync-client -df
-    hyprctl reload
+    if command -v swaync-client &> /dev/null; then
+        swaync-client -df
+    fi
+    if command -v hyprctl &> /dev/null; then
+        hyprctl reload
+    fi
     # hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
     eww open-many bar bar2 leftbar leftbarapps leftbar2 leftbar2apps corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 2 ]; then
@@ -32,7 +36,9 @@ elif [ $COUNTER -eq 2 ]; then
     # hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
     eww close corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
 elif [ $COUNTER -eq 3 ]; then
+    if command -v swaync-client &> /dev/null; then
     swaync-client -dn
+    fi
     eww close-all
 fi
 

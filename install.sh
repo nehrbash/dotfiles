@@ -1,13 +1,15 @@
 #! /bin/bash
 set -e
 sudo pacman -S --needed base-devel
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-cd -
-rm -r paru
+if ! command -v paru &> /dev/null; then
+    git clone https://aur.archlinux.org/paru.git
+    cd paru
+    makepkg -si
+    cd -
+    rm -r paru
+fi
 
-paru --needed -S - < pkglist
+paru --needed -S - < pkglist.txt
 
 systemctl --user enable hyprland.service
 systemctl --user enable hyprpaper.service

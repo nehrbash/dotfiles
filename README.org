@@ -30,6 +30,13 @@
   - [[#spicetify][Spicetify]]
   - [[#slack][Slack]]
   - [[#emacs][Emacs]]
+- [[#hyprland][Hyprland]]
+  - [[#hyprbar-plugin][Hyprbar Plugin]]
+- [[#eww-1][Eww]]
+  - [[#packages][Packages]]
+- [[#personal-software-1][Personal Software]]
+- [[#firefox-1][Firefox]]
+  - [[#spicetify-1][Spicetify]]
 - [[#autologin][Autologin]]
 - [[#references][References]]
   - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
@@ -56,11 +63,13 @@ stow .
 #! /bin/bash
 set -e
 sudo pacman -S --needed base-devel
-git clone https://aur.archlinux.org/paru.git
-cd paru
-makepkg -si
-cd -
-rm -r paru
+if ! command -v paru &> /dev/null; then
+    git clone https://aur.archlinux.org/paru.git
+    cd paru
+    makepkg -si
+    cd -
+    rm -r paru
+fi
 #+end_src
 
 ** Install Packages
@@ -68,7 +77,7 @@ rm -r paru
    Installed Required packages + optional ones.
 
 #+begin_src sh :tangle install.sh
-paru --needed -S - < pkglist
+paru --needed -S - < pkglist.txt
 #+end_src
 
 * Keyboard
@@ -249,6 +258,90 @@ fi
 if [ ! -f ~/doc/gcal.org ]; then
     touch ~/doc/gcal.org
 fi
+#+end_src
+
+* Hyprland
+
+  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
+
+#+begin_src txt :tangle pkglist.txt
+hyprland-nvidia-git
+xdg-desktop-portal-hyprland-git
+swaync-client
+#+end_src
+
+** Hyprbar Plugin
+
+#+begin_src shell :tangle install.sh
+
+#+end_src
+
+
+An alternative to *package.el* that is closer to go.mod is needed. This alternative should track packages to specific git commit versions and be compatible with use-package. Since straight may not fully load it, it should focus only on pre-loading.
+* Eww
+
+  Lisp like graphical widget system
+
+#+begin_src shell :tangle install.sh
+go install github.com/nehrbash/hyprshell@latest
+#+end_src
+
+** Packages
+#+begin_src :tangle pkglist.txt
+eww-wayland
+swayidle
+nwg-look
+jaq
+jq
+#+end_src
+
+* Personal Software
+
+   Packages On my system that aren't related to my setup.
+
+#+begin_src txt :tangle pkglist.txt
+vlc
+steam
+downgrade
+android-messages-desktop-bin
+#+end_src
+
+* Firefox
+
+Get the active profile from profiles.ini and symlink chrome folder into place. Required extentions are installed via my firefox account after login.
+1. go to ~about:config~ and set ~toolkit.legacyUserProfileCustomizations.stylesheets~ to true.
+2. restart firefox fully.
+3. import sidebery data and customize bar to remove refresh buttons.
+
+#+begin_src shell :tangle install.sh
+PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+# Create the symlink
+ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
+#+end_src
+
+
+
+*** Extentions
+   - Sidebery
+   - Infintiy New Tabs
+   - Minimalist Gruvbox (themes don't save )
+   - Ad blocker
+   - password manager
+
+** Spicetify
+
+  I use this (mocha) just follow the well made instructions.
+  https://github.com/catppuccin/spicetify
+
+#+begin_src txt :tangle pkglist.txt
+spicetify-cli
+spicetify-themes-git
+spotify-launcher
+#+end_src
+
+#+begin_src sh :tangle install.sh
+spicetify config current_theme Onepunch color_scheme light
+spicetify apply
 #+end_src
 
 * Autologin
