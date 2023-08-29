@@ -3,12 +3,16 @@ Description=Start Hyprland with systemd
 BindsTo=hyprland.target
 PartOf=hyprland.target
 Before=hyprland.target
-After=systemd-user-sessions.target
+After=multi-user.target network.target systemd-logind.service
+
+
+BindsTo=graphical-session.target
+Before=graphical-session.target
 
 [Service]
 Type=simple
 Environment=LIBSEAT_BACKEND=logind
-ExecStart=/bin/bash -c '/usr/bin/Hyprland'
+ExecStart=/bin/bash -l -c '/usr/bin/Hyprland'
 Restart=on-failure
 RestartSec=10s
 

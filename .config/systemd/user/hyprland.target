@@ -4,3 +4,7 @@ Documentation=man:systemd.special(7)
 Requires=hyprland.service
 After=hyprland.service
 AllowIsolate=yes
+
+
+BindsTo=graphical-session.target
+Before=graphical-session.target

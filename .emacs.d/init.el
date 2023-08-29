@@ -1,8 +1,9 @@
+(add-to-list 'load-path "~/.emacs.d/lisp/")
 (eval-when-compile
   (require 'package)
   (require 'use-package))
 (setq package-native-compile t
-      package-quickstart t
+      package-quickstart nil
       package-install-upgrade-built-in t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (setq use-package-always-ensure t
@@ -124,6 +125,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package fullframe)
 
 (setq-default
+ fill-column 120
  blink-cursor-interval 0.4
  buffers-menu-max-size 30
  case-fold-search t
@@ -145,9 +147,12 @@ point reaches the beginning or end of the buffer, stop there."
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
 
+(global-set-key (kbd "C-c C-p") 'find-file-at-point)
+
 (use-package recentf
   :ensure nil
-  :hook ((after-init . recentf-mode))   
+  :hook ((after-init . recentf-mode)
+          (package-upgrade-all . recentf-cleanup))   
   :custom
   (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
@@ -156,16 +161,11 @@ point reaches the beginning or end of the buffer, stop there."
   (recentf-exclude '("/tmp/"))
   :config
   (add-to-list 'recentf-exclude
-             (recentf-expand-file-name no-littering-var-directory))
-  (add-to-list 'recentf-exclude
-             (recentf-expand-file-name no-littering-etc-directory)))
+             (recentf-expand-file-name no-littering-var-directory)))
 
 (use-package autorevert
   :hook (after-init . global-auto-revert-mode)
   :delight auto-revert-mode)
-
-(when (fboundp 'electric-pair-mode)
-  (add-hook 'after-init-hook 'electric-pair-mode))
 
 (use-package tramp
   :ensure nil
@@ -183,409 +183,19 @@ point reaches the beginning or end of the buffer, stop there."
    ;; use remote path
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
-(use-package exec-path-from-shell
-  :hook (after-init . exec-path-from-shell-initialize))
+(defun load-all-environment-variables ()
+  "Load all environment variables from the user's shell."
+  (let ((shell-env (shell-command-to-string "env")))
+    (dolist (var (split-string shell-env "\n"))
+      (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
+        (let ((name (match-string 1 var))
+              (value (match-string 2 var)))
+          (setenv name value))))))
+(add-hook 'after-init-hook 'load-all-environment-variables)
 
-(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
-(add-hook 'after-init-hook
-  (lambda ()
-    (pixel-scroll-precision-mode t) 
-    (set-face-attribute 'header-line nil :height 100)))
-
-(use-package doom-themes
-  :hook (after-init . (lambda ()
-                        (load-theme 'doom-gruvbox t)
-                        (doom-themes-treemacs-config)
-                        (doom-themes-org-config)))
-  :custom ((doom-themes-enable-bold t)
-           (doom-themes-enable-italic t)
-           (custom-safe-themes t)))
-
-(use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
-(use-package global-prettify-symbols-mode
-  :ensure nil
-  :hook (after-init . global-prettify-symbols-mode))
-
-(use-package doom-modeline
-  :hook ((after-init . doom-modeline-mode))
-  :init
-  (line-number-mode -1)
-  (column-number-mode -1)
-  (setq mode-line-position nil)
-  :custom ((doom-modeline-project-detection 'project)
-           (doom-modeline-hud t)
-           (doom-modeline-env-version t)
-           (doom-modeline-buffer-encoding nil)
-           (doom-modeline-workspace-name t)
-           (doom-modeline-buffer-file-name-style 'auto)
-           (doom-modeline-height 32)
-           (doom-modeline-buffer-state-icon t)
-           (doom-modeline-icon t)))
-
-(use-package treemacs
-  :commands (treemacs)
-  :bind ("C-c C-t" . treemacs)
-  :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
-(use-package treemacs-magit
-  :after (treemacs magit))
-(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
-  :after (treemacs)
-  :config (treemacs-set-scope-type 'Tabs))
-
-(defun sanityinc/maybe-suspend-frame ()
-  (interactive)
-  (if (display-graphic-p)
-      (message "suspend-frame disabled for graphical displays.")
-    (suspend-frame)))
-(global-unset-key (kbd "C-z"))
-(global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
-(global-set-key (kbd "C-z") 'undo)
-
-(use-package default-text-scale
-  :hook (after-init . default-text-scale-mode))
-
-(use-package dired
-  :ensure nil
-  :commands (dired dired-jump dired-omit-mode)
-  :hook (dired-mode . my-dired-mode-hook)
-  :delight dired-omit-mode
-  :init
-  (defun my-dired-mode-hook ()
-    (dired-omit-mode 1)
-    (auto-revert-mode 1)
-    (setq mode-line-format nil)
-    (hl-line-mode 1))
-  :config
-  (setq dired-omit-files "^\\.\\.?$")
-  (setq-default dired-dwim-target t)
-  (setq dired-listing-switches "-agho --group-directories-first"
-        dired-omit-verbose nil)
-  (setq dired-recursive-deletes 'top))
-(use-package dired-single
-  :after dired
-  :bind (:map dired-mode-map
-              ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
-              ("f" . dired-single-buffer)))
-(use-package dired-ranger
-  :after dired
-  :bind (:map dired-mode-map
-              ("w" . dired-ranger-copy)
-              ("m" . dired-ranger-move)
-              ("H" . dired-omit-mode)
-              ("y" . dired-ranger-paste)))
-(use-package all-the-icons-dired
-  :hook (dired-mode . all-the-icons-dired-mode))
-(use-package dired-collapse
-  :hook  (dired-mode . dired-collapse-mode))
-(use-package diredfl
-  :hook (dired-mode . diredfl-mode))
-(use-package dired-hide-dotfiles
-  :hook (dired-mode . dired-hide-dotfiles-mode)
-  :bind (:map dired-mode-map
-              ("." . dired-hide-dotfiles-mode)))
-
-(use-package vertico
-  :hook (after-init . vertico-mode))
-
-(use-package orderless
-  :custom
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
-
-(use-package embark
-  :bind (("M-a" . embark-act)
-         ("C-:" . embark-dwin)
-         :map vertico-map
-         ("M-o" . embark-export)
-         ("C-h B" . embark-bindings))
-  :config
-  (setq embark-action-indicator (lambda (map _target)
-                                  (which-key--show-keymap "Embark" map nil nil 'no-paging)
-                                  #'which-key--hide-popup-ignore-command)
-        embark-become-indicator embark-action-indicator))
-
-(use-package embark-consult
-  :hook (embark-collect-mode . consult-preview-at-point-mode))
 (use-package savehist
+  :ensure nil
   :hook (after-init . savehist-mode))
-(use-package marginalia
-  :after vertico
-  :hook (vertico-mode . marginalia-mode)
-  :custom
-  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
-(use-package all-the-icons-completion
-  :hook ((marginalia-mode . all-the-icons-completion-marginalia-setup)))
-
-(use-package consult
-  :bind (("C-r" . consult-ripgrep-symbol-at-point)
-         ;; C-c bindings (mode-specific-map)
-         ("C-c h" . consult-history)
-         ("C-c C-m" . consult-mode-command)
-         ("C-c b" . consult-bookmark)
-         ("C-c k" . consult-kmacro)
-         ;; C-x bindings (ctl-x-map)
-         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-         ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-         ("C-x f" . consult-recent-file)
-         ("C-x M-b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-         ;; Custom M-# bindings for fast register access
-         ("M-#" . consult-register-load)
-         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-         ("C-M-#" . consult-register)
-         ;; Other custom bindings
-         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-         ("<help> a" . consult-apropos)            ;; orig. apropos-command
-         ;; M-g bindings (goto-map)
-         ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flycheck)
-         ("M-g g" . consult-goto-line)             ;; orig. goto-line
-         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-         ("M-g m" . consult-mark)
-         ("M-g k" . consult-global-mark)
-         ("M-g i" . consult-imenu)
-         ("M-g I" . consult-imenu-multi)
-         ;; M-s bindings (search-map)
-         ("M-s f" . consult-find)
-         ("M-s L" . consult-locate)
-         ("M-s g" . consult-grep)
-         ("M-s G" . consult-git-grep)
-         ("M-s r" . consult-ripgrep)
-         ("M-s s" . consult-line)
-         ("M-s m" . consult-multi-occur)
-         ("M-s k" . consult-keep-lines)
-         ("M-s u" . consult-focus-lines)) 
-  :init
-  ;; This adds thin lines, sorting and hides the mode line of the window.
-  (advice-add #'register-preview :override #'consult-register-window)
-  ;; Use Consult to select xref locations with preview
-  (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
-  (setq register-preview-delay 0.5
-        register-preview-function #'consult-register-format)
-  :custom
-  (consult-narrow-key "<")
-  (consult-preview-key '(:debounce 0.3 any)) ;; Preview on any key press, but delay 0.3s so scrolling does not preview
-  :config
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
-  ;; so I can search dotfiles
-  (defun consult-ripgrep-symbol-at-point ()
-    "Run `consult-ripgrep' with the symbol at point as the initial input."
-    (interactive)
-    (let ((initial (when-let ((symbol (symbol-at-point)))
-                     (concat "" (regexp-quote (symbol-name symbol)) ""))))
-      (minibuffer-with-setup-hook
-          (lambda ()
-            (when initial
-              (insert initial)))
-        (consult-ripgrep))))
-  (consult-customize
-   consult-line
-   :add-history (seq-some #'thing-at-point '(region symbol)))
-  (defalias 'consult-line-thing-at-point 'consult-line)
-  (consult-customize
-   consult-line-thing-at-point
-   :initial (thing-at-point 'symbol))
-  (defvar consult--source-org
-    (list :name     "Org"
-          :category 'buffer
-          :narrow   ?o
-          :face     'consult-buffer
-          :history  'buffer-name-history
-          :state    #'consult--buffer-state
-          :new
-          (lambda (name)
-            (with-current-buffer (get-buffer-create name)
-              (insert "#+title: " name "\n\n")
-              (org-mode)
-              (consult--buffer-action (current-buffer))))
-          :items
-          (lambda ()
-            (mapcar #'buffer-name
-                    (seq-filter
-                     (lambda (x)
-                       (eq (buffer-local-value 'major-mode x) 'org-mode))
-                     (buffer-list))))))
-  (defvar consult--source-vterm
-    (list :name     "Term"
-          :category 'buffer
-          :narrow   ?v
-          :face     'consult-buffer
-          :history  'buffer-name-history
-          :state    #'consult--buffer-state
-          :new
-          (lambda (name)
-            (vterm (concat "Term " name))
-            (setq-local vterm-buffer-name-string nil))
-          :items
-          (lambda () (consult--buffer-query :sort 'visibility
-                                       :as #'buffer-name
-                                       :include '("Term\\ ")))))
-  (defvar consult--source-star
-    (list :name     "*Star-Buffers*"
-          :category 'buffer
-          :narrow   ?s
-          :face     'consult-buffer
-          :history  'buffer-name-history
-          :state    #'consult--buffer-state
-          :items
-          (lambda () (consult--buffer-query :sort 'visibility
-                                       :as #'buffer-name
-                                       :include '("\\*." "^magit")))))
-  ;; remove org and vterm buffers from buffer list
-  (setq consult--source-buffer
-        (plist-put
-         consult--source-buffer :items
-         (lambda () (consult--buffer-query :sort 'visibility
-                                      :as #'buffer-name
-                                      :exclude '("\\*."           ; star buffers
-                                                 "Term\\ "        ; Term buffers
-                                                 "^magit"         ; magit buffers
-                                                 "[\\.]org$"))))) ; org files
-  ;; reorder, mainly to move recent-file down and org
-  (setq consult-buffer-sources '(consult--source-hidden-buffer
-                                 consult--source-modified-buffer
-                                 consult--source-buffer
-                                 consult--source-org
-                                 consult--source-vterm
-                                 consult--source-bookmark
-                                 consult--source-recent-file
-                                 consult--source-file-register
-                                 consult--source-project-buffer-hidden
-                                 consult--source-project-recent-file-hidden
-                                 consult--source-star)))
-(use-package consult-flycheck
-  :commands consult-flycheck
-  :after (consult flycheck))
-
-(use-package consult-dir
-  :after (consult tramp)
-  :bind (("C-x C-d" . consult-dir)
-         :map vertico-map
-         ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file))
-  :config
-  (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
-  (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
-  (defun consult-dir--tramp-docker-hosts ()
-  "Get a list of hosts from docker."
-  (when (require 'docker-tramp nil t)
-    (let ((hosts)
-          (docker-tramp-use-names t))
-      (dolist (cand (docker-tramp--parse-running-containers))
-        (let ((user (unless (string-empty-p (car cand))
-                        (concat (car cand) "@")))
-              (host (car (cdr cand))))
-          (push (concat "/docker:" user host ":/") hosts)))
-      hosts)))
-(defvar consult-dir--source-tramp-docker
-  `(:name     "Docker"
-    :narrow   ?d
-    :category file
-    :face     consult-file
-    :history  file-name-history
-    :items    ,#'consult-dir--tramp-docker-hosts)
-  "Docker candiadate source for `consult-dir'.")
-(add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
-
-(use-package corfu
-  :hook (after-init . global-corfu-mode)
-  :hook (corfu-mode . corfu-popupinfo-mode)
-  :bind (:map corfu-map ("M-SPC" . corfu-insert-separator))
-  :custom
-  (tab-always-indent 'complete)
-  (corfu-auto t)
-  (corfu-quit-no-match 'separator)
-  (corfu-auto-delay 0.3) ;; fine at 0.0 but a little annoying
-  (corfu-popupinfo-delay 0.8)
-  (corfu-auto-prefix 2))
-
-(use-package corfu-terminal
-  :when (not (display-graphic-p))
-  :vc (corfu-terminal :url "https://codeberg.org/akib/emacs-corfu-terminal.git"))
-
-(use-package kind-icon
-  :commands kind-icon-margin-formatter
-  :init
-  (add-hook 'corfu-margin-formatters #'kind-icon-margin-formatter)
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
-  :config
-  (setq kind-icon-default-face 'corfu-default
-        kind-icon-blend-background t
-        kind-icon-blend-frac 0.2)
-  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
-
-(use-package dabbrev
-  :after corfu
-  :bind (("M-/" . dabbrev-completion)
-         ("C-M-/" . dabbrev-expand))
-  :custom
-  (read-extended-command-predicate
-   #'command-completion-default-include-p)
-  (add-to-list 'completion-at-point-functions #'hippie-expand)
-  (dabbrev-ignored-buffer-modes '(archive-mode image-mode pdf-view-mode)))
-
-(use-package cape
-  :after corfu
-  :commands (cape-dabbrev
-             cape-file
-             cape-history
-             cape-keyword
-             cape-tex
-             cape-sgml
-             cape-rfc1345
-             cape-abbrev
-             cape-dict
-             cape-symbol
-             cape-line)
-  :init
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (defalias 'corfu--ispell-in-comments-and-strings
-    (cape-super-capf (cape-capf-inside-comment #'cape-dict)
-                     (cape-capf-inside-string #'cape-dict))))
-
-(use-package ispell
-  :defer t
-  :config
-  (setq ispell-program-name "aspell"
-        ispell-extra-args '("--sug-mode=ultra" "--run-together")))
-(use-package flyspell
-  :hook ((org-mode markdown-mode TeX-mode git-commit-mode
-           yaml-mode conf-mode prog-mode) . flyspell-mode)
-  :bind (:map flyspell-mode-map
-              ("C-." . nil)) ;; Unbind the key
-  :config
-  (setq flyspell-issue-welcome-flag nil
-        ;; Significantly speeds up flyspell, which would otherwise print
-        ;; messages for every word when checking the entire buffer
-        flyspell-issue-message-flag nil))
-
-(use-package define-word
-  :commands define-word)
-(use-package flyspell-correct
-  :after flyspell
-    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
-
-(use-package flycheck
-  :commands flycheck-list-errors flycheck-buffer
-  :hook (after-init . global-flycheck-mode)
-  :config
-  (setq flycheck-emacs-lisp-load-path 'inherit)
-  ;; Rerunning checks on every newline is a mote excessive.
-  (delq 'new-line flycheck-check-syntax-automatically)
-  ;; And don't recheck on idle as often
-  (setq flycheck-buffer-switch-check-intermediate-buffers t)
-  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list))
-;; TODO: use this when in terminal 
-  (use-package flycheck-popup-tip
-  :hook (flycheck-mode . flycheck-popup-tip-mode)
-  ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
-  )
-;; (use-package flycheck-posframe
-;;   :hook (flycheck-mode . flycheck-posframe-mode)
-;;   :config
-;;   (flycheck-posframe-configure-pretty-defaults))
 
 ;; Show number of matches while searching
 (use-package anzu
@@ -596,30 +206,27 @@ point reaches the beginning or end of the buffer, stop there."
   (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
   (global-set-key [remap query-replace] 'anzu-query-replace)
   (defun sanityinc/isearch-exit-other-end ()
-  "Exit isearch, but at the other end of the search string.
+    "Exit isearch, but at the other end of the search string.
 This is useful when followed by an immediate kill."
-  (interactive)
-  (isearch-exit)
-  (goto-char isearch-other-end))
-(define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
-;; Search back/forth for the symbol at point
-;; See http://www.emacswiki.org/emacs/SearchAtPoint
-(defun isearch-yank-symbol ()
-  "*Put symbol at current point into search string."
-  (interactive)
-  (let ((sym (thing-at-point 'symbol)))
-    (if sym
+    (interactive)
+    (isearch-exit)
+    (goto-char isearch-other-end))
+  (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
+  ;; Search back/forth for the symbol at point
+  ;; See http://www.emacswiki.org/emacs/SearchAtPoint
+  (defun isearch-yank-symbol ()
+    "*Put symbol at current point into search string."
+    (interactive)
+    (let ((sym (thing-at-point 'symbol)))
+      (if sym
         (progn
           (setq isearch-regexp t
-                isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
-                isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
-                isearch-yank-flag t))
-      (ding)))
-  (isearch-search-and-update))
-(define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol))
-
-(use-package wgrep
-  :commands (wgrep wgrep-change-to-wgrep-mode))
+            isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
+            isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
+            isearch-yank-flag t))
+        (ding)))
+    (isearch-search-and-update))
+  (define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol))
 
 (use-package ibuffer-vc
   :bind ("C-x C-b" . ibuffer)
@@ -709,98 +316,12 @@ This is useful when followed by an immediate kill."
     "Enable display of trailing whitespace in this buffer."
     (setq-local show-trailing-whitespace t)))
 
-(use-package diff-hl
-  :hook ((dired-mode . diff-hl-dired-mode)
-         (prog-mode . diff-hl-mode)
-         (magit-post-refresh . diff-hl-magit-post-refresh))
-  :bind (:map diff-hl-mode-map
-         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk))
-  :config
-  (defun my/disable-diff-hl-for-remote-buffers ()
-    (when (and buffer-file-name (file-remote-p buffer-file-name))
-      (diff-hl-dired-mode -1)
-      (diff-hl-mode -1)))
-  (add-hook 'find-file-hook #'my/disable-diff-hl-for-remote-buffers))
-(use-package browse-at-remote
-  :commands (browse-at-remote browse-at-remote-kill))
-
-(use-package magit
-  :commands (magit-status magit-dispatch)
-  :config
-  (fullframe magit-status magit-mode-quit-window)
-  (setq-default magit-diff-refine-hunk t)
-  :bind (("C-x g" . magit-status)
-         ("C-x M-g" . magit-dispatch)
-         (:map magit-status-mode-map
-               ("C-M-<up>" . magit-section-up))))
-(use-package git-blamed
-  :after magit)
-(use-package forge
-  :after magit)
-(use-package magit-todos
-  :after magit
-  :hook(magit-mode . magit-todos-mode))
-
-(setq-default compilation-scroll-output t)
-(defvar sanityinc/last-compilation-buffer nil
-  "The last buffer in which compilation took place.")
-
-(with-eval-after-load 'compile
-  (defun sanityinc/save-compilation-buffer (&rest _)
-    "Save the compilation buffer to find it later."
-    (setq sanityinc/last-compilation-buffer next-error-last-buffer))
-  (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
-
-  (defun sanityinc/find-prev-compilation (orig &optional edit-command)
-    "Find the previous compilation buffer, if present, and recompile there."
-    (if (and (null edit-command)
-             (not (derived-mode-p 'compilation-mode))
-             sanityinc/last-compilation-buffer
-             (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
-        (with-current-buffer sanityinc/last-compilation-buffer
-          (funcall orig edit-command))
-      (funcall orig edit-command)))
-  (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
-
-(global-set-key [f6] 'recompile)
-
-(defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
-  "Put \"*Shell Command Output*\" buffers into view-mode."
-  (unless (or output-buffer replace)
-    (with-current-buffer "*Shell Command Output*"
-      (view-mode 1))))
-(advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
-
-(with-eval-after-load 'compile
-  (defun sanityinc/colourise-compilation-buffer ()
-    (when (eq major-mode 'compilation-mode)
-      (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
-
-(use-package yasnippet
-  :hook (emacs-startup . yas-global-mode)
-  :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
-  :config
-  (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
-  (setq yas-verbosity 1)
-  (setq yas-wrap-around-region t))
-(use-package yasnippet-snippets
-  :after yasnippet
-  :hook (package-upgrade-all . (lambda () (yas-reload-all))))
-
-(use-package paredit
-  :delight paredit-mode " Par"
-  :hook (paredit-mode-hook . maybe-map-paredit-newline)
-  :init
-  (defun maybe-map-paredit-newline ()
-    (unless (or (memq major-mode '(inferior-emacs-lisp-mode cider-repl-mode))
-                (minibufferp))
-      (local-set-key (kbd "RET") 'paredit-newline)))
-  :config
-;; Suppress certain paredit keybindings to avoid clashes
-(define-key paredit-mode-map (kbd "DEL") 'delete-backward-char)
-(dolist (binding '("C-<left>" "C-<right>" "C-M-<left>" "C-M-<right>" "M-s" "M-?"))
-  (define-key paredit-mode-map (read-kbd-macro binding) nil)))
+(use-package electric-pair-mode ; Easily insert matching delimiter
+  :ensure nil
+  :hook (after-init . electric-pair-mode))
+(use-package paren ; highight matching paren
+  :ensure nil
+  :hook (prog-mode . show-paren-mode))
 
 (use-package winner
   :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
@@ -874,86 +395,450 @@ Call a second time to restore the original window configuration."
                (if was-dedicated "no longer " "")
                (buffer-name)))))
 
-(use-package vterm
-  :hook ((vterm-mode . (lambda ()
-                         (toggle-mode-line)
-                         (setq left-margin-width 1
-                               right-margin-width 1
-                               cursor-type 'bar))))
-  :bind (( "M-t" . toggle-vterm-buffer)
-         :map vterm-mode-map
-         ("M-t" . toggle-vterm-buffer)
-         ("C-M-r" . (lambda ()
-                     (interactive)
-                     (setq-local vterm-buffer-name-string nil)
-                     (rename-buffer (concat "Term " (read-string "Term: ")))))
-         ("C-M-t" .(lambda ()
-                     (interactive)
-                     (vterm "Term")))
-         ("C-M-f" . tab-line-switch-to-next-tab)
-         ("C-M-b" . tab-line-switch-to-prev-tab)
-         ("C-M-s" . (lambda ()
-                      (interactive)
-                      (consult-buffer '(consult--source-vterm))))
-         ("M-w" . copy-region-as-kill)
-         ("C-y" . vterm-yank))
-  :custom
-  (vterm-buffer-name-string "Term %s")
-  (vterm-buffer-maximum-size 1000)
-  :config
-  (defun toggle-vterm-buffer ()
-    "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
-    (interactive)
-    (let ((vterm-buffer (seq-find (lambda (buffer)
-                                    (string-prefix-p "Term" (buffer-name buffer)))
-                                  (buffer-list))))
-      (if vterm-buffer
-          (if (and (eq (current-buffer) vterm-buffer)
-                   (get-buffer-window vterm-buffer))
-              (delete-window (get-buffer-window vterm-buffer))
-            (if (get-buffer-window vterm-buffer)
-                (select-window (get-buffer-window vterm-buffer))
-              (progn
-                (display-buffer vterm-buffer)
-                (select-window (get-buffer-window vterm-buffer)))))
-        (vterm))))
-  (add-to-list 'display-buffer-alist `(,vterm-buffer-name
-                                       (display-buffer-reuse-window display-buffer-at-bottom)
-                                       (dedicated . t)
-                                       (reusable-frames . visible)
-                                       (window-height . 0.3))))
+(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
+(add-hook 'after-init-hook
+  (lambda ()
+    (pixel-scroll-precision-mode t) 
+    (set-face-attribute 'header-line nil :height 100)))
 
-(use-package tab-line
-  :hook (vterm-mode . tab-line-mode)
-  :custom
-  (tab-line-new-button-show nil)
-  (tab-line-close-button-show nil)
-  (tab-line-separator "")
-  :config
-  (use-package powerline)
-  (defvar my/tab-height 28)
-  (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
-  (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
-  (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
-    (powerline-render (list my/tab-left
-                            (format "%s" (buffer-name buffer))
-                            my/tab-right)))
-  (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
-  ;; Set face attributes for the tab-line
-  (set-face-attribute 'tab-line nil ;; background behind tabs
-                      :background "#1d2021")
-  (set-face-attribute 'tab-line-tab nil ;; active tab in another window
-                      :inherit 'tab-line
-                      :background "#8ec07c" :foreground "#0d1011" :box nil)
-  (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
-                      :background "#8ec07c" :foreground "#0d1011" :box nil)
-  (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
-                      :background "#689d6a" :foreground "#0d1011" :box nil)
-  (set-face-attribute 'tab-line-highlight nil ;; mouseover
-                      :background "#928374" :foreground "#0d1011")
-  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
+(use-package doom-themes
+  :hook (after-init . (lambda ()
+                        (load-theme 'doom-gruvbox t)
+                        (doom-themes-treemacs-config)
+                        (doom-themes-org-config)))
+  :custom ((doom-themes-enable-bold t)
+           (doom-gruvbox-padded-modeline t)
+           (doom-themes-enable-italic t)
+           (custom-safe-themes t)))
 
-(setq confirm-kill-processes nil)
+(use-package rainbow-delimiters
+  :hook (prog-mode . rainbow-delimiters-mode))
+(use-package global-prettify-symbols-mode
+  :ensure nil
+  :hook (after-init . global-prettify-symbols-mode))
+
+(use-package doom-modeline
+  :hook ((after-init . doom-modeline-mode))
+  :init
+  (line-number-mode -1)
+  (column-number-mode -1)
+  (setq mode-line-position nil)
+  :custom ((doom-modeline-project-detection 'project)
+           (doom-modeline-vcs-max-length 30)
+           (doom-modeline-hud t)
+           (doom-modeline-env-version t)
+           (doom-modeline-buffer-encoding nil)
+           (doom-modeline-workspace-name t)
+           (doom-modeline-buffer-file-name-style 'auto)
+           (doom-modeline-height 32)
+           (doom-modeline-buffer-state-icon t)
+           (doom-modeline-icon t)))
+
+(use-package treemacs
+  :commands (treemacs)
+  :bind ("C-c C-t" . treemacs)
+  :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
+(use-package treemacs-magit
+  :after (treemacs magit))
+(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
+  :after (treemacs)
+  :config (treemacs-set-scope-type 'Tabs))
+
+(defun sanityinc/maybe-suspend-frame ()
+  (interactive)
+  (if (display-graphic-p)
+      (message "suspend-frame disabled for graphical displays.")
+    (suspend-frame)))
+(global-unset-key (kbd "C-z"))
+(global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
+(global-set-key (kbd "C-z") 'undo)
+
+(use-package default-text-scale
+  :hook (after-init . default-text-scale-mode))
+
+(use-package vertico
+  :hook (after-init . vertico-mode))
+(use-package marginalia
+  :after vertico
+  :hook (vertico-mode . marginalia-mode)
+  :custom
+  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
+(use-package all-the-icons-completion
+  :hook ((marginalia-mode . all-the-icons-completion-marginalia-setup)))
+
+(use-package orderless
+  :custom
+  (completion-styles '(orderless basic))
+  (completion-category-overrides '((file (styles basic partial-completion)))))
+
+(use-package wgrep
+  :commands (wgrep wgrep-change-to-wgrep-mode))
+
+(use-package consult
+  :bind (("C-r" . consult-ripgrep-symbol-at-point)
+         ;; C-c bindings (mode-specific-map)
+         ("C-c h" . consult-history)
+         ("C-c C-m" . consult-mode-command)
+         ("C-c b" . consult-bookmark)
+         ("C-c k" . consult-kmacro)
+         ;; C-x bindings (ctl-x-map)
+         ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+         ("C-x f" . consult-recent-file)
+         ("C-c C-f" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+         ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+         ;; Custom M-# bindings for fast register access
+         ("M-#" . consult-register-load)
+         ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+         ("C-M-#" . consult-register)
+         ;; Other custom bindings
+         ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+         ("<help> a" . consult-apropos)            ;; orig. apropos-command
+         ;; M-g bindings (goto-map)
+         ("M-g e" . consult-compile-error)
+         ("M-g f" . consult-flycheck)
+         ("M-g g" . consult-goto-line)             ;; orig. goto-line
+         ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+         ("M-g m" . consult-mark)
+         ("M-g k" . consult-global-mark)
+         ("M-g i" . consult-imenu)
+         ("M-g I" . consult-imenu-multi)
+         ;; M-s bindings (search-map)
+         ("M-s f" . consult-find)
+         ("M-s L" . consult-locate)
+         ("M-s g" . consult-grep)
+         ("M-s G" . consult-git-grep)
+         ("M-s r" . consult-ripgrep)
+         ("C-s" . consult-line)
+         ("M-s ." . consult-line-thing-at-point)
+         ("M-s m" . consult-multi-occur)
+         ("M-s k" . consult-keep-lines)
+         ("M-s u" . consult-focus-lines)) 
+  :init
+  ;; This adds thin lines, sorting and hides the mode line of the window.
+  (advice-add #'register-preview :override #'consult-register-window)
+  ;; Use Consult to select xref locations with preview
+  (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
+  (setq register-preview-delay 0.5
+        register-preview-function #'consult-register-format)
+  :custom
+  (consult-narrow-key "<")
+  (consult-preview-key '("M-," :debounce 0 any))
+  :config
+  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  ;; commands that I don'want to preview while scrolling
+  ;; (consult-customize
+  ;;   consult-grep consult-bookmark consult-recent-file consult-xref
+  ;;   consult--source-bookmark consult--source-file-register
+  ;;   consult--source-recent-file consult--source-project-recent-file 
+  ;;   :preview-key '( :debounce 1 any ))
+  (consult-customize
+   consult-line 
+   :add-history (seq-some #'thing-at-point '(region symbol)))
+  (defalias 'consult-line-thing-at-point 'consult-line)
+  (defalias 'consult-ripgrep-symbol-at-point 'consult-ripgrep)
+  (consult-customize consult-ripgrep-symbol-at-point :initial (thing-at-point 'symbol))
+  (consult-customize consult-line-thing-at-point :initial (thing-at-point 'symbol))
+  (defvar consult--source-org
+    (list :name     "Org"
+          :category 'buffer
+          :narrow   ?o
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :new
+          (lambda (name)
+            (with-current-buffer (get-buffer-create name)
+              (insert "#+title: " name "\n\n")
+              (org-mode)
+              (consult--buffer-action (current-buffer))))
+          :items
+          (lambda ()
+            (mapcar #'buffer-name
+                    (seq-filter
+                     (lambda (x)
+                       (eq (buffer-local-value 'major-mode x) 'org-mode))
+                     (buffer-list))))))
+  (defvar consult--source-vterm
+    (list :name     "Term"
+          :category 'buffer
+          :narrow   ?v
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :new
+          (lambda (name)
+            (vterm (concat "Term " name))
+            (setq-local vterm-buffer-name-string nil))
+          :items
+          (lambda () (consult--buffer-query :sort 'visibility
+                                            :as #'buffer-name
+                                            :include '("Term\\ ")))))
+  (defvar consult--source-star
+    (list :name     "*Star-Buffers*"
+          :category 'buffer
+          :narrow   ?s
+          :face     'consult-buffer
+          :history  'buffer-name-history
+          :state    #'consult--buffer-state
+          :items
+          (lambda () (consult--buffer-query :sort 'visibility
+                                            :as #'buffer-name
+                                            :include '("\\*." "^magit")))))
+  ;; remove org and vterm buffers from buffer list
+  (setq consult--source-buffer
+        (plist-put
+         consult--source-buffer :items
+         (lambda () (consult--buffer-query
+                     :sort 'visibility
+                     :as #'buffer-name
+                     :exclude '("\\*."           ; star buffers
+                                "Term\\ "        ; Term buffers
+                                "^magit"         ; magit buffers
+                                "[\\.]org$"))))) ; org files
+
+  (setq consult--source-project-buffer
+        (plist-put
+         consult--source-project-buffer :items
+         (lambda ()
+           (consult--buffer-query
+            :sort 'visibility
+            :as #'buffer-name
+            :exclude '("\\*."           ; star buffers
+                       "Term\\ "        ; Term buffers
+                       "^magit"         ; magit buffers
+                       )))))
+
+  ;; reorder, mainly to move recent-file down and org
+  (setq consult-buffer-sources
+        '(consult--source-hidden-buffer
+          consult--source-modified-buffer
+          consult--source-buffer
+          consult--source-org
+          consult--source-vterm
+          consult--source-bookmark
+          consult--source-recent-file
+          consult--source-file-register
+          consult--source-project-buffer-hidden
+          consult--source-project-recent-file-hidden
+          consult--source-star))
+  (setq consult-project-buffer-sources
+        '(consult--source-project-buffer
+          consult--source-vterm
+          consult--source-project-recent-file
+          consult--source-star)))
+
+(use-package consult-flycheck
+  :commands consult-flycheck
+  :after (consult flycheck))
+
+(use-package embark
+  :bind (("M-." . embark-act)
+         ("C-;" . embark-dwin)
+         :map vertico-map
+         ("M-o" . embark-export)
+         ("C-h B" . embark-bindings))
+  :config
+  (setq embark-action-indicator (lambda (map _target)
+                                  (which-key--show-keymap "Embark" map nil nil 'no-paging)
+                                  #'which-key--hide-popup-ignore-command)
+        embark-become-indicator embark-action-indicator))
+
+(use-package embark-consult
+  :hook (embark-collect-mode . consult-preview-at-point-mode))
+
+(add-to-list 'load-path "~/src/protogg")
+(use-package protogg
+  :ensure nil
+  :load-path "~/src/protogg/protogg.el"
+  :hook (after-init . protogg-mode)
+  :custom (protogg-minibuffer-toggle-key "M-g")
+   :bind (:map protogg-mode-map
+         ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
+         ("C-c x" . protogg-compile)
+         ([remap dired] . protogg-dired) ;; C-x d
+         ("C-c e" . protogg-eshell)
+         ("M-s d" . protogg-find-dired)
+         ([remap find-file] . protogg-find-file) ;; C-x C-f
+         ([remap list-buffers] . protogg-list-buffers) ;; type C-x C-b
+         ([remap shell-command] . protogg-shell-command) ;; M-!
+         ("C-c s" . protogg-shell)
+         ([remap switch-to-buffer] . sn/consult-buffer)
+         ("M-s i" . sn/imenu)) ;; C-x b
+  :config
+  (protogg-create 'consult-project-buffer 'consult-buffer sn/consult-buffer)
+  (protogg-create 'consult-imenu-multi 'consult-imenu sn/imenu))
+
+(use-package corfu
+  :hook ((after-init . global-corfu-mode)
+         (corfu-mode . corfu-popupinfo-mode))
+  :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
+              ("TAB" . corfu-next)
+              ([tab] . corfu-next)
+              ("S-TAB" . corfu-previous)
+              ([backtab] . corfu-previous))
+  :custom
+  (tab-always-indent 'complete)
+  (corfu-quit-no-match 'separator)
+  (corfu-auto-prefix 2))
+
+(use-package corfu-terminal
+  :when (not (display-graphic-p))
+  :vc (corfu-terminal :url "https://codeberg.org/akib/emacs-corfu-terminal.git"
+                      :branch "master"))
+
+(use-package kind-icon
+  :commands kind-icon-margin-formatter
+  :init
+  (add-hook 'corfu-margin-formatters #'kind-icon-margin-formatter)
+  :custom
+  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :config
+  (setq kind-icon-default-face 'corfu-default
+        kind-icon-blend-background t
+        kind-icon-blend-frac 0.2)
+  (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
+
+(use-package cape
+  :after corfu
+   :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
+         ("C-c p t" . complete-tag)        ;; etags
+         ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
+         ("C-c p h" . cape-history)
+         ("C-c p f" . cape-file)
+         ("C-c p k" . cape-keyword)
+         ("C-c p s" . cape-elisp-symbol)
+         ("C-c p e" . cape-elisp-block)
+         ("C-c p a" . cape-abbrev)
+         ("C-c p l" . cape-line)
+         ("C-c p w" . cape-dict))
+  :init
+  (add-to-list 'completion-at-point-functions #'cape-dabbrev)
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (defalias 'corfu--ispell-in-comments-and-strings
+    (cape-super-capf (cape-capf-inside-comment #'cape-dict)
+                     (cape-capf-inside-string #'cape-dict))))
+
+(use-package yasnippet
+  :hook (emacs-startup . yas-global-mode)
+  :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
+  :config
+  (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
+  (setq yas-verbosity 1)
+  (setq yas-wrap-around-region t))
+(use-package yasnippet-snippets
+  :after yasnippet
+  :hook (package-upgrade-all . (lambda () (yas-reload-all))))
+
+(use-package ispell
+  :defer t
+  :config
+  (setq ispell-program-name "aspell"
+        ispell-extra-args '("--sug-mode=ultra" "--run-together")))
+(use-package flyspell
+  :hook ((org-mode markdown-mode TeX-mode git-commit-mode
+           yaml-mode conf-mode prog-mode) . flyspell-mode)
+  :bind (:map flyspell-mode-map
+              ("C-." . nil)) ;; Unbind the key
+  :config
+  (setq flyspell-issue-welcome-flag nil
+        ;; Significantly speeds up flyspell, which would otherwise print
+        ;; messages for every word when checking the entire buffer
+        flyspell-issue-message-flag nil))
+
+(use-package define-word
+  :commands define-word)
+(use-package flyspell-correct
+  :after flyspell
+    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
+
+(use-package flycheck
+  :commands flycheck-list-errors flycheck-buffer
+  :hook (after-init . global-flycheck-mode)
+  :config
+  (setq flycheck-emacs-lisp-load-path 'inherit)
+  ;; Rerunning checks on every newline is a mote excessive.
+  (delq 'new-line flycheck-check-syntax-automatically)
+  ;; And don't recheck on idle as often
+  (setq flycheck-buffer-switch-check-intermediate-buffers t)
+  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list))
+;; TODO: use this when in terminal 
+  (use-package flycheck-popup-tip
+  :hook (flycheck-mode . flycheck-popup-tip-mode)
+  ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
+  )
+;; (use-package flycheck-posframe
+;;   :hook (flycheck-mode . flycheck-posframe-mode)
+;;   :config
+;;   (flycheck-posframe-configure-pretty-defaults))
+
+(use-package dired
+  :ensure nil
+  :commands (dired dired-jump dired-omit-mode)
+  :hook (dired-mode . my-dired-mode-hook)
+  :delight dired-omit-mode
+  :init
+  (defun my-dired-mode-hook ()
+    (dired-omit-mode 1)
+    (auto-revert-mode 1)
+    (setq mode-line-format nil)
+    (hl-line-mode 1))
+  :config
+  (setq dired-omit-files "^\\.\\.?$")
+  (setq-default dired-dwim-target t)
+  (setq dired-listing-switches "-agho --group-directories-first"
+        dired-omit-verbose nil)
+  (setq dired-recursive-deletes 'top))
+(use-package dired-single
+  :after dired
+  :bind (:map dired-mode-map
+              ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
+              ("f" . dired-single-buffer)))
+(use-package dired-ranger
+  :after dired
+  :bind (:map dired-mode-map
+              ("w" . dired-ranger-copy)
+              ("m" . dired-ranger-move)
+              ("H" . dired-omit-mode)
+              ("y" . dired-ranger-paste)))
+(use-package all-the-icons-dired
+  :hook (dired-mode . all-the-icons-dired-mode))
+(use-package dired-collapse
+  :hook  (dired-mode . dired-collapse-mode))
+(use-package diredfl
+  :hook (dired-mode . diredfl-mode))
+(use-package dired-hide-dotfiles
+  :hook (dired-mode . dired-hide-dotfiles-mode)
+  :bind (:map dired-mode-map
+              ("." . dired-hide-dotfiles-mode)))
+
+(use-package consult-dir
+  :after (consult)
+  :bind (("C-x C-d" . consult-dir)
+         :map vertico-map
+         ("C-x C-d" . consult-dir)
+         ("C-x C-j" . consult-dir-jump-file))
+  :config
+  (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
+  (defun consult-dir--tramp-docker-hosts ()
+  "Get a list of hosts from docker."
+  (when (require 'docker-tramp nil t)
+    (let ((hosts)
+          (docker-tramp-use-names t))
+      (dolist (cand (docker-tramp--parse-running-containers))
+        (let ((user (unless (string-empty-p (car cand))
+                        (concat (car cand) "@")))
+              (host (car (cdr cand))))
+          (push (concat "/docker:" user host ":/") hosts)))
+      hosts)))
+(defvar consult-dir--source-tramp-docker
+  `(:name     "Docker"
+    :narrow   ?d
+    :category file
+    :face     consult-file
+    :history  file-name-history
+    :items    ,#'consult-dir--tramp-docker-hosts)
+  "Docker candiadate source for `consult-dir'.")
+(add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
 (use-package org-contrib
   ;; ox-extra 
@@ -1002,7 +887,8 @@ Call a second time to restore the original window configuration."
   '(header-line ((t (:height 2)))))
 
 (use-package org-appear
-  :vc (org-appear :url "https://github.com/awth13/org-appear")
+  :vc (org-appear :url "https://github.com/awth13/org-appear"
+                  :branch "master")
   :hook (org-mode . org-appear-mode))
 
 (setq org-directory "~/doc")
@@ -1228,7 +1114,8 @@ Call a second time to restore the original window configuration."
     (message "Enabled org html export on save for current buffer...")))
 
 (use-package org-pretty-table
-  :vc (org-pretty-table :url "https://github.com/Fuco1/org-pretty-table")
+  :vc (org-pretty-table :url "https://github.com/Fuco1/org-pretty-table"
+                        :branch "master")
   :hook (org-mode . org-pretty-table-mode))
 (use-package org
   :bind ((:map org-mode-map
@@ -1236,6 +1123,7 @@ Call a second time to restore the original window configuration."
   :hook ((org-mode . wr-mode)
          (org-mode . (lambda ()
             (setq-local buffer-face-mode-face '((:family "Product Sans")))
+            (setq-local corfu-auto-delay 0.8)
             (buffer-face-mode))))
   :init
   (define-minor-mode wr-mode
@@ -1455,7 +1343,8 @@ Call a second time to restore the original window configuration."
          (("C-c n i" . org-roam-node-insert))))
 
 (use-package org-roam-ui
-  :vc (org-roam-ui :url "https://github.com/org-roam/org-roam-ui")
+  :vc (org-roam-ui :url "https://github.com/org-roam/org-roam-ui"
+                   :branch "main")
   :after org-roam
   :config
   (setq org-roam-ui-sync-theme t
@@ -1479,16 +1368,10 @@ Call a second time to restore the original window configuration."
   :bind (:map org-agenda-mode-map
          ("M-g" . org-gcal-sync)))
 
-(use-package indent-bars
-  :vc (indent-bars :url "https://github.com/jdtsmith/indent-bars")
-  :hook ((yaml-mode) . indent-bars-mode)
-  :init (setq indent-tabs-mode nil)
-  :custom
-  ((indent-bars-pattern ".")
-     (indent-bars-width-frac 0.5)
-     (indent-bars-pad-frac 0.25)
-     (indent-bars-color-by-depth nil)
-     (indent-bars-highlight-current-depth '(:face default :blend 0.4))))
+(add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
+
+(use-package rainbow-mode
+  :hook (prog-mode . rainbow-mode))
 
 (use-package treesit-auto
   :init
@@ -1551,17 +1434,154 @@ Call a second time to restore the original window configuration."
   (lsp-ui-sideline-show-hover t)
   (lsp-ui-sideline-enable nil))
 
-(use-package dap-mode
-  :after lsp
+(use-package diff-hl
+  :hook ((dired-mode . diff-hl-dired-mode)
+         (prog-mode . diff-hl-mode)
+         (magit-post-refresh . diff-hl-magit-post-refresh))
+  :bind (:map diff-hl-mode-map
+         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk))
   :config
-  (dap-ui-mode 1)
-  (dap-tooltip-mode 1)
-  (tooltip-mode 1)
-  (dap-ui-controls-mode 1))
+  (defun my/disable-diff-hl-for-remote-buffers ()
+    (when (and buffer-file-name (file-remote-p buffer-file-name))
+      (diff-hl-dired-mode -1)
+      (diff-hl-mode -1)))
+  (add-hook 'find-file-hook #'my/disable-diff-hl-for-remote-buffers))
+(use-package browse-at-remote
+  :commands (browse-at-remote browse-at-remote-kill))
 
-(use-package dap-dlv-go
-  :ensure nil
-  :after lsp)
+(use-package magit
+  :commands (magit-status magit-dispatch)
+  :config
+  (fullframe magit-status magit-mode-quit-window)
+  (setq-default magit-diff-refine-hunk t)
+  :bind (("C-x g" . magit-status)
+         ("C-x M-g" . magit-dispatch)
+         (:map magit-status-mode-map
+               ("C-M-<up>" . magit-section-up))))
+(use-package git-blamed
+  :after magit)
+(use-package forge
+  :after magit)
+(use-package magit-todos
+  :after magit
+  :hook(magit-mode . magit-todos-mode))
+
+(use-package vterm
+  :hook ((vterm-mode . (lambda ()
+                         (toggle-mode-line)
+                         (setq left-margin-width 1
+                               right-margin-width 1
+                               cursor-type 'bar))))
+  :bind (( "M-t" . toggle-vterm-buffer)
+         :map vterm-mode-map
+         ("M-t" . toggle-vterm-buffer)
+         ("C-M-r" . (lambda ()
+                     (interactive)
+                     (setq-local vterm-buffer-name-string nil)
+                     (rename-buffer (concat "Term " (read-string "Term: ")))))
+         ("C-M-t" .(lambda ()
+                     (interactive)
+                     (vterm "Term")))
+         ("C-M-f" . tab-line-switch-to-next-tab)
+         ("C-M-b" . tab-line-switch-to-prev-tab)
+         ("C-M-s" . (lambda ()
+                      (interactive)
+                      (consult-buffer '(consult--source-vterm))))
+         ("M-w" . copy-region-as-kill)
+         ("C-y" . vterm-yank))
+  :custom
+  (vterm-buffer-name-string "Term %s")
+  (vterm-buffer-maximum-size 1000)
+  :config
+  (defun toggle-vterm-buffer ()
+    "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
+    (interactive)
+    (let ((vterm-buffer (seq-find (lambda (buffer)
+                                    (string-prefix-p "Term" (buffer-name buffer)))
+                                  (buffer-list))))
+      (if vterm-buffer
+          (if (and (eq (current-buffer) vterm-buffer)
+                   (get-buffer-window vterm-buffer))
+              (delete-window (get-buffer-window vterm-buffer))
+            (if (get-buffer-window vterm-buffer)
+                (select-window (get-buffer-window vterm-buffer))
+              (progn
+                (display-buffer vterm-buffer)
+                (select-window (get-buffer-window vterm-buffer)))))
+        (vterm))))
+  (add-to-list 'display-buffer-alist `(,vterm-buffer-name
+                                       (display-buffer-reuse-window display-buffer-at-bottom)
+                                       (dedicated . t)
+                                       (reusable-frames . visible)
+                                       (window-height . 0.3))))
+
+(use-package tab-line
+  :hook (vterm-mode . tab-line-mode)
+  :custom
+  (tab-line-new-button-show nil)
+  (tab-line-close-button-show nil)
+  (tab-line-separator "")
+  :config
+  (use-package powerline)
+  (defvar my/tab-height 28)
+  (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
+  (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
+  (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+    (powerline-render (list my/tab-left
+                            (format "%s" (buffer-name buffer))
+                            my/tab-right)))
+  (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
+  ;; Set face attributes for the tab-line
+  (set-face-attribute 'tab-line nil ;; background behind tabs
+                      :background "#1d2021")
+  (set-face-attribute 'tab-line-tab nil ;; active tab in another window
+                      :inherit 'tab-line
+                      :background "#8ec07c" :foreground "#0d1011" :box nil)
+  (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
+                      :background "#8ec07c" :foreground "#0d1011" :box nil)
+  (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
+                      :background "#689d6a" :foreground "#0d1011" :box nil)
+  (set-face-attribute 'tab-line-highlight nil ;; mouseover
+                      :background "#928374" :foreground "#0d1011")
+  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
+
+(setq confirm-kill-processes nil)
+
+(setq-default compilation-scroll-output t)
+(defvar sanityinc/last-compilation-buffer nil
+  "The last buffer in which compilation took place.")
+
+(with-eval-after-load 'compile
+  (defun sanityinc/save-compilation-buffer (&rest _)
+    "Save the compilation buffer to find it later."
+    (setq sanityinc/last-compilation-buffer next-error-last-buffer))
+  (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
+
+  (defun sanityinc/find-prev-compilation (orig &optional edit-command)
+    "Find the previous compilation buffer, if present, and recompile there."
+    (if (and (null edit-command)
+             (not (derived-mode-p 'compilation-mode))
+             sanityinc/last-compilation-buffer
+             (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
+        (with-current-buffer sanityinc/last-compilation-buffer
+          (funcall orig edit-command))
+      (funcall orig edit-command)))
+  (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
+
+(global-set-key [f6] 'recompile)
+
+(defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
+  "Put \"*Shell Command Output*\" buffers into view-mode."
+  (unless (or output-buffer replace)
+    (with-current-buffer "*Shell Command Output*"
+      (view-mode 1))))
+(advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
+
+(with-eval-after-load 'compile
+  (defun sanityinc/colourise-compilation-buffer ()
+    (when (eq major-mode 'compilation-mode)
+      (ansi-color-apply-on-region compilation-filter-start (point-max))))
+  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
 (use-package go-ts-mode
   :mode "\\.go\\'"
@@ -1679,11 +1699,9 @@ Call a second time to restore the original window configuration."
   :config
   (setq lisp-indent-offset 2))
 
-(use-package rainbow-mode
-  :hook (prog-mode . rainbow-mode))
-
 (use-package whisper
-  :vc (whisper :url "https://github.com/natrys/whisper.el")
+  :vc (whisper :url "https://github.com/natrys/whisper.el"
+               :branch "master")
   :bind ("C-h w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
@@ -1705,6 +1723,9 @@ Call a second time to restore the original window configuration."
                 gptel-api-key #'gpt/read-openai-key))
 
 (use-package speed-type :commands speed-type-top-x)
+
+(use-package google-this
+  :bind ("M-s w" . google-this))
 
 (defun doom-defer-garbage-collection-h ()
   (setq gc-cons-threshold most-positive-fixnum))

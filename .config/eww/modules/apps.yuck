@@ -31,7 +31,6 @@
       :space-evenly false
       :width 48
       :valign "center"
-
       (app-launcher)
       (for appList in apps
         (eventbox
@@ -102,7 +101,7 @@
               :width "60px"
               :height "100%"
               :anchor "left center")
-  :stacking "bg"
+  :stacking "fg"
   :exclusive true
   (box
     :class "sidebar"))
@@ -167,7 +166,7 @@
               :width "60px"
               :height "100%"
               :anchor "left center")
-  :stacking "bg"
+  :stacking "fg"
   :exclusive true
   (box
     :class "sidebar"))
