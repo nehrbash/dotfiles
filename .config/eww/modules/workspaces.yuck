@@ -5,7 +5,6 @@
 	(box
 	  :class "module workspaces"
 	  :spacing 20
-
 	  (for i in workspace
         (box :class "ws" :style "background-color: ${i.color};"
 		  (button

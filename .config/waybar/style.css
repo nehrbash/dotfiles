@@ -21,6 +21,7 @@ window#waybar:first-child > box {
 #workspaces* {
     font-family: SourceCode;
     font-size: 24px;
+    margin-left: 20px;
 }
 #workspaces button {
     padding: 0 15px;

@@ -35,7 +35,7 @@
 - [[#eww-1][Eww]]
   - [[#packages][Packages]]
 - [[#personal-software-1][Personal Software]]
-- [[#firefox-1][Firefox]]
+  - [[#firefox-1][Firefox]]
   - [[#spicetify-1][Spicetify]]
 - [[#autologin][Autologin]]
 - [[#references][References]]
@@ -201,6 +201,7 @@ spotify-launcher
 
 #+begin_src sh :tangle install.sh
 spicetify config current_theme Onepunch color_scheme light
+spicetify backup
 spicetify apply
 #+end_src
 
@@ -222,6 +223,8 @@ emacs-pdf-tools-git
 aspell
 aspell-en
 ripgrep
+isync
+mu
 #+end_src
 
 *** Setting XDG Defaults to Emacs
@@ -306,7 +309,7 @@ downgrade
 android-messages-desktop-bin
 #+end_src
 
-* Firefox
+** Firefox
 
 Get the active profile from profiles.ini and symlink chrome folder into place. Required extentions are installed via my firefox account after login.
 1. go to ~about:config~ and set ~toolkit.legacyUserProfileCustomizations.stylesheets~ to true.
@@ -319,9 +322,8 @@ PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print
 ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
 #+end_src
 
-
-
 *** Extentions
+
    - Sidebery
    - Infintiy New Tabs
    - Minimalist Gruvbox (themes don't save )
@@ -346,7 +348,7 @@ spicetify apply
 
 * Autologin
 
-I don't care it's my desktop.  Do this step manually
+I don't care, it's my desktop.
 
 #+begin_src :tangle no
 sudo mkdir -p /etc/systemd/system/getty@tty1.service.d

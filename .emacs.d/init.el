@@ -19,6 +19,93 @@
 (use-package use-package-ensure-system-package
   :ensure t)
 
+(use-package meow
+  :config
+  (meow-setup)
+  (meow-global-mode 1)
+  :init
+  (defun meow-setup ()
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+    (meow-motion-overwrite-define-key
+     ;; Use e to move up, n to move down.
+     ;; Since special modes usually use n to move down, we only overwrite e here.
+     '("e" . meow-prev)
+     '("<escape>" . ignore))
+    (meow-leader-define-key
+     '("?" . meow-cheatsheet)
+     ;; To execute the originally e in MOTION state, use SPC e.
+     '("e" . "H-e")
+     '("1" . meow-digit-argument)
+     '("2" . meow-digit-argument)
+     '("3" . meow-digit-argument)
+     '("4" . meow-digit-argument)
+     '("5" . meow-digit-argument)
+     '("6" . meow-digit-argument)
+     '("7" . meow-digit-argument)
+     '("8" . meow-digit-argument)
+     '("9" . meow-digit-argument)
+     '("0" . meow-digit-argument))
+    (meow-normal-define-key
+     '("0" . meow-expand-0)
+     '("1" . meow-expand-1)
+     '("2" . meow-expand-2)
+     '("3" . meow-expand-3)
+     '("4" . meow-expand-4)
+     '("5" . meow-expand-5)
+     '("6" . meow-expand-6)
+     '("7" . meow-expand-7)
+     '("8" . meow-expand-8)
+     '("9" . meow-expand-9)
+     '("-" . negative-argument)
+     '(";" . meow-reverse)
+     '("," . meow-inner-of-thing)
+     '("." . meow-bounds-of-thing)
+     '("[" . meow-beginning-of-thing)
+     '("]" . meow-end-of-thing)
+     '("/" . meow-visit)
+     '("a" . meow-append)
+     '("A" . meow-open-below)
+     '("b" . meow-back-word)
+     '("B" . meow-back-symbol)
+     '("c" . meow-change)
+     '("d" . meow-delete)
+     '("e" . meow-prev)
+     '("E" . meow-prev-expand)
+     '("f" . meow-find)
+     '("g" . meow-cancel-selection)
+     '("G" . meow-grab)
+     '("h" . meow-left)
+     '("H" . meow-left-expand)
+     '("i" . meow-right)
+     '("I" . meow-right-expand)
+     '("j" . meow-join)
+     '("k" . meow-kill)
+     '("l" . meow-line)
+     '("L" . meow-goto-line)
+     '("m" . meow-mark-word)
+     '("M" . meow-mark-symbol)
+     '("n" . meow-next)
+     '("N" . meow-next-expand)
+     '("o" . meow-block)
+     '("O" . meow-to-block)
+     '("p" . meow-yank)
+     '("q" . meow-quit)
+     '("r" . meow-replace)
+     '("s" . meow-insert)
+     '("S" . meow-open-above)
+     '("t" . meow-till)
+     '("u" . meow-undo)
+     '("U" . meow-undo-in-selection)
+     '("v" . meow-search)
+     '("w" . meow-next-word)
+     '("W" . meow-next-symbol)
+     '("x" . meow-delete)
+     '("X" . meow-backward-delete)
+     '("y" . meow-save)
+     '("z" . meow-pop-selection)
+     '("'" . repeat)
+     '("<escape>" . ignore))))
+
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
   (dolist (pattern patterns)
@@ -62,8 +149,6 @@
   (xterm-mouse-mode 1) ; Mouse in a terminal (Use shift to paste with middle button)
   (mouse-wheel-mode 1))
 (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
-
-(global-set-key (kbd "<escape>") 'keyboard-escape-quit)
 
 (use-package move-dup
   :config (global-move-dup-mode)
@@ -151,8 +236,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package recentf
   :ensure nil
-  :hook ((after-init . recentf-mode)
-          (package-upgrade-all . recentf-cleanup))   
+  :hook ((after-init . recentf-mode)(package-upgrade-all . recentf-cleanup))
   :custom
   (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
@@ -228,14 +312,15 @@ This is useful when followed by an immediate kill."
     (isearch-search-and-update))
   (define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol))
 
-(use-package ibuffer-vc
+(use-package ibuffer-project
   :bind ("C-x C-b" . ibuffer)
-  :custom (ibuffer-show-empty-filter-groups nil)
+  :custom ((ibuffer-show-empty-filter-groups nil)
+           (ibuffer-project-use-cache t))
   :config
-  (defun ibuffer-set-up-preferred-filters ()
-    (ibuffer-vc-set-filter-groups-by-vc-root)
-    (unless (eq ibuffer-sorting-mode 'filename/process)
-      (ibuffer-do-sort-by-filename/process)))
+  (defun ibuffer-set-up-preferred-filters ()    
+               (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups))
+               (unless (eq ibuffer-sorting-mode 'project-file-relative)
+                 (ibuffer-do-sort-by-project-file-relative)))
   :hook (ibuffer . ibuffer-set-up-preferred-filters))
 
 (setq ad-redefinition-action 'accept)
@@ -395,11 +480,14 @@ Call a second time to restore the original window configuration."
                (if was-dedicated "no longer " "")
                (buffer-name)))))
 
-(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-11") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
+(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
   (lambda ()
     (pixel-scroll-precision-mode t) 
     (set-face-attribute 'header-line nil :height 100)))
+
+(use-package page-break-lines
+  :config (page-break-lines-mode))
 
 (use-package doom-themes
   :hook (after-init . (lambda ()
@@ -430,7 +518,7 @@ Call a second time to restore the original window configuration."
            (doom-modeline-buffer-encoding nil)
            (doom-modeline-workspace-name t)
            (doom-modeline-buffer-file-name-style 'auto)
-           (doom-modeline-height 32)
+           (doom-modeline-height 27)
            (doom-modeline-buffer-state-icon t)
            (doom-modeline-icon t)))
 
@@ -634,10 +722,16 @@ Call a second time to restore the original window configuration."
 (use-package embark
   :bind (("M-." . embark-act)
          ("C-;" . embark-dwin)
-         :map vertico-map
-         ("M-o" . embark-export)
-         ("C-h B" . embark-bindings))
+         ("C-h B" . embark-bindings)
+         :map embark-region-map
+         ("w" . google-this)
+         ("g" . gptel))
   :config
+  ;; Hide the mode line of the Embark live/completions buffers
+  (add-to-list 'display-buffer-alist
+               '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
+                 nil
+                 (window-parameters (mode-line-format . none))))
   (setq embark-action-indicator (lambda (map _target)
                                   (which-key--show-keymap "Embark" map nil nil 'no-paging)
                                   #'which-key--hide-popup-ignore-command)
@@ -645,15 +739,16 @@ Call a second time to restore the original window configuration."
 
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
+(use-package embark-vc
+  :after embark)
 
 (add-to-list 'load-path "~/src/protogg")
 (use-package protogg
   :ensure nil
+  :defer t
   :load-path "~/src/protogg/protogg.el"
-  :hook (after-init . protogg-mode)
   :custom (protogg-minibuffer-toggle-key "M-g")
-   :bind (:map protogg-mode-map
-         ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
+  :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
          ("C-c x" . protogg-compile)
          ([remap dired] . protogg-dired) ;; C-x d
          ("C-c e" . protogg-eshell)
@@ -665,8 +760,8 @@ Call a second time to restore the original window configuration."
          ([remap switch-to-buffer] . sn/consult-buffer)
          ("M-s i" . sn/imenu)) ;; C-x b
   :config
-  (protogg-create 'consult-project-buffer 'consult-buffer sn/consult-buffer)
-  (protogg-create 'consult-imenu-multi 'consult-imenu sn/imenu))
+  (protogg-define 'consult-project-buffer 'consult-buffer sn/consult-buffer)
+  (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
   :hook ((after-init . global-corfu-mode)
@@ -970,6 +1065,7 @@ Call a second time to restore the original window configuration."
      (latex . t)
      (octave . t)
      (python . t)
+     (jupyter . t)
      (,(if (locate-library "ob-sh") 'sh 'shell) . t)
      (sql . t)
      (sqlite . t))))
@@ -1630,12 +1726,12 @@ Call a second time to restore the original window configuration."
   :commands (lsp lsp-deferered)
   :init (setq lsp-python-ms-auto-install-server t)
   :hook (python-mode . (lambda ()
-                          (require 'lsp-python-ms)
-                          (lsp))))
+                         (require 'lsp-python-ms)
+                         (lsp))))
 (use-package conda
-    :after python
-    :commands (conda-env-list conda-env-activate)
-    :config
+  :after python
+  :commands (conda-env-list conda-env-activate)
+  :config
   ;; The location of your anaconda home will be guessed from a list of common
   ;; possibilities, starting with `conda-anaconda-home''s default value (which
   ;; will consult a ANACONDA_HOME envvar, if it exists).
@@ -1668,6 +1764,12 @@ Call a second time to restore the original window configuration."
   (add-to-list 'global-mode-string
                '(conda-env-current-name (" conda:" conda-env-current-name " "))
                'append))
+(use-package jupyter
+  :config
+  (setq code-cells-convert-ipynb-style '(
+	                                     ("pandoc" "--to" "ipynb" "--from" "org")
+	                                     ("pandoc" "--to" "org" "--from" "ipynb")
+	                                     org-mode)))
 
 (use-package csv-mode
   :mode ("\\.[Cc][Ss][Vv]\\'" . python-mode)
@@ -1698,6 +1800,38 @@ Call a second time to restore the original window configuration."
   :mode ("\\.yuck\\'" . yuck-mode)
   :config
   (setq lisp-indent-offset 2))
+
+(use-package mu4e
+  :ensure nil
+  :commands (mu4e)
+  ;; :load-path "/usr/share/emacs/site-lisp/mu4e/"
+  :init
+  (setq smtpmail-smtp-server "smtp.fastmail.com"
+      smtpmail-smtp-service 465
+      smtpmail-stream-type 'ssl)
+  :custom
+    ;; This is set to 't' to avoid mail syncing issues when using mbsync
+  (mu4e-change-filenames-when-moving t)
+
+  ;; Refresh mail using isync every 10 minutes
+  (mu4e-update-interval (* 10 60))
+  (mu4e-get-mail-command "mbsync -a")
+  (mu4e-maildir "~/Mail")
+
+  (mu4e-drafts-folder "/[Gmail]/Drafts")
+  (mu4e-sent-folder   "/[Gmail]/Sent Mail")
+  (mu4e-refile-folder "/[Gmail]/All Mail")
+  (mu4e-trash-folder  "/[Gmail]/Trash")
+
+  :config
+
+
+  (setq mu4e-maildir-shortcuts
+      '(("/Inbox"             . ?i)
+        ("/[Gmail]/Sent Mail" . ?s)
+        ("/[Gmail]/Trash"     . ?t)
+        ("/[Gmail]/Drafts"    . ?d)
+        ("/[Gmail]/All Mail"  . ?a))))
 
 (use-package whisper
   :vc (whisper :url "https://github.com/natrys/whisper.el"
