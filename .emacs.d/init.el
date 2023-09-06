@@ -3,108 +3,34 @@
   (require 'package)
   (require 'use-package))
 (setq package-native-compile t
-      package-quickstart nil
+      async-bytecomp-package-mode t
+      package-quickstart t
       package-install-upgrade-built-in t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (setq use-package-always-ensure t
       use-package-expand-minimally t
-      use-package-compute-statistics t)
+      use-package-compute-statistics t) ;; don't worry this takes like zero time
 ;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
 (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+(load custom-file 'noerror 'nomessage)
 ;; set this after no-littering
 (add-hook 'package-upgrade-all-hook
           (lambda ()
             (package-quickstart-refresh)))
-(use-package use-package-ensure-system-package
-  :ensure t)
 
-(use-package meow
-  :config
-  (meow-setup)
-  (meow-global-mode 1)
+(use-package use-package-ensure-system-package
+  :ensure t
   :init
-  (defun meow-setup ()
-    (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-    (meow-motion-overwrite-define-key
-     ;; Use e to move up, n to move down.
-     ;; Since special modes usually use n to move down, we only overwrite e here.
-     '("e" . meow-prev)
-     '("<escape>" . ignore))
-    (meow-leader-define-key
-     '("?" . meow-cheatsheet)
-     ;; To execute the originally e in MOTION state, use SPC e.
-     '("e" . "H-e")
-     '("1" . meow-digit-argument)
-     '("2" . meow-digit-argument)
-     '("3" . meow-digit-argument)
-     '("4" . meow-digit-argument)
-     '("5" . meow-digit-argument)
-     '("6" . meow-digit-argument)
-     '("7" . meow-digit-argument)
-     '("8" . meow-digit-argument)
-     '("9" . meow-digit-argument)
-     '("0" . meow-digit-argument))
-    (meow-normal-define-key
-     '("0" . meow-expand-0)
-     '("1" . meow-expand-1)
-     '("2" . meow-expand-2)
-     '("3" . meow-expand-3)
-     '("4" . meow-expand-4)
-     '("5" . meow-expand-5)
-     '("6" . meow-expand-6)
-     '("7" . meow-expand-7)
-     '("8" . meow-expand-8)
-     '("9" . meow-expand-9)
-     '("-" . negative-argument)
-     '(";" . meow-reverse)
-     '("," . meow-inner-of-thing)
-     '("." . meow-bounds-of-thing)
-     '("[" . meow-beginning-of-thing)
-     '("]" . meow-end-of-thing)
-     '("/" . meow-visit)
-     '("a" . meow-append)
-     '("A" . meow-open-below)
-     '("b" . meow-back-word)
-     '("B" . meow-back-symbol)
-     '("c" . meow-change)
-     '("d" . meow-delete)
-     '("e" . meow-prev)
-     '("E" . meow-prev-expand)
-     '("f" . meow-find)
-     '("g" . meow-cancel-selection)
-     '("G" . meow-grab)
-     '("h" . meow-left)
-     '("H" . meow-left-expand)
-     '("i" . meow-right)
-     '("I" . meow-right-expand)
-     '("j" . meow-join)
-     '("k" . meow-kill)
-     '("l" . meow-line)
-     '("L" . meow-goto-line)
-     '("m" . meow-mark-word)
-     '("M" . meow-mark-symbol)
-     '("n" . meow-next)
-     '("N" . meow-next-expand)
-     '("o" . meow-block)
-     '("O" . meow-to-block)
-     '("p" . meow-yank)
-     '("q" . meow-quit)
-     '("r" . meow-replace)
-     '("s" . meow-insert)
-     '("S" . meow-open-above)
-     '("t" . meow-till)
-     '("u" . meow-undo)
-     '("U" . meow-undo-in-selection)
-     '("v" . meow-search)
-     '("w" . meow-next-word)
-     '("W" . meow-next-symbol)
-     '("x" . meow-delete)
-     '("X" . meow-backward-delete)
-     '("y" . meow-save)
-     '("z" . meow-pop-selection)
-     '("'" . repeat)
-     '("<escape>" . ignore))))
+  (defun load-all-environment-variables ()
+    "Load all environment variables from the user's shell."
+    (let ((shell-env (shell-command-to-string "env")))
+      (dolist (var (split-string shell-env "\n"))
+        (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
+          (let ((name (match-string 1 var))
+                (value (match-string 2 var)))
+            (setenv name value))))))
+  (load-all-environment-variables))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -151,16 +77,14 @@
 (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
 
 (use-package move-dup
-  :config (global-move-dup-mode)
   :bind(("M-<up>" . move-dup-move-lines-up)
-         ("M-<down>" . move-dup-move-lines-down)
-         ("C-c d" . move-dup-duplicate-down)
-         ("C-c u" . move-dup-duplicate-up)))
+        ("M-<down>" . move-dup-move-lines-down)
+        ("C-c d" . move-dup-duplicate-down)
+        ("C-c u" . move-dup-duplicate-up)))
 
 (use-package whole-line-or-region
-  :hook (after-init . whole-line-or-region-global-mode)
-  :bind (:map whole-line-or-region-local-mode ("M-j". comment-dwim))
-  )
+  :ensure t
+  :config (whole-line-or-region-global-mode t))
 
 (defun smarter-move-beginning-of-line (arg)
   "Move point back to indentation of beginning of line.
@@ -197,12 +121,10 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-x o" . switch-window))
 
 (use-package windswap
-  :commands (windmove-default-keybindings windswap-default-keybindings)
+  :defer 4
   :config
-  (add-hook 'after-init-hook
-            (lambda ()
-              (windmove-default-keybindings 'control)
-              (windswap-default-keybindings 'shift 'control))))
+  (windmove-default-keybindings 'control)
+  (windswap-default-keybindings 'shift 'control))
 
 (use-package sudo-edit
   :commands (sudo-edit))
@@ -217,7 +139,6 @@ point reaches the beginning or end of the buffer, stop there."
  column-number-mode t
  ediff-split-window-function 'split-window-horizontally
  ediff-window-setup-function 'ediff-setup-windows-plain
- indent-tabs-mode nil
  tab-width 4
  make-backup-files nil
  mouse-yank-at-point t
@@ -231,64 +152,47 @@ point reaches the beginning or end of the buffer, stop there."
 (global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
-
+(setq use-dialog-box nil)
 (global-set-key (kbd "C-c C-p") 'find-file-at-point)
 
 (use-package recentf
   :ensure nil
-  :hook ((after-init . recentf-mode)(package-upgrade-all . recentf-cleanup))
+  :hook ((package-upgrade-all . recentf-cleanup))
   :custom
   (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 80)
-  (recentf-exclude '("/tmp/"))
-  :config
-  (add-to-list 'recentf-exclude
-             (recentf-expand-file-name no-littering-var-directory)))
+  (recentf-max-saved-items 25))
 
 (use-package autorevert
-  :hook (after-init . global-auto-revert-mode)
+  :defer 15
+  :config (global-auto-revert-mode 1)
   :delight auto-revert-mode)
 
+(setq tramp-verbose 1)
+(setq tramp-encoding-shell "/bin/bash")
+(setq tramp-default-method "ssh")
+(eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
+(setq vc-handled-backends '(Git))
 (use-package tramp
-  :ensure nil
-  :commands tramp-mode
-  :custom
-  ;; (tramp-default-method "ssh")
-  (tramp-verbose 0)
-  (tramp-encoding-shell "/bin/bash")
-  (tramp-ssh-controlmaster-options (concat
-    "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
-    "-o ControlMaster=auto -o ControlPersist=yes"))
-  (tramp-connection-properties (quote ((file-remote-p (tramp-file-name nil host port)) " ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p ")))
-  :config
-  (setq vc-handled-backends '(Git))
-   ;; use remote path
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-
-(defun load-all-environment-variables ()
-  "Load all environment variables from the user's shell."
-  (let ((shell-env (shell-command-to-string "env")))
-    (dolist (var (split-string shell-env "\n"))
-      (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
-        (let ((name (match-string 1 var))
-              (value (match-string 2 var)))
-          (setenv name value))))))
-(add-hook 'after-init-hook 'load-all-environment-variables)
+  :defer t
+  :config (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 
 (use-package savehist
   :ensure nil
-  :hook (after-init . savehist-mode))
+  :config
+  (setq history-length 25)
+  (savehist-mode 1))
 
-;; Show number of matches while searching
+(save-place-mode 1)
+
 (use-package anzu
-  :hook (after-init . global-anzu-mode)
+  :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
+         ([remap query-replace] . anzu-query-replace)
+         ("C-M-w". isearch-yank-symbol))
   :custom
   (anzu-mode-lighter "")
   :config
-  (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
-  (global-set-key [remap query-replace] 'anzu-query-replace)
   (defun sanityinc/isearch-exit-other-end ()
     "Exit isearch, but at the other end of the search string.
 This is useful when followed by an immediate kill."
@@ -303,14 +207,13 @@ This is useful when followed by an immediate kill."
     (interactive)
     (let ((sym (thing-at-point 'symbol)))
       (if sym
-        (progn
-          (setq isearch-regexp t
-            isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
-            isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
-            isearch-yank-flag t))
+          (progn
+            (setq isearch-regexp t
+                  isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
+                  isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
+                  isearch-yank-flag t))
         (ding)))
-    (isearch-search-and-update))
-  (define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol))
+    (isearch-search-and-update)))
 
 (use-package ibuffer-project
   :bind ("C-x C-b" . ibuffer)
@@ -342,8 +245,8 @@ This is useful when followed by an immediate kill."
   :hook (prog-mode . display-line-numbers-mode))
 
 (use-package expand-region
-  :bind (("M-[" . er/expand-region)
-         ("C-(" . er/mark-outside-pairs)))
+  :bind (("M-C e" . er/expand-region)
+         ("M-C o" . er/mark-outside-pairs)))
 
 (use-package symbol-overlay
   :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
@@ -390,20 +293,18 @@ This is useful when followed by an immediate kill."
          ("C-c m e" . mc/edit-ends-of-lines)
          ("C-c m a" . mc/edit-beginnings-of-lines)))
 
-(setq-default show-trailing-whitespace nil)
 (use-package whitespace-cleanup-mode
+  :commands (whitespace-cleanup)
   :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
   :delight
-  :hook (after-init . global-whitespace-cleanup-mode)
   :config
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
   (defun sanityinc/show-trailing-whitespace ()
     "Enable display of trailing whitespace in this buffer."
-    (setq-local show-trailing-whitespace t)))
+    (setq-local show-trailing-whitespace t)
+    (whitespace-cleanup-mode 1)))
 
-(use-package electric-pair-mode ; Easily insert matching delimiter
-  :ensure nil
-  :hook (after-init . electric-pair-mode))
+(electric-pair-mode t)
 (use-package paren ; highight matching paren
   :ensure nil
   :hook (prog-mode . show-paren-mode))
@@ -487,6 +388,7 @@ Call a second time to restore the original window configuration."
     (set-face-attribute 'header-line nil :height 100)))
 
 (use-package page-break-lines
+  :defer 3
   :config (page-break-lines-mode))
 
 (use-package doom-themes
@@ -503,34 +405,26 @@ Call a second time to restore the original window configuration."
   :hook (prog-mode . rainbow-delimiters-mode))
 (use-package global-prettify-symbols-mode
   :ensure nil
-  :hook (after-init . global-prettify-symbols-mode))
+  :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
 
 (use-package doom-modeline
+  :after doom-themes
   :hook ((after-init . doom-modeline-mode))
   :init
   (line-number-mode -1)
   (column-number-mode -1)
   (setq mode-line-position nil)
   :custom ((doom-modeline-project-detection 'project)
-           (doom-modeline-vcs-max-length 30)
-           (doom-modeline-hud t)
-           (doom-modeline-env-version t)
-           (doom-modeline-buffer-encoding nil)
-           (doom-modeline-workspace-name t)
-           (doom-modeline-buffer-file-name-style 'auto)
-           (doom-modeline-height 27)
-           (doom-modeline-buffer-state-icon t)
-           (doom-modeline-icon t)))
-
-(use-package treemacs
-  :commands (treemacs)
-  :bind ("C-c C-t" . treemacs)
-  :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
-(use-package treemacs-magit
-  :after (treemacs magit))
-(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
-  :after (treemacs)
-  :config (treemacs-set-scope-type 'Tabs))
+		   (doom-modeline-vcs-max-length 30)
+		   (doom-modeline-hud t)
+		   (doom-modeline-unicode-fallback t)
+		   (doom-modeline-env-version t)
+		   (doom-modeline-buffer-encoding nil)
+		   (doom-modeline-workspace-name t)
+		   (doom-modeline-buffer-file-name-style 'auto)
+		   (doom-modeline-height 27)
+		   (doom-modeline-buffer-state-icon t)
+		   (doom-modeline-icon t)))
 
 (defun sanityinc/maybe-suspend-frame ()
   (interactive)
@@ -542,20 +436,55 @@ Call a second time to restore the original window configuration."
 (global-set-key (kbd "C-z") 'undo)
 
 (use-package default-text-scale
-  :hook (after-init . default-text-scale-mode))
+  :bind (("C-M-=". default-text-scale-increase)
+         ("C-M--" . default-text-scale-decrease)))
+
+(use-package minibuffer
+  :ensure nil
+  :bind
+  (:map minibuffer-local-completion-map
+        ("<backtab>" . minibuffer-force-complete))
+  :custom
+  (completion-styles '(orderless))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles basic partial-completion))))
+  (read-file-name-completion-ignore-case t)
+  (read-buffer-completion-ignore-case t)
+  (completion-ignore-case t)
+  (enable-recursive-minibuffers t)
+  (minibuffer-eldef-shorten-default t)
+  (resize-mini-windows t)
+  (minibuffer-prompt-properties
+   '(read-only t cursor-intangible t face minibuffer-prompt))
+  :init
+  (minibuffer-depth-indicate-mode)
+  (minibuffer-electric-default-mode)
+  :hook
+  (completion-list-mode . force-truncate-lines)
+  (minibuffer-setup . cursor-intangible-mode)
+  :config
+  (defun stealthily (fn &rest args)
+    "Apply FN to ARGS while inhibiting modification hooks."
+    (let ((inhibit-modification-hooks t))
+      (apply fn args)))
+  (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 
 (use-package vertico
-  :hook (after-init . vertico-mode))
+  :config
+  (vertico-mode))
 (use-package marginalia
-  :after vertico
-  :hook (vertico-mode . marginalia-mode)
+  :config (marginalia-mode)
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
   :hook ((marginalia-mode . all-the-icons-completion-marginalia-setup)))
 
 (use-package orderless
+  :after (minibuffer vertico)
   :custom
+  ;; (orderless-matching-styles 'orderless-regexp)
+  ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  (completion-category-defaults nil)
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
@@ -612,16 +541,8 @@ Call a second time to restore the original window configuration."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
+  (recentf-mode 1)
   (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
-  ;; commands that I don'want to preview while scrolling
-  ;; (consult-customize
-  ;;   consult-grep consult-bookmark consult-recent-file consult-xref
-  ;;   consult--source-bookmark consult--source-file-register
-  ;;   consult--source-recent-file consult--source-project-recent-file 
-  ;;   :preview-key '( :debounce 1 any ))
-  (consult-customize
-   consult-line 
-   :add-history (seq-some #'thing-at-point '(region symbol)))
   (defalias 'consult-line-thing-at-point 'consult-line)
   (defalias 'consult-ripgrep-symbol-at-point 'consult-ripgrep)
   (consult-customize consult-ripgrep-symbol-at-point :initial (thing-at-point 'symbol))
@@ -720,12 +641,21 @@ Call a second time to restore the original window configuration."
   :after (consult flycheck))
 
 (use-package embark
-  :bind (("M-." . embark-act)
+  :bind (:map minibuffer-mode-map
+              ("M-e" . sn/edit-search-results)
+         ("M-." . embark-act)
          ("C-;" . embark-dwin)
          ("C-h B" . embark-bindings)
          :map embark-region-map
          ("w" . google-this)
          ("g" . gptel))
+  :init
+  (defun sn/edit-search-results ()
+    "Export results using `embark-export' and activate `wgrep'."
+    (interactive)
+    (progn
+      (run-at-time 0 nil #'embark-export)
+      (run-at-time 0 nil #'wgrep-change-to-wgrep-mode)))
   :config
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
@@ -745,7 +675,6 @@ Call a second time to restore the original window configuration."
 (add-to-list 'load-path "~/src/protogg")
 (use-package protogg
   :ensure nil
-  :defer t
   :load-path "~/src/protogg/protogg.el"
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
@@ -758,14 +687,21 @@ Call a second time to restore the original window configuration."
          ([remap shell-command] . protogg-shell-command) ;; M-!
          ("C-c s" . protogg-shell)
          ([remap switch-to-buffer] . sn/consult-buffer)
-         ("M-s i" . sn/imenu)) ;; C-x b
+         ("M-s i" . sn/imenu)
+         ("M-t" . sn/multi-vterm)) ;; C-x b
   :config
   (protogg-define 'consult-project-buffer 'consult-buffer sn/consult-buffer)
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
   :hook ((after-init . global-corfu-mode)
-         (corfu-mode . corfu-popupinfo-mode))
+         (corfu-mode . corfu-popupinfo-mode)
+		 ((prog-mode conf-mode yaml-mode) . (lambda ()
+                       (setq-local corfu-auto t
+                                   corfu-auto-delay 0
+								   corfu-auto-prefix 1
+								    completion-styles '(orderless-fast basic)
+                                   corfu-popupinfo-delay 0.1))))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
@@ -774,11 +710,31 @@ Call a second time to restore the original window configuration."
   :custom
   (tab-always-indent 'complete)
   (corfu-quit-no-match 'separator)
-  (corfu-auto-prefix 2))
+  (corfu-auto-delay 0.8)
+  (corfu-popupinfo-delay 0.2)
+  (corfu-auto-prefix 2)
+  :init
+  ;; TAB cycle if there are only few candidates
+  (setq completion-cycle-threshold 3)
+  :config
+  (defun orderless-fast-dispatch (word index total)
+  (and (= index 0) (= total 1) (length< word 4)
+       `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
+(orderless-define-completion-style orderless-fast
+  (orderless-style-dispatchers '(orderless-fast-dispatch))
+  (orderless-matching-styles '(orderless-literal orderless-regexp))))
+
+(use-package corfu-candidate-overlay
+  :ensure nil
+  :after corfu
+  :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
+                               :branch "master")
+  :config (corfu-candidate-overlay-mode +1))
 
 (use-package corfu-terminal
   :when (not (display-graphic-p))
-  :vc (corfu-terminal :url "https://codeberg.org/akib/emacs-corfu-terminal.git"
+  :after (corfu)
+  :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
                       :branch "master"))
 
 (use-package kind-icon
@@ -794,8 +750,8 @@ Call a second time to restore the original window configuration."
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
-  :after corfu
-   :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
+  :after (corfu orderless)
+  :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
          ("C-c p t" . complete-tag)        ;; etags
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
@@ -804,14 +760,12 @@ Call a second time to restore the original window configuration."
          ("C-c p s" . cape-elisp-symbol)
          ("C-c p e" . cape-elisp-block)
          ("C-c p a" . cape-abbrev)
-         ("C-c p l" . cape-line)
-         ("C-c p w" . cape-dict))
+         ("C-c p l" . cape-line))
   :init
+  (add-to-list 'completion-at-point-functions #'cape-dict)
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (defalias 'corfu--ispell-in-comments-and-strings
-    (cape-super-capf (cape-capf-inside-comment #'cape-dict)
-                     (cape-capf-inside-string #'cape-dict))))
+  (add-to-list 'completion-at-point-functions #'cape-file))
 
 (use-package yasnippet
   :hook (emacs-startup . yas-global-mode)
@@ -823,9 +777,11 @@ Call a second time to restore the original window configuration."
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
+(use-package yasnippet-capf
+  :custom (yasnippet-capf-lookup-by 'name)) ;; Prefer the name of the snippet instead)
 
 (use-package ispell
-  :defer t
+  :defer 5
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra" "--run-together")))
@@ -848,7 +804,7 @@ Call a second time to restore the original window configuration."
 
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
-  :hook (after-init . global-flycheck-mode)
+  :hook (prog-mode . global-flycheck-mode)
   :config
   (setq flycheck-emacs-lisp-load-path 'inherit)
   ;; Rerunning checks on every newline is a mote excessive.
@@ -935,19 +891,18 @@ Call a second time to restore the original window configuration."
   "Docker candiadate source for `consult-dir'.")
 (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
-(use-package org-contrib
-  ;; ox-extra 
-  :after org
-  :defer t
-  :config)
-(use-package ox-extra ;; ignore header tagged wit ignore
-  :after org-contrib
-  :ensure nil)
 (use-package org
   :bind (("C-c a" .  gtd)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
   :config
+  (custom-set-faces
+   '(org-document-title ((t (:height 3.2))))
+   '(header-line ((t (:height 3 :weight bold))))
+   '(org-level-1 ((t (:foreground "#98be65" :height 1.6))))
+   '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
+   '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
+   '(header-line ((t (:height 2)))))
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (setq org-adapt-indentation t
         org-auto-align-tags nil
@@ -966,23 +921,20 @@ Call a second time to restore the original window configuration."
         org-startup-folded t
         org-startup-with-inline-images t
         org-archive-location "%s_archive::* Archive"))
+
+(use-package org-contrib
+  :after org
+  :defer 6)
+(use-package ox-extra ;; ignore header tagged wit ignore
+  :after org-contrib
+  :ensure nil)
 (use-package ox-latex
   :ensure nil
   :after org-contrib
   :custom org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
 
-(use-package org-cliplink
-  :bind (("C-c l" . org-store-link)))
-(custom-set-faces
-   '(org-document-title ((t (:height 3.2))))
-   '(header-line ((t (:height 3 :weight bold))))
-   '(org-level-1 ((t (:foreground "#98be65" :height 1.6))))
-  '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
-  '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
-  '(header-line ((t (:height 2)))))
-
 (use-package org-appear
-  :vc (org-appear :url "https://github.com/awth13/org-appear"
+  :vc (:url "https://github.com/awth13/org-appear.git"
                   :branch "master")
   :hook (org-mode . org-appear-mode))
 
@@ -1065,7 +1017,6 @@ Call a second time to restore the original window configuration."
      (latex . t)
      (octave . t)
      (python . t)
-     (jupyter . t)
      (,(if (locate-library "ob-sh") 'sh 'shell) . t)
      (sql . t)
      (sqlite . t))))
@@ -1143,11 +1094,12 @@ Call a second time to restore the original window configuration."
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
 
 (use-package type-break
+  :defer 7
   :after org-pomodoro
   :hook ((org-pomodoro-killed . type-break-mode)
          (org-pomodoro-break-finished . type-break-mode)
          (org-pomodoro-started . (lambda () (type-break-mode -1)))
-         (after-init . type-break-mode))
+  :config (type-break-mode t))
   :init
   (defun type-break-demo-agenda ()
     "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
@@ -1210,7 +1162,7 @@ Call a second time to restore the original window configuration."
     (message "Enabled org html export on save for current buffer...")))
 
 (use-package org-pretty-table
-  :vc (org-pretty-table :url "https://github.com/Fuco1/org-pretty-table"
+  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
                         :branch "master")
   :hook (org-mode . org-pretty-table-mode))
 (use-package org
@@ -1439,7 +1391,7 @@ Call a second time to restore the original window configuration."
          (("C-c n i" . org-roam-node-insert))))
 
 (use-package org-roam-ui
-  :vc (org-roam-ui :url "https://github.com/org-roam/org-roam-ui"
+  :vc (:url "https://github.com/org-roam/org-roam-ui"
                    :branch "main")
   :after org-roam
   :config
@@ -1475,74 +1427,28 @@ Call a second time to restore the original window configuration."
   :hook ((package-upgrade-all . treesit-auto-install-all))
   :config (global-treesit-auto-mode))
 
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :custom
-  (read-process-output-max (* 3 1024 1024)) ;; 3mb
-  (lsp-completion-provider :none)           ;; corfu instead
-  (lsp-idle-delay 0.3)
-  (lsp-enable-which-key-integration t)
+(use-package eglot
+  :hook (((go-ts-mode) . eglot-ensure)
+         ((go-ts-mode) . eglot-format-buffer-on-save))
+  :custom (eglot-autoshutdown t)
   :init
- (defun my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(orderless))) ;; Configure orderless
- :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
-        (go-ts-mode . lsp-deferred))
-  :config
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection
-                                     (lambda ()
-                                       (setq-local lsp-enable-file-watchers nil)
-                                       (cons "gopls" '("-remote=auto"))))
-                    :major-modes '(go-ts-mode)
-                    :priority 10
-                    :server-id 'gopls-remote
-                    :remote? t
-                    ))
-  :bind-keymap ("C-." . lsp-command-map)
-  :bind ((:map lsp-command-map
-               ("C-r" . lsp-workspace-restart)
-               ("C-q" . lsp-workspace-shutdown)
-               ("s" . lsp-ui-doc-show)
-               ("i" . lsp-find-implementation)
-               ("?" . lsp-find-references)
-               ("r" . lsp-rename)
-               ("j" . lsp-ui-imenu)
-               ("c" . compile)
-               ("C" . recompile)
-               ("d" . dap-hydra)
-               )))
-(use-package consult-lsp
-  :after (consult lsp-mode)
-  :bind ((:map lsp-command-map
-               ("." . consult-lsp-diagnostics)))
-  :config
-  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols))
+  (defun eglot-format-buffer-on-save ()
+    (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (defun project-find-go-module (dir)
+    (when-let ((root (locate-dominating-file dir "go.mod")))
+      (cons 'go-module root)))
+  (cl-defmethod project-root ((project (head go-module)))
+    (cdr project))
+  (add-hook 'project-find-functions #'project-find-go-module))
+(use-package consult-eglot
+  :after eglot)
 
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-doc-position 'bottom)
-  (lsp-ui-doc-delay .2 )
-  (lsp-headerline-breadcrumb-enable nil)
-  (lsp-eldoc-enable-hover t)
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-sideline-enable nil))
-
-(use-package diff-hl
-  :hook ((dired-mode . diff-hl-dired-mode)
-         (prog-mode . diff-hl-mode)
-         (magit-post-refresh . diff-hl-magit-post-refresh))
-  :bind (:map diff-hl-mode-map
-         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk))
-  :config
-  (defun my/disable-diff-hl-for-remote-buffers ()
-    (when (and buffer-file-name (file-remote-p buffer-file-name))
-      (diff-hl-dired-mode -1)
-      (diff-hl-mode -1)))
-  (add-hook 'find-file-hook #'my/disable-diff-hl-for-remote-buffers))
+(use-package git-gutter
+  :custom ((git-gutter:ask-p nil))
+  :hook ((prog-mode yaml-mode conf-mode) . git-gutter-mode))
 (use-package browse-at-remote
+  :bind (("C-c g g" . browse-at-remote)
+		 ("C-c g k" . browse-at-remote-kill))
   :commands (browse-at-remote browse-at-remote-kill))
 
 (use-package magit
@@ -1554,30 +1460,26 @@ Call a second time to restore the original window configuration."
          ("C-x M-g" . magit-dispatch)
          (:map magit-status-mode-map
                ("C-M-<up>" . magit-section-up))))
-(use-package git-blamed
-  :after magit)
 (use-package forge
   :after magit)
 (use-package magit-todos
   :after magit
   :hook(magit-mode . magit-todos-mode))
 
-(use-package vterm
+(use-package multi-vterm
   :hook ((vterm-mode . (lambda ()
                          (toggle-mode-line)
                          (setq left-margin-width 1
                                right-margin-width 1
                                cursor-type 'bar))))
-  :bind (( "M-t" . toggle-vterm-buffer)
+  :bind (( "M-t" . multi-vterm-project)
          :map vterm-mode-map
          ("M-t" . toggle-vterm-buffer)
          ("C-M-r" . (lambda ()
                      (interactive)
                      (setq-local vterm-buffer-name-string nil)
                      (rename-buffer (concat "Term " (read-string "Term: ")))))
-         ("C-M-t" .(lambda ()
-                     (interactive)
-                     (vterm "Term")))
+         ("C-M-t" . multi-vterm-project)
          ("C-M-f" . tab-line-switch-to-next-tab)
          ("C-M-b" . tab-line-switch-to-prev-tab)
          ("C-M-s" . (lambda ()
@@ -1589,6 +1491,7 @@ Call a second time to restore the original window configuration."
   (vterm-buffer-name-string "Term %s")
   (vterm-buffer-maximum-size 1000)
   :config
+
   (defun toggle-vterm-buffer ()
     "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
     (interactive)
@@ -1683,13 +1586,13 @@ Call a second time to restore the original window configuration."
   :mode "\\.go\\'"
   :ensure-system-package ((gopls . "go get golang.org/x/tools/gopls@latest")
                           (staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest"))
-  :hook ((go-ts-mode . (lambda ()
-                         (add-hook 'before-save-hook 'lsp-format-buffer nil t)
-                         (add-hook 'before-save-hook 'lsp-organize-imports nil t))))
-  :custom
-  (compile-command "go build -v && go test -v -cover && go vet")
-  (lsp-register-custom-settings
-   '(("gopls.staticcheck" t t))))
+  :hook (go-ts-mode . (lambda ()
+						(setq compile-command "go build -v && go test -v -cover && go vet"
+							  go-ts-mode-indent-offset 4)))
+  :custom (eglot-workspace-configuration
+   '((:gopls .
+             ((staticcheck . t)
+              (matcher . "CaseSensitive"))))))
 (use-package flycheck-golangci-lint
   :hook (go-ts-mode . flycheck-golangci-lint-setup))
 (use-package go-tag
@@ -1702,32 +1605,17 @@ Call a second time to restore the original window configuration."
   :ensure-system-package (gotests . "go install github.com/cweill/gotests/...@latest")
   :bind (:map go-ts-mode-map ("C-c g" . go-gen-test-dwim)))
 
-(use-package ccls
-  :after
-  (:any c-mode c++-mode objc-mode)
-  :config
-  (setq ccls-executable "ccls")
-  :hook ((c-mode c++-mode objc-mode) . (lambda () (require 'ccls) (lsp))))
+(use-package rust-ts-mode)
+(use-package flycheck-rust
+  :after rust-ts-mode
+  :hook (flycheck-mode . flycheck-rust-setup))
 
-(use-package rustic
-  :bind (:map rustic-mode-map
-              ("C-c C-c l" . flycheck-list-errors)
-              ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c s" . lsp-rust-analyzer-status))
-  :custom
-    (lsp-rust-analyzer-server-display-inlay-hints t)
-  :config
-  (setq rustic-format-on-save t))
+(use-package toml-ts-mode
+  :hook (toml-ts-mode . goto-address-prog-mode))
 
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
-(use-package lsp-python-ms
-  :commands (lsp lsp-deferered)
-  :init (setq lsp-python-ms-auto-install-server t)
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-python-ms)
-                         (lsp))))
 (use-package conda
   :after python
   :commands (conda-env-list conda-env-activate)
@@ -1765,7 +1653,9 @@ Call a second time to restore the original window configuration."
                '(conda-env-current-name (" conda:" conda-env-current-name " "))
                'append))
 (use-package jupyter
+  :defer 3
   :config
+  (add-to-list 'org-babel-load-languages '(jupyter . t))
   (setq code-cells-convert-ipynb-style '(
 	                                     ("pandoc" "--to" "ipynb" "--from" "org")
 	                                     ("pandoc" "--to" "org" "--from" "ipynb")
@@ -1776,9 +1666,8 @@ Call a second time to restore the original window configuration."
   :config
   (setq csv-separators '("," ";" "|" " " ", ")))
 
-(use-package yaml-mode
-  :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
-  :hook (yaml-mode-hook .goto-address-prog-mode))
+(use-package yaml-ts-mode
+  :hook (yaml-ts-mode . goto-address-prog-mode))
 
 (use-package docker
   :bind ("C-c d" . docker)
@@ -1798,8 +1687,7 @@ Call a second time to restore the original window configuration."
 
 (use-package yuck-mode
   :mode ("\\.yuck\\'" . yuck-mode)
-  :config
-  (setq lisp-indent-offset 2))
+  :hook (yuck-mode . (lambda () (setq-local lisp-indent-offset 2))))
 
 (use-package mu4e
   :ensure nil
@@ -1834,8 +1722,8 @@ Call a second time to restore the original window configuration."
         ("/[Gmail]/All Mail"  . ?a))))
 
 (use-package whisper
-  :vc (whisper :url "https://github.com/natrys/whisper.el"
-               :branch "master")
+  :vc (:url "https://github.com/natrys/whisper.el"
+            :branch "master" )
   :bind ("C-h w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
@@ -1856,7 +1744,8 @@ Call a second time to restore the original window configuration."
                 gptel-default-mode 'org-mode
                 gptel-api-key #'gpt/read-openai-key))
 
-(use-package speed-type :commands speed-type-top-x)
+(use-package speed-type :commands speed-type-top-x
+  :defer t)
 
 (use-package google-this
   :bind ("M-s w" . google-this))

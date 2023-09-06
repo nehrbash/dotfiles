@@ -2,6 +2,8 @@
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
 * Table of Contents :TOC:
 - [[#package-manager][Package Manager]]
+  - [[#startup-time][Startup Time]]
+  - [[#breakdown][Breakdown]]
 - [[#editing-utilities][Editing Utilities]]
   - [[#meow---modal-editing][Meow - Modal Editing]]
   - [[#file-handler-functions][File Handler Functions]]
@@ -17,8 +19,8 @@
   - [[#track-recent-files][Track Recent Files]]
   - [[#auto-update-file][Auto update file]]
   - [[#tramp][TRAMP]]
-  - [[#load-all-environment-variable][Load All Environment Variable]]
   - [[#save-history][Save History]]
+  - [[#save-place][Save Place]]
   - [[#i-search][I-Search]]
   - [[#ibuffer][Ibuffer]]
   - [[#newline-behavior][Newline Behavior]]
@@ -33,9 +35,11 @@
   - [[#general][General]]
   - [[#theme][Theme]]
   - [[#modeline][Modeline]]
-  - [[#treemacs][Treemacs]]
   - [[#gui-frames][GUI Frames]]
 - [[#minibuffer--completion-framework][Minibuffer / Completion Framework]]
+  - [[#minbuffer][Minbuffer]]
+  - [[#vertico][Vertico]]
+  - [[#orderless][Orderless]]
   - [[#edit-search-results-directly][Edit Search Results Directly]]
   - [[#consult][Consult]]
   - [[#embark][Embark]]
@@ -47,6 +51,7 @@
 - [[#dired][Dired]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
+  - [[#extra-org-packages][Extra org packages]]
   - [[#org-appear][Org Appear]]
   - [[#org-file-locations][Org File Locations]]
   - [[#capturing][Capturing]]
@@ -71,8 +76,8 @@
 - [[#code-languages--file-modes][Code Languages & File Modes]]
   - [[#general-1][General]]
   - [[#go][Go]]
-  - [[#c][C++]]
   - [[#rust][Rust]]
+  - [[#toml][TOML]]
   - [[#python][Python]]
   - [[#csv][CSV]]
   - [[#yaml][YAML]]
@@ -93,29 +98,177 @@
 
 * Package Manager 
 Dropped straight.el because vc provides the one feature I was needing. That is source pulling packages.  ~use-package~  and ~vc-use-package~ are now built-in as well. 
-   
+
 #+begin_src emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/lisp/")
 (eval-when-compile
   (require 'package)
   (require 'use-package))
 (setq package-native-compile t
-      package-quickstart nil
+      async-bytecomp-package-mode t
+      package-quickstart t
       package-install-upgrade-built-in t)
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (setq use-package-always-ensure t
       use-package-expand-minimally t
-      use-package-compute-statistics t)
+      use-package-compute-statistics t) ;; don't worry this takes like zero time
 ;; Use no-littering to automatically set common paths to the new user-emacs-directory
 (use-package no-littering)
 (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+(load custom-file 'noerror 'nomessage)
 ;; set this after no-littering
 (add-hook 'package-upgrade-all-hook
           (lambda ()
             (package-quickstart-refresh)))
+
 (use-package use-package-ensure-system-package
-  :ensure t)
+  :ensure t
+  :init
+  (defun load-all-environment-variables ()
+    "Load all environment variables from the user's shell."
+    (let ((shell-env (shell-command-to-string "env")))
+      (dolist (var (split-string shell-env "\n"))
+        (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
+          (let ((name (match-string 1 var))
+                (value (match-string 2 var)))
+            (setenv name value))))))
+  (load-all-environment-variables))
 #+end_src
+
+** Startup Time
+   
+#+begin_src elisp :exports results 
+(emacs-init-time)  
+#+end_src
+
+#+RESULTS:
+: 0.400652 seconds
+
+** Breakdown
+
+#+NAME: package-report-buffer :exports results 
+#+begin_src elisp 
+(use-package-report)
+(with-current-buffer "*use-package statistics*" (buffer-string))
+#+end_src
+
+#+RESULTS: package-report-buffer :exports results 
+#+begin_example
+ox-extra                  Configured    21:27:53.368695         0.16
+forge                     Configured    21:27:31.942848         0.08
+yasnippet-capf            Configured    21:27:21.633464         0.07
+corfu-candidate-overlay   Configured    21:27:21.814628         0.02
+consult                   Configured    21:27:22.842021         0.01
+use-package-ensure-system-package Configured    21:27:21.564897         0.01
+rust-ts-mode              Configured    21:27:21.782010         0.01
+vertico                   Configured    21:27:21.595583         0.01
+no-littering              Configured    21:27:21.558483         0.01
+whole-line-or-region      Configured    21:27:21.571674         0.00
+which-key                 Configured    21:27:21.587067         0.00
+savehist                  Configured    21:27:21.582357         0.00
+move-dup                  Initialized   21:27:21.565005         0.00
+doom-themes               Configured    21:27:21.592590         0.00
+marginalia                Configured    21:27:21.596907         0.00
+autorevert                Configured    21:27:31.752520         0.00
+orderless                 Configured    21:27:21.597968         0.00
+multiple-cursors          Initialized   21:27:21.587121         0.00
+git-blamed                Configured    21:27:31.862804         0.00
+fullframe                 Configured    21:27:21.572446         0.00
+multi-vterm               Initialized   21:27:21.777060         0.00
+windswap                  Configured    21:27:51.218802         0.00
+embark                    Initialized   21:27:21.598733         0.00
+protogg                   Configured    21:27:22.817123         0.00
+docker                    Initialized   21:27:21.782548         0.00
+org-roam                  Initialized   21:27:21.776291         0.00
+winner                    Initialized   21:27:21.590542         0.00
+magit                     Configured    21:27:31.861506         0.00
+org-gcal                  Initialized   21:27:53.323898         0.00
+cape                      Initialized   21:27:21.814653         0.00
+corfu                     Configured    21:27:21.805351         0.00
+pdf-tools                 Initialized   21:27:21.776165         0.00
+anzu                      Initialized   21:27:21.584313         0.00
+consult-dir               Initialized   21:27:22.842037         0.00
+eglot                     Initialized   21:27:21.776698         0.00
+dired-ranger              Initialized   21:27:26.639280         0.00
+org-pomodoro              Initialized   21:27:21.775232         0.00
+go-ts-mode                Configured    21:27:22.851748         0.00
+yasnippet                 Configured    21:27:21.633412         0.00
+flyspell                  Configured    21:27:27.083114         0.00
+conda                     Initialized   21:27:21.782287         0.00
+go-tag                    Initialized   21:27:21.778064         0.00
+gptel                     Initialized   21:27:21.782882         0.00
+tab-line                  Initialized   21:27:21.777871         0.00
+ibuffer-project           Initialized   21:27:21.584422         0.00
+default-text-scale        Initialized   21:27:21.592771         0.00
+dired-single              Initialized   21:27:26.639256         0.00
+whitespace-cleanup-mode   Configured    21:27:27.108041         0.00
+expand-region             Initialized   21:27:21.584518         0.00
+dired-hide-dotfiles       Initialized   21:27:21.634067         0.00
+go-fill-struct            Initialized   21:27:21.778135         0.00
+jupyter                   Configured    21:27:50.248992         0.00
+flycheck-rust             Configured    21:27:28.750652         0.00
+symbol-overlay            Configured    21:27:27.110620         0.00
+switch-window             Initialized   21:27:21.571733         0.00
+recentf                   Configured    21:27:22.841321         0.00
+ispell                    Configured    21:27:27.082984         0.00
+go-gen-test               Initialized   21:27:21.778191         0.00
+python                    Configured    21:27:21.782178         0.00
+google-this               Initialized   21:27:21.782964         0.00
+doom-modeline             Configured    21:27:21.851523         0.00
+page-break-lines          Configured    21:27:50.250954         0.00
+paren                     Configured    21:27:21.590442         0.00
+whisper                   Initialized   21:27:21.782821         0.00
+toml-ts-mode              Initialized   21:27:21.782133         0.00
+flyspell-correct          Initialized   21:27:27.083146         0.00
+type-break                Declared      21:27:21.775351         0.00
+kind-icon                 Initialized   21:27:21.599602         0.00
+dired                     Configured    21:27:26.639247         0.00
+visual-fill-column        Configured    21:27:28.736600         0.00
+mu4e                      Initialized   21:27:21.782792         0.00
+flycheck-golangci-lint    Initialized   21:27:21.778022         0.00
+org-bullets               Configured    21:27:28.746370         0.00
+org                       Configured    21:27:21.776062         0.00
+csv-mode                  Initialized   21:27:21.782371         0.00
+terraform-mode            Initialized   21:27:21.782655         0.00
+yaml-ts-mode              Initialized   21:27:21.782413         0.00
+flycheck                  Configured    21:27:27.074112         0.00
+embark-consult            Initialized   21:27:21.599031         0.00
+git-gutter                Configured    21:27:21.803742         0.00
+wgrep                     Initialized   21:27:21.598004         0.00
+dockerfile-mode           Initialized   21:27:21.782599         0.00
+markdown-mode             Configured    21:27:31.888573         0.00
+rainbow-mode              Configured    21:27:27.063132         0.00
+docker-compose-mode       Initialized   21:27:21.782626         0.00
+org-fragtog               Configured    21:27:28.744181         0.00
+treesit-auto              Initialized   21:27:21.776619         0.00
+org-pretty-table          Configured    21:27:28.742502         0.00
+all-the-icons-completion  Initialized   21:27:21.596950         0.00
+yuck-mode                 Initialized   21:27:21.782685         0.00
+org-contrib               Configured    21:27:53.368766         0.00
+display-line-numbers      Configured    21:27:27.113570         0.00
+rainbow-delimiters        Configured    21:27:27.095506         0.00
+tramp                     Initialized   21:27:21.580330         0.00
+consult-flycheck          Initialized   21:27:27.074106         0.00
+toc-org                   Configured    21:27:28.732528         0.00
+browse-at-remote          Initialized   21:27:21.776771         0.00
+org-appear                Configured    21:27:28.747909         0.00
+flycheck-popup-tip        Configured    21:27:28.754375         0.00
+magit-todos               Configured    21:27:32.003274         0.00
+define-word               Initialized   21:27:21.633625         0.00
+org-attach-screenshot     Initialized   21:27:21.776093         0.00
+all-the-icons-dired       Initialized   21:27:21.633990         0.00
+sudo-edit                 Initialized   21:27:21.571812         0.00
+yasnippet-snippets        Configured    21:27:21.633432         0.00
+speed-type                Initialized   21:27:21.782939         0.00
+global-prettify-symbols-mode Initialized   21:27:21.592658         0.00
+diredfl                   Initialized   21:27:21.634039         0.00
+dired-collapse            Initialized   21:27:21.634013         0.00
+ox-latex                  Configured    21:27:53.368761         0.00
+embark-vc                 Declared      21:27:21.599060         0.00
+org-roam-ui               Declared      21:27:21.776491         0.00
+consult-eglot             Declared      21:27:21.776719         0.00
+corfu-terminal            Declared      21:27:21.599562         0.00
+#+end_example
    
 * Editing Utilities
 
@@ -126,12 +279,10 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 
 ** Meow - Modal Editing
 
-#+begin_src emacs-lisp
+#+begin_src emacs
 (use-package meow
-  :config
-  (meow-setup)
-  (meow-global-mode 1)
   :init
+  (require 'meow)
   (defun meow-setup ()
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
     (meow-motion-overwrite-define-key
@@ -212,7 +363,9 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
      '("y" . meow-save)
      '("z" . meow-pop-selection)
      '("'" . repeat)
-     '("<escape>" . ignore))))
+     '("<escape>" . ignore)))
+  (meow-setup)
+  (meow-global-mode 1))
 #+end_src   
    
 ** File Handler Functions
@@ -301,11 +454,10 @@ This Emacs Lisp config block sets up mouse scrolling and mouse support in the te
 
 #+begin_src emacs-lisp
 (use-package move-dup
-  :config (global-move-dup-mode)
   :bind(("M-<up>" . move-dup-move-lines-up)
-         ("M-<down>" . move-dup-move-lines-down)
-         ("C-c d" . move-dup-duplicate-down)
-         ("C-c u" . move-dup-duplicate-up)))
+        ("M-<down>" . move-dup-move-lines-down)
+        ("C-c d" . move-dup-duplicate-down)
+        ("C-c u" . move-dup-duplicate-up)))
 #+end_src
 
 This configuration block uses the =use-package= macro to manage the =move-dup= package. It sets up several keybindings and enables =move-dup= globally after initialization with the =after-init= hook. The keybindings allow you to move lines up and down, duplicate lines up and down using different key combinations.
@@ -316,9 +468,8 @@ Cut/copy the current line if no region is active.
 
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
-  :hook (after-init . whole-line-or-region-global-mode)
-  :bind (:map whole-line-or-region-local-mode ("M-j". comment-dwim))
-  )
+  :ensure t
+  :config (whole-line-or-region-global-mode t))
 #+end_src
 
 This Emacs Lisp code block configures the =whole-line-or-region= package, enabling global mode and binding the key combination "M-j" to the function =comment-dwim=.
@@ -378,12 +529,10 @@ This config block sets up the Emacs package "switch-window" by configuring its o
    
 #+begin_src emacs-lisp
 (use-package windswap
-  :commands (windmove-default-keybindings windswap-default-keybindings)
+  :defer 4
   :config
-  (add-hook 'after-init-hook
-            (lambda ()
-              (windmove-default-keybindings 'control)
-              (windswap-default-keybindings 'shift 'control))))
+  (windmove-default-keybindings 'control)
+  (windswap-default-keybindings 'shift 'control))
 #+end_src   
 
 This Emacs Lisp code configures the =windswap= package, which provides functions to navigate and rearrange windows. It sets up keybindings for both =windmove= (to move between windows) and =windswap= (to swap windows) using the control and shift keys. This configuration is executed after Emacs initializes.
@@ -416,7 +565,6 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
  column-number-mode t
  ediff-split-window-function 'split-window-horizontally
  ediff-window-setup-function 'ediff-setup-windows-plain
- indent-tabs-mode nil
  tab-width 4
  make-backup-files nil
  mouse-yank-at-point t
@@ -430,27 +578,23 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
 (global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
-
+(setq use-dialog-box nil)
 (global-set-key (kbd "C-c C-p") 'find-file-at-point)
 #+end_src
 
 ** Track Recent Files
 
-   When you perform =m-x b= you will see list of recent files
+   When you perform =m-x b= you will see list of recent files. loaded with consult.
 
 #+begin_src emacs-lisp
 (use-package recentf
   :ensure nil
-  :hook ((after-init . recentf-mode)(package-upgrade-all . recentf-cleanup))
+  :hook ((package-upgrade-all . recentf-cleanup))
   :custom
   (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 80)
-  (recentf-exclude '("/tmp/"))
-  :config
-  (add-to-list 'recentf-exclude
-             (recentf-expand-file-name no-littering-var-directory)))
+  (recentf-max-saved-items 25))
 #+end_src
 
 ** Auto update file
@@ -459,7 +603,8 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
    
 #+begin_src emacs-lisp
 (use-package autorevert
-  :hook (after-init . global-auto-revert-mode)
+  :defer 15
+  :config (global-auto-revert-mode 1)
   :delight auto-revert-mode)
 #+end_src
 
@@ -468,38 +613,14 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
 Tramp was acting slow this helps...maybe
 
 #+begin_src emacs-lisp
+(setq tramp-verbose 1)
+(setq tramp-encoding-shell "/bin/bash")
+(setq tramp-default-method "ssh")
+(eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
+(setq vc-handled-backends '(Git))
 (use-package tramp
-  :ensure nil
-  :commands tramp-mode
-  :custom
-  ;; (tramp-default-method "ssh")
-  (tramp-verbose 0)
-  (tramp-encoding-shell "/bin/bash")
-  (tramp-ssh-controlmaster-options (concat
-    "-o ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p "
-    "-o ControlMaster=auto -o ControlPersist=yes"))
-  (tramp-connection-properties (quote ((file-remote-p (tramp-file-name nil host port)) " ControlPath=/tmp/ssh-ControlPath-%%r@%%h:%%p ")))
-  :config
-  (setq vc-handled-backends '(Git))
-   ;; use remote path
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
-#+end_src
-
-** Load All Environment Variable
-
-   too lazy to figure out what env variable I am missing so I am just loading them all.
-   - Was using  exec-path-from-shell
-
-#+begin_src emacs-lisp
-(defun load-all-environment-variables ()
-  "Load all environment variables from the user's shell."
-  (let ((shell-env (shell-command-to-string "env")))
-    (dolist (var (split-string shell-env "\n"))
-      (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
-        (let ((name (match-string 1 var))
-              (value (match-string 2 var)))
-          (setenv name value))))))
-(add-hook 'after-init-hook 'load-all-environment-variables)
+  :defer t
+  :config (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
 #+end_src
 
 ** Save History
@@ -507,20 +628,31 @@ Tramp was acting slow this helps...maybe
 #+begin_src emacs-lisp
 (use-package savehist
   :ensure nil
-  :hook (after-init . savehist-mode))
+  :config
+  (setq history-length 25)
+  (savehist-mode 1))
 #+end_src   
 
+** Save Place
+
+   Open files back up at same position.
+   
+#+begin_src emacs-lisp
+(save-place-mode 1)
+#+end_src
+   
 ** I-Search
 
+Show number of matches while searching
+   
 #+begin_src emacs-lisp
-;; Show number of matches while searching
 (use-package anzu
-  :hook (after-init . global-anzu-mode)
+  :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
+         ([remap query-replace] . anzu-query-replace)
+         ("C-M-w". isearch-yank-symbol))
   :custom
   (anzu-mode-lighter "")
   :config
-  (global-set-key [remap query-replace-regexp] 'anzu-query-replace-regexp)
-  (global-set-key [remap query-replace] 'anzu-query-replace)
   (defun sanityinc/isearch-exit-other-end ()
     "Exit isearch, but at the other end of the search string.
 This is useful when followed by an immediate kill."
@@ -535,14 +667,13 @@ This is useful when followed by an immediate kill."
     (interactive)
     (let ((sym (thing-at-point 'symbol)))
       (if sym
-        (progn
-          (setq isearch-regexp t
-            isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
-            isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
-            isearch-yank-flag t))
+          (progn
+            (setq isearch-regexp t
+                  isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
+                  isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
+                  isearch-yank-flag t))
         (ding)))
-    (isearch-search-and-update))
-  (define-key isearch-mode-map "\C-\M-w" 'isearch-yank-symbol))
+    (isearch-search-and-update)))
 #+end_src
 
 ** Ibuffer
@@ -588,8 +719,8 @@ This is useful when followed by an immediate kill."
 
 #+begin_src emacs-lisp
 (use-package expand-region
-  :bind (("M-[" . er/expand-region)
-         ("C-(" . er/mark-outside-pairs)))
+  :bind (("M-C e" . er/expand-region)
+         ("M-C o" . er/mark-outside-pairs)))
 #+end_src
 
 ** symbol-overlay
@@ -662,16 +793,16 @@ This is useful when followed by an immediate kill."
    View and auto remove them.
 
 #+begin_src emacs-lisp
-(setq-default show-trailing-whitespace nil)
 (use-package whitespace-cleanup-mode
+  :commands (whitespace-cleanup)
   :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
   :delight
-  :hook (after-init . global-whitespace-cleanup-mode)
   :config
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
   (defun sanityinc/show-trailing-whitespace ()
     "Enable display of trailing whitespace in this buffer."
-    (setq-local show-trailing-whitespace t)))
+    (setq-local show-trailing-whitespace t)
+    (whitespace-cleanup-mode 1)))
 #+end_src
 
 ** Matching and Highlighting Delimiters
@@ -679,9 +810,7 @@ This is useful when followed by an immediate kill."
    Was using much more complicated packages like paredit/smartparens but was not using there features.
 
 #+begin_src emacs-lisp
-(use-package electric-pair-mode ; Easily insert matching delimiter
-  :ensure nil
-  :hook (after-init . electric-pair-mode))
+(electric-pair-mode t)
 (use-package paren ; highight matching paren
   :ensure nil
   :hook (prog-mode . show-paren-mode))
@@ -771,6 +900,7 @@ Call a second time to restore the original window configuration."
   - [[https://github.com/gonewest818/dimmer.el][Dimmer]]
   - [[https://github.com/emacs-dashboard/emacs-dashboard][Dashboard]]
   - [[https://github.com/ema2159/centaur-tabs][Centaur tabs]]
+  - Treemacs
     
 ** General
 
@@ -784,11 +914,13 @@ Call a second time to restore the original window configuration."
 
 *** Page Break
 
+    don't need it right away normally
+
 #+begin_src emacs-lisp
 (use-package page-break-lines
+  :defer 3
   :config (page-break-lines-mode))
 #+end_src
-
 
 ** Theme
 
@@ -807,43 +939,31 @@ Call a second time to restore the original window configuration."
   :hook (prog-mode . rainbow-delimiters-mode))
 (use-package global-prettify-symbols-mode
   :ensure nil
-  :hook (after-init . global-prettify-symbols-mode))
+  :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
 #+end_src
 
 ** Modeline
 
  #+begin_src emacs-lisp
  (use-package doom-modeline
+   :after doom-themes
    :hook ((after-init . doom-modeline-mode))
    :init
    (line-number-mode -1)
    (column-number-mode -1)
    (setq mode-line-position nil)
    :custom ((doom-modeline-project-detection 'project)
-            (doom-modeline-vcs-max-length 30)
-            (doom-modeline-hud t)
-            (doom-modeline-env-version t)
-            (doom-modeline-buffer-encoding nil)
-            (doom-modeline-workspace-name t)
-            (doom-modeline-buffer-file-name-style 'auto)
-            (doom-modeline-height 27)
-            (doom-modeline-buffer-state-icon t)
-            (doom-modeline-icon t)))
+			(doom-modeline-vcs-max-length 30)
+			(doom-modeline-hud t)
+			(doom-modeline-unicode-fallback t)
+			(doom-modeline-env-version t)
+			(doom-modeline-buffer-encoding nil)
+			(doom-modeline-workspace-name t)
+			(doom-modeline-buffer-file-name-style 'auto)
+			(doom-modeline-height 27)
+			(doom-modeline-buffer-state-icon t)
+			(doom-modeline-icon t)))
  #+end_src
-
-** Treemacs 
-
-#+begin_src emacs-lisp
-(use-package treemacs
-  :commands (treemacs)
-  :bind ("C-c C-t" . treemacs)
-  :hook (treemacs-mode . (lambda () (setq truncate-lines t))))
-(use-package treemacs-magit
-  :after (treemacs magit))
-(use-package treemacs-tab-bar ;;treemacs-tab-bar if you use tab-bar-mode
-  :after (treemacs)
-  :config (treemacs-set-scope-type 'Tabs))
-#+end_src
  
 ** GUI Frames
 
@@ -870,29 +990,76 @@ Call a second time to restore the original window configuration."
     
 #+begin_src emacs-lisp
 (use-package default-text-scale
-  :hook (after-init . default-text-scale-mode))
+  :bind (("C-M-=". default-text-scale-increase)
+         ("C-M--" . default-text-scale-decrease)))
 #+end_src
 
 * Minibuffer / Completion Framework
 
   What make Emacs, Emacs.
 
+** Minbuffer
+
+#+begin_src emacs-lisp
+(use-package minibuffer
+  :ensure nil
+  :bind
+  (:map minibuffer-local-completion-map
+        ("<backtab>" . minibuffer-force-complete))
+  :custom
+  (completion-styles '(orderless))
+  (completion-category-defaults nil)
+  (completion-category-overrides '((file (styles basic partial-completion))))
+  (read-file-name-completion-ignore-case t)
+  (read-buffer-completion-ignore-case t)
+  (completion-ignore-case t)
+  (enable-recursive-minibuffers t)
+  (minibuffer-eldef-shorten-default t)
+  (resize-mini-windows t)
+  (minibuffer-prompt-properties
+   '(read-only t cursor-intangible t face minibuffer-prompt))
+  :init
+  (minibuffer-depth-indicate-mode)
+  (minibuffer-electric-default-mode)
+  :hook
+  (completion-list-mode . force-truncate-lines)
+  (minibuffer-setup . cursor-intangible-mode)
+  :config
+  (defun stealthily (fn &rest args)
+    "Apply FN to ARGS while inhibiting modification hooks."
+    (let ((inhibit-modification-hooks t))
+      (apply fn args)))
+  (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
+#+end_src
+
+** Vertico 
+  
 #+begin_src emacs-lisp
 (use-package vertico
-  :hook (after-init . vertico-mode))
+  :config
+  (vertico-mode))
 (use-package marginalia
-  :after vertico
-  :hook (vertico-mode . marginalia-mode)
+  :config (marginalia-mode)
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
   :hook ((marginalia-mode . all-the-icons-completion-marginalia-setup)))
+#+end_src
 
+** Orderless
+   instead of fuzzy (flex) in emacs terms orderless is a very nice completion framework it's particularly good at finding matches at end of things faster. Copy some stuff from here https://github.com/oantolin/emacs-config/blob/d0ffbd9527e48bd88dc4c9937e4dc80f783d844e/init.el#L375C2-L396C72https://github.com/oantolin/emacs-config/blob/d0ffbd9527e48bd88dc4c9937e4dc80f783d844e/init.el#L375C2-L396C72
+
+#+begin_src emacs-lisp
 (use-package orderless
+  :after (minibuffer vertico)
   :custom
+  ;; (orderless-matching-styles 'orderless-regexp)
+  ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  (completion-category-defaults nil)
   (completion-styles '(orderless basic))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
+
 ** Edit Search Results Directly
 
  wgrep lets you edit  directly (good with embark export).
@@ -957,16 +1124,8 @@ Call a second time to restore the original window configuration."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
+  (recentf-mode 1)
   (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
-  ;; commands that I don'want to preview while scrolling
-  ;; (consult-customize
-  ;;   consult-grep consult-bookmark consult-recent-file consult-xref
-  ;;   consult--source-bookmark consult--source-file-register
-  ;;   consult--source-recent-file consult--source-project-recent-file 
-  ;;   :preview-key '( :debounce 1 any ))
-  (consult-customize
-   consult-line 
-   :add-history (seq-some #'thing-at-point '(region symbol)))
   (defalias 'consult-line-thing-at-point 'consult-line)
   (defalias 'consult-ripgrep-symbol-at-point 'consult-ripgrep)
   (consult-customize consult-ripgrep-symbol-at-point :initial (thing-at-point 'symbol))
@@ -1075,12 +1234,21 @@ Call a second time to restore the original window configuration."
    
 #+begin_src emacs-lisp
 (use-package embark
-  :bind (("M-." . embark-act)
+  :bind (:map minibuffer-mode-map
+              ("M-e" . sn/edit-search-results)
+         ("M-." . embark-act)
          ("C-;" . embark-dwin)
          ("C-h B" . embark-bindings)
          :map embark-region-map
          ("w" . google-this)
          ("g" . gptel))
+  :init
+  (defun sn/edit-search-results ()
+    "Export results using `embark-export' and activate `wgrep'."
+    (interactive)
+    (progn
+      (run-at-time 0 nil #'embark-export)
+      (run-at-time 0 nil #'wgrep-change-to-wgrep-mode)))
   :config
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
@@ -1104,7 +1272,6 @@ Call a second time to restore the original window configuration."
 (add-to-list 'load-path "~/src/protogg")
 (use-package protogg
   :ensure nil
-  :defer t
   :load-path "~/src/protogg/protogg.el"
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
@@ -1117,7 +1284,8 @@ Call a second time to restore the original window configuration."
          ([remap shell-command] . protogg-shell-command) ;; M-!
          ("C-c s" . protogg-shell)
          ([remap switch-to-buffer] . sn/consult-buffer)
-         ("M-s i" . sn/imenu)) ;; C-x b
+         ("M-s i" . sn/imenu)
+         ("M-t" . sn/multi-vterm)) ;; C-x b
   :config
   (protogg-define 'consult-project-buffer 'consult-buffer sn/consult-buffer)
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
@@ -1125,13 +1293,18 @@ Call a second time to restore the original window configuration."
 
 ** Corfu
 
-   Corfu is a text completion framework to retrieve and display completion candidates. More Simple than Company better for Emacs API.
-
+   Corfu is responsible for displaying the completion list. I use overlay for text buffers and dropdown list for programming. Testing this-command  
 
 #+begin_src emacs-lisp
 (use-package corfu
   :hook ((after-init . global-corfu-mode)
-         (corfu-mode . corfu-popupinfo-mode))
+         (corfu-mode . corfu-popupinfo-mode)
+		 ((prog-mode conf-mode yaml-mode) . (lambda ()
+                       (setq-local corfu-auto t
+                                   corfu-auto-delay 0
+								   corfu-auto-prefix 1
+								    completion-styles '(orderless-fast basic)
+                                   corfu-popupinfo-delay 0.1))))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
@@ -1140,23 +1313,30 @@ Call a second time to restore the original window configuration."
   :custom
   (tab-always-indent 'complete)
   (corfu-quit-no-match 'separator)
-  (corfu-auto-prefix 2))
+  (corfu-auto-delay 0.8)
+  (corfu-popupinfo-delay 0.2)
+  (corfu-auto-prefix 2)
+  :init
+  ;; TAB cycle if there are only few candidates
+  (setq completion-cycle-threshold 3)
+  :config
+  (defun orderless-fast-dispatch (word index total)
+  (and (= index 0) (= total 1) (length< word 4)
+       `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
+(orderless-define-completion-style orderless-fast
+  (orderless-style-dispatchers '(orderless-fast-dispatch))
+  (orderless-matching-styles '(orderless-literal orderless-regexp))))
 #+end_src
 
-*** overlay candiadate for non-programming
+*** Overlay Candiadate For Non-Programming
 
-#+begin_src emacs
+#+begin_src emacs-lisp
 (use-package corfu-candidate-overlay
-  :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay"
-                               :branch "master")
-  :hook (prog-mode . (lambda ()
-                       (corfu-candidate-overlay-mode -1)
-                       (setq-local corfu-auto t
-                                   corfu-auto-delay 0
-                                   corfu-popupinfo-delay 0.8)))
+  :ensure nil
   :after corfu
-  :config
-  (corfu-candidate-overlay-mode +1))
+  :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
+                               :branch "master")
+  :config (corfu-candidate-overlay-mode +1))
 #+end_src    
 
 *** Extensions
@@ -1164,7 +1344,8 @@ Call a second time to restore the original window configuration."
 #+begin_src emacs-lisp
 (use-package corfu-terminal
   :when (not (display-graphic-p))
-  :vc (corfu-terminal :url "https://codeberg.org/akib/emacs-corfu-terminal.git"
+  :after (corfu)
+  :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
                       :branch "master"))
 #+end_src
 
@@ -1190,8 +1371,8 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package cape
-  :after corfu
-   :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
+  :after (corfu orderless)
+  :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
          ("C-c p t" . complete-tag)        ;; etags
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
          ("C-c p h" . cape-history)
@@ -1200,14 +1381,12 @@ Call a second time to restore the original window configuration."
          ("C-c p s" . cape-elisp-symbol)
          ("C-c p e" . cape-elisp-block)
          ("C-c p a" . cape-abbrev)
-         ("C-c p l" . cape-line)
-         ("C-c p w" . cape-dict))
+         ("C-c p l" . cape-line))
   :init
+  (add-to-list 'completion-at-point-functions #'cape-dict)
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file)
-  (defalias 'corfu--ispell-in-comments-and-strings
-    (cape-super-capf (cape-capf-inside-comment #'cape-dict)
-                     (cape-capf-inside-string #'cape-dict))))
+  (add-to-list 'completion-at-point-functions #'cape-file))
 #+end_src
     
 ** Snippets
@@ -1224,42 +1403,8 @@ Call a second time to restore the original window configuration."
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
-#+end_src
-
-*** HOLD tempel - Snippets
-
-   not quite there yet 
-   
-#+begin_src emacs 
-(use-package tempel
-  :custom (tempel-trigger-prefix "<")   ;; Require trigger prefix before template name when completing.
-  :hook ((conf-mode . tempel-setup-capf)
-         (prog-mode . tempel-setup-capf)
-         (text-mode . tempel-setup-capf)
-         (after-init . global-tempel-abbrev-mode))
-  :bind (("M-+" . tempel-complete) ;; Alternative tempel-expand
-         ("M-*" . tempel-insert))
-  :init
-  ;; Setup completion at point
-  (defun tempel-setup-capf ()
-    ;; Add the Tempel Capf to `completion-at-point-functions'.
-    ;; `tempel-expand' only triggers on exact matches. Alternatively use
-    ;; `tempel-complete' if you want to see all matches, but then you
-    ;; should also configure `tempel-trigger-prefix', such that Tempel
-    ;; does not trigger too often when you don't expect it. NOTE: We add
-    ;; `tempel-expand' *before* the main programming mode Capf, such
-    ;; that it will be tried first.
-    (setq-local completion-at-point-functions
-                (cons #'tempel-expand
-                      completion-at-point-functions))))
-#+end_src
-
-*** snippet collection
-
-    The package is young and doesn't have comprehensive coverage.
-
-#+begin_src emacs
-(use-package tempel-collection)
+(use-package yasnippet-capf
+  :custom (yasnippet-capf-lookup-by 'name)) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling
@@ -1269,7 +1414,7 @@ Call a second time to restore the original window configuration."
    
 #+begin_src emacs-lisp
 (use-package ispell
-  :defer t
+  :defer 5
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra" "--run-together")))
@@ -1304,7 +1449,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
-  :hook (after-init . global-flycheck-mode)
+  :hook (prog-mode . global-flycheck-mode)
   :config
   (setq flycheck-emacs-lisp-load-path 'inherit)
   ;; Rerunning checks on every newline is a mote excessive.
@@ -1409,19 +1554,18 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 ** General Configure
 
 #+begin_src emacs-lisp
-(use-package org-contrib
-  ;; ox-extra 
-  :after org
-  :defer t
-  :config)
-(use-package ox-extra ;; ignore header tagged wit ignore
-  :after org-contrib
-  :ensure nil)
 (use-package org
   :bind (("C-c a" .  gtd)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
   :config
+  (custom-set-faces
+   '(org-document-title ((t (:height 3.2))))
+   '(header-line ((t (:height 3 :weight bold))))
+   '(org-level-1 ((t (:foreground "#98be65" :height 1.6))))
+   '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
+   '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
+   '(header-line ((t (:height 2)))))
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (setq org-adapt-indentation t
         org-auto-align-tags nil
@@ -1440,30 +1584,30 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
         org-startup-folded t
         org-startup-with-inline-images t
         org-archive-location "%s_archive::* Archive"))
+#+end_src
+
+** Extra org packages
+
+#+begin_src emacs-lisp
+(use-package org-contrib
+  :after org
+  :defer 6)
+(use-package ox-extra ;; ignore header tagged wit ignore
+  :after org-contrib
+  :ensure nil)
 (use-package ox-latex
   :ensure nil
   :after org-contrib
   :custom org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
-
-(use-package org-cliplink
-  :bind (("C-c l" . org-store-link)))
-(custom-set-faces
-   '(org-document-title ((t (:height 3.2))))
-   '(header-line ((t (:height 3 :weight bold))))
-   '(org-level-1 ((t (:foreground "#98be65" :height 1.6))))
-  '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
-  '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
-  '(header-line ((t (:height 2)))))
-
 #+end_src
-
+   
 ** Org Appear
 
 Provides a way to toggle visibility of hidden elements such as emphasis markers, links, etc. by customising specific variables.
 
 #+begin_src emacs-lisp
 (use-package org-appear
-  :vc (org-appear :url "https://github.com/awth13/org-appear"
+  :vc (:url "https://github.com/awth13/org-appear.git"
                   :branch "master")
   :hook (org-mode . org-appear-mode))
 #+end_src
@@ -1564,7 +1708,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
      (latex . t)
      (octave . t)
      (python . t)
-     (jupyter . t)
      (,(if (locate-library "ob-sh") 'sh 'shell) . t)
      (sql . t)
      (sqlite . t))))
@@ -1658,11 +1801,12 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package type-break
+  :defer 7
   :after org-pomodoro
   :hook ((org-pomodoro-killed . type-break-mode)
          (org-pomodoro-break-finished . type-break-mode)
          (org-pomodoro-started . (lambda () (type-break-mode -1)))
-         (after-init . type-break-mode))
+  :config (type-break-mode t))
   :init
   (defun type-break-demo-agenda ()
     "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
@@ -1737,7 +1881,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package org-pretty-table
-  :vc (org-pretty-table :url "https://github.com/Fuco1/org-pretty-table"
+  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
                         :branch "master")
   :hook (org-mode . org-pretty-table-mode))
 (use-package org
@@ -2017,7 +2161,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package org-roam-ui
-  :vc (org-roam-ui :url "https://github.com/org-roam/org-roam-ui"
+  :vc (:url "https://github.com/org-roam/org-roam-ui"
                    :branch "main")
   :after org-roam
   :config
@@ -2090,71 +2234,24 @@ packages I had at one point
   :config (global-treesit-auto-mode))
 #+end_src
     
-*** LSP-Mode
-
-   We use the excellent [[https://emacs-lsp.github.io/lsp-mode/][lsp-mode]] to enable IDE-like functionality for many different programming languages via "language servers" that speak the [[https://microsoft.github.io/language-server-protocol/][Language Server Protocol]].  Before trying to set up =lsp-mode= for a particular language, check out the [[https://emacs-lsp.github.io/lsp-mode/page/languages/][documentation for your language]] so that you can learn which language servers are available and how to install them.
+*** Eglot
 
 #+begin_src emacs-lisp
-(use-package lsp-mode
-  :commands (lsp lsp-deferred)
-  :custom
-  (read-process-output-max (* 3 1024 1024)) ;; 3mb
-  (lsp-completion-provider :none)           ;; corfu instead
-  (lsp-idle-delay 0.3)
-  (lsp-enable-which-key-integration t)
+(use-package eglot
+  :hook (((go-ts-mode) . eglot-ensure)
+         ((go-ts-mode) . eglot-format-buffer-on-save))
+  :custom (eglot-autoshutdown t)
   :init
- (defun my/lsp-mode-setup-completion ()
-    (setf (alist-get 'styles (alist-get 'lsp-capf completion-category-defaults))
-          '(orderless))) ;; Configure orderless
- :hook ((lsp-completion-mode . my/lsp-mode-setup-completion)
-        (go-ts-mode . lsp-deferred))
-  :config
-  (lsp-register-client
-   (make-lsp-client :new-connection (lsp-tramp-connection
-                                     (lambda ()
-                                       (setq-local lsp-enable-file-watchers nil)
-                                       (cons "gopls" '("-remote=auto"))))
-                    :major-modes '(go-ts-mode)
-                    :priority 10
-                    :server-id 'gopls-remote
-                    :remote? t
-                    ))
-  :bind-keymap ("C-." . lsp-command-map)
-  :bind ((:map lsp-command-map
-               ("C-r" . lsp-workspace-restart)
-               ("C-q" . lsp-workspace-shutdown)
-               ("s" . lsp-ui-doc-show)
-               ("i" . lsp-find-implementation)
-               ("?" . lsp-find-references)
-               ("r" . lsp-rename)
-               ("j" . lsp-ui-imenu)
-               ("c" . compile)
-               ("C" . recompile)
-               ("d" . dap-hydra)
-               )))
-(use-package consult-lsp
-  :after (consult lsp-mode)
-  :bind ((:map lsp-command-map
-               ("." . consult-lsp-diagnostics)))
-  :config
-  (define-key lsp-mode-map [remap xref-find-apropos] #'consult-lsp-symbols))
-#+end_src
-
-*** LSP-UI
-
-   [[https://emacs-lsp.github.io/lsp-ui/][lsp-ui]] is a set of UI enhancements built on top of =lsp-mode= which make Emacs feel even more like an IDE.  Check out the screenshots on the =lsp-ui= homepage (linked at the beginning of this paragraph) to see examples of what it can do.
-
-#+begin_src emacs-lisp
-(use-package lsp-ui
-  :commands lsp-ui-mode
-  :custom
-  (lsp-ui-doc-position 'bottom)
-  (lsp-ui-doc-delay .2 )
-  (lsp-headerline-breadcrumb-enable nil)
-  (lsp-eldoc-enable-hover t)
-  (lsp-ui-peek-always-show t)
-  (lsp-ui-sideline-show-hover t)
-  (lsp-ui-sideline-enable nil))
+  (defun eglot-format-buffer-on-save ()
+    (add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (defun project-find-go-module (dir)
+    (when-let ((root (locate-dominating-file dir "go.mod")))
+      (cons 'go-module root)))
+  (cl-defmethod project-root ((project (head go-module)))
+    (cdr project))
+  (add-hook 'project-find-functions #'project-find-go-module))
+(use-package consult-eglot
+  :after eglot)
 #+end_src
 
 *** Git 
@@ -2162,19 +2259,12 @@ packages I had at one point
    Show diff in fringe if local files only to minimize remote work. 
 
 #+begin_src emacs-lisp
-(use-package diff-hl
-  :hook ((dired-mode . diff-hl-dired-mode)
-         (prog-mode . diff-hl-mode)
-         (magit-post-refresh . diff-hl-magit-post-refresh))
-  :bind (:map diff-hl-mode-map
-         ([left-fringe mouse-2] . diff-hl-diff-goto-hunk))
-  :config
-  (defun my/disable-diff-hl-for-remote-buffers ()
-    (when (and buffer-file-name (file-remote-p buffer-file-name))
-      (diff-hl-dired-mode -1)
-      (diff-hl-mode -1)))
-  (add-hook 'find-file-hook #'my/disable-diff-hl-for-remote-buffers))
+(use-package git-gutter
+  :custom ((git-gutter:ask-p nil))
+  :hook ((prog-mode yaml-mode conf-mode) . git-gutter-mode))
 (use-package browse-at-remote
+  :bind (("C-c g g" . browse-at-remote)
+		 ("C-c g k" . browse-at-remote-kill))
   :commands (browse-at-remote browse-at-remote-kill))
 #+end_src
 
@@ -2189,8 +2279,6 @@ packages I had at one point
          ("C-x M-g" . magit-dispatch)
          (:map magit-status-mode-map
                ("C-M-<up>" . magit-section-up))))
-(use-package git-blamed
-  :after magit)
 (use-package forge
   :after magit)
 (use-package magit-todos
@@ -2201,22 +2289,20 @@ packages I had at one point
 *** Better Terminal 
 
  #+begin_src emacs-lisp
- (use-package vterm
+ (use-package multi-vterm
    :hook ((vterm-mode . (lambda ()
                           (toggle-mode-line)
                           (setq left-margin-width 1
                                 right-margin-width 1
                                 cursor-type 'bar))))
-   :bind (( "M-t" . toggle-vterm-buffer)
+   :bind (( "M-t" . multi-vterm-project)
           :map vterm-mode-map
           ("M-t" . toggle-vterm-buffer)
           ("C-M-r" . (lambda ()
                       (interactive)
                       (setq-local vterm-buffer-name-string nil)
                       (rename-buffer (concat "Term " (read-string "Term: ")))))
-          ("C-M-t" .(lambda ()
-                      (interactive)
-                      (vterm "Term")))
+          ("C-M-t" . multi-vterm-project)
           ("C-M-f" . tab-line-switch-to-next-tab)
           ("C-M-b" . tab-line-switch-to-prev-tab)
           ("C-M-s" . (lambda ()
@@ -2228,6 +2314,7 @@ packages I had at one point
    (vterm-buffer-name-string "Term %s")
    (vterm-buffer-maximum-size 1000)
    :config
+   
    (defun toggle-vterm-buffer ()
      "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
      (interactive)
@@ -2352,13 +2439,13 @@ packages I had at one point
   :mode "\\.go\\'"
   :ensure-system-package ((gopls . "go get golang.org/x/tools/gopls@latest")
                           (staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest"))
-  :hook ((go-ts-mode . (lambda ()
-                         (add-hook 'before-save-hook 'lsp-format-buffer nil t)
-                         (add-hook 'before-save-hook 'lsp-organize-imports nil t))))
-  :custom
-  (compile-command "go build -v && go test -v -cover && go vet")
-  (lsp-register-custom-settings
-   '(("gopls.staticcheck" t t))))
+  :hook (go-ts-mode . (lambda ()
+						(setq compile-command "go build -v && go test -v -cover && go vet"
+							  go-ts-mode-indent-offset 4)))
+  :custom (eglot-workspace-configuration
+   '((:gopls .
+             ((staticcheck . t)
+              (matcher . "CaseSensitive"))))))
 (use-package flycheck-golangci-lint
   :hook (go-ts-mode . flycheck-golangci-lint-setup))
 (use-package go-tag
@@ -2372,34 +2459,24 @@ packages I had at one point
   :bind (:map go-ts-mode-map ("C-c g" . go-gen-test-dwim)))
 #+end_src
 
-** C++
-
-   https://github.com/MaskRay/ccls/wiki/Build
-
-#+begin_src emacs-lisp
-(use-package ccls
-  :after
-  (:any c-mode c++-mode objc-mode)
-  :config
-  (setq ccls-executable "ccls")
-  :hook ((c-mode c++-mode objc-mode) . (lambda () (require 'ccls) (lsp))))
-#+end_src
-
 ** Rust
 
 Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
-(use-package rustic
-  :bind (:map rustic-mode-map
-              ("C-c C-c l" . flycheck-list-errors)
-              ("C-c C-c a" . lsp-execute-code-action)
-              ("C-c C-c s" . lsp-rust-analyzer-status))
-  :custom
-    (lsp-rust-analyzer-server-display-inlay-hints t)
-  :config
-  (setq rustic-format-on-save t))
+(use-package rust-ts-mode)
+(use-package flycheck-rust
+  :after rust-ts-mode
+  :hook (flycheck-mode . flycheck-rust-setup))
 #+end_src
+
+** TOML
+
+#+begin_src emacs-lisp 
+(use-package toml-ts-mode
+  :hook (toml-ts-mode . goto-address-prog-mode))  
+#+end_src
+
 
 ** Python
 
@@ -2409,12 +2486,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
-(use-package lsp-python-ms
-  :commands (lsp lsp-deferered)
-  :init (setq lsp-python-ms-auto-install-server t)
-  :hook (python-mode . (lambda ()
-                         (require 'lsp-python-ms)
-                         (lsp))))
 (use-package conda
   :after python
   :commands (conda-env-list conda-env-activate)
@@ -2452,7 +2523,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
                '(conda-env-current-name (" conda:" conda-env-current-name " "))
                'append))
 (use-package jupyter
+  :defer 3
   :config
+  (add-to-list 'org-babel-load-languages '(jupyter . t))
   (setq code-cells-convert-ipynb-style '(
 	                                     ("pandoc" "--to" "ipynb" "--from" "org")
 	                                     ("pandoc" "--to" "org" "--from" "ipynb")
@@ -2471,9 +2544,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 ** YAML
 
 #+begin_src emacs-lisp
-(use-package yaml-mode
-  :config (add-auto-mode 'yaml-mode "\\.yml\\.erb\\'")
-  :hook (yaml-mode-hook .goto-address-prog-mode))
+(use-package yaml-ts-mode
+  :hook (yaml-ts-mode . goto-address-prog-mode))
 #+end_src
 
 ** Docker
@@ -2507,8 +2579,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+begin_src emacs-lisp
 (use-package yuck-mode
   :mode ("\\.yuck\\'" . yuck-mode)
-  :config
-  (setq lisp-indent-offset 2))
+  :hook (yuck-mode . (lambda () (setq-local lisp-indent-offset 2))))
 #+end_src
 
 * Fancy Bloat
@@ -2556,8 +2627,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp 
 (use-package whisper
-  :vc (whisper :url "https://github.com/natrys/whisper.el"
-               :branch "master")
+  :vc (:url "https://github.com/natrys/whisper.el"
+            :branch "master" )
   :bind ("C-h w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
@@ -2597,7 +2668,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   Typing practice inside Emacs.  
   
 #+begin_src emacs-lisp
-(use-package speed-type :commands speed-type-top-x)
+(use-package speed-type :commands speed-type-top-x
+  :defer t)
 #+end_src
 
 ** Google This
@@ -2614,7 +2686,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs
 (use-package eaf
-  :vc (eaf :url "https://github.com/emacs-eaf/emacs-application-framework.git")
+  :vc (:url "https://github.com/emacs-eaf/emacs-application-framework.git")
   :custom
   ; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
   (eaf-browser-continue-where-left-off t)
@@ -2634,7 +2706,7 @@ need to install =pip3 install epc sexpdata six pynput inflect PyQt6 PyQt6-Qt6 Py
    
 #+begin_src emacs
 (use-package holo-layer
-  :vc (holo-layer :url "https://github.com/manateelazycat/holo-layer/tree/master"))
+  :vc (:url "https://github.com/manateelazycat/holo-layer/tree/master"))
 #+end_src   
     
 * Runtime Performance
@@ -2663,7 +2735,6 @@ Other dotfiles repos and blog posts for inspiration:
 - [[https://github.com/dakrone/dakrone-dotfiles][dakrone's dotfiles]]
 - [[https://github.com/jinnovation/dotemacs][jinnovation dotemacs]]
 - [[https://writequit.org/org/][writequit's config]]
-
 
 And of course [[https://systemcrafters.cc/][System Crafters]] !
 
