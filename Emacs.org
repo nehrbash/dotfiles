@@ -46,7 +46,6 @@
   - [[#protogg][Protogg]]
   - [[#corfu][Corfu]]
   - [[#cape---completion-at-point-extensions][cape - Completion At Point Extensions]]
-  - [[#snippets][Snippets]]
   - [[#spelling][Spelling]]
 - [[#dired][Dired]]
 - [[#org-mode][Org Mode]]
@@ -57,7 +56,6 @@
   - [[#capturing][Capturing]]
   - [[#dynamic-re-align-tags][Dynamic Re-align tags]]
   - [[#pretty-symbol-replacement][Pretty Symbol Replacement]]
-  - [[#pomodoro-timer][Pomodoro Timer]]
   - [[#clock-inout][Clock In/Out]]
   - [[#type-breaks][Type Breaks]]
   - [[#latex-fragments][Latex Fragments]]
@@ -88,19 +86,28 @@
   - [[#mu4e---mail][Mu4e - Mail]]
   - [[#voice-to-text][Voice to Text]]
   - [[#gpt][GPT]]
-  - [[#web-tabs][Web Tabs]]
+  - [[#hold-web-tabs][HOLD Web Tabs]]
   - [[#typing-practice][Typing Practice]]
   - [[#google-this][Google This]]
-  - [[#eaf][eaf]]
 - [[#runtime-performance][Runtime Performance]]
   - [[#minibuffer-turn-off-gc-for-large-lists-and-commands][Minibuffer turn off GC for large lists and commands]]
 - [[#inspiration][Inspiration]]
 
-* Package Manager 
+* Package Manager
+  
 Dropped straight.el because vc provides the one feature I was needing. That is source pulling packages.  ~use-package~  and ~vc-use-package~ are now built-in as well. 
 
 #+begin_src emacs-lisp
 (add-to-list 'load-path "~/.emacs.d/lisp/")
+(defun load-all-environment-variables ()
+    "Load all environment variables from the user's shell."
+    (let ((shell-env (shell-command-to-string "env")))
+      (dolist (var (split-string shell-env "\n"))
+        (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
+          (let ((name (match-string 1 var))
+                (value (match-string 2 var)))
+            (setenv name value))))))
+(load-all-environment-variables)
 (eval-when-compile
   (require 'package)
   (require 'use-package))
@@ -120,19 +127,6 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 (add-hook 'package-upgrade-all-hook
           (lambda ()
             (package-quickstart-refresh)))
-
-(use-package use-package-ensure-system-package
-  :ensure t
-  :init
-  (defun load-all-environment-variables ()
-    "Load all environment variables from the user's shell."
-    (let ((shell-env (shell-command-to-string "env")))
-      (dolist (var (split-string shell-env "\n"))
-        (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
-          (let ((name (match-string 1 var))
-                (value (match-string 2 var)))
-            (setenv name value))))))
-  (load-all-environment-variables))
 #+end_src
 
 ** Startup Time
@@ -830,6 +824,7 @@ This is useful when followed by an immediate kill."
          ("<f7>" . sanityinc/split-window)
          ("C-c <down>" . sanityinc/toggle-current-window-dedication))
   :config
+  (require 'winner)
   (defun split-window-func-with-other-buffer-vertically ()
     "Split this window vertically and switch to the new window."
     (interactive)
@@ -974,13 +969,7 @@ Call a second time to restore the original window configuration."
     Stop C-z from minimizing windows under Linux.
 
 #+begin_src emacs-lisp
-(defun sanityinc/maybe-suspend-frame ()
-  (interactive)
-  (if (display-graphic-p)
-      (message "suspend-frame disabled for graphical displays.")
-    (suspend-frame)))
 (global-unset-key (kbd "C-z"))
-(global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
 (global-set-key (kbd "C-z") 'undo)
 #+end_src
 
@@ -1234,14 +1223,14 @@ Call a second time to restore the original window configuration."
    
 #+begin_src emacs-lisp
 (use-package embark
-  :bind (:map minibuffer-mode-map
-              ("M-e" . sn/edit-search-results)
-         ("M-." . embark-act)
+  :bind (("M-." . embark-act)
          ("C-;" . embark-dwin)
          ("C-h B" . embark-bindings)
-         :map embark-region-map
+		 (:map minibuffer-mode-map
+              ("M-e" . sn/edit-search-results))
+         (:map embark-region-map
          ("w" . google-this)
-         ("g" . gptel))
+         ("g" . gptel)))
   :init
   (defun sn/edit-search-results ()
     "Export results using `embark-export' and activate `wgrep'."
@@ -1297,6 +1286,7 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package corfu
+  :after orderless
   :hook ((after-init . global-corfu-mode)
          (corfu-mode . corfu-popupinfo-mode)
 		 ((prog-mode conf-mode yaml-mode) . (lambda ()
@@ -1304,7 +1294,7 @@ Call a second time to restore the original window configuration."
                                    corfu-auto-delay 0
 								   corfu-auto-prefix 1
 								    completion-styles '(orderless-fast basic)
-                                   corfu-popupinfo-delay 0.1))))
+                                   corfu-popupinfo-delay 0.6))))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
@@ -1328,7 +1318,7 @@ Call a second time to restore the original window configuration."
   (orderless-matching-styles '(orderless-literal orderless-regexp))))
 #+end_src
 
-*** Overlay Candiadate For Non-Programming
+*** Overlay Candidate
 
 #+begin_src emacs-lisp
 (use-package corfu-candidate-overlay
@@ -1339,29 +1329,24 @@ Call a second time to restore the original window configuration."
   :config (corfu-candidate-overlay-mode +1))
 #+end_src    
 
-*** Extensions
+*** More terminal support
 
 #+begin_src emacs-lisp
 (use-package corfu-terminal
-  :when (not (display-graphic-p))
-  :after (corfu)
+  :after corfu
   :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
-                      :branch "master"))
+            :branch "master"))
 #+end_src
 
 *** Icons for list
 
 #+begin_src emacs-lisp
 (use-package kind-icon
-  :commands kind-icon-margin-formatter
-  :init
-  (add-hook 'corfu-margin-formatters #'kind-icon-margin-formatter)
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :after corfu
+  :custom ((kind-icon-default-face 'corfu-default)
+		   (kind-icon-blend-background t)
+		   (kind-icon-blend-frac 0.2))
   :config
-  (setq kind-icon-default-face 'corfu-default
-        kind-icon-blend-background t
-        kind-icon-blend-frac 0.2)
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src    
 
@@ -1382,6 +1367,7 @@ Call a second time to restore the original window configuration."
          ("C-c p e" . cape-elisp-block)
          ("C-c p a" . cape-abbrev)
          ("C-c p l" . cape-line))
+  :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :init
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)
@@ -1389,8 +1375,8 @@ Call a second time to restore the original window configuration."
   (add-to-list 'completion-at-point-functions #'cape-file))
 #+end_src
     
-** Snippets
-*** yasnippet
+*** Snippets
+**** yasnippet
 
 #+begin_src emacs-lisp
 (use-package yasnippet
@@ -1404,7 +1390,9 @@ Call a second time to restore the original window configuration."
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
 (use-package yasnippet-capf
-  :custom (yasnippet-capf-lookup-by 'name)) ;; Prefer the name of the snippet instead)
+  :after cape
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling
@@ -1445,29 +1433,27 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 *** Flycheck
 
     Modernz on-the-fly syntax checking extension for GNU Emacs.
+	- flycheck-posframe if you only use GUI.
 
 #+begin_src emacs-lisp
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
   :hook (prog-mode . global-flycheck-mode)
+  :custom (flycheck-emacs-lisp-load-path 'inherit)
+  (flycheck-buffer-switch-check-intermediate-buffers t)
+  (flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
   :config
-  (setq flycheck-emacs-lisp-load-path 'inherit)
   ;; Rerunning checks on every newline is a mote excessive.
-  (delq 'new-line flycheck-check-syntax-automatically)
-  ;; And don't recheck on idle as often
-  (setq flycheck-buffer-switch-check-intermediate-buffers t)
-  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list))
-;; TODO: use this when in terminal 
-  (use-package flycheck-popup-tip
-  :hook (flycheck-mode . flycheck-popup-tip-mode)
-  ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
-  )
-;; (use-package flycheck-posframe
-;;   :hook (flycheck-mode . flycheck-posframe-mode)
-;;   :config
-;;   (flycheck-posframe-configure-pretty-defaults))
+  (delq 'new-line flycheck-check-syntax-automatically))
 #+end_src
 
+**** Flycheck UI - popup
+
+#+begin_src emacs-lisp
+(use-package flycheck-popup-tip
+  :hook (flycheck-mode . flycheck-popup-tip-mode))
+#+end_src
+	 	 
 * Dired
 
   Built in.
@@ -1520,9 +1506,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package consult-dir
   :after (consult)
   :bind (("C-x C-d" . consult-dir)
-         :map vertico-map
+         (:map vertico-map
          ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file))
+         ("C-x C-j" . consult-dir-jump-file)))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
@@ -1590,15 +1576,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package org-contrib
-  :after org
-  :defer 6)
-(use-package ox-extra ;; ignore header tagged wit ignore
-  :after org-contrib
-  :ensure nil)
-(use-package ox-latex
-  :ensure nil
-  :after org-contrib
-  :custom org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
+  :defer t
+  :hook (org-mode . (lambda ()
+					  (require 'ox-extra)
+					  (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f")))))
 #+end_src
    
 ** Org Appear
@@ -1713,56 +1694,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
      (sqlite . t))))
 #+end_src
 
-** Pomodoro Timer
-
-Basically just followed the directions from this cool blog.   https://colekillian.com/posts/org-pomodoro-and-polybar/
-
-#+begin_src emacs-lisp
-(use-package org-pomodoro
-  :after org-clock
-  :commands (org-pomodoro snehrbass/org-pomodoro-time snehrbass/org-pomodoro-task)
-  :bind ((:map org-agenda-mode-map
-               ("P" . org-pomodoro)))
-  :hook ((org-pomodoro-started . gopar/load-window-config-and-close-work-agenda)
-         (org-pomodoro-finished . gopar/save-window-config-and-show-work-agenda))
-  :custom ((org-pomodoro-clock-break t)
-           (org-pomodoro-manual-break t))
-  :config
-  (defun snehrbass/org-pomodoro-time ()
-    "Return the remaining pomodoro time in sec"
-    (if (org-pomodoro-remaining-seconds)
-        (format "%d" (org-pomodoro-remaining-seconds))
-      "0"))
-
-  (defun snehrbass/org-pomodoro-task ()
-    "Return the current task"
-    (if org-pomodoro-state
-        (cl-case org-pomodoro-state
-          (:pomodoro
-           (format "%s" org-clock-heading))
-          (:short-break
-           (format "Short Break" ))
-          (:long-break
-           (format "Long Break" ))
-          (:overtime
-           (format "Overtime!" ))
-          (:none
-           (format "No Active Pomodoro" )))
-      "No Active Pomodoro"))
-  
-   (defun gopar/save-window-config-and-show-work-agenda ()
-    (interactive)
-    (window-configuration-to-register ?`)
-    (delete-other-windows)
-    (org-save-all-org-buffers)
-    (org-agenda nil "w"))
-   
-  (defun gopar/load-window-config-and-close-work-agenda ()
-    (interactive)
-    (org-save-all-org-buffers)
-    (jump-to-register ?`)))
-#+end_src
-
 ** Clock In/Out
 
    PDFs visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
@@ -1775,7 +1706,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
 (define-key sanityinc/org-global-prefix-map (kbd "i") 'org-clock-in)
 (define-key sanityinc/org-global-prefix-map (kbd "o") 'org-clock-out)
 (define-key global-map (kbd "C-c o") sanityinc/org-global-prefix-map)
-
+ 
 ;; Save the running clock and all clock history when exiting Emacs, load it on startup
 (org-clock-persistence-insinuate)
 (setq org-clock-persist t)
@@ -1788,10 +1719,6 @@ Basically just followed the directions from this cool blog.   https://colekillia
 ;; Removes clocked tasks with 0:00 duration
 (setq org-clock-out-remove-zero-time-clocks t)
 
-;; Show clock sums as hours and minutes, not "n days" etc.
-(setq org-time-clocksum-format
-      '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
-
 (with-eval-after-load 'org-clock
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
@@ -1801,12 +1728,7 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 #+begin_src emacs-lisp
 (use-package type-break
-  :defer 7
-  :after org-pomodoro
-  :hook ((org-pomodoro-killed . type-break-mode)
-         (org-pomodoro-break-finished . type-break-mode)
-         (org-pomodoro-started . (lambda () (type-break-mode -1)))
-  :config (type-break-mode t))
+  :hook ((after-init . type-break-mode))
   :init
   (defun type-break-demo-agenda ()
     "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
@@ -1988,7 +1910,8 @@ Basically just followed the directions from this cool blog.   https://colekillia
 
 ** Agenda Views
 #+begin_src emacs-lisp
-(use-package org
+(use-package org-agenda
+  :ensure nil
   :hook (org-agenda-mode . hl-line-mode)
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
@@ -2239,7 +2162,10 @@ packages I had at one point
 #+begin_src emacs-lisp
 (use-package eglot
   :hook (((go-ts-mode) . eglot-ensure)
-         ((go-ts-mode) . eglot-format-buffer-on-save))
+         ((go-ts-mode) . eglot-format-buffer-on-save)
+		 (eglot-managed-mode . (lambda ()
+								 (add-to-list 'completion-at-point-functions #'yasnippet-capf)
+								 (add-to-list 'completion-at-point-functions #'cape-file))))
   :custom (eglot-autoshutdown t)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -2464,7 +2390,9 @@ packages I had at one point
 Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
-(use-package rust-ts-mode)
+(use-package rust-ts-mode
+  :mode ("\\.rs\\'" . python-mode)
+  )
 (use-package flycheck-rust
   :after rust-ts-mode
   :hook (flycheck-mode . flycheck-rust-setup))
@@ -2476,7 +2404,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 (use-package toml-ts-mode
   :hook (toml-ts-mode . goto-address-prog-mode))  
 #+end_src
-
 
 ** Python
 
@@ -2620,10 +2547,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
         ("/[Gmail]/All Mail"  . ?a))))
 #+end_src
 
-   
 ** Voice to Text
 
-   Speech-to-Text interface for Emacs using OpenAI’s whisper speech recognition model. For the inference engine it uses the awesome C/C++ port whisper.cpp that can run on consumer grade CPU (without requiring a high end GPU). push to talk
+   Speech-to-Text interface for Emacs using OpenAI’s whisper speech recognition model. For the inference engine it uses the awesome C/C++ port whisper.cpp that can run on consumer grade CPU (without requiring a high end GPU). 
 
 #+begin_src emacs-lisp 
 (use-package whisper
@@ -2645,18 +2571,14 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 (use-package gptel
   :bind (("<f5>" . gptel)
          ("C-<f5>" . gptel-menu))
-  :config
-  (defun gpt/read-openai-key ()
-    (with-temp-buffer
-      (insert-file-contents "~/.gpt-key.txt")
-      (string-trim (buffer-string))))
-  (setq gptel-model "gpt-3.5-turbo"
-                gptel-playback t
-                gptel-default-mode 'org-mode
-                gptel-api-key #'gpt/read-openai-key))
+  :custom
+  (gptel-model "gpt-3.5-turbo")
+  (gptel-default-mode 'org-mode))
 #+end_src
 
-** Web Tabs
+** HOLD Web Tabs
+
+   Needs better firefox support.
    
 #+begin_src emacs
 (use-package ibrowse
@@ -2681,34 +2603,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :bind ("M-s w" . google-this))
 #+end_src   
 
-** eaf
-  hella  cool but I'm kinda  fundamentally against  using this  except for the browser when it gets better.
-
-#+begin_src emacs
-(use-package eaf
-  :vc (:url "https://github.com/emacs-eaf/emacs-application-framework.git")
-  :custom
-  ; See https://github.com/emacs-eaf/emacs-application-framework/wiki/Customization
-  (eaf-browser-continue-where-left-off t)
-  (eaf-browser-enable-adblocker t)
-  (browse-url-browser-function 'eaf-open-browser)
-  :config
-  (defalias 'browse-web #'eaf-open-browser)
-  (eaf-bind-key scroll_up "C-n" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key scroll_down "C-p" eaf-pdf-viewer-keybinding)
-  (eaf-bind-key take_photo "p" eaf-camera-keybinding)
-  (eaf-bind-key nil "M-q" eaf-browser-keybinding)) ;; unbind, see more in the Wiki
-#+end_src   
-   
-*** holo-layer
-
-need to install =pip3 install epc sexpdata six pynput inflect PyQt6 PyQt6-Qt6 PyQt6-sip= in arch =paru -S python-epc python-sexpdata python-six python-pynput python-inflect python-pyqt6 python-pyqt6-qt6 python-pyqt6-sip=
-   
-#+begin_src emacs
-(use-package holo-layer
-  :vc (:url "https://github.com/manateelazycat/holo-layer/tree/master"))
-#+end_src   
-    
 * Runtime Performance
 ** Minibuffer turn off GC for large lists and commands 
 

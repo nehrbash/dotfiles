@@ -1,4 +1,13 @@
 (add-to-list 'load-path "~/.emacs.d/lisp/")
+(defun load-all-environment-variables ()
+    "Load all environment variables from the user's shell."
+    (let ((shell-env (shell-command-to-string "env")))
+      (dolist (var (split-string shell-env "\n"))
+        (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
+          (let ((name (match-string 1 var))
+                (value (match-string 2 var)))
+            (setenv name value))))))
+(load-all-environment-variables)
 (eval-when-compile
   (require 'package)
   (require 'use-package))
@@ -18,19 +27,6 @@
 (add-hook 'package-upgrade-all-hook
           (lambda ()
             (package-quickstart-refresh)))
-
-(use-package use-package-ensure-system-package
-  :ensure t
-  :init
-  (defun load-all-environment-variables ()
-    "Load all environment variables from the user's shell."
-    (let ((shell-env (shell-command-to-string "env")))
-      (dolist (var (split-string shell-env "\n"))
-        (when (string-match "\\([^=]+\\)=\\(.*\\)" var)
-          (let ((name (match-string 1 var))
-                (value (match-string 2 var)))
-            (setenv name value))))))
-  (load-all-environment-variables))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -318,6 +314,7 @@ This is useful when followed by an immediate kill."
          ("<f7>" . sanityinc/split-window)
          ("C-c <down>" . sanityinc/toggle-current-window-dedication))
   :config
+  (require 'winner)
   (defun split-window-func-with-other-buffer-vertically ()
     "Split this window vertically and switch to the new window."
     (interactive)
@@ -426,13 +423,7 @@ Call a second time to restore the original window configuration."
 		   (doom-modeline-buffer-state-icon t)
 		   (doom-modeline-icon t)))
 
-(defun sanityinc/maybe-suspend-frame ()
-  (interactive)
-  (if (display-graphic-p)
-      (message "suspend-frame disabled for graphical displays.")
-    (suspend-frame)))
 (global-unset-key (kbd "C-z"))
-(global-set-key (kbd "C-z M-z") 'sanityinc/maybe-suspend-frame)
 (global-set-key (kbd "C-z") 'undo)
 
 (use-package default-text-scale
@@ -641,14 +632,14 @@ Call a second time to restore the original window configuration."
   :after (consult flycheck))
 
 (use-package embark
-  :bind (:map minibuffer-mode-map
-              ("M-e" . sn/edit-search-results)
-         ("M-." . embark-act)
+  :bind (("M-." . embark-act)
          ("C-;" . embark-dwin)
          ("C-h B" . embark-bindings)
-         :map embark-region-map
+		 (:map minibuffer-mode-map
+              ("M-e" . sn/edit-search-results))
+         (:map embark-region-map
          ("w" . google-this)
-         ("g" . gptel))
+         ("g" . gptel)))
   :init
   (defun sn/edit-search-results ()
     "Export results using `embark-export' and activate `wgrep'."
@@ -694,6 +685,7 @@ Call a second time to restore the original window configuration."
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
+  :after orderless
   :hook ((after-init . global-corfu-mode)
          (corfu-mode . corfu-popupinfo-mode)
 		 ((prog-mode conf-mode yaml-mode) . (lambda ()
@@ -701,7 +693,7 @@ Call a second time to restore the original window configuration."
                                    corfu-auto-delay 0
 								   corfu-auto-prefix 1
 								    completion-styles '(orderless-fast basic)
-                                   corfu-popupinfo-delay 0.1))))
+                                   corfu-popupinfo-delay 0.6))))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
               ("TAB" . corfu-next)
               ([tab] . corfu-next)
@@ -732,21 +724,16 @@ Call a second time to restore the original window configuration."
   :config (corfu-candidate-overlay-mode +1))
 
 (use-package corfu-terminal
-  :when (not (display-graphic-p))
-  :after (corfu)
+  :after corfu
   :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
-                      :branch "master"))
+            :branch "master"))
 
 (use-package kind-icon
-  :commands kind-icon-margin-formatter
-  :init
-  (add-hook 'corfu-margin-formatters #'kind-icon-margin-formatter)
-  :custom
-  (kind-icon-default-face 'corfu-default) ; to compute blended backgrounds correctly
+  :after corfu
+  :custom ((kind-icon-default-face 'corfu-default)
+		   (kind-icon-blend-background t)
+		   (kind-icon-blend-frac 0.2))
   :config
-  (setq kind-icon-default-face 'corfu-default
-        kind-icon-blend-background t
-        kind-icon-blend-frac 0.2)
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
@@ -761,6 +748,7 @@ Call a second time to restore the original window configuration."
          ("C-c p e" . cape-elisp-block)
          ("C-c p a" . cape-abbrev)
          ("C-c p l" . cape-line))
+  :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :init
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)
@@ -778,7 +766,9 @@ Call a second time to restore the original window configuration."
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
 (use-package yasnippet-capf
-  :custom (yasnippet-capf-lookup-by 'name)) ;; Prefer the name of the snippet instead)
+  :after cape
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
 (use-package ispell
   :defer 5
@@ -805,22 +795,15 @@ Call a second time to restore the original window configuration."
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
   :hook (prog-mode . global-flycheck-mode)
+  :custom (flycheck-emacs-lisp-load-path 'inherit)
+  (flycheck-buffer-switch-check-intermediate-buffers t)
+  (flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
   :config
-  (setq flycheck-emacs-lisp-load-path 'inherit)
   ;; Rerunning checks on every newline is a mote excessive.
-  (delq 'new-line flycheck-check-syntax-automatically)
-  ;; And don't recheck on idle as often
-  (setq flycheck-buffer-switch-check-intermediate-buffers t)
-  (setq flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list))
-;; TODO: use this when in terminal 
-  (use-package flycheck-popup-tip
-  :hook (flycheck-mode . flycheck-popup-tip-mode)
-  ;; (setq flycheck-popup-tip-error-prefix "X ") ; if default symbol is not in font
-  )
-;; (use-package flycheck-posframe
-;;   :hook (flycheck-mode . flycheck-posframe-mode)
-;;   :config
-;;   (flycheck-posframe-configure-pretty-defaults))
+  (delq 'new-line flycheck-check-syntax-automatically))
+
+(use-package flycheck-popup-tip
+  :hook (flycheck-mode . flycheck-popup-tip-mode))
 
 (use-package dired
   :ensure nil
@@ -923,15 +906,10 @@ Call a second time to restore the original window configuration."
         org-archive-location "%s_archive::* Archive"))
 
 (use-package org-contrib
-  :after org
-  :defer 6)
-(use-package ox-extra ;; ignore header tagged wit ignore
-  :after org-contrib
-  :ensure nil)
-(use-package ox-latex
-  :ensure nil
-  :after org-contrib
-  :custom org-latex-pdf-process (list "latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
+  :defer t
+  :hook (org-mode . (lambda ()
+					  (require 'ox-extra)
+					  (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f")))))
 
 (use-package org-appear
   :vc (:url "https://github.com/awth13/org-appear.git"
@@ -1021,50 +999,6 @@ Call a second time to restore the original window configuration."
      (sql . t)
      (sqlite . t))))
 
-(use-package org-pomodoro
-  :after org-clock
-  :commands (org-pomodoro snehrbass/org-pomodoro-time snehrbass/org-pomodoro-task)
-  :bind ((:map org-agenda-mode-map
-               ("P" . org-pomodoro)))
-  :hook ((org-pomodoro-started . gopar/load-window-config-and-close-work-agenda)
-         (org-pomodoro-finished . gopar/save-window-config-and-show-work-agenda))
-  :custom ((org-pomodoro-clock-break t)
-           (org-pomodoro-manual-break t))
-  :config
-  (defun snehrbass/org-pomodoro-time ()
-    "Return the remaining pomodoro time in sec"
-    (if (org-pomodoro-remaining-seconds)
-        (format "%d" (org-pomodoro-remaining-seconds))
-      "0"))
-
-  (defun snehrbass/org-pomodoro-task ()
-    "Return the current task"
-    (if org-pomodoro-state
-        (cl-case org-pomodoro-state
-          (:pomodoro
-           (format "%s" org-clock-heading))
-          (:short-break
-           (format "Short Break" ))
-          (:long-break
-           (format "Long Break" ))
-          (:overtime
-           (format "Overtime!" ))
-          (:none
-           (format "No Active Pomodoro" )))
-      "No Active Pomodoro"))
-  
-   (defun gopar/save-window-config-and-show-work-agenda ()
-    (interactive)
-    (window-configuration-to-register ?`)
-    (delete-other-windows)
-    (org-save-all-org-buffers)
-    (org-agenda nil "w"))
-   
-  (defun gopar/load-window-config-and-close-work-agenda ()
-    (interactive)
-    (org-save-all-org-buffers)
-    (jump-to-register ?`)))
-
 (defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
 (define-key sanityinc/org-global-prefix-map (kbd "j") 'org-clock-goto)
@@ -1072,7 +1006,7 @@ Call a second time to restore the original window configuration."
 (define-key sanityinc/org-global-prefix-map (kbd "i") 'org-clock-in)
 (define-key sanityinc/org-global-prefix-map (kbd "o") 'org-clock-out)
 (define-key global-map (kbd "C-c o") sanityinc/org-global-prefix-map)
-
+ 
 ;; Save the running clock and all clock history when exiting Emacs, load it on startup
 (org-clock-persistence-insinuate)
 (setq org-clock-persist t)
@@ -1085,21 +1019,12 @@ Call a second time to restore the original window configuration."
 ;; Removes clocked tasks with 0:00 duration
 (setq org-clock-out-remove-zero-time-clocks t)
 
-;; Show clock sums as hours and minutes, not "n days" etc.
-(setq org-time-clocksum-format
-      '(:hours "%d" :require-hours t :minutes ":%02d" :require-minutes t))
-
 (with-eval-after-load 'org-clock
   (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
   (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
 
 (use-package type-break
-  :defer 7
-  :after org-pomodoro
-  :hook ((org-pomodoro-killed . type-break-mode)
-         (org-pomodoro-break-finished . type-break-mode)
-         (org-pomodoro-started . (lambda () (type-break-mode -1)))
-  :config (type-break-mode t))
+  :hook ((after-init . type-break-mode))
   :init
   (defun type-break-demo-agenda ()
     "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
@@ -1254,7 +1179,8 @@ Call a second time to restore the original window configuration."
       (quote (("NEXT" :inherit warning)
               ("PROJECT" :inherit font-lock-string-face)))))
 
-(use-package org
+(use-package org-agenda
+  :ensure nil
   :hook (org-agenda-mode . hl-line-mode)
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
@@ -1429,7 +1355,10 @@ Call a second time to restore the original window configuration."
 
 (use-package eglot
   :hook (((go-ts-mode) . eglot-ensure)
-         ((go-ts-mode) . eglot-format-buffer-on-save))
+         ((go-ts-mode) . eglot-format-buffer-on-save)
+		 (eglot-managed-mode . (lambda ()
+								 (add-to-list 'completion-at-point-functions #'yasnippet-capf)
+								 (add-to-list 'completion-at-point-functions #'cape-file))))
   :custom (eglot-autoshutdown t)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -1605,7 +1534,9 @@ Call a second time to restore the original window configuration."
   :ensure-system-package (gotests . "go install github.com/cweill/gotests/...@latest")
   :bind (:map go-ts-mode-map ("C-c g" . go-gen-test-dwim)))
 
-(use-package rust-ts-mode)
+(use-package rust-ts-mode
+  :mode ("\\.rs\\'" . python-mode)
+  )
 (use-package flycheck-rust
   :after rust-ts-mode
   :hook (flycheck-mode . flycheck-rust-setup))
@@ -1734,15 +1665,9 @@ Call a second time to restore the original window configuration."
 (use-package gptel
   :bind (("<f5>" . gptel)
          ("C-<f5>" . gptel-menu))
-  :config
-  (defun gpt/read-openai-key ()
-    (with-temp-buffer
-      (insert-file-contents "~/.gpt-key.txt")
-      (string-trim (buffer-string))))
-  (setq gptel-model "gpt-3.5-turbo"
-                gptel-playback t
-                gptel-default-mode 'org-mode
-                gptel-api-key #'gpt/read-openai-key))
+  :custom
+  (gptel-model "gpt-3.5-turbo")
+  (gptel-default-mode 'org-mode))
 
 (use-package speed-type :commands speed-type-top-x
   :defer t)
