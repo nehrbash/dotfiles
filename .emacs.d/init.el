@@ -1055,20 +1055,7 @@ Call a second time to restore the original window configuration."
     (add-hook 'after-save-hook 'org-html-export-to-html nil t)
     (message "Enabled org html export on save for current buffer...")))
 
-(use-package org-pretty-table
-  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
-                        :branch "master")
-  :hook (org-mode . org-pretty-table-mode))
-(use-package org
-  :bind ((:map org-mode-map
-               ("C-c v" . wr-mode)))
-  :hook ((org-mode . wr-mode)
-         (org-mode . (lambda ()
-            (setq-local buffer-face-mode-face '((:family "Product Sans")))
-            (setq-local corfu-auto-delay 0.8)
-            (buffer-face-mode))))
-  :init
-  (define-minor-mode wr-mode
+(define-minor-mode wr-mode
     "Set up a buffer for word editing.
  This enables or modifies a number of settings so that the
  experience of word processing is a little more like that of a
@@ -1097,7 +1084,19 @@ Call a second time to restore the original window configuration."
       (kill-local-variable 'electric-pair-mode)
       (buffer-face-mode -1)
       (flyspell-mode -1)
-      (visual-line-mode -1))))
+      (visual-line-mode -1)))
+(use-package org-pretty-table
+  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
+                        :branch "master")
+  :hook (org-mode . org-pretty-table-mode))
+(use-package org
+  :bind ((:map org-mode-map
+               ("C-c v" . wr-mode)))
+  :hook ((org-mode . wr-mode)
+         (org-mode . (lambda ()
+            (setq-local buffer-face-mode-face '((:family "Product Sans")))
+            (setq-local corfu-auto-delay 0.8)
+            (buffer-face-mode)))))
 
 (use-package visual-fill-column
   :hook (org-mode . dw/org-mode-visual-fill)
@@ -1513,54 +1512,6 @@ Call a second time to restore the original window configuration."
 (use-package toml-ts-mode
   :hook (toml-ts-mode . goto-address-prog-mode))
 
-(use-package python
-  :mode ("\\.py\\'" . python-mode)
-  :interpreter ("python" . python-mode))
-(use-package conda
-  :after python
-  :commands (conda-env-list conda-env-activate)
-  :config
-  ;; The location of your anaconda home will be guessed from a list of common
-  ;; possibilities, starting with `conda-anaconda-home''s default value (which
-  ;; will consult a ANACONDA_HOME envvar, if it exists).
-  ;;
-  ;; If none of these work for you, `conda-anaconda-home' must be set
-  ;; explicitly. Afterwards, run M-x `conda-env-activate' to switch between
-  ;; environments
-  (or (cl-loop for dir in (list conda-anaconda-home
-                                "~/.anaconda"
-                                "~/.miniconda"
-                                "~/.miniconda3"
-                                "~/.miniforge3"
-                                "~/anaconda3"
-                                "~/miniconda3"
-                                "~/miniforge3"
-                                "~/opt/miniconda3"
-                                "/usr/bin/anaconda3"
-                                "/usr/local/anaconda3"
-                                "/usr/local/miniconda3"
-                                "/usr/local/Caskroom/miniconda/base"
-                                "~/.conda")
-               if (file-directory-p dir)
-               return (setq conda-anaconda-home (expand-file-name dir)
-                            conda-env-home-directory (expand-file-name dir)))
-      (message "Cannot find Anaconda installation"))
-
-  ;; integration with term/eshell
-  (conda-env-initialize-interactive-shells)
-
-  (add-to-list 'global-mode-string
-               '(conda-env-current-name (" conda:" conda-env-current-name " "))
-               'append))
-(use-package jupyter
-  :defer 3
-  :config
-  (add-to-list 'org-babel-load-languages '(jupyter . t))
-  (setq code-cells-convert-ipynb-style '(
-	                                     ("pandoc" "--to" "ipynb" "--from" "org")
-	                                     ("pandoc" "--to" "org" "--from" "ipynb")
-	                                     org-mode)))
-
 (use-package csv-mode
   :mode ("\\.[Cc][Ss][Vv]\\'" . python-mode)
   :config
@@ -1573,7 +1524,6 @@ Call a second time to restore the original window configuration."
   :bind ("C-c d" . docker)
   :config
   (fullframe docker-images tablist-quit)
-  (fullframe docker-machines tablist-quit)
   (fullframe docker-volumes tablist-quit)
   (fullframe docker-networks tablist-quit)
   (fullframe docker-containers tablist-quit))
