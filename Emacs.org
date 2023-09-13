@@ -136,7 +136,7 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 #+end_src
 
 #+RESULTS:
-: 0.400652 seconds
+: 0.353360 seconds
 
 ** Breakdown
 
@@ -148,120 +148,117 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 
 #+RESULTS: package-report-buffer :exports results 
 #+begin_example
-ox-extra                  Configured    21:27:53.368695         0.16
-forge                     Configured    21:27:31.942848         0.08
-yasnippet-capf            Configured    21:27:21.633464         0.07
-corfu-candidate-overlay   Configured    21:27:21.814628         0.02
-consult                   Configured    21:27:22.842021         0.01
-use-package-ensure-system-package Configured    21:27:21.564897         0.01
-rust-ts-mode              Configured    21:27:21.782010         0.01
-vertico                   Configured    21:27:21.595583         0.01
-no-littering              Configured    21:27:21.558483         0.01
-whole-line-or-region      Configured    21:27:21.571674         0.00
-which-key                 Configured    21:27:21.587067         0.00
-savehist                  Configured    21:27:21.582357         0.00
-move-dup                  Initialized   21:27:21.565005         0.00
-doom-themes               Configured    21:27:21.592590         0.00
-marginalia                Configured    21:27:21.596907         0.00
-autorevert                Configured    21:27:31.752520         0.00
-orderless                 Configured    21:27:21.597968         0.00
-multiple-cursors          Initialized   21:27:21.587121         0.00
-git-blamed                Configured    21:27:31.862804         0.00
-fullframe                 Configured    21:27:21.572446         0.00
-multi-vterm               Initialized   21:27:21.777060         0.00
-windswap                  Configured    21:27:51.218802         0.00
-embark                    Initialized   21:27:21.598733         0.00
-protogg                   Configured    21:27:22.817123         0.00
-docker                    Initialized   21:27:21.782548         0.00
-org-roam                  Initialized   21:27:21.776291         0.00
-winner                    Initialized   21:27:21.590542         0.00
-magit                     Configured    21:27:31.861506         0.00
-org-gcal                  Initialized   21:27:53.323898         0.00
-cape                      Initialized   21:27:21.814653         0.00
-corfu                     Configured    21:27:21.805351         0.00
-pdf-tools                 Initialized   21:27:21.776165         0.00
-anzu                      Initialized   21:27:21.584313         0.00
-consult-dir               Initialized   21:27:22.842037         0.00
-eglot                     Initialized   21:27:21.776698         0.00
-dired-ranger              Initialized   21:27:26.639280         0.00
-org-pomodoro              Initialized   21:27:21.775232         0.00
-go-ts-mode                Configured    21:27:22.851748         0.00
-yasnippet                 Configured    21:27:21.633412         0.00
-flyspell                  Configured    21:27:27.083114         0.00
-conda                     Initialized   21:27:21.782287         0.00
-go-tag                    Initialized   21:27:21.778064         0.00
-gptel                     Initialized   21:27:21.782882         0.00
-tab-line                  Initialized   21:27:21.777871         0.00
-ibuffer-project           Initialized   21:27:21.584422         0.00
-default-text-scale        Initialized   21:27:21.592771         0.00
-dired-single              Initialized   21:27:26.639256         0.00
-whitespace-cleanup-mode   Configured    21:27:27.108041         0.00
-expand-region             Initialized   21:27:21.584518         0.00
-dired-hide-dotfiles       Initialized   21:27:21.634067         0.00
-go-fill-struct            Initialized   21:27:21.778135         0.00
-jupyter                   Configured    21:27:50.248992         0.00
-flycheck-rust             Configured    21:27:28.750652         0.00
-symbol-overlay            Configured    21:27:27.110620         0.00
-switch-window             Initialized   21:27:21.571733         0.00
-recentf                   Configured    21:27:22.841321         0.00
-ispell                    Configured    21:27:27.082984         0.00
-go-gen-test               Initialized   21:27:21.778191         0.00
-python                    Configured    21:27:21.782178         0.00
-google-this               Initialized   21:27:21.782964         0.00
-doom-modeline             Configured    21:27:21.851523         0.00
-page-break-lines          Configured    21:27:50.250954         0.00
-paren                     Configured    21:27:21.590442         0.00
-whisper                   Initialized   21:27:21.782821         0.00
-toml-ts-mode              Initialized   21:27:21.782133         0.00
-flyspell-correct          Initialized   21:27:27.083146         0.00
-type-break                Declared      21:27:21.775351         0.00
-kind-icon                 Initialized   21:27:21.599602         0.00
-dired                     Configured    21:27:26.639247         0.00
-visual-fill-column        Configured    21:27:28.736600         0.00
-mu4e                      Initialized   21:27:21.782792         0.00
-flycheck-golangci-lint    Initialized   21:27:21.778022         0.00
-org-bullets               Configured    21:27:28.746370         0.00
-org                       Configured    21:27:21.776062         0.00
-csv-mode                  Initialized   21:27:21.782371         0.00
-terraform-mode            Initialized   21:27:21.782655         0.00
-yaml-ts-mode              Initialized   21:27:21.782413         0.00
-flycheck                  Configured    21:27:27.074112         0.00
-embark-consult            Initialized   21:27:21.599031         0.00
-git-gutter                Configured    21:27:21.803742         0.00
-wgrep                     Initialized   21:27:21.598004         0.00
-dockerfile-mode           Initialized   21:27:21.782599         0.00
-markdown-mode             Configured    21:27:31.888573         0.00
-rainbow-mode              Configured    21:27:27.063132         0.00
-docker-compose-mode       Initialized   21:27:21.782626         0.00
-org-fragtog               Configured    21:27:28.744181         0.00
-treesit-auto              Initialized   21:27:21.776619         0.00
-org-pretty-table          Configured    21:27:28.742502         0.00
-all-the-icons-completion  Initialized   21:27:21.596950         0.00
-yuck-mode                 Initialized   21:27:21.782685         0.00
-org-contrib               Configured    21:27:53.368766         0.00
-display-line-numbers      Configured    21:27:27.113570         0.00
-rainbow-delimiters        Configured    21:27:27.095506         0.00
-tramp                     Initialized   21:27:21.580330         0.00
-consult-flycheck          Initialized   21:27:27.074106         0.00
-toc-org                   Configured    21:27:28.732528         0.00
-browse-at-remote          Initialized   21:27:21.776771         0.00
-org-appear                Configured    21:27:28.747909         0.00
-flycheck-popup-tip        Configured    21:27:28.754375         0.00
-magit-todos               Configured    21:27:32.003274         0.00
-define-word               Initialized   21:27:21.633625         0.00
-org-attach-screenshot     Initialized   21:27:21.776093         0.00
-all-the-icons-dired       Initialized   21:27:21.633990         0.00
-sudo-edit                 Initialized   21:27:21.571812         0.00
-yasnippet-snippets        Configured    21:27:21.633432         0.00
-speed-type                Initialized   21:27:21.782939         0.00
-global-prettify-symbols-mode Initialized   21:27:21.592658         0.00
-diredfl                   Initialized   21:27:21.634039         0.00
-dired-collapse            Initialized   21:27:21.634013         0.00
-ox-latex                  Configured    21:27:53.368761         0.00
-embark-vc                 Declared      21:27:21.599060         0.00
-org-roam-ui               Declared      21:27:21.776491         0.00
-consult-eglot             Declared      21:27:21.776719         0.00
-corfu-terminal            Declared      21:27:21.599562         0.00
+consult                   Configured    06:37:30.413574         0.02
+savehist                  Configured    06:37:28.945848         0.01
+minibuffer                Configured    06:37:28.958261         0.01
+which-key                 Configured    06:37:28.950825         0.01
+no-littering              Configured    06:37:28.927317         0.00
+move-dup                  Initialized   06:37:28.927578         0.00
+fullframe                 Configured    06:37:28.935026         0.00
+doom-themes               Configured    06:37:28.954814         0.00
+whole-line-or-region      Configured    06:37:28.933114         0.00
+marginalia                Configured    06:37:28.959584         0.00
+autorevert                Initialized   06:37:28.942587         0.00
+orderless                 Configured    06:37:29.109848         0.00
+windswap                  Configured    06:37:37.622593         0.00
+protogg                   Configured    06:37:30.372769         0.00
+multi-vterm               Initialized   06:37:29.099079         0.00
+org-roam                  Initialized   06:37:29.098281         0.00
+docker                    Initialized   06:37:29.103432         0.00
+winner                    Initialized   06:37:28.952896         0.00
+embark                    Initialized   06:37:28.960513         0.00
+multiple-cursors          Initialized   06:37:28.950885         0.00
+cape                      Declared      06:37:28.961350         0.00
+corfu                     Initialized   06:37:29.109834         0.00
+magit                     Initialized   06:37:29.098891         0.00
+org-gcal                  Initialized   06:37:32.015842         0.00
+org-agenda                Configured    06:37:32.015764         0.00
+anzu                      Initialized   06:37:28.947653         0.00
+eglot                     Initialized   06:37:29.098694         0.00
+consult-dir               Initialized   06:37:30.395178         0.00
+dired-ranger              Initialized   06:37:30.457361         0.00
+conda                     Initialized   06:37:29.103239         0.00
+browse-at-remote          Initialized   06:37:29.098786         0.00
+gptel                     Initialized   06:37:29.103721         0.00
+yasnippet                 Configured    06:37:29.303183         0.00
+tab-line                  Initialized   06:37:29.099330         0.00
+ibuffer-project           Initialized   06:37:28.947764         0.00
+dired-single              Initialized   06:37:30.457340         0.00
+default-text-scale        Initialized   06:37:28.954984         0.00
+python                    Configured    06:37:29.103120         0.00
+expand-region             Initialized   06:37:28.947861         0.00
+go-tag                    Initialized   06:37:29.102865         0.00
+page-break-lines          Configured    06:37:36.699302         0.00
+flyspell                  Configured    06:37:30.893849         0.00
+switch-window             Initialized   06:37:28.933184         0.00
+go-fill-struct            Initialized   06:37:29.102923         0.00
+go-ts-mode                Initialized   06:37:29.102798         0.00
+dired-hide-dotfiles       Initialized   06:37:28.962009         0.00
+go-gen-test               Initialized   06:37:29.102975         0.00
+symbol-overlay            Configured    06:37:30.921262         0.00
+recentf                   Configured    06:37:30.412873         0.00
+whisper                   Initialized   06:37:29.103660         0.00
+flyspell-correct          Initialized   06:37:30.893872         0.00
+doom-modeline             Configured    06:37:29.159455         0.00
+whitespace-cleanup-mode   Configured    06:37:30.918195         0.00
+jupyter                   Configured    06:37:36.697366         0.00
+google-this               Initialized   06:37:29.103799         0.00
+markdown-mode             Initialized   06:37:29.098198         0.00
+flycheck                  Configured    06:37:30.885001         0.00
+dired                     Configured    06:37:30.457331         0.00
+org-fragtog               Configured    06:37:31.961224         0.00
+paren                     Configured    06:37:28.952802         0.00
+visual-fill-column        Configured    06:37:31.948383         0.00
+git-gutter                Configured    06:37:30.866798         0.00
+mu4e                      Initialized   06:37:29.103630         0.00
+org                       Configured    06:37:29.098100         0.00
+org-bullets               Configured    06:37:31.964897         0.00
+ispell                    Configured    06:37:30.893701         0.00
+rainbow-mode              Configured    06:37:30.873593         0.00
+pdf-tools                 Initialized   06:37:29.098163         0.00
+docker-compose-mode       Initialized   06:37:29.103501         0.00
+org-pretty-table          Configured    06:37:31.958540         0.00
+yuck-mode                 Initialized   06:37:29.103568         0.00
+toc-org                   Configured    06:37:31.940635         0.00
+rust-ts-mode              Initialized   06:37:29.103026         0.00
+display-line-numbers      Configured    06:37:30.924091         0.00
+sudo-edit                 Initialized   06:37:28.933259         0.00
+vertico                   Configured    06:37:29.108825         0.00
+rainbow-delimiters        Configured    06:37:30.905995         0.00
+all-the-icons-completion  Initialized   06:37:28.959628         0.00
+treesit-auto              Initialized   06:37:29.098607         0.00
+flycheck-golangci-lint    Initialized   06:37:29.102835         0.00
+terraform-mode            Initialized   06:37:29.103527         0.00
+yaml-ts-mode              Initialized   06:37:29.103326         0.00
+csv-mode                  Initialized   06:37:29.103297         0.00
+global-prettify-symbols-mode Initialized   06:37:28.954883         0.00
+toml-ts-mode              Initialized   06:37:29.103081         0.00
+wgrep                     Initialized   06:37:28.959688         0.00
+tramp                     Initialized   06:37:28.942622         0.00
+all-the-icons-dired       Initialized   06:37:28.961933         0.00
+dockerfile-mode           Initialized   06:37:29.103476         0.00
+org-appear                Configured    06:37:31.966361         0.00
+dired-collapse            Initialized   06:37:28.961957         0.00
+diredfl                   Initialized   06:37:28.961981         0.00
+org-attach-screenshot     Initialized   06:37:29.098131         0.00
+embark-consult            Initialized   06:37:28.960644         0.00
+org-contrib               Initialized   06:37:28.962260         0.00
+flycheck-popup-tip        Configured    06:37:32.064725         0.00
+speed-type                Initialized   06:37:29.103776         0.00
+define-word               Initialized   06:37:28.961560         0.00
+kind-icon                 Declared      06:37:28.961189         0.00
+yasnippet-snippets        Configured    06:37:29.303213         0.00
+consult-flycheck          Initialized   06:37:30.884994         0.00
+org-roam-ui               Declared      06:37:29.098479         0.00
+magit-todos               Declared      06:37:29.098995         0.00
+flycheck-rust             Declared      06:37:29.103057         0.00
+consult-eglot             Declared      06:37:29.098720         0.00
+forge                     Declared      06:37:29.098968         0.00
+yasnippet-capf            Declared      06:37:28.961455         0.00
+corfu-terminal            Declared      06:37:28.961157         0.00
+corfu-candidate-overlay   Declared      06:37:28.961139         0.00
+embark-vc                 Declared      06:37:28.960663         0.00
+type-break                Declared      06:37:29.097350         0.00
 #+end_example
    
 * Editing Utilities
@@ -990,6 +987,10 @@ Call a second time to restore the original window configuration."
 ** Minbuffer
 
 #+begin_src emacs-lisp
+(defun stealthily (fn &rest args)
+    "Apply FN to ARGS while inhibiting modification hooks."
+    (let ((inhibit-modification-hooks t))
+      (apply fn args)))
 (use-package minibuffer
   :ensure nil
   :bind
@@ -1014,10 +1015,6 @@ Call a second time to restore the original window configuration."
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . cursor-intangible-mode)
   :config
-  (defun stealthily (fn &rest args)
-    "Apply FN to ARGS while inhibiting modification hooks."
-    (let ((inhibit-modification-hooks t))
-      (apply fn args)))
   (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 #+end_src
 
@@ -1025,8 +1022,7 @@ Call a second time to restore the original window configuration."
   
 #+begin_src emacs-lisp
 (use-package vertico
-  :config
-  (vertico-mode))
+  :hook (after-init . vertico-mode))
 (use-package marginalia
   :config (marginalia-mode)
   :custom
@@ -1064,6 +1060,7 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package consult
+  :after vertico
   :bind (("C-r" . consult-ripgrep-symbol-at-point)
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
@@ -1699,72 +1696,41 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    PDFs visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
 
 #+begin_src emacs-lisp
-(defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
+(defvar org-clock-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
-(define-key sanityinc/org-global-prefix-map (kbd "j") 'org-clock-goto)
-(define-key sanityinc/org-global-prefix-map (kbd "l") 'org-clock-in-last)
-(define-key sanityinc/org-global-prefix-map (kbd "i") 'org-clock-in)
-(define-key sanityinc/org-global-prefix-map (kbd "o") 'org-clock-out)
-(define-key global-map (kbd "C-c o") sanityinc/org-global-prefix-map)
- 
-;; Save the running clock and all clock history when exiting Emacs, load it on startup
-(org-clock-persistence-insinuate)
-(setq org-clock-persist t)
-(setq org-clock-in-resume t)
-
-;; Save clock data and notes in the LOGBOOK drawer
-(setq org-clock-into-drawer t)
-;; Save state changes in the LOGBOOK drawer
-(setq org-log-into-drawer t)
-;; Removes clocked tasks with 0:00 duration
-(setq org-clock-out-remove-zero-time-clocks t)
-
-(with-eval-after-load 'org-clock
-  (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
-  (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
+(use-package org-clock
+  :ensure nil
+  :bind-keymap ("C-c o" . org-clock-prefix-map)
+  :bind (:map org-clock-prefix-map
+			  ("j" . org-clock-goto)
+			  ("l" . org-clock-in-last)
+			  ("i" . org-clock-in)
+			  ("o" . org-clock-out))
+  :custom (org-clock-in-resume t)
+  (org-clock-persist t)
+  ;; Save clock data and notes in the LOGBOOK drawer
+  (org-clock-into-drawer t)
+  ;; Save state changes in the LOGBOOK drawer
+  (org-log-into-drawer t)
+  ;; Removes clocked tasks with 0:00 duration
+  (org-clock-out-remove-zero-time-clocks t)
+  :config
+  (org-clock-persistence-insinuate))
 #+end_src
 
 ** Type Breaks
 
 #+begin_src emacs-lisp
 (use-package type-break
-  :hook ((after-init . type-break-mode))
-  :init
-  (defun type-break-demo-agenda ()
-    "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
-    (let ((buffer-name "*Typing Break Org Agenda*")
-          lines)
-      (condition-case ()
-          (progn
-            (org-agenda-list)
-            (setq buffer-name (buffer-name))
-            ;; Set the buffer to read-only
-            (with-current-buffer buffer-name
-              (read-only-mode 1))
-            ;; Message to be displayed at the bottom
-            (let ((msg (if type-break-terse-messages
-                           ""
-                         "Press any key to resume from typing break")))
-              ;; Loop until key is pressed
-              (while (not (input-pending-p))
-                (sit-for 60))
-              ;; Clean up after key is pressed
-              (read-event)
-              (type-break-catch-up-event)
-              (kill-buffer buffer-name)))
-        (quit
-         (and (get-buffer buffer-name)
-              (kill-buffer buffer-name))))))
-
-  :custom
+  :hook (org-clock-in-prepare . type-break-mode)
   ;; Setting interval of that of a pomodoro session
+  :custom
   (type-break-interval (* 25 60)) ;; 25 mins
   (type-break-good-rest-interval (* 9 60)) ;; 9 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
   (type-break-query-mode t)
   (type-break-keystroke-threshold '(nil . 2625))
-  (type-break-demo-boring-stats t)
-  (type-break-demo-functions '(type-break-demo-agenda)))
+  (type-break-demo-boring-stats t))
 #+end_src   
 
 ** Latex Fragments
@@ -2177,7 +2143,7 @@ packages I had at one point
     (cdr project))
   (add-hook 'project-find-functions #'project-find-go-module))
 (use-package consult-eglot
-  :after eglot)
+  :after (consult eglot))
 #+end_src
 
 *** Git 

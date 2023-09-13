@@ -430,6 +430,10 @@ Call a second time to restore the original window configuration."
   :bind (("C-M-=". default-text-scale-increase)
          ("C-M--" . default-text-scale-decrease)))
 
+(defun stealthily (fn &rest args)
+    "Apply FN to ARGS while inhibiting modification hooks."
+    (let ((inhibit-modification-hooks t))
+      (apply fn args)))
 (use-package minibuffer
   :ensure nil
   :bind
@@ -454,15 +458,10 @@ Call a second time to restore the original window configuration."
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . cursor-intangible-mode)
   :config
-  (defun stealthily (fn &rest args)
-    "Apply FN to ARGS while inhibiting modification hooks."
-    (let ((inhibit-modification-hooks t))
-      (apply fn args)))
   (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 
 (use-package vertico
-  :config
-  (vertico-mode))
+  :hook (after-init . vertico-mode))
 (use-package marginalia
   :config (marginalia-mode)
   :custom
@@ -483,6 +482,7 @@ Call a second time to restore the original window configuration."
   :commands (wgrep wgrep-change-to-wgrep-mode))
 
 (use-package consult
+  :after vertico
   :bind (("C-r" . consult-ripgrep-symbol-at-point)
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
@@ -848,9 +848,9 @@ Call a second time to restore the original window configuration."
 (use-package consult-dir
   :after (consult)
   :bind (("C-x C-d" . consult-dir)
-         :map vertico-map
+         (:map vertico-map
          ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file))
+         ("C-x C-j" . consult-dir-jump-file)))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
@@ -999,68 +999,37 @@ Call a second time to restore the original window configuration."
      (sql . t)
      (sqlite . t))))
 
-(defvar sanityinc/org-global-prefix-map (make-sparse-keymap)
+(defvar org-clock-prefix-map (make-sparse-keymap)
   "A keymap for handy global access to org helpers, particularly clocking.")
-(define-key sanityinc/org-global-prefix-map (kbd "j") 'org-clock-goto)
-(define-key sanityinc/org-global-prefix-map (kbd "l") 'org-clock-in-last)
-(define-key sanityinc/org-global-prefix-map (kbd "i") 'org-clock-in)
-(define-key sanityinc/org-global-prefix-map (kbd "o") 'org-clock-out)
-(define-key global-map (kbd "C-c o") sanityinc/org-global-prefix-map)
- 
-;; Save the running clock and all clock history when exiting Emacs, load it on startup
-(org-clock-persistence-insinuate)
-(setq org-clock-persist t)
-(setq org-clock-in-resume t)
-
-;; Save clock data and notes in the LOGBOOK drawer
-(setq org-clock-into-drawer t)
-;; Save state changes in the LOGBOOK drawer
-(setq org-log-into-drawer t)
-;; Removes clocked tasks with 0:00 duration
-(setq org-clock-out-remove-zero-time-clocks t)
-
-(with-eval-after-load 'org-clock
-  (define-key org-clock-mode-line-map [header-line mouse-2] 'org-clock-goto)
-  (define-key org-clock-mode-line-map [header-line mouse-1] 'org-clock-menu))
+(use-package org-clock
+  :ensure nil
+  :bind-keymap ("C-c o" . org-clock-prefix-map)
+  :bind (:map org-clock-prefix-map
+			  ("j" . org-clock-goto)
+			  ("l" . org-clock-in-last)
+			  ("i" . org-clock-in)
+			  ("o" . org-clock-out))
+  :custom (org-clock-in-resume t)
+  (org-clock-persist t)
+  ;; Save clock data and notes in the LOGBOOK drawer
+  (org-clock-into-drawer t)
+  ;; Save state changes in the LOGBOOK drawer
+  (org-log-into-drawer t)
+  ;; Removes clocked tasks with 0:00 duration
+  (org-clock-out-remove-zero-time-clocks t)
+  :config
+  (org-clock-persistence-insinuate))
 
 (use-package type-break
-  :hook ((after-init . type-break-mode))
-  :init
-  (defun type-break-demo-agenda ()
-    "Display the Org Agenda in read-only mode. Cease the demo as soon as a key is pressed."
-    (let ((buffer-name "*Typing Break Org Agenda*")
-          lines)
-      (condition-case ()
-          (progn
-            (org-agenda-list)
-            (setq buffer-name (buffer-name))
-            ;; Set the buffer to read-only
-            (with-current-buffer buffer-name
-              (read-only-mode 1))
-            ;; Message to be displayed at the bottom
-            (let ((msg (if type-break-terse-messages
-                           ""
-                         "Press any key to resume from typing break")))
-              ;; Loop until key is pressed
-              (while (not (input-pending-p))
-                (sit-for 60))
-              ;; Clean up after key is pressed
-              (read-event)
-              (type-break-catch-up-event)
-              (kill-buffer buffer-name)))
-        (quit
-         (and (get-buffer buffer-name)
-              (kill-buffer buffer-name))))))
-
-  :custom
+  :hook (org-clock-in-prepare . type-break-mode)
   ;; Setting interval of that of a pomodoro session
+  :custom
   (type-break-interval (* 25 60)) ;; 25 mins
   (type-break-good-rest-interval (* 9 60)) ;; 9 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
   (type-break-query-mode t)
   (type-break-keystroke-threshold '(nil . 2625))
-  (type-break-demo-boring-stats t)
-  (type-break-demo-functions '(type-break-demo-agenda)))
+  (type-break-demo-boring-stats t))
 
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode)
@@ -1370,7 +1339,7 @@ Call a second time to restore the original window configuration."
     (cdr project))
   (add-hook 'project-find-functions #'project-find-go-module))
 (use-package consult-eglot
-  :after eglot)
+  :after (consult eglot))
 
 (use-package git-gutter
   :custom ((git-gutter:ask-p nil))
