@@ -558,10 +558,11 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
  ediff-window-setup-function 'ediff-setup-windows-plain
  tab-width 4
  make-backup-files nil
+ auto-save-default nil
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
- tooltip-delay 1.5
+ tooltip-delay .8
  truncate-lines nil
  truncate-partial-width-windows nil
  ring-bell-function 'ignore)
@@ -1170,6 +1171,8 @@ Call a second time to restore the original window configuration."
                      :sort 'visibility
                      :as #'buffer-name
                      :exclude '("\\*."           ; star buffers
+								"\\#."
+								"^type-break.el"
                                 "Term\\ "        ; Term buffers
                                 "^magit"         ; magit buffers
                                 "[\\.]org$"))))) ; org files
@@ -1662,8 +1665,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 (use-package org
   :hook (org-mode . (lambda ()
-                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
+                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
                       (setq-local prettify-symbols-alist
                             '(("[ ]" .  "☐")
                               ("[X]" . "☑" )
@@ -1692,6 +1695,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 ** Clock In/Out
+   :LOGBOOK:
+   :END:
 
    PDFs visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
 
@@ -1706,7 +1711,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 			  ("l" . org-clock-in-last)
 			  ("i" . org-clock-in)
 			  ("o" . org-clock-out))
-  :custom (org-clock-in-resume t)
+  :custom
+  (org-clock-in-resume t)
   (org-clock-persist t)
   ;; Save clock data and notes in the LOGBOOK drawer
   (org-clock-into-drawer t)
@@ -1714,23 +1720,53 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (org-log-into-drawer t)
   ;; Removes clocked tasks with 0:00 duration
   (org-clock-out-remove-zero-time-clocks t)
-  :config
-  (org-clock-persistence-insinuate))
+  ;; dont' show clock in bar because we use system bar
+  (org-clock-clocked-in-display nil)
+  :init
+  (with-eval-after-load 'org
+	(org-clock-persistence-insinuate)))
 #+end_src
 
 ** Type Breaks
 
 #+begin_src emacs-lisp
 (use-package type-break
-  :hook (org-clock-in-prepare . type-break-mode)
+  :hook ((org-clock-in-prepare . type-break-mode)
+		 (after-init . type-break-mode))
   ;; Setting interval of that of a pomodoro session
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
-  (type-break-good-rest-interval (* 9 60)) ;; 9 mins
+  (type-break-good-rest-interval (* 10 60)) ;; 10 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
   (type-break-query-mode t)
   (type-break-keystroke-threshold '(nil . 2625))
-  (type-break-demo-boring-stats t))
+  (type-break-demo-boring-stats t)
+  (type-break-demo-functions '(type-break-demo-boring))
+  :config
+  (defun format-seconds-to-mm-ss (seconds)
+	"Formats time to MM:SS."
+	(let* ((minutes (floor (/ seconds 60)))
+           (remaining-seconds (- seconds (* minutes 60))))
+      (format "%02d:%02d" minutes remaining-seconds)))
+  (defun type-break-json-data ()
+	"Prints type break data used in eww bar."
+	(let* ((total-break-time (type-break-time-difference nil type-break-time-next-break))
+           (time-difference (type-break-time-difference nil type-break-time-next-break))
+           (formatted-time (format-seconds-to-mm-ss time-difference))
+           (percent (if type-break-mode
+						(number-to-string (/ (* 100.0 time-difference)
+											 type-break-interval))
+                      "0"))
+           (json-data `(:percent ,percent
+								 :time ,formatted-time
+								 :task ,(or org-clock-heading "No Active Task")
+								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
+													   "No Active Task"
+													 org-clock-heading)
+												   " " formatted-time)
+								 :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
+								 :keystroke-count ,type-break-keystroke-count)))
+      (json-encode json-data))))
 #+end_src   
 
 ** Latex Fragments
@@ -1768,20 +1804,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 ** Writing Mode
 
 #+begin_src emacs-lisp
-(use-package org-pretty-table
-  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
-                        :branch "master")
-  :hook (org-mode . org-pretty-table-mode))
-(use-package org
-  :bind ((:map org-mode-map
-               ("C-c v" . wr-mode)))
-  :hook ((org-mode . wr-mode)
-         (org-mode . (lambda ()
-            (setq-local buffer-face-mode-face '((:family "Product Sans")))
-            (setq-local corfu-auto-delay 0.8)
-            (buffer-face-mode))))
-  :init
-  (define-minor-mode wr-mode
+(define-minor-mode wr-mode
     "Set up a buffer for word editing.
  This enables or modifies a number of settings so that the
  experience of word processing is a little more like that of a
@@ -1810,7 +1833,19 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (kill-local-variable 'electric-pair-mode)
       (buffer-face-mode -1)
       (flyspell-mode -1)
-      (visual-line-mode -1))))
+      (visual-line-mode -1)))
+(use-package org-pretty-table
+  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
+                        :branch "master")
+  :hook (org-mode . org-pretty-table-mode))
+(use-package org
+  :bind ((:map org-mode-map
+               ("C-c v" . wr-mode)))
+  :hook ((org-mode . wr-mode)
+         (org-mode . (lambda ()
+            (setq-local buffer-face-mode-face '((:family "Product Sans")))
+            (setq-local corfu-auto-delay 0.8)
+            (buffer-face-mode)))))
 #+end_src
 
 *** Set Margins for org mode
@@ -2098,10 +2133,15 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 #+end_src
 
-packages I had at one point
+*** Indent bars
 
-- indent-bars
-
+#+begin_src emacs-lisp
+(use-package indent-bars
+  :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
+  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
+            :branch "main"))  
+#+end_src
+	
 *** HEX Colors
 
    Show hex colors while coding or editing themes.
@@ -2277,41 +2317,41 @@ packages I had at one point
 *** Compile Helpers 
 
 #+begin_src emacs-lisp
-  (setq-default compilation-scroll-output t)
-  (defvar sanityinc/last-compilation-buffer nil
-    "The last buffer in which compilation took place.")
+(setq-default compilation-scroll-output t)
+(defvar sanityinc/last-compilation-buffer nil
+  "The last buffer in which compilation took place.")
 
-  (with-eval-after-load 'compile
-    (defun sanityinc/save-compilation-buffer (&rest _)
-      "Save the compilation buffer to find it later."
-      (setq sanityinc/last-compilation-buffer next-error-last-buffer))
-    (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
+(with-eval-after-load 'compile
+  (defun sanityinc/save-compilation-buffer (&rest _)
+    "Save the compilation buffer to find it later."
+    (setq sanityinc/last-compilation-buffer next-error-last-buffer))
+  (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
 
-    (defun sanityinc/find-prev-compilation (orig &optional edit-command)
-      "Find the previous compilation buffer, if present, and recompile there."
-      (if (and (null edit-command)
-               (not (derived-mode-p 'compilation-mode))
-               sanityinc/last-compilation-buffer
-               (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
-          (with-current-buffer sanityinc/last-compilation-buffer
-            (funcall orig edit-command))
-        (funcall orig edit-command)))
-    (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
+  (defun sanityinc/find-prev-compilation (orig &optional edit-command)
+    "Find the previous compilation buffer, if present, and recompile there."
+    (if (and (null edit-command)
+             (not (derived-mode-p 'compilation-mode))
+             sanityinc/last-compilation-buffer
+             (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
+        (with-current-buffer sanityinc/last-compilation-buffer
+          (funcall orig edit-command))
+      (funcall orig edit-command)))
+  (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
 
-  (global-set-key [f6] 'recompile)
+(global-set-key [f6] 'recompile)
 
-  (defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
-    "Put \"*Shell Command Output*\" buffers into view-mode."
-    (unless (or output-buffer replace)
-      (with-current-buffer "*Shell Command Output*"
-        (view-mode 1))))
-  (advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
+(defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
+  "Put \"*Shell Command Output*\" buffers into view-mode."
+  (unless (or output-buffer replace)
+    (with-current-buffer "*Shell Command Output*"
+      (view-mode 1))))
+(advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
 
-  (with-eval-after-load 'compile
-    (defun sanityinc/colourise-compilation-buffer ()
-      (when (eq major-mode 'compilation-mode)
-        (ansi-color-apply-on-region compilation-filter-start (point-max))))
-    (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
+(with-eval-after-load 'compile
+  (defun sanityinc/colourise-compilation-buffer ()
+    (when (eq major-mode 'compilation-mode)
+      (ansi-color-apply-on-region compilation-filter-start (point-max))))
+  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 #+end_src
 
 ** Go
@@ -2375,7 +2415,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
    install server pip install -U jedi-language-server
 
-#+begin_src emacs-lisp
+#+begin_src emacs
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
@@ -2448,7 +2488,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :bind ("C-c d" . docker)
   :config
   (fullframe docker-images tablist-quit)
-  (fullframe docker-machines tablist-quit)
   (fullframe docker-volumes tablist-quit)
   (fullframe docker-networks tablist-quit)
   (fullframe docker-containers tablist-quit))

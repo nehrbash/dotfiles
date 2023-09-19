@@ -137,10 +137,11 @@ point reaches the beginning or end of the buffer, stop there."
  ediff-window-setup-function 'ediff-setup-windows-plain
  tab-width 4
  make-backup-files nil
+ auto-save-default nil
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
- tooltip-delay 1.5
+ tooltip-delay .8
  truncate-lines nil
  truncate-partial-width-windows nil
  ring-bell-function 'ignore)
@@ -592,6 +593,8 @@ Call a second time to restore the original window configuration."
                      :sort 'visibility
                      :as #'buffer-name
                      :exclude '("\\*."           ; star buffers
+								"\\#."
+								"^type-break.el"
                                 "Term\\ "        ; Term buffers
                                 "^magit"         ; magit buffers
                                 "[\\.]org$"))))) ; org files
@@ -971,8 +974,8 @@ Call a second time to restore the original window configuration."
 
 (use-package org
   :hook (org-mode . (lambda ()
-                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch)
-                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch)
+                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
+                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
                       (setq-local prettify-symbols-alist
                             '(("[ ]" .  "☐")
                               ("[X]" . "☑" )
@@ -1009,7 +1012,8 @@ Call a second time to restore the original window configuration."
 			  ("l" . org-clock-in-last)
 			  ("i" . org-clock-in)
 			  ("o" . org-clock-out))
-  :custom (org-clock-in-resume t)
+  :custom
+  (org-clock-in-resume t)
   (org-clock-persist t)
   ;; Save clock data and notes in the LOGBOOK drawer
   (org-clock-into-drawer t)
@@ -1017,19 +1021,49 @@ Call a second time to restore the original window configuration."
   (org-log-into-drawer t)
   ;; Removes clocked tasks with 0:00 duration
   (org-clock-out-remove-zero-time-clocks t)
-  :config
-  (org-clock-persistence-insinuate))
+  ;; dont' show clock in bar because we use system bar
+  (org-clock-clocked-in-display nil)
+  :init
+  (with-eval-after-load 'org
+	(org-clock-persistence-insinuate)))
 
 (use-package type-break
-  :hook (org-clock-in-prepare . type-break-mode)
+  :hook ((org-clock-in-prepare . type-break-mode)
+		 (after-init . type-break-mode))
   ;; Setting interval of that of a pomodoro session
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
-  (type-break-good-rest-interval (* 9 60)) ;; 9 mins
+  (type-break-good-rest-interval (* 10 60)) ;; 10 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
   (type-break-query-mode t)
   (type-break-keystroke-threshold '(nil . 2625))
-  (type-break-demo-boring-stats t))
+  (type-break-demo-boring-stats t)
+  (type-break-demo-functions '(type-break-demo-boring))
+  :config
+  (defun format-seconds-to-mm-ss (seconds)
+	"Formats time to MM:SS."
+	(let* ((minutes (floor (/ seconds 60)))
+           (remaining-seconds (- seconds (* minutes 60))))
+      (format "%02d:%02d" minutes remaining-seconds)))
+  (defun type-break-json-data ()
+	"Prints type break data used in eww bar."
+	(let* ((total-break-time (type-break-time-difference nil type-break-time-next-break))
+           (time-difference (type-break-time-difference nil type-break-time-next-break))
+           (formatted-time (format-seconds-to-mm-ss time-difference))
+           (percent (if type-break-mode
+						(number-to-string (/ (* 100.0 time-difference)
+											 type-break-interval))
+                      "0"))
+           (json-data `(:percent ,percent
+								 :time ,formatted-time
+								 :task ,(or org-clock-heading "No Active Task")
+								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
+													   "No Active Task"
+													 org-clock-heading)
+												   " " formatted-time)
+								 :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
+								 :keystroke-count ,type-break-keystroke-count)))
+      (json-encode json-data))))
 
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode)
@@ -1311,6 +1345,11 @@ Call a second time to restore the original window configuration."
          ("M-g" . org-gcal-sync)))
 
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
+
+(use-package indent-bars
+  :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
+  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
+            :branch "main"))
 
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
