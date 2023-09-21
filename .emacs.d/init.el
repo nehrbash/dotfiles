@@ -379,6 +379,9 @@ Call a second time to restore the original window configuration."
                (if was-dedicated "no longer " "")
                (buffer-name)))))
 
+(use-package avy
+  :bind ("C-:" . avy-goto-char-timer))
+
 (setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
   (lambda ()
@@ -666,10 +669,10 @@ Call a second time to restore the original window configuration."
 (use-package embark-vc
   :after embark)
 
-(add-to-list 'load-path "~/src/protogg")
 (use-package protogg
   :ensure nil
-  :load-path "~/src/protogg/protogg.el"
+  :vc (:url "https://github.com/nehrbash/protogg.git"
+               :branch "main" :rev :newest)
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
          ("C-c x" . protogg-compile)
@@ -689,8 +692,7 @@ Call a second time to restore the original window configuration."
 
 (use-package corfu
   :after orderless
-  :hook ((after-init . global-corfu-mode)
-         (corfu-mode . corfu-popupinfo-mode)
+  :hook ((corfu-mode . corfu-popupinfo-mode)
 		 ((prog-mode conf-mode yaml-mode) . (lambda ()
                        (setq-local corfu-auto t
                                    corfu-auto-delay 0
@@ -709,6 +711,7 @@ Call a second time to restore the original window configuration."
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   :init
+  (global-corfu-mode)
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3)
   :config
@@ -723,13 +726,13 @@ Call a second time to restore the original window configuration."
   :ensure nil
   :after corfu
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
-                               :branch "master")
+                               :branch "master" :rev :newest)
   :config (corfu-candidate-overlay-mode +1))
 
 (use-package corfu-terminal
   :after corfu
   :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
-            :branch "master"))
+            :branch "master" :rev :newest))
 
 (use-package kind-icon
   :after corfu
@@ -754,7 +757,7 @@ Call a second time to restore the original window configuration."
   :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :init
   (add-to-list 'completion-at-point-functions #'cape-dict)
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
+  ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file))
 
@@ -768,10 +771,10 @@ Call a second time to restore the original window configuration."
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
-(use-package yasnippet-capf
-  :after cape
-  :config
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
+;; (use-package yasnippet-capf
+;;   :after cape
+;;   :config
+;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
 (use-package ispell
   :defer 5
@@ -916,7 +919,7 @@ Call a second time to restore the original window configuration."
 
 (use-package org-appear
   :vc (:url "https://github.com/awth13/org-appear.git"
-                  :branch "master")
+                  :branch "master" :rev :newest)
   :hook (org-mode . org-appear-mode))
 
 (setq org-directory "~/doc")
@@ -1121,7 +1124,7 @@ Call a second time to restore the original window configuration."
       (visual-line-mode -1)))
 (use-package org-pretty-table
   :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
-                        :branch "master")
+                        :branch "master" :rev :newest)
   :hook (org-mode . org-pretty-table-mode))
 (use-package org
   :bind ((:map org-mode-map
@@ -1216,7 +1219,7 @@ Call a second time to restore the original window configuration."
                     (org-agenda-tags-todo-honor-ignore-options t)
                     (org-tags-match-list-sublevels t)
                     (org-agenda-todo-ignore-scheduled 'future)))
-            (tags-todo "INBOX|PROJECT"
+            (tags-todo "-INBOX"
                        ((org-agenda-overriding-header "Next Actions")
                         (org-agenda-tags-todo-honor-ignore-options t)
                         (org-agenda-todo-ignore-scheduled 'future)
@@ -1230,7 +1233,7 @@ Call a second time to restore the original window configuration."
                         (org-tags-match-list-sublevels t)
                         (org-agenda-sorting-strategy
                          '(category-keep))))
-            (tags-todo "-INBOX/-NEXT"
+            (tags-todo "-INBOX-NEXT-REPEATER"
                        ((org-agenda-overriding-header "Orphaned Tasks")
                         (org-agenda-tags-todo-honor-ignore-options t)
                         (org-agenda-todo-ignore-scheduled 'future)
@@ -1319,8 +1322,8 @@ Call a second time to restore the original window configuration."
          (("C-c n i" . org-roam-node-insert))))
 
 (use-package org-roam-ui
-  :vc (:url "https://github.com/org-roam/org-roam-ui"
-                   :branch "main")
+  :vc (:url "https://github.com/org-roam/org-roam-ui.git"
+            :branch "main" :rev :newest)
   :after org-roam
   :config
   (setq org-roam-ui-sync-theme t
@@ -1349,7 +1352,7 @@ Call a second time to restore the original window configuration."
 (use-package indent-bars
   :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
   :vc (:url "https://github.com/jdtsmith/indent-bars.git"
-            :branch "main"))
+            :branch "main" :rev :newest))
 
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
@@ -1364,8 +1367,10 @@ Call a second time to restore the original window configuration."
   :hook (((go-ts-mode) . eglot-ensure)
          ((go-ts-mode) . eglot-format-buffer-on-save)
 		 (eglot-managed-mode . (lambda ()
-								 (add-to-list 'completion-at-point-functions #'yasnippet-capf)
-								 (add-to-list 'completion-at-point-functions #'cape-file))))
+								 (eglot-inlay-hints-mode 1)
+								 ;;(add-to-list 'completion-at-point-functions #'yasnippet-capf)
+								 ;; (add-to-list 'completion-at-point-functions #'cape-file) ;; need to figure out how to not autocomplete this one.
+								 )))
   :custom (eglot-autoshutdown t)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -1378,14 +1383,6 @@ Call a second time to restore the original window configuration."
   (add-hook 'project-find-functions #'project-find-go-module))
 (use-package consult-eglot
   :after (consult eglot))
-
-(use-package git-gutter
-  :custom ((git-gutter:ask-p nil))
-  :hook ((prog-mode yaml-mode conf-mode) . git-gutter-mode))
-(use-package browse-at-remote
-  :bind (("C-c g g" . browse-at-remote)
-		 ("C-c g k" . browse-at-remote-kill))
-  :commands (browse-at-remote browse-at-remote-kill))
 
 (use-package magit
   :commands (magit-status magit-dispatch)
@@ -1401,6 +1398,10 @@ Call a second time to restore the original window configuration."
 (use-package magit-todos
   :after magit
   :hook(magit-mode . magit-todos-mode))
+
+(use-package browse-at-remote
+  :bind (("C-c g g" . browse-at-remote)
+		 ("C-c g k" . browse-at-remote-kill)))
 
 (use-package multi-vterm
   :hook ((vterm-mode . (lambda ()
@@ -1612,7 +1613,7 @@ Call a second time to restore the original window configuration."
 
 (use-package whisper
   :vc (:url "https://github.com/natrys/whisper.el"
-            :branch "master" )
+            :branch "master" :rev :newest)
   :bind ("C-h w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"

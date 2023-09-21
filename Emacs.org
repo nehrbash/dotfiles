@@ -31,6 +31,7 @@
   - [[#whitespaces][Whitespaces]]
   - [[#matching-and-highlighting-delimiters][Matching and Highlighting Delimiters]]
   - [[#improve-window-switching][Improve window switching]]
+  - [[#jump-to-char][Jump to char]]
 - [[#ui-stuff][UI Stuff]]
   - [[#general][General]]
   - [[#theme][Theme]]
@@ -887,6 +888,13 @@ Call a second time to restore the original window configuration."
                (buffer-name)))))
 #+end_src
 
+** Jump to char
+
+#+begin_src emacs-lisp
+(use-package avy
+  :bind ("C-:" . avy-goto-char-timer))
+#+end_src   
+   
 * UI Stuff
 
   Packages I had at one point or another for UI.
@@ -1258,10 +1266,10 @@ Call a second time to restore the original window configuration."
 ** Protogg
 
 #+begin_src emacs-lisp
-(add-to-list 'load-path "~/src/protogg")
 (use-package protogg
   :ensure nil
-  :load-path "~/src/protogg/protogg.el"
+  :vc (:url "https://github.com/nehrbash/protogg.git"
+               :branch "main" :rev :newest)
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
          ("C-c x" . protogg-compile)
@@ -1287,8 +1295,7 @@ Call a second time to restore the original window configuration."
 #+begin_src emacs-lisp
 (use-package corfu
   :after orderless
-  :hook ((after-init . global-corfu-mode)
-         (corfu-mode . corfu-popupinfo-mode)
+  :hook ((corfu-mode . corfu-popupinfo-mode)
 		 ((prog-mode conf-mode yaml-mode) . (lambda ()
                        (setq-local corfu-auto t
                                    corfu-auto-delay 0
@@ -1307,6 +1314,7 @@ Call a second time to restore the original window configuration."
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   :init
+  (global-corfu-mode)
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3)
   :config
@@ -1325,7 +1333,7 @@ Call a second time to restore the original window configuration."
   :ensure nil
   :after corfu
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
-                               :branch "master")
+                               :branch "master" :rev :newest)
   :config (corfu-candidate-overlay-mode +1))
 #+end_src    
 
@@ -1335,7 +1343,7 @@ Call a second time to restore the original window configuration."
 (use-package corfu-terminal
   :after corfu
   :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
-            :branch "master"))
+            :branch "master" :rev :newest))
 #+end_src
 
 *** Icons for list
@@ -1370,7 +1378,7 @@ Call a second time to restore the original window configuration."
   :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :init
   (add-to-list 'completion-at-point-functions #'cape-dict)
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf)
+  ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file))
 #+end_src
@@ -1389,10 +1397,10 @@ Call a second time to restore the original window configuration."
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
-(use-package yasnippet-capf
-  :after cape
-  :config
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
+;; (use-package yasnippet-capf
+;;   :after cape
+;;   :config
+;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling
@@ -1589,7 +1597,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+begin_src emacs-lisp
 (use-package org-appear
   :vc (:url "https://github.com/awth13/org-appear.git"
-                  :branch "master")
+                  :branch "master" :rev :newest)
   :hook (org-mode . org-appear-mode))
 #+end_src
 
@@ -1836,7 +1844,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (visual-line-mode -1)))
 (use-package org-pretty-table
   :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
-                        :branch "master")
+                        :branch "master" :rev :newest)
   :hook (org-mode . org-pretty-table-mode))
 (use-package org
   :bind ((:map org-mode-map
@@ -1946,7 +1954,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                     (org-agenda-tags-todo-honor-ignore-options t)
                     (org-tags-match-list-sublevels t)
                     (org-agenda-todo-ignore-scheduled 'future)))
-            (tags-todo "INBOX|PROJECT"
+            (tags-todo "-INBOX"
                        ((org-agenda-overriding-header "Next Actions")
                         (org-agenda-tags-todo-honor-ignore-options t)
                         (org-agenda-todo-ignore-scheduled 'future)
@@ -1960,7 +1968,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                         (org-tags-match-list-sublevels t)
                         (org-agenda-sorting-strategy
                          '(category-keep))))
-            (tags-todo "-INBOX/-NEXT"
+            (tags-todo "-INBOX-NEXT-REPEATER"
                        ((org-agenda-overriding-header "Orphaned Tasks")
                         (org-agenda-tags-todo-honor-ignore-options t)
                         (org-agenda-todo-ignore-scheduled 'future)
@@ -2085,8 +2093,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 #+begin_src emacs-lisp
 (use-package org-roam-ui
-  :vc (:url "https://github.com/org-roam/org-roam-ui"
-                   :branch "main")
+  :vc (:url "https://github.com/org-roam/org-roam-ui.git"
+            :branch "main" :rev :newest)
   :after org-roam
   :config
   (setq org-roam-ui-sync-theme t
@@ -2139,7 +2147,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (use-package indent-bars
   :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
   :vc (:url "https://github.com/jdtsmith/indent-bars.git"
-            :branch "main"))  
+            :branch "main" :rev :newest))  
 #+end_src
 	
 *** HEX Colors
@@ -2163,15 +2171,17 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :config (global-treesit-auto-mode))
 #+end_src
     
-*** Eglot
+*** Eaglet
 
 #+begin_src emacs-lisp
 (use-package eglot
   :hook (((go-ts-mode) . eglot-ensure)
          ((go-ts-mode) . eglot-format-buffer-on-save)
 		 (eglot-managed-mode . (lambda ()
-								 (add-to-list 'completion-at-point-functions #'yasnippet-capf)
-								 (add-to-list 'completion-at-point-functions #'cape-file))))
+								 (eglot-inlay-hints-mode 1)
+								 ;;(add-to-list 'completion-at-point-functions #'yasnippet-capf)
+								 ;; (add-to-list 'completion-at-point-functions #'cape-file) ;; need to figure out how to not autocomplete this one.
+								 )))
   :custom (eglot-autoshutdown t)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -2186,18 +2196,29 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :after (consult eglot))
 #+end_src
 
-*** Git 
+*** WAITING Git 
+	:LOGBOOK:
+	- State "WAITING"    from              [2023-09-19 Tue 21:12] \\
+	  git-gutter lags consult live preview and tramp processes in general
+	:END:
 
    Show diff in fringe if local files only to minimize remote work. 
 
-#+begin_src emacs-lisp
+#+begin_src emacs
 (use-package git-gutter
-  :custom ((git-gutter:ask-p nil))
-  :hook ((prog-mode yaml-mode conf-mode) . git-gutter-mode))
-(use-package browse-at-remote
-  :bind (("C-c g g" . browse-at-remote)
-		 ("C-c g k" . browse-at-remote-kill))
-  :commands (browse-at-remote browse-at-remote-kill))
+  :after consult
+  :hook ((prog-mode yaml-mode conf-mode) . git-gutter-mode)
+  :custom (
+		   (git-gutter:ask-p nil)
+		   (git-gutter:update-interval 2))
+  :config(add-to-list 'consult-preview-allowed-hooks '((lambda () (git-gutter-mode -1)))))
+
+(use-package git-gutter-fringe
+  :after  git-gutter
+  :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 #+end_src
 
 **** Magit
@@ -2218,6 +2239,14 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :hook(magit-mode . magit-todos-mode))
 #+end_src
 
+**** Open in browser
+
+#+begin_src emacs-lisp
+(use-package browse-at-remote
+  :bind (("C-c g g" . browse-at-remote)
+		 ("C-c g k" . browse-at-remote-kill)))
+
+#+end_src	 
 *** Better Terminal 
 
  #+begin_src emacs-lisp
@@ -2559,7 +2588,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+begin_src emacs-lisp 
 (use-package whisper
   :vc (:url "https://github.com/natrys/whisper.el"
-            :branch "master" )
+            :branch "master" :rev :newest)
   :bind ("C-h w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
