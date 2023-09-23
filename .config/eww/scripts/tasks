@@ -1,8 +1,7 @@
 #!/bin/bash
 
-csv=$(emacs -batch -l ~/.emacs.d/early-init.el -eval '(org-batch-agenda-csv "t" org-agenda-files (quote ("~/doc/inbox.org" "~/doc/projects.org" "~/doc/repeater.org")) org-todo-keywords (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)") (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")(sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))))')
+csv=$(emacs -batch -eval '(org-batch-agenda-csv "t" org-agenda-files (quote ("~/doc/inbox.org" "~/doc/projects.org" "~/doc/repeater.org")) org-todo-keywords (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)") (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")(sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))))')
 
-# echo "$csv"
 echo "$csv" | jq -Rsnc '
   {"tasks":
     [inputs
