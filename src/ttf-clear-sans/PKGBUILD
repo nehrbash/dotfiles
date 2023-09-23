@@ -1,0 +1,18 @@
+# Maintainer: Patrick McCarty <pnorcks at gmail dot com>
+# Contributor: Adrian Perez de Castro <aperez at igalia dot com>
+
+pkgname=ttf-clear-sans
+pkgver=1.00
+pkgrel=3
+pkgdesc="A versatile OpenType font for screen, print and Web"
+arch=('any')
+url="https://01.org/clear-sans"
+license=('custom:Apache2')
+source=("https://www.fontsquirrel.com/fonts/download/clear-sans")
+sha256sums=('9ae55779c727ba393af4b57f707ca4b22b1d6322fdf9db4947243077788906f9')
+
+package() {
+  cd "${srcdir}"
+  install -d "${pkgdir}/usr/share/fonts/TTF"
+  install -m644 *.ttf "${pkgdir}/usr/share/fonts/TTF/"
+}
