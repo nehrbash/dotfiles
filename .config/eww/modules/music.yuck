@@ -19,6 +19,7 @@
         :class "mr-15"
         :space-evenly false
         (label
+		  :class "spotify-icon"
           :text " ")
         (revealer
           :transition "slideright"

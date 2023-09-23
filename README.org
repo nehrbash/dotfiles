@@ -11,7 +11,7 @@
 - Theme: Gruvbox
 - cursor theme: Dracula
 - Fonts
-  - Product Sans
+  - Google Sans Bold
   - Material Icons Outlined
   - Source Code Pro
 
@@ -95,8 +95,7 @@ fi
   - hyprland-git
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync-client
-anyrun-git
-nwg-drawer-bin
+nwg-launchers-git
 #+end_src
 
 ** Hyprbar Plugin
@@ -143,11 +142,9 @@ playerctl
 
 #+begin_src txt :tangle pkglist.txt :padline no
 ttf-material-icons-git
-otf-material-icons-git
 ttf-google-sans
 ttf-google-fonts-git
 ttf-font-awesome
-ttf-icomoon-feather
 #+end_src
 
 * Personal Software

@@ -1040,6 +1040,7 @@ Call a second time to restore the original window configuration."
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
   (type-break-keystroke-threshold '(nil . 2625))
   (type-break-demo-boring-stats t)
+  (type-break-query-mode t)
   (type-break-demo-functions '(type-break-demo-boring))
   :config
   (defun format-seconds-to-mm-ss (seconds)
@@ -1130,7 +1131,7 @@ Call a second time to restore the original window configuration."
                ("C-c v" . wr-mode)))
   :hook ((org-mode . wr-mode)
          (org-mode . (lambda ()
-            (setq-local buffer-face-mode-face '((:family "Product Sans")))
+            (setq-local buffer-face-mode-face '((:family "Google Sans" :weight bold )))
             (setq-local corfu-auto-delay 0.8)
             (buffer-face-mode)))))
 

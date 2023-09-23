@@ -15,7 +15,7 @@
       :class "app-launcher"
       (button
         :class "app-launcher"
-        :onclick "nwg-drawer &"
+        :onclick "nwggrid -client"
         (label
           :class "app-launcher icon"
           :text "")))))
