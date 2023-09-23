@@ -12,7 +12,7 @@
 (defvar profile-image "images/profile.png")
 (defpoll time :interval "1s" `date +'{"date": "%m/%d/%y", "hour": "%I", "minute": "%M %p", "day": "%A"}'`)
 (defpoll upgrades :interval "1h" `checkupdates | wc -l`)
-(defpoll pomo :interval "1s" `scripts/pomo`)
+(defpoll pomo :interval "1s" `emacsclient -e '(type-break-json-data)' | jq -r`)
 (defpoll tasks :interval "1m" `scripts/tasks`)
 (deflisten battery "scripts/battery")
 (deflisten bluetooth "scripts/bluetooth")

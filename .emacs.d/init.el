@@ -1038,7 +1038,6 @@ Call a second time to restore the original window configuration."
   (type-break-interval (* 25 60)) ;; 25 mins
   (type-break-good-rest-interval (* 10 60)) ;; 10 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
-  (type-break-query-mode t)
   (type-break-keystroke-threshold '(nil . 2625))
   (type-break-demo-boring-stats t)
   (type-break-demo-functions '(type-break-demo-boring))

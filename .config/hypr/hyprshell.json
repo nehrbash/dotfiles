@@ -5,8 +5,8 @@
     "Icon": "/usr/share/icons/Dracula/scalable/apps/emacs.svg"
   },
   {
-    "Desktop": "firefox-beta-bin.desktop",
-    "Class": "Firefox Beta",
+    "Desktop": "firefox-bin.desktop",
+    "Class": "Firefox",
     "Icon": "/usr/share/icons/Dracula/scalable/apps/firefox.svg"
   },
   {

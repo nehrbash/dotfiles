@@ -42,10 +42,12 @@ elif [ $COUNTER -eq 2 ]; then
             keyword decoration:inactive_opacity 1;\
             "
     # hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
+	set +e
     eww close corner-ul corner-ur corner-bl corner-br
 	if [ "$monitors_length" -gt 1 ]; then
 		eww close corner2-ul corner2-ur corner2-bl corner2-br
 	fi
+	set -e
 elif [ $COUNTER -eq 3 ]; then
     if command -v swaync-client &> /dev/null; then
     swaync-client -dn

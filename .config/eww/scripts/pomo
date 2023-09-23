@@ -1,3 +1,0 @@
-#!/bin/bash
-
-emacsclient -e '(type-break-json-data)' | jq -r

@@ -71,7 +71,13 @@ fi
    Installed Required packages + optional ones.
 
 #+begin_src sh :tangle install.sh
-paru --needed -S - < pkglist.txt
+read -p "Do you want to update packages? (yes/no): " choice
+
+if [[ "$choice" == "yes" ]]; then
+    paru --needed -S - < pkglist.txt
+else
+    echo "Skipping package update."
+fi
 #+end_src
 
 * Keyboard
@@ -84,11 +90,13 @@ paru --needed -S - < pkglist.txt
 * WM Hyprland
 
   I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
-
+  Install manually because don't know if need want nvidia package or not. 
+  - xdg-desktop-portal-hyprland-git
+  - hyprland-git
 #+begin_src txt :tangle pkglist.txt :padline no
-hyprland-git
-xdg-desktop-portal-hyprland-git
 swaync-client
+anyrun-git
+nwg-drawer-bin
 #+end_src
 
 ** Hyprbar Plugin
@@ -111,7 +119,7 @@ systemctl --user enable swaync.service
 
   Lisp like graphical widget system
 
-#+begin_src shell :tangle install.sh
+#+begin_src sh :tangle install.sh
 go install github.com/nehrbash/hyprshell@latest
 #+end_src
 
@@ -122,13 +130,22 @@ swayidle
 nwg-look
 jaq
 jq
+gruvbox-dark-gtk
+pactl
+easyeffects
+pavucontrol
+blueberry
+iwgtk
+playerctl
 #+end_src
 
 ** Fonts
 
 #+begin_src txt :tangle pkglist.txt :padline no
 ttf-material-icons-git
+otf-material-icons-git
 ttf-google-sans
+ttf-google-fonts-git
 ttf-font-awesome
 ttf-icomoon-feather
 #+end_src
@@ -151,7 +168,18 @@ slack-desktop
    I like a simple zsh prompt. set shell to zsh
 
 #+begin_src sh :tangle install.sh
-chsh -s $(which zsh)
+if [[ "$SHELL" == *"/zsh" ]]; then
+    echo "The current shell is already zsh. Skipping shell change."
+else
+    read -p "Do you want to change the shell to zsh? (yes/no): " choice
+
+    if [[ "$choice" == "yes" ]]; then
+        chsh -s $(which zsh)
+        echo "Shell changed to zsh."
+    else
+        echo "Skipping shell change."
+    fi
+fi
 #+end_src
 
 *** Terminal Packages
@@ -174,10 +202,16 @@ Get the active profile from profiles.ini and symlink chrome folder into place. R
 3. import sidebery data and customize bar to remove refresh buttons.
 4. set font to Product Sans
 
-#+begin_src shell :tangle install.sh
-PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
-# Create the symlink
-ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
+#+begin_src sh :tangle install.sh
+read -p "Do you want to update Firefox CSS? (yes/no): " choice
+
+if [[ "$choice" == "yes" ]]; then
+	local PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+	# Create the symlink
+	ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
+else
+    echo "Skipping Firefox CSS update."
+fi
 #+end_src
 
 *** Extentions
@@ -261,7 +295,6 @@ if [ ! -f ~/doc/gcal.org ]; then
     touch ~/doc/gcal.org
 fi
 #+end_src
-
 
 * Autologin
 
