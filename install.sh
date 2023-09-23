@@ -11,6 +11,8 @@ fi
 
 paru --needed -S - < pkglist.txt
 
+
+
 systemctl --user enable hyprland.service
 systemctl --user enable hyprpaper.service
 systemctl --user enable hyprshell.service
@@ -54,14 +56,3 @@ fi
 if [ ! -f ~/doc/gcal.org ]; then
     touch ~/doc/gcal.org
 fi
-
-
-
-go install github.com/nehrbash/hyprshell@latest
-
-PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
-# Create the symlink
-ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
-
-spicetify config current_theme Onepunch color_scheme light
-spicetify apply

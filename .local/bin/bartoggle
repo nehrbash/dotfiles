@@ -9,6 +9,12 @@ if [ ! -f "$COUNTER_FILE" ] || [ ! -s "$COUNTER_FILE" ]; then
     echo 1 > $COUNTER_FILE
 fi
 
+
+# Check how any monitors
+json_output=$(hyprctl monitors -j)
+monitors_length=$(echo "$json_output" | jq '. | length')
+
+
 # Read the current counter value or use first arg
 COUNTER=${1:-$(cat $COUNTER_FILE)}
 
@@ -21,11 +27,13 @@ if [ $COUNTER -eq 1 ]; then
         hyprctl reload
     fi
     # hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
-    eww open-many bar bar2 leftbar leftbarapps leftbar2 leftbar2apps corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
+    eww open-many bar leftbar leftbarapps corner-ul corner-ur corner-bl corner-br
+	if [ "$monitors_length" -gt 1 ]; then
+		eww open-many bar2 leftbar2 leftbar2apps corner2-ul corner2-ur corner2-bl corner2-br
+	fi
 elif [ $COUNTER -eq 2 ]; then
     hyprctl --batch "keyword animations:enabled 0;\
             keyword decoration:drop_shadow 0;\
-            keyword decoration:blur 0;\
             keyword general:gaps_in 0;\
             keyword general:gaps_out 0;\
             keyword general:border_size 1;\
@@ -34,7 +42,10 @@ elif [ $COUNTER -eq 2 ]; then
             keyword decoration:inactive_opacity 1;\
             "
     # hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
-    eww close corner-ul corner-ur corner-bl corner-br corner2-ul corner2-ur corner2-bl corner2-br
+    eww close corner-ul corner-ur corner-bl corner-br
+	if [ "$monitors_length" -gt 1 ]; then
+		eww close corner2-ul corner2-ur corner2-bl corner2-br
+	fi
 elif [ $COUNTER -eq 3 ]; then
     if command -v swaync-client &> /dev/null; then
     swaync-client -dn
