@@ -157,7 +157,6 @@
             :text "${memory.used} | ${memory.total}"
             :halign "start"
             :class "sys-text-sub"))))
-    
     (centerbox
       :class "bottom-row"
       (label :halign "start" :class "upgared-text" :text " ${upgrades} Upgrades")

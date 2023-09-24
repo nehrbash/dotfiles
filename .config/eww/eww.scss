@@ -29,7 +29,6 @@
 
 @import 'css/calendar';
 @import 'css/music';
-@import 'css/notification';
 @import 'css/osd';
 @import 'css/sidebar';
 @import 'css/system';
@@ -66,18 +65,17 @@ tooltip {
   }
 }
 
-.workspaces {
-    padding-left: 53px;// 48 + 5
-}
-
 .ws {
-    margin-top: 5px;
+	@include hoverable;
     border-radius: 50%;
 }
 
 .ws-icon {
     background-position: center;
     background-size: cover;
+	// make them pop out of circle a little more
+	margin: -5px;
+	padding: 5px;
 }
 
 .module {

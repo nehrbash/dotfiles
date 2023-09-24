@@ -15,8 +15,8 @@
       :class "app-launcher"
       (button
         :class "app-launcher"
-		;; the & prevents it getting stuck
-        :onclick "nwggrid -client &"
+		;; being dumb
+        :onclick "nwggrid -client; sleep 1; exit 0"
         (label
           :class "app-launcher icon"
           :text "")))))
@@ -61,7 +61,6 @@
               :space-evenly false
               (button
                 :class "app-icon"
-                :width "60px"
                 :height 44
                 :width 44
                 :onrightclick "gtk-launch ${appList.Desktop}"
@@ -72,6 +71,97 @@
               :icon "${appList.Icon}"
               :revealid "${appList.ID}"
               :show {arraylength(appList.Apps) > 1 ? true : false})))))))
+(defwidget lbar []
+  (box
+    :class "sidebar"
+	:valign "bottom"
+	:orientation "v"))
+
+(defwidget lapps []
+  (centerbox
+	:orientation "v"
+	(box
+	  :orientation "h"
+	  :hexpand false
+	  :vexpand true
+	  :valign "center"
+	  :space-evenly false
+      :halign "left"
+		(workspaces))
+	(box
+      :orientation "v"
+      :space-evenly false
+      :valign "center"
+      :halign "left"
+      (box
+		:space-evenly false
+		:orientation "h"
+		(box
+          :height 25
+          :width 57
+          :class "apps-b"
+          (box :class "apps-tl")))
+      (box
+		:space-evenly false
+		:orientation "h"
+		(box
+          :height 25
+          :width 57
+          :class "apps-tr"))
+      (apps)
+      (box
+		:space-evenly false
+		:orientation "h"
+		(box
+          :height 25
+          :width 57
+          :class "apps-br"))
+      (box
+		:space-evenly false
+		:orientation "h"
+		(box
+          :height 25
+          :width 57
+          :class "apps-b"
+          (box
+			:orientation "h"
+			:height 25
+			:width 57
+			:anchor "left"
+			:hexpand false
+			:vexpand false
+			:space-evenly false
+			:class "apps-bl"))))
+	(box
+	  :orientation "h"
+      :vexpand true
+      :space-evenly false
+      :width 48
+      :halign "left"
+	  (box
+		:orientation "v"
+		:space-evenly false
+		:spacing 0
+		(box
+		  :orientation "v"
+		  :vexpand "true")
+		(box
+		  :space-evenly false
+		  :orientation "h"
+		  (box
+			:height 25
+			:width 57
+			:class "systray-b"
+			(box :class "systray-top")))
+		(systray
+		  :valign "bottom"
+		  :vexpand "false"
+		  :class "systray"
+		  :pack-direction "up")
+		;; bottom margin/padding not working
+		(box :class "systray-bottom"
+		  :orientation "v"
+		  :height 20)))))
 
 (defwidget showapps [applist icon revealid show]
   (revealer
@@ -104,14 +194,7 @@
               :anchor "left center")
   :stacking "fg"
   :exclusive true
-  (centerbox
-    :class "sidebar"
-	:orientation "v"
-	(net)
-	(bright)
-	(systray
-	  :class "systray module"
-	  :pack-direction "ttb")))
+  (lbar))
 
 (defwindow leftbar2apps
   :monitor 1
@@ -122,50 +205,7 @@
               :anchor "left center")
   :stacking "fg"
   :exclusive false
-  (box
-    :orientation "v"
-    :space-evenly false
-    :valign "center"
-    :anchor "center"
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-b"
-        (box :class "apps-tl")))
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-tr"))
-    (apps)
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-br"))
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-b"
-        (box
-          :orientation "h"
-          :height 25
-          :width 57
-          :anchor "left"
-          :hexpand false
-          :vexpand false
-          :space-evenly false
-          :class "apps-bl")))))
+  (lapps))
 
 (defwindow leftbar
   :monitor 0
@@ -175,23 +215,7 @@
               :anchor "left center")
   :stacking "fg"
   :exclusive true
-  (centerbox
-    :class "sidebar"
-	:valign "bottom"
-	:orientation "v"
-	(box)
-	(box)
-	(box
-	  :orientation "v"
-	  :space-evenly false
-	  (box
-		:orientation "v"
-		:vexpand "true")
-	  (systray
-		:valign "bottom"
-		:vexpand "false"
-		:class "systray module"
-		:pack-direction "up"))))
+  (lbar))
 
 (defwindow leftbarapps
   :monitor 0
@@ -202,47 +226,4 @@
               :anchor "left center")
   :stacking "fg"
   :exclusive false
-  (box
-    :orientation "v"
-    :space-evenly false
-    :valign "center"
-    :anchor "center"
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-b"
-        (box :class "apps-tl")))
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-tr"))
-    (apps)
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-br"))
-    (box
-      :space-evenly false
-      :orientation "h"
-      (box
-        :height 25
-        :width 57
-        :class "apps-b"
-        (box
-          :orientation "h"
-          :height 25
-          :width 57
-          :anchor "left"
-          :hexpand false
-          :vexpand false
-          :space-evenly false
-          :class "apps-bl")))))
+  (lapps))

@@ -33,7 +33,6 @@
            (box
             :space-evenly false
             :halign "start"
-            (workspaces)
             (mode)
             (music-module)))
 
