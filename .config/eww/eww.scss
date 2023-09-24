@@ -42,13 +42,6 @@
 @import 'css/tasks';
 
 
-.systray {
-   @include rounding;
-   background: $surface0;
-}
-
-
-
 .bar, .sidebar {
   background-color: $bg;
   color: $fg;

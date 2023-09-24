@@ -103,8 +103,14 @@
               :anchor "left center")
   :stacking "fg"
   :exclusive true
-  (box
-    :class "sidebar"))
+  (centerbox
+    :class "sidebar"
+	:orientation "v"
+	(net)
+	(bright)
+	(systray
+	  :class "systray module"
+	  :pack-direction "ttb")))
 
 (defwindow leftbar2apps
   :monitor 1
@@ -168,8 +174,23 @@
               :anchor "left center")
   :stacking "fg"
   :exclusive true
-  (box
-    :class "sidebar"))
+  (centerbox
+    :class "sidebar"
+	:valign "bottom"
+	:orientation "v"
+	(box)
+	(box)
+	(box
+	  :orientation "v"
+	  :space-evenly false
+	  (box
+		:orientation "v"
+		:vexpand "true")
+	  (systray
+		:valign "bottom"
+		:vexpand "false"
+		:class "systray module"
+		:pack-direction "up"))))
 
 (defwindow leftbarapps
   :monitor 0

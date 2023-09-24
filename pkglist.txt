@@ -1,5 +1,9 @@
 swaync-client
 nwg-launchers-git
+hyprpaper-git
+light
+brightnessctl
+wget
 eww-tray-wayland-git
 swayidle
 nwg-look

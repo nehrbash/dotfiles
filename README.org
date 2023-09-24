@@ -96,6 +96,10 @@ fi
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync-client
 nwg-launchers-git
+hyprpaper-git
+light
+brightnessctl
+wget
 #+end_src
 
 ** Hyprbar Plugin

@@ -93,7 +93,18 @@
           :class "volume-bar"
           :value {volume.microphone}
           :tooltip "mic on ${volume.microphone}%"
-          :onchange "scripts/volume setvol SOURCE {}")))
+          :onchange "scripts/volume setvol SOURCE {}"))
+	  (box
+        :class "brightness-slider-box"
+        :space-evenly false
+        (button
+          :class "brightness-slider-icon"
+          {brightness.icon})
+        (scale
+          :class "brightness-slider"
+          :value {brightness.level}
+          :marks true
+          :onchange "brightnessctl s {}%")))
 
     (box
       :class "system-info-box"

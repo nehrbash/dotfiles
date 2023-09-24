@@ -1,6 +1,8 @@
 (include "./modules/variables.yuck")
 (include "./modules/bluetooth.yuck")
 (include "./modules/clock.yuck")
+(include "./modules/bat.yuck")
+(include "./modules/bright.yuck")
 (include "./modules/music.yuck")
 (include "./modules/net.yuck")
 (include "./modules/sys.yuck")
@@ -36,15 +38,16 @@
             (music-module)))
 
 (defwidget right []
-           (box
-            :space-evenly false
-            :halign "end"
-            (pomo)
-            (systray :class "systray module")
-            (volume-module)
-            (bluetooth)
-            (net)
-            (sys)))
+  (box
+    :space-evenly false
+    :halign "end"
+    (pomo)
+    (volume-module)
+    (bluetooth)
+    (net)
+	(bright)
+	(bat)
+    (sys)))
 
 (defwidget center []
            (box
