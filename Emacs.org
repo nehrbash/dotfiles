@@ -1033,11 +1033,13 @@ Call a second time to restore the original window configuration."
 (use-package vertico
   :hook (after-init . vertico-mode))
 (use-package marginalia
-  :config (marginalia-mode)
+  :hook (vertico-mode . marginalia-mode)
+  :bind (:map minibuffer-local-map
+			  ("M-a" . marginalia-cycle))
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
-  :hook ((marginalia-mode . all-the-icons-completion-marginalia-setup)))
+  :hook (marginalia-mode .marginall-the-icons-completion-marginalia-setup))
 #+end_src
 
 ** Orderless
@@ -1744,11 +1746,12 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   ;; Setting interval of that of a pomodoro session
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
-  (type-break-good-rest-interval (* 10 60)) ;; 10 mins
+  (type-break-good-rest-interval (* 5 60)) ;; 5 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
-  (type-break-keystroke-threshold '(nil . 2625))
+  (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
+  (type-break-query-function '(lambda (a &rest b) t))
   (type-break-demo-functions '(type-break-demo-boring))
   :config
   (defun format-seconds-to-mm-ss (seconds)
@@ -1776,6 +1779,9 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 								 :keystroke-count ,type-break-keystroke-count)))
       (json-encode json-data))))
 #+end_src   
+
+#+RESULTS:
+: #s(hash-table size 65 test eql rehash-size 1.5 rehash-threshold 0.8125 data (:use-package (25871 33244 891615 304000) :init (25871 33244 891612 599000) :init-secs (0 0 31 279000) :use-package-secs (0 0 373 348000) :config (25871 33244 891606 17000) :config-secs (0 0 9 247000)))
 
 ** Latex Fragments
 

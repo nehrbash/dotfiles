@@ -467,11 +467,13 @@ Call a second time to restore the original window configuration."
 (use-package vertico
   :hook (after-init . vertico-mode))
 (use-package marginalia
-  :config (marginalia-mode)
+  :hook (vertico-mode . marginalia-mode)
+  :bind (:map minibuffer-local-map
+			  ("M-a" . marginalia-cycle))
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
-  :hook ((marginalia-mode . all-the-icons-completion-marginalia-setup)))
+  :hook (marginalia-mode .marginall-the-icons-completion-marginalia-setup))
 
 (use-package orderless
   :after (minibuffer vertico)
@@ -1036,11 +1038,12 @@ Call a second time to restore the original window configuration."
   ;; Setting interval of that of a pomodoro session
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
-  (type-break-good-rest-interval (* 10 60)) ;; 10 mins
+  (type-break-good-rest-interval (* 5 60)) ;; 5 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
-  (type-break-keystroke-threshold '(nil . 2625))
+  (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
+  (type-break-query-function '(lambda (a &rest b) t))
   (type-break-demo-functions '(type-break-demo-boring))
   :config
   (defun format-seconds-to-mm-ss (seconds)
