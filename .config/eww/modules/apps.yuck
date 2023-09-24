@@ -15,7 +15,8 @@
       :class "app-launcher"
       (button
         :class "app-launcher"
-        :onclick "nwggrid -client"
+		;; the & prevents it getting stuck
+        :onclick "nwggrid -client &"
         (label
           :class "app-launcher icon"
           :text "")))))
