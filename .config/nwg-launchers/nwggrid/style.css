@@ -1,0 +1,61 @@
+@define-color border #1d2021;
+@define-color shadow #0d1011;
+@define-color bg #282828;
+@define-color hover #665c54;
+@define-color selected #3c3836;
+@define-color fg #ebdbb2;
+@define-color fg-alt #d5c4a1;
+@define-color ac #458588;
+
+* {
+    font-family: Product Sans, Material Icons Outlined;
+    font-size: 16px;
+    color: #ebdbb2;
+}
+
+
+button, label, image {
+    background: none;
+    border-style: none;
+    box-shadow: none;
+    color: @fg;
+}
+
+button {
+    padding: 5px;
+    margin: 5px;
+    text-shadow: none;
+    border-radius: 10px;
+}
+
+button:hover {
+    background-color: rgba (255, 255, 255, 0.1);
+    box-shadow: 0 0 10px;
+}
+
+button:focus {
+    background-color: rgba (255, 255, 255, 0.1);
+    box-shadow: 0 0 10px;
+}
+
+button:checked {
+    background-color: rgba (255, 255, 255, 0.1);
+}
+
+#searchbox {
+    font-size: 28px;
+    background: @bg;
+    border: 3px solid @border;
+    color: #ccc;
+    margin-top: 90px;
+    margin-bottom: 20px;
+    padding-right: 28px;
+    padding-left: 28px;
+    border-radius: 28px;
+    min-width: 400px;
+}
+
+
+#description {
+    margin-bottom: -20px;
+}
