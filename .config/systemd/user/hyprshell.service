@@ -1,8 +1,9 @@
 [Unit]
 Description=Hyprshell daemon
-After=hyprland.target
 Wants=hyprland.target
 BindsTo=hyprland.target
+PartOf=hyprland.target
+Before=hyprland.target
 
 [Service]
 EnvironmentFile=-/tmp/hypr/env
@@ -11,4 +12,4 @@ Restart=always
 RestartSec=2
 
 [Install]
-WantedBy=hyprland.target
+WantedBy=default.target

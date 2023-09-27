@@ -1419,16 +1419,16 @@ Call a second time to restore the original window configuration."
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra" "--run-together")))
-(use-package flyspell
-  :hook ((org-mode markdown-mode TeX-mode git-commit-mode
-           yaml-mode conf-mode prog-mode) . flyspell-mode)
-  :bind (:map flyspell-mode-map
-              ("C-." . nil)) ;; Unbind the key
-  :config
-  (setq flyspell-issue-welcome-flag nil
-        ;; Significantly speeds up flyspell, which would otherwise print
-        ;; messages for every word when checking the entire buffer
-        flyspell-issue-message-flag nil))
+;; (use-package flyspell
+;;   :hook ((org-mode markdown-mode TeX-mode git-commit-mode
+;;            yaml-mode conf-mode prog-mode) . flyspell-mode)
+;;   :bind (:map flyspell-mode-map
+;;               ("C-." . nil)) ;; Unbind the key
+;;   :config
+;;   (setq flyspell-issue-welcome-flag nil
+;;         ;; Significantly speeds up flyspell, which would otherwise print
+;;         ;; messages for every word when checking the entire buffer
+;;         flyspell-issue-message-flag nil))
 #+end_src
 
 *** Define words
@@ -1754,7 +1754,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
-  (type-break-query-function '(lambda (a &rest b) t))
+  (type-break-query-function 'y-or-n-p)
+  ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-demo-functions '(type-break-demo-boring))
   :config
   (defun format-seconds-to-mm-ss (seconds)

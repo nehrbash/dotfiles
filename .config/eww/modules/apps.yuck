@@ -6,7 +6,6 @@
     :hexpand false
     :halign "start"
     (box
-      :halign "left"
       :hexpand false
       :vexpand false
       :width 48
@@ -74,7 +73,6 @@
 (defwidget lbar []
   (box
     :class "sidebar"
-	:valign "bottom"
 	:orientation "v"))
 
 (defwidget lapps []
@@ -86,13 +84,11 @@
 	  :vexpand true
 	  :valign "center"
 	  :space-evenly false
-      :halign "left"
 		(workspaces))
 	(box
       :orientation "v"
       :space-evenly false
       :valign "center"
-      :halign "left"
       (box
 		:space-evenly false
 		:orientation "h"
@@ -127,7 +123,6 @@
 			:orientation "h"
 			:height 25
 			:width 57
-			:anchor "left"
 			:hexpand false
 			:vexpand false
 			:space-evenly false
@@ -154,7 +149,6 @@
 			:class "systray-b"
 			(box :class "systray-top")))
 		(systray
-		  :valign "bottom"
 		  :vexpand "false"
 		  :class "systray"
 		  :pack-direction "up")
