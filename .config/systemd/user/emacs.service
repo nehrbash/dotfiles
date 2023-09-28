@@ -4,7 +4,7 @@ Documentation=info:emacs man:emacs(1) https://gnu.org/software/emacs/
 After=graphical.target
 
 [Service]
-Type=forking
+Type=oneshot
 ExecStart=/bin/bash -c '/usr/bin/emacs --daemon'
 ExecStop=/user/bin/emacsclient --eval '(save-buffers-kill-emacs)'
 
@@ -13,4 +13,4 @@ Environment=LSP_USE_PLIST=true
 Restart=on-failure
 
 [Install]
-WantedBy=hyprland.target
+WantedBy=default.target

@@ -19,7 +19,6 @@ fi
 
 
 
-systemctl --user enable hyprland.service
 systemctl --user enable hyprpaper.service
 systemctl --user enable hyprshell.service
 systemctl --user enable eww.service
@@ -43,16 +42,22 @@ fi
 read -p "Do you want to update Firefox CSS? (yes/no): " choice
 
 if [[ "$choice" == "yes" ]]; then
-	local PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+	PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
 	# Create the symlink
 	ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
 else
     echo "Skipping Firefox CSS update."
 fi
 
-spicetify config current_theme Onepunch color_scheme light
-spicetify backup
-spicetify apply
+read -p "Do you want to update Spicetify? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	spicetify config current_theme Onepunch color_scheme light
+	spicetify restore backup
+	spicetify backup
+	spicetify apply
+else
+    echo "Skipping Spicetify update."
+fi
 
 xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory

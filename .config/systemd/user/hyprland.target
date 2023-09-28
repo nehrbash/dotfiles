@@ -1,9 +1,0 @@
-[Unit]
-Description=Hyprland Target
-Documentation=man:systemd.special(7)
-Requires=hyprshell.service
-AllowIsolate=yes
-
-
-BindsTo=graphical-session.target
-Before=graphical-session.target

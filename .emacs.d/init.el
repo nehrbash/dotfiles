@@ -1048,6 +1048,17 @@ Call a second time to restore the original window configuration."
   ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-demo-functions '(type-break-demo-boring))
   :config
+  (defun org-clock-in-to-task-by-title (task-title)
+	"Clock into an Org Agenda task by its title within a custom agenda command."
+	(interactive "sEnter the title of the task: ")
+    (org-agenda nil "t")
+    (with-current-buffer "*Org Agenda(t)*"
+      (goto-char (point-min))
+      (if (search-forward task-title nil t)
+          (progn
+            (org-agenda-goto)
+            (org-clock-in))
+        (message "Task with title \"%s\" not found in the custom agenda view." task-title))))
   (defun format-seconds-to-mm-ss (seconds)
 	"Formats time to MM:SS."
 	(let* ((minutes (floor (/ seconds 60)))
@@ -1064,7 +1075,9 @@ Call a second time to restore the original window configuration."
                       "0"))
            (json-data `(:percent ,percent
 								 :time ,formatted-time
-								 :task ,(or org-clock-heading "No Active Task")
+								 :task ,(if (string-empty-p org-clock-heading)
+											"No Active Task"
+										  org-clock-heading)
 								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
 													   "No Active Task"
 													 org-clock-heading)
@@ -1179,6 +1192,11 @@ Call a second time to restore the original window configuration."
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 
 (use-package org
+  :hook ((org-clock-in . (lambda () (org-todo "INPROGRESS")
+						   (org-save-all-org-buffers)))
+		 (org-clock-out . (lambda () (org-todo "NEXT")
+							(setq org-clock-heading "")
+							(org-save-all-org-buffers))))
   :custom
   (org-todo-keywords
       (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")

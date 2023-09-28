@@ -1,4 +1,4 @@
-swaync-client
+swaync
 nwg-launchers-git
 hyprpaper-git
 light
@@ -8,9 +8,7 @@ eww-tray-wayland-git
 swayidle
 nwg-look
 jaq
-jq
 gruvbox-dark-gtk
-pactl
 easyeffects
 pavucontrol
 blueberry

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
-
 icons=("" "" "" "" "" "" "" "")
 
 geticon() {
@@ -41,8 +40,8 @@ wattage() {
 }
 
 gettime() {
-	FULL=$(cat /sys/class/power_supply/BAT0/charge_full)
-	NOW=$(cat /sys/class/power_supply/BAT0/charge_now)
+	FULL=$(cat /sys/class/power_supply/BAT0/charge_full 2>/dev/null)
+	NOW=$(cat /sys/class/power_supply/BAT0/charge_now 2>/dev/null)
 
 	if [ "$RATE" -gt 0 ]; then
 		if [ "$STATE" = "Discharging" ]; then
@@ -53,11 +52,16 @@ gettime() {
 		date -u -d@"$(bc -l <<< "$EX * 3600")" +%H:%M
 	fi
 }
-
+CAPACITY=100
+RATE=0
+STATE="fully charged"
 while true; do
-	RATE=$(cat /sys/class/power_supply/BAT0/current_now)
-	CAPACITY=$(cat /sys/class/power_supply/BAT0/capacity)
-	STATE=$(cat /sys/class/power_supply/BAT0/status)
+	RATE=$(cat /sys/class/power_supply/BAT0/current_now 2>/dev/null)
+	CAPACITY=$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null)
+	STATE=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
+	if [ -z "$CAPACITY" ]; then
+		CAPACITY="100"
+	fi
 
 	echo '{ "icon": "'"$(geticon)"'", "percentage": '"$CAPACITY"', "wattage": "'"$(wattage)"'", "status": "'"$(status)"'", "color": "'"$(color)"'" }'
 	sleep 3

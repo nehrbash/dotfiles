@@ -1,6 +1,6 @@
 #!/bin/bash
 
-_CURRENT_MONITOR=$(hyprctl monitors -j | jq -r '.[] | select(.focused == true) | .name')
+_CURRENT_MONITOR=$(hyprctl monitors -j | jaq -r '.[] | select(.focused == true) | .name')
 _OUTPUT_DIR="$HOME/Videos/ScreenRecords"
 _TIMESTAP=$(date +%Y-%m-%d%H:%M:%S)
 _EXT=".mp4"

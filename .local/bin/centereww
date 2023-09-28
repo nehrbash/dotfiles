@@ -1,4 +1,6 @@
 #! /bin/bash
 
 actmonit=$(hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | .id')
+
+swaync-client -df
 eww open --toggle control-menu-closer --screen $actmonit; eww open --toggle control-menu --screen $actmonit

@@ -23,6 +23,7 @@
   font-family: Google Sans, Material Icons;
   font-weight: bold;
 }
+
 .icon {
     font-family: Material Icons;
 }
@@ -69,6 +70,14 @@ tooltip {
 	@include hoverable;
     border-radius: 50%;
 }
+
+.checkbox {
+	border-radius: 8px;
+	border: 2px solid $border;
+	background: $crust;
+
+}
+
 
 .ws-icon {
     background-position: center;

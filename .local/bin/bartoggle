@@ -12,7 +12,7 @@ fi
 
 # Check how any monitors
 json_output=$(hyprctl monitors -j)
-monitors_length=$(echo "$json_output" | jq '. | length')
+monitors_length=$(echo "$json_output" | jaq '. | length')
 
 
 # Read the current counter value or use first arg
@@ -20,6 +20,21 @@ COUNTER=${1:-$(cat $COUNTER_FILE)}
 
 # Based on the counter value, decide which command to run
 if [ $COUNTER -eq 1 ]; then
+	if ! pgrep -x "hyprshell" > /dev/null; then
+		echo "Starting Hyprshell daemon..."
+		hyprshell daemon >/dev/null 2>&1 &
+	else
+		echo "Hyprshell is already running."
+	fi
+
+
+	if pgrep -x "eww" > /dev/null; then
+		echo "Eww is already running."
+	else
+		echo "Starting Eww daemon..."
+		eww daemon
+	fi
+
     if command -v swaync-client &> /dev/null; then
         swaync-client -df
     fi

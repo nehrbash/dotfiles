@@ -6,7 +6,6 @@
     :vexpand "true"
     :halign "center"
     (box
-      :yalign 0.5
       (label
         :class "quote"
         :justify "center"

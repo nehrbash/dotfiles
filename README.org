@@ -94,7 +94,7 @@ fi
   - xdg-desktop-portal-hyprland-git
   - hyprland-git
 #+begin_src txt :tangle pkglist.txt :padline no
-swaync-client
+swaync
 nwg-launchers-git
 hyprpaper-git
 light
@@ -111,7 +111,6 @@ wget
 ** Services
 
 #+begin_src sh :tangle install.sh
-systemctl --user enable hyprland.service
 systemctl --user enable hyprpaper.service
 systemctl --user enable hyprshell.service
 systemctl --user enable eww.service
@@ -127,14 +126,15 @@ go install github.com/nehrbash/hyprshell@latest
 #+end_src
 
 *** Packages
+
+	- *libpulse* for pactl but don't want to add  pipewire here 
+	
 #+begin_src txt :tangle pkglist.txt :padline no
 eww-tray-wayland-git
 swayidle
 nwg-look
 jaq
-jq
 gruvbox-dark-gtk
-pactl
 easyeffects
 pavucontrol
 blueberry
@@ -207,7 +207,7 @@ Get the active profile from profiles.ini and symlink chrome folder into place. R
 read -p "Do you want to update Firefox CSS? (yes/no): " choice
 
 if [[ "$choice" == "yes" ]]; then
-	local PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
+	PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
 	# Create the symlink
 	ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
 else
@@ -234,9 +234,15 @@ spotify-launcher
 #+end_src
 
 #+begin_src sh :tangle install.sh
-spicetify config current_theme Onepunch color_scheme light
-spicetify backup
-spicetify apply
+read -p "Do you want to update Spicetify? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	spicetify config current_theme Onepunch color_scheme light
+	spicetify restore backup
+	spicetify backup
+	spicetify apply
+else
+    echo "Skipping Spicetify update."
+fi
 #+end_src
 
 ** Slack

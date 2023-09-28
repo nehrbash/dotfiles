@@ -4,28 +4,52 @@
     :class "ct_box"
     :space-evenly "false"
     :vexpand "true"
-    (label
-      :class "task-label"
-      :text "Task List [${tasks.num-tasks} of ${tasks.num-total}]")
+	(revealer
+    :transition "slidedown"
+    :reveal cal_reveal
+    :duration "350ms"
+	(calendar-win))
     (box
-      :orientation "v"
-      :space-evenly "false"
-      :hexpand "false"
-      :halign "center"
-      (box
-        :orientation "h"
-        :space-evenly "false"
-        (label
-          :class "project"
-          :text "● INBOX"))
-      (for t in {tasks.tasks}
-        (box
+	  :orientation "h"
+	  :space-evenly false
+	  :halign "center"
+	  (label
+      :class "task-label"
+      :text "Agenda ")
+	  (button
+		:width 15
+		:onclick "${EWW_CMD} update cal_reveal=${!cal_reveal}"
+		""))
+    (revealer
+	  :transition "slidedown"
+      :reveal {cal_reveal ? "false":"true"}
+      :duration "350ms"
+	  (box
+		:orientation "v"
+		:space-evenly "false"
+		:hexpand "false"
+		:halign "center"
+		(box
           :orientation "h"
           :space-evenly "false"
           (label
-            :class {t.state}
-            :text "● ${t.state} " )
-          (label
-            :class {t.state == "PROJECT" ? "project" : "task"}
-            :text "${t.title}"
-            :limit-width "30"))))))
+			:class "project"
+			:text "● INBOX  [${tasks.num-tasks} of ${tasks.num-total}]"))
+		(for t in {tasks.tasks}
+          (box
+			:class "task-row"
+			:orientation "h"
+			:space-evenly "false"
+			(checkbox
+			  :timeout "2s"
+			  :class {t.state == "PROJECT" ? "" : "checkbox"}
+			  :onchecked "scripts/tasks -c \"${t.title}\""
+			  :onunchecked "scripts/tasks -o"
+			  :active true)
+			(label
+              :class {t.state}
+              :text "● ${t.state} " )
+			(label
+              :class {t.state == "PROJECT" ? "project" : "task"}
+              :text "${t.title}"
+              :limit-width "30")))))))
