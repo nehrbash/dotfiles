@@ -724,7 +724,6 @@ Call a second time to restore the original window configuration."
   (orderless-matching-styles '(orderless-literal orderless-regexp))))
 
 (use-package corfu-candidate-overlay
-  :ensure nil
   :after corfu
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
                                :branch "master" :rev :newest)
@@ -1030,8 +1029,8 @@ Call a second time to restore the original window configuration."
   ;; dont' show clock in bar because we use system bar
   (org-clock-clocked-in-display nil)
   :init
-  (with-eval-after-load 'org
-	(org-clock-persistence-insinuate)))
+  (setq org-clock-persist 'history)
+  (org-clock-persistence-insinuate))
 
 (use-package type-break
   :hook ((org-clock-in-prepare . type-break-mode)
@@ -1049,8 +1048,9 @@ Call a second time to restore the original window configuration."
   (type-break-demo-functions '(type-break-demo-boring))
   :config
   (defun org-clock-in-to-task-by-title (task-title)
-	"Clock into an Org Agenda task by its title within a custom agenda command."
-	(interactive "sEnter the title of the task: ")
+  "Clock into an Org Agenda task by its title within a custom agenda command."
+  (interactive "sEnter the title of the task: ")
+  (save-window-excursion
     (org-agenda nil "t")
     (with-current-buffer "*Org Agenda(t)*"
       (goto-char (point-min))
@@ -1058,7 +1058,7 @@ Call a second time to restore the original window configuration."
           (progn
             (org-agenda-goto)
             (org-clock-in))
-        (message "Task with title \"%s\" not found in the custom agenda view." task-title))))
+        (message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
   (defun format-seconds-to-mm-ss (seconds)
 	"Formats time to MM:SS."
 	(let* ((minutes (floor (/ seconds 60)))
@@ -1340,9 +1340,12 @@ Call a second time to restore the original window configuration."
            ("C-c n t"   . org-roam-dailies-goto-today)
            ("C-c n y"   . org-roam-dailies-goto-yesterday)
            ("C-c n r"   . org-roam-dailies-goto-tomorrow)
-           ("C-c n g"   . org-roam-graph)
+           ("C-c n G"   . org-roam-graph)
          :map org-mode-map
          (("C-c n i" . org-roam-node-insert))))
+(use-package consult-org-roam
+  :bind ("C-c n g" . org-roam-node-find)
+  :after org-roam)
 
 (use-package org-roam-ui
   :vc (:url "https://github.com/org-roam/org-roam-ui.git"
@@ -1354,21 +1357,21 @@ Call a second time to restore the original window configuration."
         org-roam-ui-update-on-save t
         org-roam-ui-open-on-start nil))
 
-(use-package org-gcal
-  :after (org-agenda)
-  :requires json
-  :init
-  (defun load-gcal-credentials ()
-    "Load Google Calendar credentials from a JSON file."
-    (let* ((json-file "~/.gcal-emacs")
-           (json-data (json-read-file json-file)))
-      (setq plstore-cache-passphrase-for-symmetric-encryption t)
-      (setq org-gcal-client-id (cdr (assoc 'client-id json-data)))
-      (setq org-gcal-client-secret (cdr (assoc 'client-secret json-data)))
-      (setq org-gcal-fetch-file-alist `((,(cdr (assoc 'mail json-data)) .  "~/doc/gcal.org")))))
-  (load-gcal-credentials)
-  :bind (:map org-agenda-mode-map
-         ("M-g" . org-gcal-sync)))
+;; (use-package org-gcal
+;;   :after (org-agenda)
+;;   :requires json
+;;   :init
+;;   (defun load-gcal-credentials ()
+;;     "Load Google Calendar credentials from a JSON file."
+;;     (let* ((json-file "~/.gcal-emacs")
+;;            (json-data (json-read-file json-file)))
+;;       (setq plstore-cache-passphrase-for-symmetric-encryption t)
+;;       (setq org-gcal-client-id (cdr (assoc 'client-id json-data)))
+;;       (setq org-gcal-client-secret (cdr (assoc 'client-secret json-data)))
+;;       (setq org-gcal-fetch-file-alist `((,(cdr (assoc 'mail json-data)) .  "~/doc/gcal.org")))))
+;;   (load-gcal-credentials)
+;;   :bind (:map org-agenda-mode-map
+;;          ("M-g" . org-gcal-sync)))
 
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 
@@ -1393,9 +1396,17 @@ Call a second time to restore the original window configuration."
 								 (eglot-inlay-hints-mode 1)
 								 (setq-local completion-at-point-functions
 											 (list (cape-capf-super #'eglot-completion-at-point  #'yasnippet-capf)))
-								 
 								 )))
-  :custom (eglot-autoshutdown t)
+  :bind (:map eglot-mode-map
+			  ;; "C-h ."  eldoc-doc-buffer
+			  ("C-c r" . eglot-rename)
+			  ("C-c o" . eglot-code-action-organize-imports))
+  :custom
+  (eglot-autoshutdown t)
+  (eglot-events-buffer-size 0)
+  (eglot-sync-connect nil) 
+  :config
+  (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-format-buffer-on-save ()
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t))
@@ -1406,7 +1417,7 @@ Call a second time to restore the original window configuration."
 	(cdr project))
   (add-hook 'project-find-functions #'project-find-go-module))
 (use-package consult-eglot
-  :after (consult eglot))
+  :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
 
 (use-package magit
   :commands (magit-status magit-dispatch)
@@ -1545,15 +1556,18 @@ Call a second time to restore the original window configuration."
 
 (use-package go-ts-mode
   :mode "\\.go\\'"
-  :ensure-system-package ((gopls . "go get golang.org/x/tools/gopls@latest")
-                          (staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest"))
+  :ensure-system-package (gopls . "go get golang.org/x/tools/gopls@latest")
   :hook (go-ts-mode . (lambda ()
-						(setq compile-command "go build -v && go test -v -cover && go vet"
-							  go-ts-mode-indent-offset 4)))
+						(setq-local compile-command "go build -v && go test -v -cover && go vet"
+									go-ts-mode-indent-offset 4)))
   :custom (eglot-workspace-configuration
-   '((:gopls .
-             ((staticcheck . t)
-              (matcher . "CaseSensitive"))))))
+		   '((:gopls .
+					 ((staticcheck . t)
+					  (matcher . "CaseSensitive"))))))
+(use-package flymake-go)
+(use-package flymake-go-staticcheck
+  :ensure-system-package (staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
+  :hook (go-ts-mode . flymake-go-staticchech-enable))
 (use-package flycheck-golangci-lint
   :hook (go-ts-mode . flycheck-golangci-lint-setup))
 (use-package go-tag
@@ -1711,6 +1725,11 @@ If not in a project, prompt for the project root."
 
 (use-package google-this
   :bind ("M-s w" . google-this))
+
+(use-package gcmh
+  :vc (:url "https://github.com/emacsmirror/gcmh.git"
+               :branch "master" :rev :newest)
+  :hook (after-init . gcmh-mode))
 
 (defun doom-defer-garbage-collection-h ()
   (setq gc-cons-threshold most-positive-fixnum))

@@ -1,9 +1,11 @@
 swaync
-nwg-launchers-git
-hyprpaper-git
+nwg-launchers
+hyprpaper
 light
 brightnessctl
 wget
+nwg-displays
+wlr-randr
 eww-tray-wayland-git
 swayidle
 nwg-look

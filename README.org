@@ -95,11 +95,13 @@ fi
   - hyprland-git
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync
-nwg-launchers-git
-hyprpaper-git
+nwg-launchers
+hyprpaper
 light
 brightnessctl
 wget
+nwg-displays
+wlr-randr
 #+end_src
 
 ** Hyprbar Plugin
