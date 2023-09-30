@@ -18,7 +18,7 @@
 (defpoll pomo :initial "{\"percent\":\"98.26666666666667\",\"time\":\"24:34\",\"task\":\"Sync docs\",\"summary\":\"Sync docs 24:34\",\"keystroke\":3000,\"keystroke-count\":0}"
 		 :interval "1s" `emacsclient -e '(type-break-json-data)' | jaq -r`)
 (defpoll tasks :interval "1h" `scripts/tasks -f personal`)
-(deflisten battery "scripts/battery")
+(deflisten battery :initial "{\"enabled\": \"false\", \"icon\": \"\", \"percentage\": 100, \"wattage\": \"0 W\", \"status\": \"fully charged\", \"color\": \"#a6e3a1\" }" "scripts/battery")
 (deflisten bluetooth :initial "{ \"icon\": \"\", \"batt_icon\": \"\", \"text\": \"\", \"color\": \"#89b4fa\" }" "scripts/bluetooth")
 (deflisten brightness "scripts/brightness")
 (deflisten memory "scripts/memory")

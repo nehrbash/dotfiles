@@ -516,7 +516,7 @@ Call a second time to restore the original window configuration."
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
-         ("M-g f" . consult-flycheck)
+         ("M-g n" . consult-flycheck)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
@@ -786,26 +786,54 @@ Call a second time to restore the original window configuration."
 ;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
 (use-package ispell
-  :defer 5
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra" "--run-together")))
-;; (use-package flyspell
-;;   :hook ((org-mode markdown-mode TeX-mode git-commit-mode
-;;            yaml-mode conf-mode prog-mode) . flyspell-mode)
-;;   :bind (:map flyspell-mode-map
-;;               ("C-." . nil)) ;; Unbind the key
-;;   :config
-;;   (setq flyspell-issue-welcome-flag nil
-;;         ;; Significantly speeds up flyspell, which would otherwise print
-;;         ;; messages for every word when checking the entire buffer
-;;         flyspell-issue-message-flag nil))
+(use-package flyspell
+  :after ispell
+  :hook (find-file . flyspell-on-for-buffer-type)
+  :bind (:map flyspell-mode-map
+               ("C-." . nil)
+			   ("C-c w".  flyspell-toggle)) ;; Unbind the key
+  :init
+  (defun flyspell-on-for-buffer-type ()
+    "Enable Flyspell appropriately for the major mode of the current buffer.  Uses `flyspell-prog-mode' for modes derived from `prog-mode', so only strings and comments get checked.  All other buffers get `flyspell-mode' to check all text.  If flyspell is already enabled, does nothing."
+    (interactive)
+    (if (not (symbol-value flyspell-mode)) ; if not already on
+		(progn
+		  (if (derived-mode-p 'prog-mode)
+			  (progn
+				(message "Flyspell on (code)")
+				(flyspell-prog-mode))
+			;; else
+			(progn
+			  (message "Flyspell on (text)")
+			  (flyspell-mode 1)))
+		  ;; I tried putting (flyspell-buffer) here but it didn't seem to work
+		  )))
+  
+  (defun flyspell-toggle ()
+    "Turn Flyspell on if it is off, or off if it is on.  When turning on, it uses `flyspell-on-for-buffer-type' so code-vs-text is handled appropriately."
+    (interactive)
+    (if (symbol-value flyspell-mode)
+		(progn ; flyspell is on, turn it off
+	      (message "Flyspell off")
+	      (flyspell-mode -1))
+										; else - flyspell is off, turn it on
+	  (flyspell-on-for-buffer-type)))
+  :config
+  (setq flyspell-issue-welcome-flag nil
+        ;; Significantly speeds up flyspell, which would otherwise print
+        ;; messages for every word when checking the entire buffer
+        flyspell-issue-message-flag nil))
 
-(use-package define-word
-  :commands define-word)
 (use-package flyspell-correct
   :after flyspell
-    :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
+  :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
+
+(use-package define-word
+  :after flyspell
+  :bind (:map flyspell-mode-map ("M-^" . define-word-at-point)))
 
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
@@ -817,8 +845,24 @@ Call a second time to restore the original window configuration."
   ;; Rerunning checks on every newline is a mote excessive.
   (delq 'new-line flycheck-check-syntax-automatically))
 
-(use-package flycheck-popup-tip
-  :hook (flycheck-mode . flycheck-popup-tip-mode))
+;; (use-package flycheck-popup-tip
+;;   :hook (flycheck-mode . flycheck-popup-tip-mode))
+(use-package quick-peek
+    :vc (:url "https://github.com/cpitclaudel/quick-peek.git"
+                  :branch "master" :rev :newest))
+(use-package flycheck-inline
+  :hook (flycheck-mode . flycheck-inline-mode)
+  :requires quick-peek
+  :init
+  
+  (setq flycheck-inline-display-function
+		(lambda (msg pos err)
+          (let* ((ov (quick-peek-overlay-ensure-at pos))
+				 (contents (quick-peek-overlay-contents ov)))
+			(setf (quick-peek-overlay-contents ov)
+                  (concat contents (when contents "\n") msg))
+			(quick-peek-update ov)))
+		flycheck-inline-clear-function #'quick-peek-hide))
 
 (use-package dired
   :ensure nil
@@ -1050,6 +1094,7 @@ Call a second time to restore the original window configuration."
   (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
+  (type-break-time-warning-intervals nil)
   (type-break-query-function 'y-or-n-p)
   ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-demo-functions '(type-break-demo-boring))
@@ -1411,8 +1456,23 @@ Call a second time to restore the original window configuration."
   :custom
   (eglot-autoshutdown t)
   (eglot-events-buffer-size 0)
-  (eglot-sync-connect nil) 
+  (eglot-sync-connect nil)
   :config
+  (setq-default eglot-workspace-configuration
+				'(:gopls
+				  (:usePlaceholders t
+									:staticcheck t
+									:gofumpt t
+									:analyses
+									(:nilness t
+											  :shadow t
+											  :unusedparams t
+											  :unusedwrite t
+											  :unusedvariable t)
+									:hints
+									(:assignVariableTypes t
+														  :constantValues t
+														  :rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -1570,25 +1630,25 @@ Call a second time to restore the original window configuration."
 (use-package go-ts-mode
   :mode "\\.go\\'"
   :ensure-system-package ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-						  (gopls . "go get golang.org/x/tools/gopls@latest"))
+						  (gofumpt . "go install mvdan.cc/gofumpt@latest")
+						  (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
-									go-ts-mode-indent-offset 4)))
-  :custom (eglot-workspace-configuration
-		   '((:gopls .
-					 ((staticcheck . t)
-					  (matcher . "CaseSensitive"))))))
+									go-ts-mode-indent-offset 4))))
 (use-package flycheck-golangci-lint
-  :hook (go-ts-mode . flycheck-golangci-lint-setup))
+  :hook (flycheck-mode . flycheck-golangci-lint-setup))
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
-  :bind (:map go-ts-mode-map ("C-c t" . go-tag-add)))
+  :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
 (use-package go-fill-struct
   :ensure-system-package (fillstruct . "go install github.com/davidrjenni/reftools/cmd/fillstruct@latest")
-  :bind (:map go-ts-mode-map ("C-c f" . go-fill-struct)))
+  :bind (:map go-ts-mode-map ("C-c C-f" . go-fill-struct)))
+(use-package go-impl
+  :ensure-system-package (impl . "go install github.com/josharian/impl@latest")
+  :bind (:map go-ts-mode-map ("C-c C-i" . go-impl)))
 (use-package go-gen-test
-  :ensure-system-package (gotests . "go install github.com/cweill/gotests/...@latest")
-  :bind (:map go-ts-mode-map ("C-c g" . go-gen-test-dwim)))
+  :ensure-system-package (gotests . "go install github.com/cweill/gotests/gotests@latest")
+  :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
 
 (use-package rust-ts-mode
   :mode ("\\.rs\\'" . python-mode)
