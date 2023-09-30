@@ -52,17 +52,23 @@ gettime() {
 		date -u -d@"$(bc -l <<< "$EX * 3600")" +%H:%M
 	fi
 }
-CAPACITY=100
-RATE=0
-STATE="fully charged"
+
+# if power_supply exist assume laptop
+enabled() {
+	if [ -d "/sys/class/power_supply/BAT0" ]; then
+		echo "true"
+	else
+		echo "false"
+	fi
+}
+
 while true; do
 	RATE=$(cat /sys/class/power_supply/BAT0/current_now 2>/dev/null)
+	[ -z "$RATE" ] && RATE=0
 	CAPACITY=$(cat /sys/class/power_supply/BAT0/capacity 2>/dev/null)
+	[ -z "$CAPACITY" ] && CAPACITY=100
 	STATE=$(cat /sys/class/power_supply/BAT0/status 2>/dev/null)
-	if [ -z "$CAPACITY" ]; then
-		CAPACITY="100"
-	fi
-
-	echo '{ "icon": "'"$(geticon)"'", "percentage": '"$CAPACITY"', "wattage": "'"$(wattage)"'", "status": "'"$(status)"'", "color": "'"$(color)"'" }'
+	[ -z "$STATE" ] && STATE="fully charged"
+	echo '{"enabled": "'"$(enabled)"'", "icon": "'"$(geticon)"'", "percentage": '"$CAPACITY"', "wattage": "'"$(wattage)"'", "status": "'"$(status)"'", "color": "'"$(color)"'" }'
 	sleep 3
 done

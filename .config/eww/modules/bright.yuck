@@ -4,6 +4,6 @@
 	(eventbox
 	  :onscroll "echo {} | sed -e 's/up/s +10%/g' -e 's/down/s 10%-/g' | xargs brightnessctl"
 	  (label
-		:text {brightness.icon}
+		:text {brightness != '' ?  brightness.icon : ''}
 		:class "bright-icon"
-		:tooltip "brightness ${round(brightness.level, 0)}%"))))
+		:tooltip "brightness ${ brightness != '' ?  brightness.level : '0'}%"))))

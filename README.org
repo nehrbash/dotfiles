@@ -145,6 +145,9 @@ playerctl
 #+end_src
 
 ** Fonts
+   - ttf-google-sans => primary text and UI font 
+   - Weather Icons => eww weather
+   - font awesome => just for spotify icon
 
 #+begin_src txt :tangle pkglist.txt :padline no
 ttf-material-icons-git

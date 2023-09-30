@@ -1,7 +1,7 @@
 [
   {
     "Desktop": "emacs.desktop",
-    "Class": "emacs",
+    "Class": "emacs-30-0-50",
     "Icon": "/usr/share/icons/Dracula/scalable/apps/emacs.svg"
   },
   {

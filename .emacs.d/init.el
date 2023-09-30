@@ -64,6 +64,13 @@
                  (default-value 'mode-line-format)))
        (redraw-display))
 
+(defun push-mark-no-activate ()
+  "Pushes `point' to `mark-ring' and does not activate the region
+   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+  (interactive)
+  (push-mark (point) t nil))
+(global-set-key (kbd "C-`") 'push-mark-no-activate)
+
 (global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
 (global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
 (autoload 'mwheel-install "mwheel")
@@ -1554,9 +1561,16 @@ Call a second time to restore the original window configuration."
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
+(use-package flycheck
+  :hook (after-init . global-flycheck-mode))
+(use-package flycheck-eglot
+  :after (flycheck eglot)
+  :config (global-flycheck-eglot-mode 1))
+
 (use-package go-ts-mode
   :mode "\\.go\\'"
-  :ensure-system-package (gopls . "go get golang.org/x/tools/gopls@latest")
+  :ensure-system-package ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
+						  (gopls . "go get golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
 									go-ts-mode-indent-offset 4)))
@@ -1564,10 +1578,6 @@ Call a second time to restore the original window configuration."
 		   '((:gopls .
 					 ((staticcheck . t)
 					  (matcher . "CaseSensitive"))))))
-(use-package flymake-go)
-(use-package flymake-go-staticcheck
-  :ensure-system-package (staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-  :hook (go-ts-mode . flymake-go-staticchech-enable))
 (use-package flycheck-golangci-lint
   :hook (go-ts-mode . flycheck-golangci-lint-setup))
 (use-package go-tag

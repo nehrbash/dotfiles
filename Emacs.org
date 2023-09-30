@@ -7,6 +7,7 @@
 - [[#editing-utilities][Editing Utilities]]
   - [[#meow---modal-editing][Meow - Modal Editing]]
   - [[#file-handler-functions][File Handler Functions]]
+  - [[#mark-without-activate][Mark without Activate]]
   - [[#xterm-integration-in-terminals-mouse][Xterm Integration In Terminals (Mouse)]]
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line Or Region]]
@@ -425,6 +426,18 @@ This Emacs Lisp configuration block defines a function called =rename-this-file-
 
 This Emacs Lisp block defines a function called "toggle-mode-line" that toggles the display of the mode line on and off. When called interactively, it checks if the mode line is currently visible by comparing it to nil. If it is visible, it sets the mode-line-format to the default value, effectively hiding the mode line. If it is not visible, it sets the mode-line-format to nil, showing the mode line. Finally, it redraws the display to reflect the changes.
 
+** Mark without Activate
+
+#+begin_src emacs-lisp
+(defun push-mark-no-activate ()
+  "Pushes `point' to `mark-ring' and does not activate the region
+   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+  (interactive)
+  (push-mark (point) t nil))
+(global-set-key (kbd "C-`") 'push-mark-no-activate)
+#+end_src
+
+   
 ** Xterm Integration In Terminals (Mouse)
 
 #+begin_src emacs-lisp
@@ -2419,7 +2432,18 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 #+end_src
+*** flycheck
 
+#+begin_src emacs-lisp
+(use-package flycheck
+  :hook (after-init . global-flycheck-mode))
+(use-package flycheck-eglot
+  :after (flycheck eglot)
+  :config (global-flycheck-eglot-mode 1))
+#+end_src
+
+	
+	
 ** Go
 
    Don't forget to install golsp =go get golang.org/x/tools/gopls@latest=
@@ -2435,7 +2459,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+begin_src emacs-lisp
 (use-package go-ts-mode
   :mode "\\.go\\'"
-  :ensure-system-package (gopls . "go get golang.org/x/tools/gopls@latest")
+  :ensure-system-package ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
+						  (gopls . "go get golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
 									go-ts-mode-indent-offset 4)))
@@ -2443,10 +2468,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 		   '((:gopls .
 					 ((staticcheck . t)
 					  (matcher . "CaseSensitive"))))))
-(use-package flymake-go)
-(use-package flymake-go-staticcheck
-  :ensure-system-package (staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-  :hook (go-ts-mode . flymake-go-staticchech-enable))
 (use-package flycheck-golangci-lint
   :hook (go-ts-mode . flycheck-golangci-lint-setup))
 (use-package go-tag

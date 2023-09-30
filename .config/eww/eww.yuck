@@ -44,8 +44,15 @@
     (volume-module)
     (bluetooth)
     (net)
-	(bright)
-	;; (bat)
+	(revealer
+     :transition "slideright"
+     :reveal { battery != '' ? ( battery.enabled ? true : false ) : false }
+     :duration "350ms"
+     :class "apps-sidebar"
+	 (box
+	  :space-evenly false
+	  (bright)
+	  (bat)))
     (sys)))
 
 (defwidget center []

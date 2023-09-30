@@ -15,12 +15,13 @@
       (button
         :class "app-launcher"
 		;; being dumb
+		;; :timeout "5s"
         :onclick "nwggrid &"
         (label
           :class "app-launcher icon"
           :text "")))))
 
-(defwidget apps []
+(defwidget apps-tray [apps-data]
   (box
     :class "apps-sidebar"
     :orientation "v"
@@ -32,7 +33,7 @@
       :width 48
       :valign "center"
       (app-launcher)
-      (for appList in apps
+      (for appList in apps-data
         (eventbox
           :onhover "${EWW_CMD} update app_rev=${appList.ID}"
           :onhoverlost "${EWW_CMD} update app_rev=-1"
@@ -69,7 +70,7 @@
             (showapps :applist "${appList.Apps}"
               :icon "${appList.Icon}"
               :revealid "${appList.ID}"
-              :show {arraylength(appList.Apps) > 1 ? true : false})))))))
+              :show {(appList.Apps == "" ? arraylength(appList.Apps): 0) > 1 ? true : false})))))))
 (defwidget lbar []
   (box
     :class "sidebar"
@@ -104,7 +105,7 @@
           :height 25
           :width 57
           :class "apps-tr"))
-      (apps)
+       (apps-tray :apps-data {apps!="" ? apps : "[]"})
       (box
 		:space-evenly false
 		:orientation "h"
@@ -132,7 +133,6 @@
       :vexpand true
       :space-evenly false
       :width 48
-      :halign "left"
 	  (box
 		:orientation "v"
 		:space-evenly false
