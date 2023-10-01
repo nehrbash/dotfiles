@@ -322,7 +322,6 @@ This is useful when followed by an immediate kill."
          ("<f7>" . sanityinc/split-window)
          ("C-c <down>" . sanityinc/toggle-current-window-dedication))
   :config
-  (require 'winner)
   (defun split-window-func-with-other-buffer-vertically ()
     "Split this window vertically and switch to the new window."
     (interactive)
@@ -529,7 +528,7 @@ Call a second time to restore the original window configuration."
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
-         ("C-s" . consult-line)
+         ("C-s" . (lambda () (interactive)(progn (push-mark-no-activate)(consult-line))))
          ("M-s ." . consult-line-thing-at-point)
          ("M-s m" . consult-multi-occur)
          ("M-s k" . consult-keep-lines)
@@ -546,7 +545,7 @@ Call a second time to restore the original window configuration."
   (consult-preview-key '("M-," :debounce 0 any))
   :config
   (recentf-mode 1)
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defalias 'consult-line-thing-at-point 'consult-line)
   (defalias 'consult-ripgrep-symbol-at-point 'consult-ripgrep)
   (consult-customize consult-ripgrep-symbol-at-point :initial (thing-at-point 'symbol))
@@ -854,7 +853,6 @@ Call a second time to restore the original window configuration."
   :hook (flycheck-mode . flycheck-inline-mode)
   :requires quick-peek
   :init
-  
   (setq flycheck-inline-display-function
 		(lambda (msg pos err)
           (let* ((ov (quick-peek-overlay-ensure-at pos))
@@ -933,11 +931,16 @@ Call a second time to restore the original window configuration."
   "Docker candiadate source for `consult-dir'.")
 (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
+(use-package org-contrib
+  :defer t)
 (use-package org
+  :ensure org-contrib
   :bind (("C-c a" .  gtd)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
   :config
+  (require 'ox-extra)
+  (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
   (custom-set-faces
    '(org-document-title ((t (:height 3.2))))
    '(header-line ((t (:height 3 :weight bold))))
@@ -962,13 +965,11 @@ Call a second time to restore the original window configuration."
         org-src-tab-acts-natively t
         org-startup-folded t
         org-startup-with-inline-images t
+		org-startup-with-latex-preview t
+		org-support-shift-select t
         org-archive-location "%s_archive::* Archive"))
 
-(use-package org-contrib
-  :defer t
-  :hook (org-mode . (lambda ()
-					  (require 'ox-extra)
-					  (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f")))))
+
 
 (use-package org-appear
   :vc (:url "https://github.com/awth13/org-appear.git"
@@ -1094,9 +1095,10 @@ Call a second time to restore the original window configuration."
   (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
-  (type-break-time-warning-intervals nil)
   (type-break-query-function 'y-or-n-p)
+  ;; (type-break-time-warning-intervals nil)
   ;; (type-break-query-function '(lambda (a &rest b) t))
+  (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
   :config
   (defun org-clock-in-to-task-by-title (task-title)
@@ -1139,10 +1141,7 @@ Call a second time to restore the original window configuration."
       (json-encode json-data))))
 
 (use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode)
-  :config
-  (setq org-startup-with-latex-preview t)
-  (setq org-support-shift-select t))
+  :hook (org-mode . org-fragtog-mode))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
