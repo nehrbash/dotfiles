@@ -1,37 +1,63 @@
 #!/bin/bash
 
 function update() {
-	csv=$(emacs -batch -eval '(org-batch-agenda-csv "t" org-agenda-files (quote ("~/doc/inbox.org" "~/doc/projects.org" "~/doc/repeater.org")) org-todo-keywords (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)") (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")(sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))))')
+  # Define the tag variable as an optional input argument
+  tag=$1
 
-	out=$(echo "$csv" | jq -Rsnc '
-  {"tasks":
-    [inputs
-     | . / "\n"
-     | (.[] | select(length > 0) | . / ",") as $input
-     | select($input | length > 0)
-     | {"title": $input[1], "state": $input[3]}] }
-  | {
-     "tasks": (.tasks[:15]),
-     "num-total": ( [ .tasks[] | select( .state != "PROJECT")] | length),
-     "num-tasks":  ( [ .tasks[:15][] | select( .state != "PROJECT")] | length)
-  }')
-	echo "$out"
+  # Check if the tag is specified
+  if [ -n "$tag" ]; then
+    # Use the variable in the Emacs command
+    csv=$(emacs -batch -eval "
+(org-batch-agenda-csv \"t\"
+  org-agenda-files '(\"~/doc/inbox.org\" \"~/doc/projects.org\" \"~/doc/repeater.org\")
+  org-agenda-tag-filter \"$tag\"
+  org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
+                     (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")
+                     (sequence \"WAITING(w@/!)\" \"DELEGATED(e!)\" \"HOLD(h)\" \"|\" \"CANCELLED(c@/!)\"))
+)")
+  else
+    # Use the default behavior without the tag filter
+    csv=$(emacs -batch -eval "
+(org-batch-agenda-csv \"t\"
+  org-agenda-files '(\"~/doc/inbox.org\" \"~/doc/projects.org\" \"~/doc/repeater.org\")
+  org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
+                     (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")
+                     (sequence \"WAITING(w@/!)\" \"DELEGATED(e!)\" \"HOLD(h)\" \"|\" \"CANCELLED(c@/!)\"))
+)")
+  fi
+
+  out=$(echo "$csv" | jq -Rsnc '
+{"tasks":
+  [inputs
+   | . / "\n"
+   | (.[] | select(length > 0) | . / ",") as $input
+   | select($input | length > 0)
+   | {"title": $input[1], "state": $input[3]}] }
+| {
+   "tasks": (.tasks[:15]),
+   "num-total": ( [ .tasks[] | select( .state != "PROJECT")] | length),
+   "num-tasks":  ( [ .tasks[:15][] | select( .state != "PROJECT")] | length)
+}')
+  echo "$out"
 }
 
-
-while getopts "c:o" option; do
+while getopts "c:o:f:" option; do
   case $option in
     c) taskname=$OPTARG
        emacsclient -e "(org-clock-in-to-task-by-title \"$taskname\")"
-	   eww update "tasks=$(update)"
-	   exit 0
+       eww update "tasks=$(update)"
+       exit 0
        ;;
     o) emacsclient -e '(org-clock-out)'
-	   eww update "tasks=$(update)"
-	   exit 0
+       eww update "tasks=$(update)"
+       exit 0
+       ;;
+    f) filter=$OPTARG
+       eww update "tasks=$(update "$filter")"
+       exit 0
        ;;
     *) echo "Invalid option: -$OPTARG" >&2
-	   exit 1
+       exit 1
        ;;
   esac
 done
