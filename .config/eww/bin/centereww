@@ -1,0 +1,34 @@
+#! /bin/bash
+
+dnd="$(swaync-client --get-dnd)"
+if [ -f /tmp/hypr/swaync-dnd ]; then
+	dnd_store=$(cat /tmp/hypr/swaync-dnd)
+	rm /tmp/hypr/swaync-dnd
+fi
+actmonit=$(hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | .id')
+state="$1"
+
+if [ "$state" = "toggle" ]; then
+	state="on"
+	if [ -f /tmp/hypr/center_toggle ]; then
+		state="off"
+	fi
+fi
+if [ "$state" = "on" ]; then
+	touch /tmp/hypr/center_toggle
+	eww open control-menu-closer --screen $actmonit
+	eww open control-menu --screen $actmonit
+	if [ "$dnd" = "true" ]; then
+		echo "$dnd" > /tmp/hypr/swaync-dnd
+	else
+		swaync-client --dnd-on
+	fi
+elif [ "$state" = "off" ]; then
+	rm /tmp/hypr/center_toggle
+	eww close control-menu-closer control-menu
+	if [ ! "$dnd_store" ]; then
+		swaync-client --dnd-off
+	fi
+else
+	echo "Invalid input argument. Please use 'on' 'off' or 'toggle'."
+fi

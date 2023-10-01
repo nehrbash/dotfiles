@@ -9,7 +9,6 @@ then
     else
     pkill xautolock && xset s 0
     notify-send "Inhibitor" "Activated"
-    
 
 fi
 

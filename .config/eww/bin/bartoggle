@@ -28,12 +28,18 @@ if [ $COUNTER -eq 1 ]; then
 	fi
 
 
-	if pgrep -x "eww" > /dev/null; then
+	if pgrep -x "eww" | wc -l | grep -q "^[2-9]"; then
+		echo "More than one instance of Eww is already running."
+		pkill eww
+		echo "Starting Eww daemon..."
+		eww daemon
+	elif pgrep -x "eww" > /dev/null; then
 		echo "Eww is already running."
 	else
 		echo "Starting Eww daemon..."
 		eww daemon
 	fi
+
 
     if command -v swaync-client &> /dev/null; then
         swaync-client -df
@@ -64,7 +70,7 @@ elif [ $COUNTER -eq 2 ]; then
 	set -e
 elif [ $COUNTER -eq 3 ]; then
     if command -v swaync-client &> /dev/null; then
-    swaync-client -dn
+		swaync-client -dn
     fi
     eww close-all
 fi
