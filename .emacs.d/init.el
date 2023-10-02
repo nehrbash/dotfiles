@@ -1732,7 +1732,7 @@ Call a second time to restore the original window configuration."
   :bind (("<f5>" . gptel)
          ("C-<f5>" . gptel-menu))
   :custom
-  (gptel-model "gpt-3.5-turbo")
+  (gptel-model "gpt-4")
   (gptel-default-mode 'org-mode))
 
 ;; we recommend using use-package to organize your init.el
