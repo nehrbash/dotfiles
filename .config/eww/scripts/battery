@@ -1,14 +1,18 @@
 #!/usr/bin/env bash
-icons=("" "" "" "" "" "" "" "")
+icons=("" "" "" "" "" "" "" "󰁹")
 
 geticon() {
 	if [ "$STATE" = "Charging" ]; then
     level=$(awk -v n="$CAPACITY" 'BEGIN{print int((n-1)/12)}')
-		echo "${icons[$level]}"
+		icon="${icons[$level]}"
 	else
     level=$(awk -v n="$CAPACITY" 'BEGIN{print int((n-1)/12)}')
-		echo "${icons[$level]}"
+		icon="${icons[$level]}"
 	fi
+	if [ "$icon" = "" ]; then
+		icon="${icons[7]}"
+	fi
+	echo "$icon"
 }
 
 status() {
