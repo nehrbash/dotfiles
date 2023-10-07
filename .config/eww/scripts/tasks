@@ -7,7 +7,7 @@ function update() {
   # Define the tag variable as an optional input argument
   tag=$1
   if [ ! -f $FILTER_STORE ]; then
-    echo "t" > $FILTER_STORE  # If file doesn't exist, initialize with default value "t"
+    echo "work" > $FILTER_STORE  # If file doesn't exist, initialize with default value "t"
   fi
 
   if [ -z "$tag" ]; then
