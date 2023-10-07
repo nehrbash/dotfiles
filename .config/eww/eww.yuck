@@ -46,7 +46,7 @@
     (net)
 	(revealer
      :transition "slideright"
-     :reveal { battery != '' ? ( battery.enabled ? true : false ) : false }
+     :reveal { battery.enabled ? true : false}
      :duration "350ms"
      :class "apps-sidebar"
 	 (box

@@ -5,21 +5,59 @@
     :space-evenly "false"
     :vexpand "true"
 	(revealer
-    :transition "slidedown"
-    :reveal cal_reveal
-    :duration "350ms"
-	(calendar-win))
+      :transition "slidedown"
+      :reveal cal_reveal
+      :duration "350ms"
+	  (calendar-win))
     (box
 	  :orientation "h"
 	  :space-evenly false
 	  :halign "center"
-	  (label
-      :class "task-label"
-      :text "Agenda ")
+	  :hexpand true
+	  :width 100
 	  (button
-		:width 15
+		:halign "start"
+		:class "task-label"
+		:timeout "1s"
 		:onclick "${EWW_CMD} update cal_reveal=${!cal_reveal}"
-		""))
+		(box
+		  :class "task-label"
+		  :space-evenly false
+		  (label
+			:text "Agenda [${tasks.num-tasks} / ${tasks.num-total}]")))
+	  (box
+		:width 180
+		:class "toggle-bg"
+		:space-evenly "false"
+	    :halign "end"
+		:hexpand false
+		(revealer
+		  :transition "slideleft"
+
+		  :reveal {task_filter != "work" }
+		  :class "toggle-bg"
+		  (box
+			:width 90
+			(label
+			  :text "work")))
+		(button
+		  :timeout "1s"
+		  :onclick "${EWW_CMD} update task_filter=${task_filter == 'work' ? 'personal' : 'work' }; scripts/tasks -f ${task_filter}"
+		  (box
+			:width 90
+			:class "toggle"
+			(label
+			  :text "")))
+		(revealer
+		  :transition "slideright"
+
+		  :reveal {task_filter == "work" }
+		  :class "toggle-bg"
+		  (box
+			:width 90
+			(label
+			  :text "personal"))))
+	  )
     (revealer
 	  :transition "slidedown"
       :reveal {cal_reveal ? "false":"true"}
@@ -28,16 +66,16 @@
 		:orientation "v"
 		:space-evenly "false"
 		:hexpand "false"
-		:halign "center"
+		:halign "left"
 		(box
           :orientation "h"
           :space-evenly "false"
           (label
 			:class "project"
-			:text "● INBOX  [${tasks.num-tasks} of ${tasks.num-total}]"))
+			:text "● INBOX"))
 		(for t in {tasks.tasks}
-          (box
-			:class "task-row"
+		  (box
+			;; :class "task-row"
 			:orientation "h"
 			:space-evenly "false"
 			(checkbox
@@ -45,11 +83,21 @@
 			  :class {t.state == "PROJECT" ? "" : "checkbox"}
 			  :onchecked "scripts/tasks -c \"${t.title}\""
 			  :onunchecked "scripts/tasks -o"
-			  :active true)
-			(label
-              :class {t.state}
-              :text "● ${t.state} " )
-			(label
-              :class {t.state == "PROJECT" ? "project" : "task"}
-              :text "${t.title}"
-              :limit-width "30")))))))
+			  ;; :active {t.state == "PROJECT" ? "false" : "true"}
+			  ;; checked {t.state == "INPROGRESS" }
+			  ;; MR already open for this, https://github.com/elkowar/eww/pull/916
+			  )
+			(button
+			  :class "task-row"
+			  (box
+				;; :class "task-row"
+				:orientation "h"
+				:space-evenly "false"
+				(label
+				  :class {t.state}
+				  :text {t.state == "PROJECT" ? "● ${t.state}" : "${t.state}"})
+				(label
+				  :class {t.state == "PROJECT" ? "project" : "task"}
+				  :text "${t.title}"
+				  :show-truncated true
+				  :limit-width  {t.state == "PROJECT" ? "22" : "32"})))))))))

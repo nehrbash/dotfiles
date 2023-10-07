@@ -1,42 +1,42 @@
 #!/bin/bash
 
+# this file will store the last used filter
+FILTER_STORE=/tmp/hypr/emacs_lasttag
+
 function update() {
   # Define the tag variable as an optional input argument
   tag=$1
-
-  # Check if the tag is specified
-  if [ -n "$tag" ]; then
-    # Use the variable in the Emacs command
-    csv=$(emacs -batch -eval "
-(org-batch-agenda-csv \"t\"
-  org-agenda-files '(\"~/doc/inbox.org\" \"~/doc/projects.org\" \"~/doc/repeater.org\")
-  org-agenda-tag-filter \"$tag\"
-  org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
-                     (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")
-                     (sequence \"WAITING(w@/!)\" \"DELEGATED(e!)\" \"HOLD(h)\" \"|\" \"CANCELLED(c@/!)\"))
-)")
-  else
-    # Use the default behavior without the tag filter
-    csv=$(emacs -batch -eval "
-(org-batch-agenda-csv \"t\"
-  org-agenda-files '(\"~/doc/inbox.org\" \"~/doc/projects.org\" \"~/doc/repeater.org\")
-  org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
-                     (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")
-                     (sequence \"WAITING(w@/!)\" \"DELEGATED(e!)\" \"HOLD(h)\" \"|\" \"CANCELLED(c@/!)\"))
-)")
+  if [ ! -f $FILTER_STORE ]; then
+    echo "t" > $FILTER_STORE  # If file doesn't exist, initialize with default value "t"
   fi
 
-  out=$(echo "$csv" | jq -Rsnc '
+  if [ -z "$tag" ]; then
+    # If no tag argument is provided, use the value from the file
+    tag=$(cat $FILTER_STORE)
+  else
+    # If a tag argument is provided, store it in the file for next time
+    echo "$tag" > $FILTER_STORE
+  fi
+    # Use the default behavior without the tag filter
+    csv=$(emacs -batch -eval "
+(org-batch-agenda-csv \"$tag|INBOX\"
+  org-agenda-files '(\"~/doc/example.org\")
+  org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
+                     (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")
+                     (sequence \"WAITING(w@/!)\" \"DELEGATED(e!)\" \"HOLD(h)\" \"|\" \"CANCELLED(c@/!)\"))
+)")
+  # echo "$csv"
+out=$(echo "$csv" | jq -Rsnc '
 {"tasks":
   [inputs
    | . / "\n"
    | (.[] | select(length > 0) | . / ",") as $input
-   | select($input | length > 0)
+   | select($input | length > 0 and $input[3] != "" and $input[3] != null)
    | {"title": $input[1], "state": $input[3]}] }
 | {
    "tasks": (.tasks[:15]),
-   "num-total": ( [ .tasks[] | select( .state != "PROJECT")] | length),
-   "num-tasks":  ( [ .tasks[:15][] | select( .state != "PROJECT")] | length)
+   "num-total": ( [ .tasks[] | select( .state != "PROJECT" and .state != "" and .state != null)] | length),
+   "num-tasks":  ( [ .tasks[:15][] | select( .state != "PROJECT" and .state != "" and .state != null)] | length)
 }')
   echo "$out"
 }
@@ -53,6 +53,7 @@ while getopts "c:o:f:" option; do
        exit 0
        ;;
     f) filter=$OPTARG
+	   # echo "$(update "$filter")"
        eww update "tasks=$(update "$filter")"
        exit 0
        ;;
@@ -62,5 +63,5 @@ while getopts "c:o:f:" option; do
   esac
 done
 # no args given
-
+eww update "tasks=$(update "$filter")"
 echo "$(update)"

@@ -1,28 +1,70 @@
+.TODO, .INPROGRESS, .NEXT, .DONE, .PROJECT {
+	padding-right: 8px;
+}
+
 .TODO, .INPROGRESS, .NEXT {
-    padding-left: 15px;
+    padding-left: 10px;
     color: $peach;
+	font-family: monospace;
+}
+
+.DONE {
+	font-family: monospace;
+    padding-left: 15px;
+	color: $overlay0;
 }
 
 .PROJECT {
     color: $green;
+	font-size: 1.3rem;
     padding-top: 15px;
-    padding-left: 5px;
 }
 
+
 .project {
+	font-size: 1.2rem;
     padding-top: 15px;
     color: $teal;
 }
 .task {
-    color: $yellow;
+	@include hoverable;
+	&:hover {
+        background: $base;
+    }
+	color:  $subtext1;
 
 }
 
 .task-label {
-    color: $blue;
-    font-size: 1.2rem;
+	@include hoverable;
+	&:hover {
+        background: $base;
+    }
+	// margin: 5px;
+
+	color: $sky;
+	padding-right:  15px;
+	padding-left:  5px;
 }
 
 .task-row {
-	margin-top: 5px;
+	@include hoverable;
+	&:hover {
+        background: $base;
+    }
+	// margin-top: 5px;
+	// margin-bottom:  5px;
+}
+
+.toggle-bg {
+	border-radius: 20;
+	background-color: $crust;
+	color: $subtext1;
+}
+
+.toggle {
+	@include window;
+	border-radius: 20;
+	background-color: $sky;
+	color: $base;
 }

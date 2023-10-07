@@ -691,8 +691,7 @@ Call a second time to restore the original window configuration."
          ([remap shell-command] . protogg-shell-command) ;; M-!
          ("C-c s" . protogg-shell)
          ([remap switch-to-buffer] . sn/consult-buffer)
-         ("M-s i" . sn/imenu)
-         ("M-t" . sn/multi-vterm)) ;; C-x b
+         ("M-s i" . sn/imenu))
   :config
   (protogg-define 'consult-project-buffer 'consult-buffer sn/consult-buffer)
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
@@ -837,7 +836,8 @@ Call a second time to restore the original window configuration."
 (use-package flycheck
   :commands flycheck-list-errors flycheck-buffer
   :hook (prog-mode . global-flycheck-mode)
-  :custom (flycheck-emacs-lisp-load-path 'inherit)
+  :custom
+  (flycheck-emacs-lisp-load-path 'inherit)
   (flycheck-buffer-switch-check-intermediate-buffers t)
   (flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
   :config
@@ -984,6 +984,7 @@ Call a second time to restore the original window configuration."
                         '("~/doc/inbox.org"
                           "~/doc/projects.org"
                           "~/doc/gcal.org"
+						  "~/doc/example.org"
                           "~/doc/repeater.org")))
 
 (use-package org
@@ -1245,18 +1246,20 @@ Call a second time to restore the original window configuration."
 (use-package org
   :hook ((org-clock-in . (lambda () (org-todo "INPROGRESS")
 						   (org-save-all-org-buffers)))
-		 (org-clock-out . (lambda () (org-todo "NEXT")
+		 (org-clock-out . (lambda () 
+							;; (unless (string-equal (org-get-todo-state) "DONE"))
+							(org-todo "NEXT")
 							(setq org-clock-heading "")
 							(org-save-all-org-buffers))))
   :custom
   (org-todo-keywords
-      (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
-              (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
-              (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
-      org-todo-repeat-to-state "NEXT")
+   (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
+           (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
+           (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
+   org-todo-repeat-to-state "NEXT")
   (org-todo-keyword-faces
-      (quote (("NEXT" :inherit warning)
-              ("PROJECT" :inherit font-lock-string-face)))))
+   (quote (("NEXT" :inherit warning)
+           ("PROJECT" :inherit font-lock-string-face)))))
 
 (use-package org-agenda
   :ensure nil
@@ -1450,6 +1453,7 @@ Call a second time to restore the original window configuration."
 								 )))
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
+			  ("C-c C-c" . project-compile)
 			  ("C-c r" . eglot-rename)
 			  ("C-c o" . eglot-code-action-organize-imports))
   :custom
@@ -1506,81 +1510,28 @@ Call a second time to restore the original window configuration."
 
 (use-package multi-vterm
   :hook ((vterm-mode . (lambda ()
-                         (toggle-mode-line)
-                         (setq left-margin-width 1
-                               right-margin-width 1
-                               cursor-type 'bar))))
-  :bind (( "M-t" . multi-vterm-project)
-         :map vterm-mode-map
-         ("M-t" . toggle-vterm-buffer)
-         ("C-M-r" . (lambda ()
-                     (interactive)
-                     (setq-local vterm-buffer-name-string nil)
-                     (rename-buffer (concat "Term " (read-string "Term: ")))))
-         ("C-M-t" . multi-vterm-project)
-         ("C-M-f" . tab-line-switch-to-next-tab)
-         ("C-M-b" . tab-line-switch-to-prev-tab)
-         ("C-M-s" . (lambda ()
-                      (interactive)
-                      (consult-buffer '(consult--source-vterm))))
-         ("M-w" . copy-region-as-kill)
-         ("C-y" . vterm-yank))
+						 (toggle-mode-line)
+						 (setq left-margin-width 1
+							   right-margin-width 1
+							   cursor-type 'bar))))
+  :bind (("M-t" . multi-vterm-dedicated-toggle)
+		 :map vterm-mode-map
+		 ("M-t" . multi-vterm-dedicated-toggle)
+		 ("C-M-r" . (lambda ()
+					 (interactive)
+					 (setq-local vterm-buffer-name-string nil)
+					 (rename-buffer (concat "Term " (read-string "Term: ")))))
+		 ("C-M-t" . multi-vterm-project)
+		 ("C-M-f" . tab-line-switch-to-next-tab)
+		 ("C-M-b" . tab-line-switch-to-prev-tab)
+		 ("C-M-s" . (lambda ()
+					  (interactive)
+					  (consult-buffer '(consult--source-vterm))))
+		 ("M-w" . copy-region-as-kill)
+		 ("C-y" . vterm-yank))
   :custom
   (vterm-buffer-name-string "Term %s")
-  (vterm-buffer-maximum-size 1000)
-  :config
-
-  (defun toggle-vterm-buffer ()
-    "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
-    (interactive)
-    (let ((vterm-buffer (seq-find (lambda (buffer)
-                                    (string-prefix-p "Term" (buffer-name buffer)))
-                                  (buffer-list))))
-      (if vterm-buffer
-          (if (and (eq (current-buffer) vterm-buffer)
-                   (get-buffer-window vterm-buffer))
-              (delete-window (get-buffer-window vterm-buffer))
-            (if (get-buffer-window vterm-buffer)
-                (select-window (get-buffer-window vterm-buffer))
-              (progn
-                (display-buffer vterm-buffer)
-                (select-window (get-buffer-window vterm-buffer)))))
-        (vterm))))
-  (add-to-list 'display-buffer-alist `(,vterm-buffer-name
-                                       (display-buffer-reuse-window display-buffer-at-bottom)
-                                       (dedicated . t)
-                                       (reusable-frames . visible)
-                                       (window-height . 0.3))))
-
-(use-package tab-line
-  :hook (vterm-mode . tab-line-mode)
-  :custom
-  (tab-line-new-button-show nil)
-  (tab-line-close-button-show nil)
-  (tab-line-separator "")
-  :config
-  (use-package powerline)
-  (defvar my/tab-height 28)
-  (defvar my/tab-left (powerline-wave-right 'tab-line nil my/tab-height))
-  (defvar my/tab-right (powerline-wave-left nil 'tab-line my/tab-height))
-  (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
-    (powerline-render (list my/tab-left
-                            (format "%s" (buffer-name buffer))
-                            my/tab-right)))
-  (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
-  ;; Set face attributes for the tab-line
-  (set-face-attribute 'tab-line nil ;; background behind tabs
-                      :background "#1d2021")
-  (set-face-attribute 'tab-line-tab nil ;; active tab in another window
-                      :inherit 'tab-line
-                      :background "#8ec07c" :foreground "#0d1011" :box nil)
-  (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
-                      :background "#8ec07c" :foreground "#0d1011" :box nil)
-  (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
-                      :background "#689d6a" :foreground "#0d1011" :box nil)
-  (set-face-attribute 'tab-line-highlight nil ;; mouseover
-                      :background "#928374" :foreground "#0d1011")
-  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
+  (vterm-buffer-maximum-size 1000))
 
 (setq confirm-kill-processes nil)
 
@@ -1620,8 +1571,6 @@ Call a second time to restore the original window configuration."
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
-(use-package flycheck
-  :hook (after-init . global-flycheck-mode))
 (use-package flycheck-eglot
   :after (flycheck eglot)
   :config (global-flycheck-eglot-mode 1))
@@ -1650,8 +1599,9 @@ Call a second time to restore the original window configuration."
   :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
 
 (use-package rust-ts-mode
-  :mode ("\\.rs\\'" . python-mode)
-  )
+  :hook (rust-ts-mode . (lambda ()
+						  (setq-local compile-command "cargo build")))
+  :mode ("\\.rs\\'" . rust-ts-mode))
 (use-package flycheck-rust
   :after rust-ts-mode
   :hook (flycheck-mode . flycheck-rust-setup))
@@ -1744,6 +1694,8 @@ Call a second time to restore the original window configuration."
 	:hook (emacs-startup .  (lambda () (run-with-timer 0.1 nil #'codeium-init)))
  
     ;; :defer t ;; lazy loading, if you want
+	:custom
+	(codeium-log-buffer nil)
     :config
     (setq use-dialog-box nil) ;; do not use popup boxes
 

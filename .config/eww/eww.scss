@@ -72,7 +72,9 @@ tooltip {
 }
 
 .checkbox {
-	border-radius: 8px;
+	border-radius: 6px;
+	margin: 4px;
+	// padding-top: 15px;
 	border: 2px solid $border;
 	background: $crust;
 
