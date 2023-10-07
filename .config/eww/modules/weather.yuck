@@ -80,7 +80,7 @@
       (label
         :halign "end"
         :class "weather-label"
-        :text "Redacted" ;; {weather.location}
+        :text {weather.location}
         :style "padding-right: 15px;"))
     (box
       :style "padding-top: 15px;"
