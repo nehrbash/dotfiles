@@ -32,3 +32,4 @@
 (deflisten quote " hyprshell quote")
 (deflisten apps " hyprshell dock")
 (deflisten weather " hyprshell weather")
+(deflisten title " hyprshell title")

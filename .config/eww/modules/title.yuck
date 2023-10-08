@@ -1,0 +1,6 @@
+(defwidget title []
+  (box
+    :space-evenly false
+    (label
+      :class "module title"
+      :text {title.name})))
