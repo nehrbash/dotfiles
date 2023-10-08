@@ -100,4 +100,10 @@
 				  :class {t.state == "PROJECT" ? "project" : "task"}
 				  :text "${t.title}"
 				  :show-truncated true
-				  :limit-width  {t.state == "PROJECT" ? "22" : "32"})))))))))
+				  :limit-width  {t.state == "PROJECT" ? "22" : "32"})))))))
+	(revealer
+	  :transition "slidedown"
+      :reveal {cal_reveal}
+      :duration "350ms"
+	  (box
+		:class "filler-sloth"))))

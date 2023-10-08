@@ -60,6 +60,7 @@ elif [ $COUNTER -eq 2 ]; then
             keyword decoration:rounding 0;\
             keyword decoration:active_opacity 1;\
             keyword decoration:inactive_opacity 1;\
+			keyword dwindle:no_gaps_when_only 1;\
             "
     # hyprctl plugin unload /usr/lib/hyprland-plugins/hyprbars.so
 	set +e
