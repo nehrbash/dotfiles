@@ -7,8 +7,8 @@
       :class "top-row"
       :space-evenly false
       (label
-       :class "profile"
-       :style "background-image: url(\"${profile-image}\");")
+		:class "profile"
+		:style "background-image: url(\"${profile-image}\");")
       (label
         :class "time"
         :text "${time.hour}:${time.minute}")
@@ -21,7 +21,6 @@
         (label
           :class "day"
           :text {time.day})))
-
     (box
       :class "system-row"
       :space-evenly true
@@ -38,7 +37,6 @@
           :text "Record"
           :xalign 0.5
           :limit-width 15))
-
       (box
         :class "bluetooth-box"
         :space-evenly false
@@ -51,7 +49,6 @@
         (label
           :text "Moitors"
           :xalign 0.5))
-
       (box
         :class "airplane-box"
         :space-evenly false
@@ -70,6 +67,7 @@
     (box
       :class "sliders"
       :orientation "v"
+	  :space-evenly false
       (box
         :class "volume-slider-box"
         :space-evenly false
@@ -94,18 +92,22 @@
           :value {volume.microphone}
           :tooltip "mic on ${volume.microphone}%"
           :onchange "scripts/volume setvol SOURCE {}"))
-	  (box
-        :class "brightness-slider-box"
-        :space-evenly false
-        (button
-          :class "brightness-slider-icon"
-          {brightness.icon})
-        (scale
-          :class "brightness-slider"
-          :value {brightness.level}
-          :marks true
-          :onchange "brightnessctl s {}%")))
-
+	  (revealer
+		:transition "sliderdown"
+		:reveal {battery.enabled}
+		:duration "350ms"
+		:class "apps-sidebar"
+		(box
+          :class "brightness-slider-box"
+          :space-evenly false
+          (button
+			:class "brightness-slider-icon"
+			{brightness.icon})
+          (scale
+			:class "brightness-slider"
+			:value {brightness.level}
+			:marks true
+			:onchange "brightnessctl s {}%"))))
     (box
       :class "system-info-box"
       (box
@@ -185,10 +187,9 @@
     :anchor "right top")
   (system-menu))
 
-
 (defwidget closer [window]
   (eventbox :onclick "eww close ${window} && eww close ${window}-closer"))
- 
+
 (defwindow system-menu-closer
   :geometry (geometry :width "100%" :height "100%")
   :stacking "fg"
