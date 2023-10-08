@@ -143,8 +143,6 @@ point reaches the beginning or end of the buffer, stop there."
  ediff-split-window-function 'split-window-horizontally
  ediff-window-setup-function 'ediff-setup-windows-plain
  tab-width 4
- make-backup-files nil
- auto-save-default nil
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
@@ -167,9 +165,13 @@ point reaches the beginning or end of the buffer, stop there."
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 25))
+;; save backup and auto save to system tmp 
+(setq backup-directory-alist
+      `((".*" . ,temporary-file-directory)))
+(setq auto-save-file-name-transforms
+      `((".*" ,temporary-file-directory t)))
 
 (use-package autorevert
-  :defer 15
   :config (global-auto-revert-mode 1)
   :delight auto-revert-mode)
 
@@ -1512,7 +1514,7 @@ Call a second time to restore the original window configuration."
 
 (use-package multi-vterm
   :hook ((vterm-mode . (lambda ()
-						 (toggle-mode-line)
+						 ;; (toggle-mode-line)
 						 (setq left-margin-width 1
 							   right-margin-width 1
 							   cursor-type 'bar))))
@@ -1520,23 +1522,25 @@ Call a second time to restore the original window configuration."
 		 ("C-M-t" . multi-vterm-project)
 		 :map vterm-mode-map
 		 ("M-t" . multi-vterm-dedicated-toggle)
+		 ("C-M-t" . multi-vterm-project)
 		 ("C-M-r" . (lambda ()
 					  (interactive)
-					  (setq-local vterm-buffer-name-string nil)
-					  (rename-buffer (concat "Term " (read-string "Term: ")))))
-		 ("C-M-f" . tab-line-switch-to-next-tab)
-		 ("C-M-b" . tab-line-switch-to-prev-tab)
-		 ("C-M-s" . (lambda ()
-					  (interactive)
-					  (consult-buffer '(consult--source-vterm))))
-		 ("M-w" . copy-region-as-kill)
-		 ("C-y" . vterm-yank))
-  :custom
-  (vterm-buffer-maximum-size 1000)
-  :init
-  (with-eval-after-load 'vterm
-	(add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
-	(add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))))
+					  (let ((vterm-buffer-name-string nil))
+						(rename-buffer (concat "Term " (read-string "Term: "))))))
+		  ("C-M-s" . (lambda ()
+					   (interactive)
+					   (consult-buffer '(consult--source-vterm))))
+		  ("M-w" . copy-region-as-kill)
+		  ("C-y" . vterm-yank))
+		 :custom
+		 (vterm-buffer-name "Term")
+		 (multi-vterm-buffer-name "Term")
+		 (vterm-buffer-name-string "Term %s")
+		 (vterm-buffer-maximum-size 1000)
+		 :init
+		 (with-eval-after-load 'vterm
+		   (add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
+		   (add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))))
 
 (setq confirm-kill-processes nil)
 
