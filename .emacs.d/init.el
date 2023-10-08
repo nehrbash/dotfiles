@@ -173,14 +173,18 @@ point reaches the beginning or end of the buffer, stop there."
   :config (global-auto-revert-mode 1)
   :delight auto-revert-mode)
 
-(setq tramp-verbose 1)
-(setq tramp-encoding-shell "/bin/bash")
-(setq tramp-default-method "ssh")
-(eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
-(setq vc-handled-backends '(Git))
-(use-package tramp
-  :defer t
-  :config (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+(customize-set-variable 'tramp-default-method "ssh")
+(with-eval-after-load 'tramp
+  (setq tramp-verbose 0 ;; more performance if working correctly
+		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-connection-properties
+             (list (regexp-quote "/ssh:ag-nehrbash:")
+				   "remote-shell" "/usr/bin/zsh"
+                   "direct-async-process" t
+				   "tramp-direct-async" t
+				   )))
+(setq vc-handled-backends '(Git)) ;; only user git
 
 (use-package savehist
   :ensure nil
@@ -388,6 +392,7 @@ Call a second time to restore the original window configuration."
 (use-package avy
   :bind ("C-:" . avy-goto-char-timer))
 
+(set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
   (lambda ()
@@ -395,7 +400,6 @@ Call a second time to restore the original window configuration."
     (set-face-attribute 'header-line nil :height 100)))
 
 (use-package page-break-lines
-  :defer 3
   :config (page-break-lines-mode))
 
 (use-package doom-themes
@@ -407,9 +411,8 @@ Call a second time to restore the original window configuration."
            (doom-gruvbox-padded-modeline t)
            (doom-themes-enable-italic t)
            (custom-safe-themes t)))
-
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 (use-package global-prettify-symbols-mode
   :ensure nil
   :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
@@ -1515,13 +1518,13 @@ Call a second time to restore the original window configuration."
 							   right-margin-width 1
 							   cursor-type 'bar))))
   :bind (("M-t" . multi-vterm-dedicated-toggle)
+		 ("C-M-t" . multi-vterm-project)
 		 :map vterm-mode-map
 		 ("M-t" . multi-vterm-dedicated-toggle)
 		 ("C-M-r" . (lambda ()
-					 (interactive)
-					 (setq-local vterm-buffer-name-string nil)
-					 (rename-buffer (concat "Term " (read-string "Term: ")))))
-		 ("C-M-t" . multi-vterm-project)
+					  (interactive)
+					  (setq-local vterm-buffer-name-string nil)
+					  (rename-buffer (concat "Term " (read-string "Term: ")))))
 		 ("C-M-f" . tab-line-switch-to-next-tab)
 		 ("C-M-b" . tab-line-switch-to-prev-tab)
 		 ("C-M-s" . (lambda ()
@@ -1530,8 +1533,11 @@ Call a second time to restore the original window configuration."
 		 ("M-w" . copy-region-as-kill)
 		 ("C-y" . vterm-yank))
   :custom
-  (vterm-buffer-name-string "Term %s")
-  (vterm-buffer-maximum-size 1000))
+  (vterm-buffer-maximum-size 1000)
+  :init
+  (with-eval-after-load 'vterm
+	(add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
+	(add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))))
 
 (setq confirm-kill-processes nil)
 

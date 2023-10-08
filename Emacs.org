@@ -620,14 +620,18 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
 Tramp was acting slow this helps...maybe
 
 #+begin_src emacs-lisp
-(setq tramp-verbose 1)
-(setq tramp-encoding-shell "/bin/bash")
-(setq tramp-default-method "ssh")
-(eval-after-load 'tramp '(setenv "SHELL" "/bin/bash"))
-(setq vc-handled-backends '(Git))
-(use-package tramp
-  :defer t
-  :config (add-to-list 'tramp-remote-path 'tramp-own-remote-path))
+(customize-set-variable 'tramp-default-method "ssh")
+(with-eval-after-load 'tramp
+  (setq tramp-verbose 0 ;; more performance if working correctly
+		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-connection-properties
+             (list (regexp-quote "/ssh:ag-nehrbash:")
+				   "remote-shell" "/usr/bin/zsh"
+                   "direct-async-process" t
+				   "tramp-direct-async" t
+				   )))
+(setq vc-handled-backends '(Git)) ;; only user git
 #+end_src
 
 ** Save History
@@ -919,6 +923,7 @@ Call a second time to restore the original window configuration."
 ** General
 
 #+begin_src emacs-lisp
+(set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
   (lambda ()
@@ -932,7 +937,6 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package page-break-lines
-  :defer 3
   :config (page-break-lines-mode))
 #+end_src
 
@@ -948,9 +952,8 @@ Call a second time to restore the original window configuration."
            (doom-gruvbox-padded-modeline t)
            (doom-themes-enable-italic t)
            (custom-safe-themes t)))
-
 (use-package rainbow-delimiters
-  :hook (prog-mode . rainbow-delimiters-mode))
+  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 (use-package global-prettify-symbols-mode
   :ensure nil
   :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
@@ -2372,13 +2375,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 								right-margin-width 1
 								cursor-type 'bar))))
    :bind (("M-t" . multi-vterm-dedicated-toggle)
+		  ("C-M-t" . multi-vterm-project)
 		  :map vterm-mode-map
 		  ("M-t" . multi-vterm-dedicated-toggle)
 		  ("C-M-r" . (lambda ()
-					  (interactive)
-					  (setq-local vterm-buffer-name-string nil)
-					  (rename-buffer (concat "Term " (read-string "Term: ")))))
-		  ("C-M-t" . multi-vterm-project)
+					   (interactive)
+					   (setq-local vterm-buffer-name-string nil)
+					   (rename-buffer (concat "Term " (read-string "Term: ")))))
 		  ("C-M-f" . tab-line-switch-to-next-tab)
 		  ("C-M-b" . tab-line-switch-to-prev-tab)
 		  ("C-M-s" . (lambda ()
@@ -2387,8 +2390,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 		  ("M-w" . copy-region-as-kill)
 		  ("C-y" . vterm-yank))
    :custom
-   (vterm-buffer-name-string "Term %s")
-   (vterm-buffer-maximum-size 1000))
+   (vterm-buffer-maximum-size 1000)
+   :init
+   (with-eval-after-load 'vterm
+	 (add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
+	 (add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))))
  #+end_src
 
 **** Don't ask to kill on exit
@@ -2447,7 +2453,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :config (global-flycheck-eglot-mode 1))
 #+end_src
 
-	
 	
 ** Go
 

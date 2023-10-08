@@ -3,8 +3,8 @@
 # zsh-syntax-highlighting - syntax highlighting for ZSH in standard repos
 # zsh-autosuggestions - Suggestions based on your history
 
-# very simple prompt for when zsh cacuse problems
-[[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
+# # very simple prompt for when zsh cacuse problems
+# [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
 
 # Enable colors and change prompt:
 autoload -U colors && colors
@@ -21,7 +21,7 @@ autoload -U select-word-style
 select-word-style bash
 
 # highlight colors
-source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.sh
+source ~/.zsh/zsh-syntax-highlighting/zsh-syntax-highlighting.sh 2>/dev/null
 
 ## History file configuration
 [ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh/history"
@@ -59,18 +59,3 @@ source /usr/share/autojump/autojump.zsh 2>/dev/null
 # Load emacs functions for vterm and restarting daemon.
 [ -f "$HOME/.zsh/emacs_functions" ] && source "$HOME/.zsh/emacs_functions"
 
-
-# >>> conda initialize >>>
-# !! Contents within this block are managed by 'conda init' !!
-__conda_setup="$('/home/nehrbash/anaconda3/bin/conda' 'shell.zsh' 'hook' 2> /dev/null)"
-if [ $? -eq 0 ]; then
-    eval "$__conda_setup"
-else
-    if [ -f "/home/nehrbash/anaconda3/etc/profile.d/conda.sh" ]; then
-        . "/home/nehrbash/anaconda3/etc/profile.d/conda.sh"
-    else
-        export PATH="/home/nehrbash/anaconda3/bin:$PATH"
-    fi
-fi
-unset __conda_setup
-# <<< conda initialize <<<
