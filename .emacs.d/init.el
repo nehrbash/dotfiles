@@ -176,14 +176,13 @@ point reaches the beginning or end of the buffer, stop there."
 (customize-set-variable 'tramp-default-method "ssh")
 (with-eval-after-load 'tramp
   (setq tramp-verbose 0 ;; more performance if working correctly
-		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster
+		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster settings
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
              (list (regexp-quote "/ssh:ag-nehrbash:")
-				   "remote-shell" "/usr/bin/zsh"
+				   "remote-shell" "/usr/bin/bash"
                    "direct-async-process" t
-				   "tramp-direct-async" t
-				   )))
+				   "tramp-direct-async" t)))
 (setq vc-handled-backends '(Git)) ;; only user git
 
 (use-package savehist
