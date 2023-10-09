@@ -98,14 +98,14 @@ greetd-regreet
 #+begin_src shell :tangle install.sh
 systemctl enable greetd.service
 #+end_src
-
   
 * WM Hyprland
 
   I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
-  Install manually because don't know if need want nvidia package or not. 
-  - xdg-desktop-portal-hyprland-git
-  - hyprland-git
+  Install hyprland  manually because of the nvidia patch. 
+  - =xdg-desktop-portal-hyprland-git=
+  - =hyprland-git= or  =hyprland-nvidia-git=
+	
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync
 nwg-launchers
@@ -241,6 +241,7 @@ spicetify-cli
 spicetify-themes-git
 spotify-launcher
 sptlrx-bin
+cava
 #+end_src
 
 #+begin_src sh :tangle install.sh

@@ -38,6 +38,7 @@ spicetify-cli
 spicetify-themes-git
 spotify-launcher
 sptlrx-bin
+cava
 emacs-pdf-tools-git
 aspell
 aspell-en
