@@ -1,3 +1,5 @@
+greetd
+greetd-regreet
 swaync
 nwg-launchers
 hyprpaper
@@ -35,7 +37,7 @@ exa
 spicetify-cli
 spicetify-themes-git
 spotify-launcher
-emacs-native-comp-git-enhanced
+sptlrx-bin
 emacs-pdf-tools-git
 aspell
 aspell-en

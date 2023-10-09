@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pid_file="/tmp/swayidle.pid"
+pid_file="/tmp/hypr/swayidle.pid"
 
 # Set the appropriate icon based on the existence of the PID file
 if [ -f "$pid_file" ]
@@ -19,8 +19,8 @@ off() {
              before-sleep 'swaylock-fancy' &
 
     echo $! > "$pid_file"
-
-    notify-send "Inhibitor" "Deactivated"
+    # TODO don't require full path
+    notify-send "Inhibitor" "Deactivated" -i "/home/nehrbash/.config/eww/images/notification.png" 
     eww update inhibitor=$icon
 }
 
@@ -28,7 +28,7 @@ on() {
     pkill -F "$pid_file"
     rm -f "$pid_file"
 
-    notify-send "Inhibitor" "Activated"
+    notify-send "Inhibitor" "Activated" -i "/home/nehrbash/.config/eww/images/notification.png" 
     eww update inhibitor=$icon
 }
 

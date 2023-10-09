@@ -1,0 +1,75 @@
+### Global settings ###
+# Your Spotify cookie. Only needed if you are going to use Spotify as a player.
+cookie: "OptanonConsent=isGpcEnabled=1&datestamp=Sun+Oct+08+2023+19%3A43%3A17+GMT-0400+(Eastern+Daylight+Time)&version=6.26.0&isIABGlobal=false&hosts=&consentId=6f0c8b0b-9818-43af-b18f-9879cef7d073&interactionCount=1&landingPath=NotLandingPage&groups=BG155%3A1%2Cs00%3A1%2Cf00%3A1%2Cm00%3A1%2Ci00%3A1%2Cf11%3A1%2Ct00%3A0%2CBG154%3A0&AwaitingReconsent=false; sp_t=cb349a50854d42ec965b837bc20f4fda; sp_landing=https%3A%2F%2Fopen.spotify.com%2F%3Fsp_cid%3Dcb349a50854d42ec965b837bc20f4fda%26device%3Ddesktop; sp_dc=AQA8afhV-9E0vHaq8xmvywuEoj4_qpUsUfIIUdBRyn1vGnhzzjevI133WzD5vNc-R2VaUO5SLCPKt_1poGFcv8TZ-AOTGy26-0Qx4bygs0xxM-JH8q4TU8T5CGSJ2Zu-xDVxavD5VOPI8uQ-09u2-NEAfMJTw98; sp_key=3523f1d2-894b-4977-9c53-cfeb93027c09"
+# Player that will be used. Possible values: spotify, mpd, mopidy, mpris.
+player: spotify
+# Host of lyrics API to be used in case the cookie is not provided.
+host: lyricsapi.vercel.app
+# Whether to ignore errors instead of showing them.
+ignoreErrors: true
+# Interval of the internal timer. Determines how often the terminal will be updated.
+timerInterval: 200
+# Interval for checking the position. Doesn't really affect the precision.
+updateInterval: 2000
+
+### Style settings ###
+style:
+  # Horizontal alignment of lines. Possible values: left, center, right.
+  hAlignment: center
+  # Style of the lines before the current one.
+  before:
+    # The colors can be either in HEX format, or ANSI 0-255.
+    background: ""
+    foreground: ""
+    bold: true
+    italic: false
+    undeline: false
+    strikethrough: false
+    blink: false
+    faint: false
+  # Style of the current line.
+  current:
+    # The colors can be either in HEX format, or ANSI 0-255.
+    background: ""
+    foreground: ""
+    bold: true
+    italic: false
+    undeline: false
+    strikethrough: false
+    blink: false
+    faint: false
+  # Style of the lines after the current one.
+  after:
+    # The colors can be either in HEX format, or ANSI 0-255.
+    background: ""
+    foreground: ""
+    bold: false
+    italic: false
+    undeline: false
+    strikethrough: false
+    blink: false
+    faint: true
+
+### Pipe settings ###
+pipe:
+  # Maximum line length. 0 - unlimited.
+  length: 0
+  # How to handle overflowing strings. Possible values: word, none, ellipsis.
+  overflow: word
+
+### MPD settings ###
+mpd:
+  # MPD server address with port
+  address: 127.0.0.1:6600
+  # MPD server password (if any)
+  password: ""
+
+### Mopidy settings ###
+mopidy:
+  # Mopidy server address with port
+  address: 127.0.0.1:6680
+
+### MPRIS settings ###
+mpris:
+  # Whitelist of MPRIS players. First available is used if empty.
+  players: []

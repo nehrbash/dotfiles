@@ -20,8 +20,8 @@
   - [[#bootstrap-paru][Bootstrap Paru]]
   - [[#install-packages][Install Packages]]
 - [[#keyboard][Keyboard]]
+-  [[#login][Login]]
 - [[#wm-hyprland][WM Hyprland]]
-  - [[#hyprbar-plugin][Hyprbar Plugin]]
   - [[#services][Services]]
   - [[#eww][Eww]]
   - [[#fonts][Fonts]]
@@ -31,7 +31,6 @@
   - [[#spicetify][Spicetify]]
   - [[#slack][Slack]]
   - [[#emacs][Emacs]]
-- [[#autologin][Autologin]]
 - [[#references][References]]
   - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
 
@@ -87,6 +86,21 @@ fi
   - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
   - [[https://github.com/manna-harbour/miryoku][Layout]]
 
+*  Login
+
+  I used greetd with Hyprland and  regreet. Manually copy =greetd= to =/etc/greetd= make sure the greetd user can read files.
+
+#+begin_src txt :tangle pkglist.txt :padline no
+greetd
+greetd-regreet
+#+end_src
+
+#+begin_src shell :tangle install.sh
+systemctl enable greetd.service
+#+end_src
+
+
+  
 * WM Hyprland
 
   I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
@@ -104,24 +118,15 @@ nwg-displays
 wlr-randr
 #+end_src
 
-** Hyprbar Plugin
-
-#+begin_src shell :tangle install.sh
-
-#+end_src
-
 ** Services
 
 #+begin_src sh :tangle install.sh
-systemctl --user enable hyprpaper.service
-systemctl --user enable hyprshell.service
-systemctl --user enable eww.service
 systemctl --user enable swaync.service
 #+end_src
 
 ** Eww
 
-  Lisp like graphical widget system
+  Lisp like graphical widget system. Sorry but I decided to start writting all my scripts as a monolithic go program and embed resources into it. end goal might be to embed almost everyting in it 
 
 #+begin_src sh :tangle install.sh
 go install github.com/nehrbash/hyprshell@latest
@@ -236,6 +241,7 @@ fi
 spicetify-cli
 spicetify-themes-git
 spotify-launcher
+sptlrx-bin
 #+end_src
 
 #+begin_src sh :tangle install.sh
@@ -259,11 +265,9 @@ Set the theme to dark and paste values.
 
 ** Emacs
 
-My Emacs config can be found in [[file:Emacs.org][Here]]. Right now I am using *emacs-native-comp-git-enhanced* should probably work with emacs >= 29.1.
-- Note: longest package to
+My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= then modify the =PKGBUILD= for wayland and such then I build it with =makepke -siC=
 
 #+begin_src txt :tangle pkglist.txt :padline no
-emacs-native-comp-git-enhanced
 emacs-pdf-tools-git
 aspell
 aspell-en
@@ -281,51 +285,6 @@ xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory
 #+end_src
 
-*** Set Up Org Agenda And Roam
-
-#+begin_src sh :tangle install.sh
-mkdir -p ~/doc/Roam/Journal
-if [ ! -f ~/doc/inbox.org ]; then
-    cat << EOF > ~/doc/inbox.org
-#+CATEGORY: INBOX
-#+FILETAGS: INBOX
-EOF
-fi
-if [ ! -f ~/doc/projects.org ]; then
-    cat << EOF > ~/doc/projects.org
-#+CATEGORY: PROJECT
-#+FILETAGS: PROJECT
-EOF
-fi
-if [ ! -f ~/doc/repeater.org ]; then
-    cat << EOF > ~/doc/repeater.org
-#+CATEGORY: REPEATER
-#+FILETAGS: REPEATER
-EOF
-fi
-if [ ! -f ~/doc/gcal.org ]; then
-    touch ~/doc/gcal.org
-fi
-#+end_src
-
-* Autologin
-
-I don't care, it's my desktop.
-
-#+begin_src :tangle no
-sudo mkdir -p /etc/systemd/system/getty@tty1.service.d
-sudo touch /etc/systemd/system/getty@tty1.service.d/override.conf
-#+end_src
-
-*** override.conf
-
-#+begin_src conf
-[Service]
-Environment=LIBSEAT_BACKEND=logind
-ExecStart=
-ExecStart=-/sbin/agetty -o '-p -f -- \\u' --noclear --autologin nehrbash %I $TERM
-#+end_src
-
 * References
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
@@ -339,7 +298,6 @@ paru -Qqen
 #+end_src
 
 #+RESULTS:
-| adobe-source-sans-fonts      |
 | alacritty                    |
 | amd-ucode                    |
 | archlinux-keyring            |
@@ -350,13 +308,17 @@ paru -Qqen
 | aws-cli                      |
 | baobab                       |
 | base                         |
+| base-devel                   |
 | bc                           |
 | binutils                     |
 | bison                        |
 | blueberry                    |
+| blueman                      |
 | bluez-utils                  |
+| brightnessctl                |
 | btrfs-progs                  |
 | cairo-dock                   |
+| ccls                         |
 | cheese                       |
 | cmake                        |
 | cpio                         |
@@ -370,12 +332,13 @@ paru -Qqen
 | eog                          |
 | epiphany                     |
 | evince                       |
-| exa                          |
+| eza                          |
 | fakeroot                     |
 | file                         |
 | file-roller                  |
 | findutils                    |
 | flex                         |
+| gamescope                    |
 | gawk                         |
 | gcc                          |
 | gdm                          |
@@ -416,7 +379,8 @@ paru -Qqen
 | gnome-user-share             |
 | gnome-video-effects          |
 | gnome-weather                |
-| gnu-free-fonts               |
+| greetd                       |
+| greetd-regreet               |
 | grep                         |
 | grilo-plugins                |
 | grim                         |
@@ -437,14 +401,17 @@ paru -Qqen
 | htop                         |
 | i2c-tools                    |
 | inetutils                    |
+| isync                        |
 | iwd                          |
 | jq                           |
 | libgccjit                    |
 | libpulse                     |
+| libreoffice-fresh            |
 | libtool                      |
 | libu2f-server                |
 | libva-mesa-driver            |
 | libxnvctrl                   |
+| light                        |
 | linux                        |
 | linux-firmware               |
 | linux-headers                |
@@ -457,11 +424,11 @@ paru -Qqen
 | mutter                       |
 | nano                         |
 | nautilus                     |
+| neovim                       |
 | net-tools                    |
 | network-manager-applet       |
 | networkmanager               |
 | nfs-utils                    |
-| nix                          |
 | noto-fonts                   |
 | noto-fonts-cjk               |
 | noto-fonts-extra             |
@@ -487,11 +454,15 @@ paru -Qqen
 | playerctl                    |
 | polkit-gnome                 |
 | python-pip                   |
+| python-pyqt5-webengine       |
+| python-pyqt6                 |
+| python-pyqt6-sip             |
 | qmk                          |
 | qt5-wayland                  |
 | qt5ct                        |
+| rebuild-detector             |
 | ripgrep                      |
-| rustup                       |
+| rust-analyzer                |
 | rygel                        |
 | sed                          |
 | simple-scan                  |
@@ -507,9 +478,26 @@ paru -Qqen
 | sushi                        |
 | swayidle                     |
 | swaylock                     |
+| syncthing                    |
 | terraform                    |
 | texinfo                      |
+| texlive-bibtexextra          |
+| texlive-binextra             |
+| texlive-context              |
 | texlive-fontsextra           |
+| texlive-fontsrecommended     |
+| texlive-fontutils            |
+| texlive-formatsextra         |
+| texlive-games                |
+| texlive-humanities           |
+| texlive-luatex               |
+| texlive-mathscience          |
+| texlive-metapost             |
+| texlive-music                |
+| texlive-plaingeneric         |
+| texlive-pstricks             |
+| texlive-publishers           |
+| texlive-xetex                |
 | the_silver_searcher            |
 | tk                           |
 | tmux                         |
@@ -519,8 +507,6 @@ paru -Qqen
 | tree-sitter                  |
 | ttf-font-awesome             |
 | ttf-linux-libertine          |
-| ttf-opensans                 |
-| ttf-roboto-mono              |
 | ttf-victor-mono-nerd         |
 | vlc                          |
 | wf-recorder                  |
@@ -534,6 +520,7 @@ paru -Qqen
 | wmctrl                       |
 | wofi                         |
 | wqy-zenhei                   |
+| xdg-desktop-portal-hyprland  |
 | xdg-user-dirs-gtk            |
 | xdg-utils                    |
 | xf86-video-nouveau           |
