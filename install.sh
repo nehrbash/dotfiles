@@ -56,5 +56,7 @@ else
     echo "Skipping Spicetify update."
 fi
 
+systemctl --user enable dropbox.service
+
 xdg-mime default emacsclient.desktop application/pdf
 xdg-mime default emacsclient.desktop inode/directory

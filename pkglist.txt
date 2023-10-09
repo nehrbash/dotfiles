@@ -44,3 +44,4 @@ aspell-en
 ripgrep
 isync
 mu
+dropbox

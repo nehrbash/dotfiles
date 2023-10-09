@@ -256,7 +256,8 @@ fi
 #+end_src
 
 ** Slack
-Set the theme to dark and paste values.
+   
+   Set the theme to dark and paste values.
 
 #+begin_src :tangle no
 #3C3836,#1A0404,#3C3836,#D5C4A1,#665C54,#EBDBB2,#FB4934,#D5C4A1,#D5C4A1,#282828
@@ -264,7 +265,9 @@ Set the theme to dark and paste values.
 
 ** Emacs
 
-My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= then modify the =PKGBUILD= for wayland and such then I build it with =makepke -siC=
+   My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= then modify the =PKGBUILD= for wayland and such then I build it with =makepke -siC=. I keep all my org files under dropbox symlinked to =~/doc=.
+
+   Building takes a sec  and you will probably need to restart once or twice and also run =M-x package-upgrade-all= to finish installing stuff.
 
 #+begin_src txt :tangle pkglist.txt :padline no
 emacs-pdf-tools-git
@@ -273,6 +276,11 @@ aspell-en
 ripgrep
 isync
 mu
+dropbox
+#+end_src
+
+#+begin_src sh :tangle install.sh
+systemctl --user enable dropbox.service
 #+end_src
 
 *** Setting XDG Defaults to Emacs
