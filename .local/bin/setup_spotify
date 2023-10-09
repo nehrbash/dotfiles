@@ -1,21 +1,12 @@
 #!/bin/bash
 
-# make sure workspace is empty
-swaymsg workspace number 9
-
-swaymsg exec "alacritty -e cava -p ~/.config/cava/left"
-swaymsg exec spotify
-sleep 2
-swaymsg exec "alacritty -e cava -p ~/.config/cava/right"
-sleep 0.5
-swaymsg resize shrink width 400px
-swaymsg focus left
-swaymsg focus left
-swaymsg resize shrink width 400px
-swaymsg focus right
-swaymsg splitv
-swaymsg exec "alacritty -o font.size=38 -e sptlrx"
-sleep 0.5
-swaymsg resize set height 400px
-swaymsg gaps inner current set 100
-swaymsg gaps outer current set 150
+hyprctl --batch "dispatch exec [workspace special:spot] spotify-launcher; dispatch layoutmsg preselect l"
+alacritty -e cava -p ~/.config/cava/left.conf &
+sleep 1
+hyprctl --batch "dispatch resizeactive -80% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r"
+alacritty -e cava -p ~/.config/cava/right.conf &
+sleep 1
+hyprctl --batch "dispatch resizeactive 60% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d"
+alacritty -o font.size=18 -e sptlrx &
+sleep 1
+hyprctl --batch "dispatch resizeactive 0 80%"

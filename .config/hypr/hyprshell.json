@@ -10,11 +10,6 @@
     "Icon": "/usr/share/icons/Dracula/scalable/apps/firefox.svg"
   },
   {
-    "Desktop": "",
-    "Class": "Spotify",
-    "Icon": "/usr/share/icons/Dracula/scalable/apps/Spotify.svg"
-  },
-  {
     "Desktop": "slack.desktop",
     "Class": "Slack",
     "Icon": "/usr/share/icons/Dracula/scalable/apps/slack.svg"
