@@ -99,7 +99,6 @@ greetd-regreet
 systemctl enable greetd.service
 #+end_src
 
-
   
 * WM Hyprland
 
