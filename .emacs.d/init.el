@@ -147,8 +147,6 @@ point reaches the beginning or end of the buffer, stop there."
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
  tooltip-delay .8
- truncate-lines nil
- truncate-partial-width-windows nil
  ring-bell-function 'ignore)
 (delete-selection-mode t)
 (global-goto-address-mode t)
@@ -454,12 +452,6 @@ Call a second time to restore the original window configuration."
   (:map minibuffer-local-completion-map
         ("<backtab>" . minibuffer-force-complete))
   :custom
-  (completion-styles '(orderless))
-  (completion-category-defaults nil)
-  (completion-category-overrides '((file (styles basic partial-completion))))
-  (read-file-name-completion-ignore-case t)
-  (read-buffer-completion-ignore-case t)
-  (completion-ignore-case t)
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
   (resize-mini-windows t)
@@ -490,8 +482,11 @@ Call a second time to restore the original window configuration."
   :custom
   ;; (orderless-matching-styles 'orderless-regexp)
   ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  ;; (read-file-name-completion-ignore-case t)
+  ;; (read-buffer-completion-ignore-case t)
+  ;; (completion-ignore-case t)
   (completion-category-defaults nil)
-  (completion-styles '(orderless basic))
+  (completion-styles '(orderless flex))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package wgrep
@@ -988,7 +983,6 @@ Call a second time to restore the original window configuration."
                         '("~/doc/inbox.org"
                           "~/doc/projects.org"
                           "~/doc/gcal.org"
-						  "~/doc/example.org"
                           "~/doc/repeater.org")))
 
 (use-package org

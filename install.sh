@@ -48,6 +48,7 @@ fi
 
 read -p "Do you want to update Spicetify? (yes/no): " choice
 if [[ "$choice" == "yes" ]]; then
+	spicetify backup
 	spicetify config current_theme Onepunch color_scheme light
 	spicetify restore backup
 	spicetify backup

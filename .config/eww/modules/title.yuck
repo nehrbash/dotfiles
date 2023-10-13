@@ -3,5 +3,5 @@
     :space-evenly false
     (label
       :class "module title"
-	  :limit-width "60"
+	  :limit-width "40"
       :text {title.name})))

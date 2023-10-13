@@ -576,8 +576,6 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
  tooltip-delay .8
- truncate-lines nil
- truncate-partial-width-windows nil
  ring-bell-function 'ignore)
 (delete-selection-mode t)
 (global-goto-address-mode t)
@@ -1023,12 +1021,6 @@ Call a second time to restore the original window configuration."
   (:map minibuffer-local-completion-map
         ("<backtab>" . minibuffer-force-complete))
   :custom
-  (completion-styles '(orderless))
-  (completion-category-defaults nil)
-  (completion-category-overrides '((file (styles basic partial-completion))))
-  (read-file-name-completion-ignore-case t)
-  (read-buffer-completion-ignore-case t)
-  (completion-ignore-case t)
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
   (resize-mini-windows t)
@@ -1068,8 +1060,11 @@ Call a second time to restore the original window configuration."
   :custom
   ;; (orderless-matching-styles 'orderless-regexp)
   ;; (orderless-component-separator #'orderless-escapable-split-on-space)
+  ;; (read-file-name-completion-ignore-case t)
+  ;; (read-buffer-completion-ignore-case t)
+  ;; (completion-ignore-case t)
   (completion-category-defaults nil)
-  (completion-styles '(orderless basic))
+  (completion-styles '(orderless flex))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
@@ -1682,7 +1677,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                         '("~/doc/inbox.org"
                           "~/doc/projects.org"
                           "~/doc/gcal.org"
-						  "~/doc/example.org"
                           "~/doc/repeater.org")))
 #+End_src
 
@@ -2341,6 +2335,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+end_src
 
 **** Magit
+	 
 #+begin_src emacs-lisp
 (use-package magit
   :commands (magit-status magit-dispatch)
@@ -2730,7 +2725,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+end_src
 
-   
 ** cus
 
 #+begin_src emacs-lisp
@@ -2748,7 +2742,6 @@ If not in a project, prompt for the project root."
           (let ((default-directory (project-root project)))
 			(customize-dirlocals))))))
 #+end_src
-   
    
 ** HOLD Web Tabs
 
