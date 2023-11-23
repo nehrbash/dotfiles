@@ -1,16 +1,22 @@
 #!/bin/zsh
 
+# eat terminal emulator
+[ -n "$EAT_SHELL_INTEGRATION_DIR" ] && source "$EAT_SHELL_INTEGRATION_DIR/zsh"
+
 # start stop reset emacs daemon
 function restartem () {
     emacsclient -e '(save-buffers-kill-emacs)'
     emacs --daemon > /dev/null 2>&1 &
 }
+
 function stopem () {
     emacsclient -e '(save-buffers-kill-emacs)'
 }
+
 function startem () {
     emacs --daemon > /dev/null 2>&1 &
 }
+
 function killem () {
     pkill emacs
 }

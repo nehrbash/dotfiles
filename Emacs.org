@@ -33,6 +33,7 @@
   - [[#matching-and-highlighting-delimiters][Matching and Highlighting Delimiters]]
   - [[#improve-window-switching][Improve window switching]]
   - [[#jump-to-char][Jump to char]]
+  - [[#dont-ask-to-kill-on-exit][Don't ask to kill on exit]]
 - [[#ui-stuff][UI Stuff]]
   - [[#general][General]]
   - [[#theme][Theme]]
@@ -911,6 +912,14 @@ Call a second time to restore the original window configuration."
   :bind ("C-:" . avy-goto-char-timer))
 #+end_src   
    
+** Don't ask to kill on exit
+
+     Mainly because of open terminals don't ask on killing Emacs to stop process. 
+
+#+begin_src emacs-lisp
+(setq confirm-kill-processes nil)
+#+end_src
+
 * UI Stuff
 
   Packages I had at one point or another for UI.
@@ -2319,48 +2328,29 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 		 ("C-c g k" . browse-at-remote-kill)))
 
 #+end_src	 
-*** Better Terminal 
-
- #+begin_src emacs-lisp
- (use-package multi-vterm
-   :hook ((vterm-mode . (lambda ()
-						  ;; (toggle-mode-line)
-						  (setq left-margin-width 1
-								right-margin-width 1
-								cursor-type 'bar))))
-   :bind (("M-t" . multi-vterm-dedicated-toggle)
-		  ("C-M-t" . multi-vterm-project)
-		  :map vterm-mode-map
-		  ("M-t" . multi-vterm-dedicated-toggle)
-		  ("C-M-t" . multi-vterm-project)
-		  ("C-M-r" . (lambda ()
-					   (interactive)
-					   (let ((vterm-buffer-name-string nil))
-						 (rename-buffer (concat "Term " (read-string "Term: "))))))
-		   ("C-M-s" . (lambda ()
-						(interactive)
-						(consult-buffer '(consult--source-vterm))))
-		   ("M-w" . copy-region-as-kill)
-		   ("C-y" . vterm-yank))
-		  :custom
-		  (vterm-buffer-name "Term")
-		  (multi-vterm-buffer-name "Term")
-		  (vterm-buffer-name-string "Term %s")
-		  (vterm-buffer-maximum-size 1000)
-		  :init
-		  (with-eval-after-load 'vterm
-			(add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
-			(add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))))
- #+end_src
-
-**** Don't ask to kill on exit
-
-     Mainly because of open terminals don't ask on killing Emacs to stop process. 
+*** Better Terminal
 
 #+begin_src emacs-lisp
-(setq confirm-kill-processes nil)
-#+end_src
-
+(use-package eat
+  :hook ((eat-mode . (lambda ()
+					   (setq-local
+						left-margin-width 3
+						right-margin-width 3
+						cursor-type 'bar)
+					   (toggle-mode-line)
+					   (face-remap-add-relative
+						'default
+						:foreground (doom-color 'fg-alt)
+						:background (doom-color 'base0))
+					   (face-remap-add-relative
+						'fringe
+						:foreground (doom-color 'fg-alt)
+						:background (doom-color 'base0)))))
+  :custom ((eat-kill-buffer-on-exit t)
+		   (eat-enable-yank-to-terminal t))
+  :bind (("M-t" . eat-project)
+		 (("M-t" . eat))))
+#+end_src	
 *** Compile Helpers 
 
 #+begin_src emacs-lisp

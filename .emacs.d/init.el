@@ -391,6 +391,8 @@ Call a second time to restore the original window configuration."
 (use-package avy
   :bind ("C-:" . avy-goto-char-timer))
 
+(setq confirm-kill-processes nil)
+
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
 (add-hook 'after-init-hook
@@ -1479,37 +1481,25 @@ Call a second time to restore the original window configuration."
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
 
-(use-package multi-vterm
-  :hook ((vterm-mode . (lambda ()
-						 ;; (toggle-mode-line)
-						 (setq left-margin-width 1
-							   right-margin-width 1
-							   cursor-type 'bar))))
-  :bind (("M-t" . multi-vterm-dedicated-toggle)
-		 ("C-M-t" . multi-vterm-project)
-		 :map vterm-mode-map
-		 ("M-t" . multi-vterm-dedicated-toggle)
-		 ("C-M-t" . multi-vterm-project)
-		 ("C-M-r" . (lambda ()
-					  (interactive)
-					  (let ((vterm-buffer-name-string nil))
-						(rename-buffer (concat "Term " (read-string "Term: "))))))
-		  ("C-M-s" . (lambda ()
-					   (interactive)
-					   (consult-buffer '(consult--source-vterm))))
-		  ("M-w" . copy-region-as-kill)
-		  ("C-y" . vterm-yank))
-		 :custom
-		 (vterm-buffer-name "Term")
-		 (multi-vterm-buffer-name "Term")
-		 (vterm-buffer-name-string "Term %s")
-		 (vterm-buffer-maximum-size 1000)
-		 :init
-		 (with-eval-after-load 'vterm
-		   (add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
-		   (add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash"))))
-
-(setq confirm-kill-processes nil)
+(use-package eat
+  :hook ((eat-mode . (lambda ()
+					   (setq-local
+						left-margin-width 3
+						right-margin-width 3
+						cursor-type 'bar)
+					   (toggle-mode-line)
+					   (face-remap-add-relative
+						'default
+						:foreground (doom-color 'fg-alt)
+						:background (doom-color 'base0))
+					   (face-remap-add-relative
+						'fringe
+						:foreground (doom-color 'fg-alt)
+						:background (doom-color 'base0)))))
+  :custom ((eat-kill-buffer-on-exit t)
+		   (eat-enable-yank-to-terminal t))
+  :bind (("M-t" . eat-project)
+		 (("M-t" . eat))))
 
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil
