@@ -1104,7 +1104,7 @@ Call a second time to restore the original window configuration."
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
-         ("M-g n" . consult-flycheck)
+         ("M-g n" . consult-flymake)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
@@ -1208,7 +1208,8 @@ Call a second time to restore the original window configuration."
             :as #'buffer-name
             :exclude '("\\*."           ; star buffers
                        "Term\\ "        ; Term buffers
-                       "^magit"         ; magit buffers
+                       "^magit"          ; magit buffers
+					   "^type-break.el"
                        )))))
 
   ;; reorder, mainly to move recent-file down and org
@@ -1229,14 +1230,6 @@ Call a second time to restore the original window configuration."
           consult--source-vterm
           consult--source-project-recent-file
           consult--source-star)))
-#+end_src
-
-*** Consult -flycheck
-
-#+begin_src emacs-lisp
-(use-package consult-flycheck
-  :commands consult-flycheck
-  :after (consult flycheck))
 #+end_src
 
 ** Embark
@@ -1410,10 +1403,10 @@ Call a second time to restore the original window configuration."
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
-;; (use-package yasnippet-capf
-;;   :after cape
-;;   :config
-;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
+(use-package yasnippet-capf
+  :after cape
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling
@@ -1482,46 +1475,6 @@ Call a second time to restore the original window configuration."
 #+end_src
 
 This config block sets up the =define-word= package and =flyspell-correct= package in Emacs. The =define-word= package provides a command for looking up definitions of words, while the =flyspell-correct= package adds a keybinding to correct spelling mistakes when using =flyspell= mode.
-
-*** Flycheck
-
-    Modernz on-the-fly syntax checking extension for GNU Emacs.
-	- flycheck-posframe if you only use GUI.
-
-#+begin_src emacs-lisp
-(use-package flycheck
-  :commands flycheck-list-errors flycheck-buffer
-  :hook (prog-mode . global-flycheck-mode)
-  :custom
-  (flycheck-emacs-lisp-load-path 'inherit)
-  (flycheck-buffer-switch-check-intermediate-buffers t)
-  (flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
-  :config
-  ;; Rerunning checks on every newline is a mote excessive.
-  (delq 'new-line flycheck-check-syntax-automatically))
-#+end_src
-
-**** Flycheck UI - popup
-
-#+begin_src emacs-lisp
-;; (use-package flycheck-popup-tip
-;;   :hook (flycheck-mode . flycheck-popup-tip-mode))
-(use-package quick-peek
-    :vc (:url "https://github.com/cpitclaudel/quick-peek.git"
-                  :branch "master" :rev :newest))
-(use-package flycheck-inline
-  :hook (flycheck-mode . flycheck-inline-mode)
-  :requires quick-peek
-  :init
-  (setq flycheck-inline-display-function
-		(lambda (msg pos err)
-          (let* ((ov (quick-peek-overlay-ensure-at pos))
-				 (contents (quick-peek-overlay-contents ov)))
-			(setf (quick-peek-overlay-contents ov)
-                  (concat contents (when contents "\n") msg))
-			(quick-peek-update ov)))
-		flycheck-inline-clear-function #'quick-peek-hide))
-#+end_src
 	 	 
 * Dired
 
@@ -1793,8 +1746,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (org-clock-out-remove-zero-time-clocks t)
   ;; dont' show clock in bar because we use system bar
   (org-clock-clocked-in-display nil)
-  :init
-  (setq org-clock-persist 'history)
+  ;; Enable auto clock resolution for finding open clocks
+  (org-clock-auto-clock-resolution (quote when-no-clock-is-running))
+  ;; Include current clocking task in clock reports
+  (org-clock-report-include-clocking-task t)
+  ;; use pretty things for the clocktable
+  (org-pretty-entities t)
+  (org-clock-persist 'history)
   (org-clock-persistence-insinuate))
 #+end_src
 
@@ -2221,7 +2179,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    "mail": "foo.bar@gmail.com"
  }
  #+end_src
-   
+ 
 * Code Languages & File Modes
 ** General
 
@@ -2442,15 +2400,19 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 #+end_src
-
-*** flycheck
+*** static checking
 
 #+begin_src emacs-lisp
-(use-package flycheck-eglot
-  :after (flycheck eglot)
-  :config (global-flycheck-eglot-mode 1))
-#+end_src
-
+(use-package flymake
+ :diminish
+ :hook (prog-mode . flymake-mode)
+ :custom
+ ((flymake-fringe-indicator-position 'right-fringe)
+  (flymake-show-diagnostics-at-end-of-line 'short)
+  (flymake-no-changes-timeout nil))
+ :config (setq elisp-flymake-byte-compile-load-path
+               (append elisp-flymake-byte-compile-load-path load-path)))
+#+end_src	
 	
 ** Go
 
@@ -2465,14 +2427,13 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 #+begin_src emacs-lisp
 (use-package go-ts-mode
   :mode "\\.go\\'"
-  :ensure-system-package ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-						  (gofumpt . "go install mvdan.cc/gofumpt@latest")
-						  (gopls . "go install golang.org/x/tools/gopls@latest"))
+  :ensure-system-package
+  ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
+   (gofumpt . "go install mvdan.cc/gofumpt@latest")
+   (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
 									go-ts-mode-indent-offset 4))))
-(use-package flycheck-golangci-lint
-  :hook (flycheck-mode . flycheck-golangci-lint-setup))
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
   :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
@@ -2496,9 +2457,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo build")))
   :mode ("\\.rs\\'" . rust-ts-mode))
-(use-package flycheck-rust
-  :after rust-ts-mode
-  :hook (flycheck-mode . flycheck-rust-setup))
 #+end_src
 
 ** TOML
@@ -2582,6 +2540,10 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package docker
+  :ensure-system-package
+  ((docker . "paru -S docker")
+   (docker-compose . "paru -S docker-compose")
+   (devcontainer . "npm install -g @devcontainers/cli"))
   :bind ("C-c d" . docker)
   :config
   (fullframe docker-images tablist-quit)
@@ -2593,6 +2555,24 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 #+end_src
+
+
+*** My docker setup hook
+
+#+begin_src emacs-lisp
+(defvar devcontainer-setup-done nil
+  "Flag to track whether the devcontainer setup has been performed.")
+
+(defun devcontainer-setup ()
+  "Prompt user to reopen in devcontainer if the current file path doesn't contain '/docker:'."
+  (unless devcontainer-setup-done
+    (if (y-or-n-p "Reopen in devcontainer? (y/n) ")
+        (progn
+          (setq devcontainer-setup-done t)
+          (shell-command "devcontainer up --workspace-folder .")
+          (find-file "/docker:dev-container:/workspace"))
+      (message "Devcontainer setup canceled."))))
+#+end_src	
 
 ** Terraform
    

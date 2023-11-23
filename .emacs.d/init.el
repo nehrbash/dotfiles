@@ -514,7 +514,7 @@ Call a second time to restore the original window configuration."
          ("<help> a" . consult-apropos)            ;; orig. apropos-command
          ;; M-g bindings (goto-map)
          ("M-g e" . consult-compile-error)
-         ("M-g n" . consult-flycheck)
+         ("M-g n" . consult-flymake)
          ("M-g g" . consult-goto-line)             ;; orig. goto-line
          ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
          ("M-g m" . consult-mark)
@@ -618,7 +618,8 @@ Call a second time to restore the original window configuration."
             :as #'buffer-name
             :exclude '("\\*."           ; star buffers
                        "Term\\ "        ; Term buffers
-                       "^magit"         ; magit buffers
+                       "^magit"          ; magit buffers
+					   "^type-break.el"
                        )))))
 
   ;; reorder, mainly to move recent-file down and org
@@ -639,10 +640,6 @@ Call a second time to restore the original window configuration."
           consult--source-vterm
           consult--source-project-recent-file
           consult--source-star)))
-
-(use-package consult-flycheck
-  :commands consult-flycheck
-  :after (consult flycheck))
 
 (use-package embark
   :bind (("M-." . embark-act)
@@ -777,10 +774,10 @@ Call a second time to restore the original window configuration."
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
-;; (use-package yasnippet-capf
-;;   :after cape
-;;   :config
-;;   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
+(use-package yasnippet-capf
+  :after cape
+  :config
+  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
 (use-package ispell
   :config
@@ -831,35 +828,6 @@ Call a second time to restore the original window configuration."
 (use-package define-word
   :after flyspell
   :bind (:map flyspell-mode-map ("M-^" . define-word-at-point)))
-
-(use-package flycheck
-  :commands flycheck-list-errors flycheck-buffer
-  :hook (prog-mode . global-flycheck-mode)
-  :custom
-  (flycheck-emacs-lisp-load-path 'inherit)
-  (flycheck-buffer-switch-check-intermediate-buffers t)
-  (flycheck-display-errors-function #'flycheck-display-error-messages-unless-error-list)
-  :config
-  ;; Rerunning checks on every newline is a mote excessive.
-  (delq 'new-line flycheck-check-syntax-automatically))
-
-;; (use-package flycheck-popup-tip
-;;   :hook (flycheck-mode . flycheck-popup-tip-mode))
-(use-package quick-peek
-    :vc (:url "https://github.com/cpitclaudel/quick-peek.git"
-                  :branch "master" :rev :newest))
-(use-package flycheck-inline
-  :hook (flycheck-mode . flycheck-inline-mode)
-  :requires quick-peek
-  :init
-  (setq flycheck-inline-display-function
-		(lambda (msg pos err)
-          (let* ((ov (quick-peek-overlay-ensure-at pos))
-				 (contents (quick-peek-overlay-contents ov)))
-			(setf (quick-peek-overlay-contents ov)
-                  (concat contents (when contents "\n") msg))
-			(quick-peek-update ov)))
-		flycheck-inline-clear-function #'quick-peek-hide))
 
 (use-package dired
   :ensure nil
@@ -1079,8 +1047,13 @@ Call a second time to restore the original window configuration."
   (org-clock-out-remove-zero-time-clocks t)
   ;; dont' show clock in bar because we use system bar
   (org-clock-clocked-in-display nil)
-  :init
-  (setq org-clock-persist 'history)
+  ;; Enable auto clock resolution for finding open clocks
+  (org-clock-auto-clock-resolution (quote when-no-clock-is-running))
+  ;; Include current clocking task in clock reports
+  (org-clock-report-include-clocking-task t)
+  ;; use pretty things for the clocktable
+  (org-pretty-entities t)
+  (org-clock-persist 'history)
   (org-clock-persistence-insinuate))
 
 (use-package type-break
@@ -1574,20 +1547,25 @@ Call a second time to restore the original window configuration."
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
-(use-package flycheck-eglot
-  :after (flycheck eglot)
-  :config (global-flycheck-eglot-mode 1))
+(use-package flymake
+ :diminish
+ :hook (prog-mode . flymake-mode)
+ :custom
+ ((flymake-fringe-indicator-position 'right-fringe)
+  (flymake-show-diagnostics-at-end-of-line 'short)
+  (flymake-no-changes-timeout nil))
+ :config (setq elisp-flymake-byte-compile-load-path
+               (append elisp-flymake-byte-compile-load-path load-path)))
 
 (use-package go-ts-mode
   :mode "\\.go\\'"
-  :ensure-system-package ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-						  (gofumpt . "go install mvdan.cc/gofumpt@latest")
-						  (gopls . "go install golang.org/x/tools/gopls@latest"))
+  :ensure-system-package
+  ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
+   (gofumpt . "go install mvdan.cc/gofumpt@latest")
+   (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
 									go-ts-mode-indent-offset 4))))
-(use-package flycheck-golangci-lint
-  :hook (flycheck-mode . flycheck-golangci-lint-setup))
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
   :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
@@ -1605,9 +1583,6 @@ Call a second time to restore the original window configuration."
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo build")))
   :mode ("\\.rs\\'" . rust-ts-mode))
-(use-package flycheck-rust
-  :after rust-ts-mode
-  :hook (flycheck-mode . flycheck-rust-setup))
 
 (use-package toml-ts-mode
   :hook (toml-ts-mode . goto-address-prog-mode))
@@ -1621,6 +1596,10 @@ Call a second time to restore the original window configuration."
   :hook (yaml-ts-mode . goto-address-prog-mode))
 
 (use-package docker
+  :ensure-system-package
+  ((docker . "paru -S docker")
+   (docker-compose . "paru -S docker-compose")
+   (devcontainer . "npm install -g @devcontainers/cli"))
   :bind ("C-c d" . docker)
   :config
   (fullframe docker-images tablist-quit)
@@ -1631,6 +1610,19 @@ Call a second time to restore the original window configuration."
   :mode ("\\.dockerfile\\'" . dockerfile-mode))           
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
+
+(defvar devcontainer-setup-done nil
+  "Flag to track whether the devcontainer setup has been performed.")
+
+(defun devcontainer-setup ()
+  "Prompt user to reopen in devcontainer if the current file path doesn't contain '/docker:'."
+  (unless devcontainer-setup-done
+    (if (y-or-n-p "Reopen in devcontainer? (y/n) ")
+        (progn
+          (setq devcontainer-setup-done t)
+          (shell-command "devcontainer up --workspace-folder .")
+          (find-file "/docker:dev-container:/workspace"))
+      (message "Devcontainer setup canceled."))))
 
 (use-package terraform-mode
   :mode ("\\.dockerfile\\'" . dockerfile-mode))

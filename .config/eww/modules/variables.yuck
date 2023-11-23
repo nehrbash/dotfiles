@@ -15,7 +15,7 @@
 (defpoll time :interval "1s" `date +'{"date": "%m/%d/%y", "hour": "%I", "minute": "%M %p", "day": "%A"}'`)
 (defpoll upgrades :interval "1h" `checkupdates | wc -l`)
 (defpoll pomo :initial "{\"percent\":\"98.26666666666667\",\"time\":\"24:34\",\"task\":\"Sync docs\",\"summary\":\"Sync docs 24:34\",\"keystroke\":3000,\"keystroke-count\":0}"
-		 :interval "1s" `emacsclient -e '(type-break-json-data)' | jaq -r`)
+		 :interval "1s" `emacsclient -e '(type-break-json-data)' | jq -r`)
 (defpoll tasks :interval "15m" `scripts/tasks`)
 (deflisten battery :initial "{\"enabled\": \"false\", \"icon\": \"\", \"percentage\": 100, \"wattage\": \"0 W\", \"status\": \"fully charged\", \"color\": \"#a6e3a1\" }" "hyprshell battery")
 (deflisten bluetooth :initial "{ \"icon\": \"\", \"batt_icon\": \"\", \"text\": \"\", \"color\": \"#89b4fa\" }" "scripts/bluetooth")
