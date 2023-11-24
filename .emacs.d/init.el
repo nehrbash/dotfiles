@@ -426,16 +426,16 @@ Call a second time to restore the original window configuration."
   (column-number-mode -1)
   (setq mode-line-position nil)
   :custom ((doom-modeline-project-detection 'project)
-		   (doom-modeline-vcs-max-length 30)
-		   (doom-modeline-hud t)
-		   (doom-modeline-unicode-fallback t)
-		   (doom-modeline-env-version t)
-		   (doom-modeline-buffer-encoding nil)
-		   (doom-modeline-workspace-name t)
-		   (doom-modeline-buffer-file-name-style 'auto)
-		   (doom-modeline-height 27)
-		   (doom-modeline-buffer-state-icon t)
-		   (doom-modeline-icon t)))
+		       (doom-modeline-vcs-max-length 30)
+		       (doom-modeline-hud t)
+		       (doom-modeline-unicode-fallback t)
+		       (doom-modeline-env-version t)
+		       (doom-modeline-buffer-encoding nil)
+		       (doom-modeline-workspace-name t)
+		       (doom-modeline-buffer-file-name-style 'auto)
+		       (doom-modeline-height 27)
+		       (doom-modeline-buffer-state-icon t)
+		       (doom-modeline-icon t)))
 
 (global-unset-key (kbd "C-z"))
 (global-set-key (kbd "C-z") 'undo)
@@ -903,7 +903,7 @@ Call a second time to restore the original window configuration."
 (use-package org-contrib
   :defer t)
 (use-package org
-  :ensure org-contrib
+  :ensure org-contrib doom-themes
   :bind (("C-c a" .  gtd)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
@@ -913,9 +913,9 @@ Call a second time to restore the original window configuration."
   (custom-set-faces
    '(org-document-title ((t (:height 3.2))))
    '(header-line ((t (:height 3 :weight bold))))
-   '(org-level-1 ((t (:foreground "#98be65" :height 1.6))))
-   '(org-level-2 ((t (:foreground "#da8548" :height 1.2))))
-   '(org-level-3 ((t (:foreground "#a9a1e1" :height 1.1))))
+   '(org-level-1 ((t (:foreground "yellow" :height 1.6))))
+   '(org-level-2 ((t (:foreground "green" :height 1.2))))
+   '(org-level-3 ((t (:foreground "violet" :height 1.1))))
    '(header-line ((t (:height 2)))))
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (setq org-adapt-indentation t
@@ -934,7 +934,9 @@ Call a second time to restore the original window configuration."
         org-src-tab-acts-natively t
         org-startup-folded t
         org-startup-with-inline-images t
-		org-startup-with-latex-preview t
+		;; set this per file as it can make emacs hang.
+		;; TODO(SN): use auctex-mode to fix this https://github.com/karthink/org-auctex
+		org-startup-with-latex-preview nil
 		org-support-shift-select t
         org-archive-location "%s_archive::* Archive"))
 
@@ -1070,7 +1072,8 @@ Call a second time to restore the original window configuration."
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
   (type-break-query-function 'y-or-n-p)
-  ;; (type-break-time-warning-intervals nil)
+  ;; This will stop the warnings before it's time to take a break
+  (type-break-time-warning-intervals '())
   ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
@@ -1437,18 +1440,18 @@ Call a second time to restore the original window configuration."
   (setq-default eglot-workspace-configuration
 				'(:gopls
 				  (:usePlaceholders t
-									:staticcheck t
-									:gofumpt t
-									:analyses
-									(:nilness t
-											  :shadow t
-											  :unusedparams t
-											  :unusedwrite t
-											  :unusedvariable t)
-									:hints
-									(:assignVariableTypes t
-														  :constantValues t
-														  :rangeVariableTypes t))))
+				   :staticcheck t
+				   :gofumpt t
+				   :analyses
+				   (:nilness t
+					:shadow t
+					:unusedparams t
+					:unusedwrite t
+					:unusedvariable t)
+				   :hints
+				   (:assignVariableTypes t
+					:constantValues t
+					:rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-format-buffer-on-save ()
