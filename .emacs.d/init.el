@@ -412,9 +412,11 @@ Call a second time to restore the original window configuration."
   :config
   (load-theme 'doom-gruvbox t)
   (doom-themes-org-config)
+  ;; Must be used *after* the theme is loaded
+  (custom-set-faces
+   `(mode-line ((t (:background ,(doom-color 'base1))))))
 
   :custom ((doom-themes-enable-bold t)
-           (doom-gruvbox-padded-modeline t)
            (doom-themes-enable-italic t)
            (custom-safe-themes t)))
 (use-package rainbow-delimiters
@@ -432,6 +434,7 @@ Call a second time to restore the original window configuration."
   (setq mode-line-percent-position nil)
   :custom
   ((doom-modeline-project-detection 'project)
+   (doom-gruvbox-padded-modeline t)
    (doom-modeline-vcs-max-length 30)
    (doom-modeline-hud t)
    (doom-modeline-unicode-fallback t)
@@ -474,7 +477,9 @@ Call a second time to restore the original window configuration."
   (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 
 (use-package vertico
-  :init (vertico-mode))
+  :init
+  (vertico-mode)
+  (vertico-multiform-mode 1))
 (use-package marginalia
   :init (marginalia-mode)
   :bind (:map minibuffer-local-map
@@ -788,53 +793,16 @@ Call a second time to restore the original window configuration."
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
-(use-package ispell
-  :defer t
-  :config
-  (setq ispell-program-name "aspell"
-        ispell-extra-args '("--sug-mode=ultra" "--run-together")))
-(use-package flyspell
-  :defer t
-  :hook (find-file . flyspell-on-for-buffer-type)
-  :bind (:map flyspell-mode-map
-               ("C-." . nil)  ;; Unbind the key
-			   ("C-c w".  flyspell-toggle))
-  :init
-  (defun flyspell-on-for-buffer-type ()
-    "Enable Flyspell appropriately for the major mode of the current buffer.  Uses `flyspell-prog-mode' for modes derived from `prog-mode', so only strings and comments get checked.  All other buffers get `flyspell-mode' to check all text.  If flyspell is already enabled, does nothing."
-    (interactive)
-    (if (not (symbol-value flyspell-mode)) ; if not already on
-		(progn
-		  (if (derived-mode-p 'prog-mode)
-			  (progn
-				(message "Flyspell on (code)")
-				(flyspell-prog-mode))
-			(progn
-			  (message "Flyspell on (text)")
-			  (flyspell-mode 1))))))
- 
-  (defun flyspell-toggle ()
-    "Turn Flyspell on if it is off, or off if it is on.  When turning on, it uses `flyspell-on-for-buffer-type' so code-vs-text is handled appropriately."
-    (interactive)
-    (if (symbol-value flyspell-mode)
-		(progn ; flyspell is on, turn it off
-	      (message "Flyspell off")
-	      (flyspell-mode -1))
-										; else - flyspell is off, turn it on
-	  (flyspell-on-for-buffer-type)))
-  :config
-  (setq flyspell-issue-welcome-flag nil
-        ;; Significantly speeds up flyspell, which would otherwise print
-        ;; messages for every word when checking the entire buffer
-        flyspell-issue-message-flag nil))
-
-(use-package flyspell-correct
-  :after flyspell
-  :bind (:map flyspell-mode-map ("M-$" . flyspell-correct-wrapper)))
+(use-package jinx
+  :init (global-jinx-mode)
+  (add-to-list 'vertico-multiform-categories
+               '(jinx grid (vertico-grid-annotate . 30)))
+  :bind (("M-$" . jinx-correct)
+		 ("C-M-$" . #'jinx-correct-all)))
 
 (use-package define-word
-  :after flyspell
-  :bind (:map flyspell-mode-map ("M-^" . define-word-at-point)))
+  :commands (define-word)
+  :bind ("M-^" . define-word-at-point))
 
 (use-package dired
   :ensure nil
@@ -1031,7 +999,6 @@ Call a second time to restore the original window configuration."
      (emacs-lisp . t)
      (gnuplot . t)
      (latex . t)
-     (octave . t)
      (python . t)
      (,(if (locate-library "ob-sh") 'sh 'shell) . t)
      (sql . t)
@@ -1163,7 +1130,6 @@ Call a second time to restore the original window configuration."
           (setq-local show-trailing-whitespace nil)
           (setq-local line-spacing 0.2)
           (setq-local electric-pair-mode nil)
-          (ignore-errors (flyspell-mode 1))
           (visual-line-mode 1))
       (kill-local-variable 'truncate-lines)
       (kill-local-variable 'word-wrap)
@@ -1173,7 +1139,6 @@ Call a second time to restore the original window configuration."
       (kill-local-variable 'line-spacing)
       (kill-local-variable 'electric-pair-mode)
       (buffer-face-mode -1)
-      (flyspell-mode -1)
       (visual-line-mode -1)))
 (use-package org-pretty-table
   :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
