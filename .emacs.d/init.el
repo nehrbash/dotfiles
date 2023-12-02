@@ -80,6 +80,7 @@
 (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
 
 (use-package move-dup
+  :defer t
   :bind(("M-<up>" . move-dup-move-lines-up)
         ("M-<down>" . move-dup-move-lines-down)
         ("C-c d" . move-dup-duplicate-down)
@@ -394,20 +395,24 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
-(setq default-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
-(add-hook 'after-init-hook
-  (lambda ()
-    (pixel-scroll-precision-mode t) 
-    (set-face-attribute 'header-line nil :height 100)))
+(setq default-frame-alist '(;;(alpha-background . 90)
+							(font . "Source Code Pro-10")
+							(left-fringe . 10)
+							(right-fringe . 10)
+							(vertical-scroll-bars . nil)))
+
+
+(pixel-scroll-precision-mode t)
+(set-face-attribute 'header-line nil :height 100)
 
 (use-package page-break-lines
   :config (page-break-lines-mode))
 
 (use-package doom-themes
-  :hook (after-init . (lambda ()
-                        (load-theme 'doom-gruvbox t)
-                        (doom-themes-treemacs-config)
-                        (doom-themes-org-config)))
+  :config
+  (load-theme 'doom-gruvbox t)
+  (doom-themes-org-config)
+
   :custom ((doom-themes-enable-bold t)
            (doom-gruvbox-padded-modeline t)
            (doom-themes-enable-italic t)
@@ -419,30 +424,31 @@ Call a second time to restore the original window configuration."
   :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
 
 (use-package doom-modeline
-  :after doom-themes
-  :hook ((after-init . doom-modeline-mode))
+  :config (doom-modeline-mode)
   :init
   (line-number-mode -1)
   (column-number-mode -1)
   (setq mode-line-position nil)
-  :custom ((doom-modeline-project-detection 'project)
-		       (doom-modeline-vcs-max-length 30)
-		       (doom-modeline-hud t)
-		       (doom-modeline-unicode-fallback t)
-		       (doom-modeline-env-version t)
-		       (doom-modeline-buffer-encoding nil)
-		       (doom-modeline-workspace-name t)
-		       (doom-modeline-buffer-file-name-style 'auto)
-		       (doom-modeline-height 27)
-		       (doom-modeline-buffer-state-icon t)
-		       (doom-modeline-icon t)))
-
-(global-unset-key (kbd "C-z"))
-(global-set-key (kbd "C-z") 'undo)
+  (setq mode-line-percent-position nil)
+  :custom
+  ((doom-modeline-project-detection 'project)
+   (doom-modeline-vcs-max-length 30)
+   (doom-modeline-hud t)
+   (doom-modeline-unicode-fallback t)
+   (doom-modeline-env-version t)
+   (doom-modeline-buffer-encoding nil)
+   (doom-modeline-workspace-name nil)
+   (doom-modeline-buffer-file-name-style 'auto)
+   (doom-modeline-height 27)
+   (doom-modeline-buffer-state-icon t)
+   (doom-modeline-icon t)))
 
 (use-package default-text-scale
   :bind (("C-M-=". default-text-scale-increase)
-         ("C-M--" . default-text-scale-decrease)))
+		 ("C-M--" . default-text-scale-decrease)))
+
+(use-package spacious-padding
+  :config (spacious-padding-mode))
 
 (defun stealthily (fn &rest args)
     "Apply FN to ARGS while inhibiting modification hooks."
@@ -459,34 +465,34 @@ Call a second time to restore the original window configuration."
   (resize-mini-windows t)
   (minibuffer-prompt-properties
    '(read-only t cursor-intangible t face minibuffer-prompt))
-  :init
-  (minibuffer-depth-indicate-mode)
-  (minibuffer-electric-default-mode)
   :hook
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . cursor-intangible-mode)
-  :config
+  :config  
+  (minibuffer-depth-indicate-mode)
+  (minibuffer-electric-default-mode)
   (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 
 (use-package vertico
-  :hook (after-init . vertico-mode))
+  :init (vertico-mode))
 (use-package marginalia
-  :hook (vertico-mode . marginalia-mode)
+  :init (marginalia-mode)
   :bind (:map minibuffer-local-map
 			  ("M-a" . marginalia-cycle))
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
-  :hook (marginalia-mode .marginall-the-icons-completion-marginalia-setup))
+  :after marginalia
+  :config (all-the-icons-completion-mode)
+  (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
 
 (use-package orderless
-  :after (minibuffer vertico)
   :custom
-  ;; (orderless-matching-styles 'orderless-regexp)
-  ;; (orderless-component-separator #'orderless-escapable-split-on-space)
-  ;; (read-file-name-completion-ignore-case t)
-  ;; (read-buffer-completion-ignore-case t)
-  ;; (completion-ignore-case t)
+  (orderless-matching-styles 'orderless-regexp)
+  (orderless-component-separator #'orderless-escapable-split-on-space)
+  (read-file-name-completion-ignore-case t)
+  (read-buffer-completion-ignore-case t)
+  (completion-ignore-case t)
   (completion-category-defaults nil)
   (completion-styles '(orderless flex))
   (completion-category-overrides '((file (styles basic partial-completion)))))
@@ -496,6 +502,7 @@ Call a second time to restore the original window configuration."
 
 (use-package consult
   :after vertico
+  :defer t
   :bind (("C-r" . consult-ripgrep-symbol-at-point)
          ;; C-c bindings (mode-specific-map)
          ("C-c h" . consult-history)
@@ -622,6 +629,7 @@ Call a second time to restore the original window configuration."
                        "Term\\ "        ; Term buffers
                        "^magit"          ; magit buffers
 					   "^type-break.el"
+					   "\#\!*"
                        )))))
 
   ;; reorder, mainly to move recent-file down and org
@@ -676,6 +684,7 @@ Call a second time to restore the original window configuration."
   :after embark)
 
 (use-package protogg
+  :defer t
   :vc (:url "https://github.com/nehrbash/protogg.git"
                :branch "main" :rev :newest)
   :custom (protogg-minibuffer-toggle-key "M-g")
@@ -695,9 +704,7 @@ Call a second time to restore the original window configuration."
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
-  :after orderless
-  :hook ((corfu-mode . corfu-popupinfo-mode)
-		 ((prog-mode conf-mode yaml-mode) . (lambda ()
+  :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
                        (setq-local corfu-auto t
                                    corfu-auto-delay 0
 								   corfu-auto-prefix 1
@@ -714,17 +721,18 @@ Call a second time to restore the original window configuration."
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
-  :init
-  (global-corfu-mode)
+  :config
   ;; TAB cycle if there are only few candidates
   (setq completion-cycle-threshold 3)
-  :config
   (defun orderless-fast-dispatch (word index total)
   (and (= index 0) (= total 1) (length< word 4)
        `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
-(orderless-define-completion-style orderless-fast
-  (orderless-style-dispatchers '(orderless-fast-dispatch))
-  (orderless-matching-styles '(orderless-literal orderless-regexp))))
+  (orderless-define-completion-style orderless-fast
+	(orderless-style-dispatchers '(orderless-fast-dispatch))
+	(orderless-matching-styles '(orderless-literal orderless-regexp)))
+  :init
+  (global-corfu-mode)
+  (corfu-popupinfo-mode))
 
 (use-package corfu-candidate-overlay
   :after corfu
@@ -746,7 +754,6 @@ Call a second time to restore the original window configuration."
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
-  :after (corfu orderless)
   :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
          ("C-c p t" . complete-tag)        ;; etags
          ("C-c p d" . cape-dabbrev)        ;; or dabbrev-completion
@@ -756,11 +763,11 @@ Call a second time to restore the original window configuration."
          ("C-c p s" . cape-elisp-symbol)
          ("C-c p e" . cape-elisp-block)
          ("C-c p a" . cape-abbrev)
-         ("C-c p l" . cape-line))
-  :config
-  (keymap-global-set "C-c i" (cape-interactive-capf #'codeium-completion-at-point))
+         ("C-c p l" . cape-line)
+		 ("C-z" . cape-codeium))
   :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :init
+  (defalias 'cape-codeium (cape-capf-interactive #'codeium-completion-at-point))
   (add-to-list 'completion-at-point-functions #'cape-dict)
   ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -782,15 +789,16 @@ Call a second time to restore the original window configuration."
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
 (use-package ispell
+  :defer t
   :config
   (setq ispell-program-name "aspell"
         ispell-extra-args '("--sug-mode=ultra" "--run-together")))
 (use-package flyspell
-  :after ispell
+  :defer t
   :hook (find-file . flyspell-on-for-buffer-type)
   :bind (:map flyspell-mode-map
-               ("C-." . nil)
-			   ("C-c w".  flyspell-toggle)) ;; Unbind the key
+               ("C-." . nil)  ;; Unbind the key
+			   ("C-c w".  flyspell-toggle))
   :init
   (defun flyspell-on-for-buffer-type ()
     "Enable Flyspell appropriately for the major mode of the current buffer.  Uses `flyspell-prog-mode' for modes derived from `prog-mode', so only strings and comments get checked.  All other buffers get `flyspell-mode' to check all text.  If flyspell is already enabled, does nothing."
@@ -801,13 +809,10 @@ Call a second time to restore the original window configuration."
 			  (progn
 				(message "Flyspell on (code)")
 				(flyspell-prog-mode))
-			;; else
 			(progn
 			  (message "Flyspell on (text)")
-			  (flyspell-mode 1)))
-		  ;; I tried putting (flyspell-buffer) here but it didn't seem to work
-		  )))
-  
+			  (flyspell-mode 1))))))
+ 
   (defun flyspell-toggle ()
     "Turn Flyspell on if it is off, or off if it is on.  When turning on, it uses `flyspell-on-for-buffer-type' so code-vs-text is handled appropriately."
     (interactive)
@@ -839,7 +844,6 @@ Call a second time to restore the original window configuration."
   :init
   (defun my-dired-mode-hook ()
     (dired-omit-mode 1)
-    (auto-revert-mode 1)
     (setq mode-line-format nil)
     (hl-line-mode 1))
   :config
@@ -860,6 +864,9 @@ Call a second time to restore the original window configuration."
               ("m" . dired-ranger-move)
               ("H" . dired-omit-mode)
               ("y" . dired-ranger-paste)))
+(use-package all-the-icons
+  :hook(package-upgrade-all . all-the-icons-install-fonts)
+  :if (display-graphic-p))
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 (use-package dired-collapse
@@ -903,7 +910,7 @@ Call a second time to restore the original window configuration."
 (use-package org-contrib
   :defer t)
 (use-package org
-  :ensure org-contrib doom-themes
+  :ensure org-contrib
   :bind (("C-c a" .  gtd)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
@@ -913,9 +920,9 @@ Call a second time to restore the original window configuration."
   (custom-set-faces
    '(org-document-title ((t (:height 3.2))))
    '(header-line ((t (:height 3 :weight bold))))
-   '(org-level-1 ((t (:foreground "yellow" :height 1.6))))
-   '(org-level-2 ((t (:foreground "green" :height 1.2))))
-   '(org-level-3 ((t (:foreground "violet" :height 1.1))))
+   '(org-level-1 ((t (:foreground "#fabd2f" :height 1.8))))
+   '(org-level-2 ((t (:foreground "#83a598" :height 1.3))))
+   '(org-level-3 ((t (:foreground "#d3869b" :height 1.1))))
    '(header-line ((t (:height 2)))))
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (setq org-adapt-indentation t
@@ -1337,11 +1344,10 @@ Call a second time to restore the original window configuration."
   (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area"))
 
 (use-package pdf-tools
-  :mode ("%PDF" . pdf-view-mode)
-  :config
-  (pdf-tools-install :no-query)
-  (setq-default pdf-view-display-size 'fit-width)
-  (pdf-view-midnight-minor-mode))
+  :hook ((pdf-view-mode . (lambda ()
+							(pdf-view-midnight-minor-mode))))
+  :custom (pdf-view-display-size 'fit-width)
+  :config (pdf-loader-install))
 
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
@@ -1420,13 +1426,17 @@ Call a second time to restore the original window configuration."
   :config (global-treesit-auto-mode))
 
 (use-package eglot
-  :hook (((go-ts-mode) . eglot-ensure)
-         ((go-ts-mode) . eglot-format-buffer-on-save)
+  :hook (((go-ts-mode rust-ts-mode) . eglot-ensure)
 		 (eglot-managed-mode . (lambda ()
+								 (eglot-format-buffer-on-save)
 								 (eglot-inlay-hints-mode 1)
-								 (setq-local completion-at-point-functions
-											 (list (cape-capf-super #'eglot-completion-at-point  #'yasnippet-capf)))
-								 )))
+								 (setq-local
+								  completion-at-point-functions
+								  (list
+								   (cape-super-capf
+									#'eglot-completion-at-point
+									#'yasnippet-capf
+									#'cape-file))))))
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
 			  ("C-c C-c" . project-compile)
@@ -1440,18 +1450,18 @@ Call a second time to restore the original window configuration."
   (setq-default eglot-workspace-configuration
 				'(:gopls
 				  (:usePlaceholders t
-				   :staticcheck t
-				   :gofumpt t
-				   :analyses
-				   (:nilness t
-					:shadow t
-					:unusedparams t
-					:unusedwrite t
-					:unusedvariable t)
-				   :hints
-				   (:assignVariableTypes t
-					:constantValues t
-					:rangeVariableTypes t))))
+									:staticcheck t
+									:gofumpt t
+									:analyses
+									(:nilness t
+											  :shadow t
+											  :unusedparams t
+											  :unusedwrite t
+											  :unusedvariable t)
+									:hints
+									(:assignVariableTypes t
+														  :constantValues t
+														  :rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -1465,9 +1475,23 @@ Call a second time to restore the original window configuration."
 (use-package consult-eglot
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
 
-(use-package magit
-  :commands (magit-status magit-dispatch)
+(use-package git-gutter
+  :hook (eglot-server-initialized . (lambda (server) (run-at-time 1 nil (lambda() (git-gutter-mode)))))
+  :custom (
+		   (git-gutter:ask-p nil)
+		   (git-gutter:update-interval 2)))
+
+(use-package git-gutter-fringe
+  :after  git-gutter
   :config
+  (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
+  (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+
+(use-package magit
+  :commands (magit-status magit-dispatch project-switch-project)
+  :config
+  (require 'magit-extras)
   (fullframe magit-status magit-mode-quit-window)
   (setq-default magit-diff-refine-hunk t)
   :bind (("C-x g" . magit-status)
@@ -1494,15 +1518,15 @@ Call a second time to restore the original window configuration."
 					   (face-remap-add-relative
 						'default
 						:foreground (doom-color 'fg-alt)
-						:background (doom-color 'base0))
+						:background (doom-color 'base1))
 					   (face-remap-add-relative
 						'fringe
 						:foreground (doom-color 'fg-alt)
-						:background (doom-color 'base0)))))
+						:background (doom-color 'base1)))))
   :custom ((eat-kill-buffer-on-exit t)
 		   (eat-enable-yank-to-terminal t))
-  :bind (("M-t" . eat-project)
-		 (("M-t" . eat))))
+  :bind (("M-t" . eat-project-other)
+		 (("M-t" . eat-other-window))))
 
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil

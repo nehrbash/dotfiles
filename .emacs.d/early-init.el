@@ -25,7 +25,10 @@
       initial-scratch-message nil)
 
 ;; Set default font for new frames overwritten by default-frame-alist
-(setq initial-frame-alist '((alpha-background . 90) (font . "Source Code Pro-10") (left-fringe . 10) (right-fringe . 10) (vertical-scroll-bars . nil)))
+(setq initial-frame-alist '((font . "Source Code Pro-10")
+							(left-fringe . 10)
+							(right-fringe . 10)
+							(vertical-scroll-bars . nil)))
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)
 (set-scroll-bar-mode nil)
