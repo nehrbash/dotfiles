@@ -2284,7 +2284,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
 #+end_src
 
-*** WAITING Git 
+*** Git 
 	:LOGBOOK:
 	- State "WAITING"    from              [2023-09-19 Tue 21:12] \\
 	  git-gutter lags consult live preview and tramp processes in general
@@ -2756,7 +2756,6 @@ If not in a project, prompt for the project root."
   :defer t)
 #+end_src
 
-   
 * Runtime Performance
 
 #+begin_src emacs-lisp
