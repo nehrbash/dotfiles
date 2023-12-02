@@ -95,6 +95,7 @@
   - [[#hold-web-tabs][HOLD Web Tabs]]
   - [[#typing-practice][Typing Practice]]
   - [[#google-this][Google This]]
+  - [[#dev-documentation][Dev Documentation]]
 - [[#runtime-performance][Runtime Performance]]
   - [[#minibuffer-turn-off-gc-for-large-lists-and-commands][Minibuffer turn off GC for large lists and commands]]
 - [[#inspiration][Inspiration]]
@@ -2243,7 +2244,6 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 								  (list
 								   (cape-super-capf
 									#'eglot-completion-at-point
-									#'yasnippet-capf
 									#'cape-file))))))
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
@@ -2747,8 +2747,16 @@ If not in a project, prompt for the project root."
 #+begin_src emacs-lisp
 (use-package google-this
   :bind ("M-s w" . google-this))
-#+end_src   
+#+end_src
 
+** Dev Documentation
+
+#+begin_src emacs-lisp
+(use-package devdocs
+  :defer t)
+#+end_src
+
+   
 * Runtime Performance
 
 #+begin_src emacs-lisp

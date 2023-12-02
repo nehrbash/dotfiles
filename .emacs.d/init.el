@@ -1435,7 +1435,6 @@ Call a second time to restore the original window configuration."
 								  (list
 								   (cape-super-capf
 									#'eglot-completion-at-point
-									#'yasnippet-capf
 									#'cape-file))))))
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
@@ -1450,18 +1449,18 @@ Call a second time to restore the original window configuration."
   (setq-default eglot-workspace-configuration
 				'(:gopls
 				  (:usePlaceholders t
-									:staticcheck t
-									:gofumpt t
-									:analyses
-									(:nilness t
-											  :shadow t
-											  :unusedparams t
-											  :unusedwrite t
-											  :unusedvariable t)
-									:hints
-									(:assignVariableTypes t
-														  :constantValues t
-														  :rangeVariableTypes t))))
+				   :staticcheck t
+				   :gofumpt t
+				   :analyses
+				   (:nilness t
+					:shadow t
+					:unusedparams t
+					:unusedwrite t
+					:unusedvariable t)
+				   :hints
+				   (:assignVariableTypes t
+					:constantValues t
+					:rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -1758,6 +1757,9 @@ If not in a project, prompt for the project root."
 
 (use-package google-this
   :bind ("M-s w" . google-this))
+
+(use-package devdocs
+  :defer t)
 
 (use-package gcmh
   :vc (:url "https://github.com/emacsmirror/gcmh.git"
