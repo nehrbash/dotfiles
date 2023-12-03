@@ -153,8 +153,9 @@ point reaches the beginning or end of the buffer, stop there."
 (global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
 (setq browse-url-browser-function #'browse-url-firefox)
-(setq use-dialog-box nil)
+(setq use-dialog-box nil) ;; disable pop-ups 
 (global-set-key (kbd "C-c C-p") 'find-file-at-point)
+(set-default 'truncate-lines t) ;; don't wrap lines globally
 
 (use-package recentf
   :ensure nil
@@ -414,8 +415,12 @@ Call a second time to restore the original window configuration."
   (doom-themes-org-config)
   ;; Must be used *after* the theme is loaded
   (custom-set-faces
+   '(org-document-title ((t (:height 3.8))))
+   '(header-line ((t (:height 100))))
+   '(org-level-1 ((t (:foreground "#fabd2f" :height 1.8))))
+   '(org-level-2 ((t (:foreground "#83a598" :height 1.3))))
+   '(org-level-3 ((t (:foreground "#d3869b" :height 1.1))))
    `(mode-line ((t (:background ,(doom-color 'base1))))))
-
   :custom ((doom-themes-enable-bold t)
            (doom-themes-enable-italic t)
            (custom-safe-themes t)))
@@ -444,7 +449,13 @@ Call a second time to restore the original window configuration."
    (doom-modeline-buffer-file-name-style 'auto)
    (doom-modeline-height 27)
    (doom-modeline-buffer-state-icon t)
-   (doom-modeline-icon t)))
+   (doom-modeline-icon t))
+  :config
+  ;; Define custom doom-modeline to remove position
+  (doom-modeline-def-modeline 'simple-line
+	'(eldoc bar window-number modals matches follow buffer-info remote-host selection-info)
+	'(compilation objed-state misc-info persp-name lsp checker major-mode process vcs))
+  (doom-modeline-set-modeline 'simple-line 'default))
 
 (use-package default-text-scale
   :bind (("C-M-=". default-text-scale-increase)
@@ -885,13 +896,6 @@ Call a second time to restore the original window configuration."
   :config
   (require 'ox-extra)
   (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
-  (custom-set-faces
-   '(org-document-title ((t (:height 3.2))))
-   '(header-line ((t (:height 3 :weight bold))))
-   '(org-level-1 ((t (:foreground "#fabd2f" :height 1.8))))
-   '(org-level-2 ((t (:foreground "#83a598" :height 1.3))))
-   '(org-level-3 ((t (:foreground "#d3869b" :height 1.1))))
-   '(header-line ((t (:height 2)))))
   (defun gtd () (interactive) (org-agenda 'nil "g"))
   (setq org-adapt-indentation t
         org-auto-align-tags nil
@@ -1045,6 +1049,7 @@ Call a second time to restore the original window configuration."
   (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
   (type-break-query-mode t)
+  ;; (type-break-file-name nil) ;; don't save data across
   (type-break-query-function 'y-or-n-p)
   ;; This will stop the warnings before it's time to take a break
   (type-break-time-warning-intervals '())
@@ -1125,6 +1130,7 @@ Call a second time to restore the original window configuration."
                 cursor-type 'bar)
           (when (eq major-mode 'org)
             (kill-local-variable 'buffer-face-mode-face))
+		  (visual-fill-column-mode 1)
           (buffer-face-mode 1)
           (setq-local blink-cursor-interval 0.8)
           (setq-local show-trailing-whitespace nil)
@@ -1139,6 +1145,7 @@ Call a second time to restore the original window configuration."
       (kill-local-variable 'line-spacing)
       (kill-local-variable 'electric-pair-mode)
       (buffer-face-mode -1)
+	  (visual-fill-column-mode -1)
       (visual-line-mode -1)))
 (use-package org-pretty-table
   :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
@@ -1154,12 +1161,11 @@ Call a second time to restore the original window configuration."
             (buffer-face-mode)))))
 
 (use-package visual-fill-column
-  :hook (org-mode . dw/org-mode-visual-fill)
-  :init
-  (defun dw/org-mode-visual-fill ()
-    (setq visual-fill-column-width 120
-          visual-fill-column-center-text t)
-  (visual-fill-column-mode 1)))
+  :defer t
+  :custom
+  (visual-fill-column-width 120)
+  (visual-fill-column-center-text t)
+  (visual-fill-column-enable-sensible-window-split t))
 
 (setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
@@ -1310,7 +1316,8 @@ Call a second time to restore the original window configuration."
 
 (use-package pdf-tools
   :hook ((pdf-view-mode . (lambda ()
-							(pdf-view-midnight-minor-mode))))
+							(pdf-view-midnight-minor-mode 1)))
+		 (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line))))
   :custom (pdf-view-display-size 'fit-width)
   :config (pdf-loader-install))
 
@@ -1387,11 +1394,15 @@ Call a second time to restore the original window configuration."
 (use-package treesit-auto
   :init
   (setq treesit-font-lock-level 4)
+
+  (setq major-mode-remap-alist
+ '((js-mode . js-ts-mode)
+   (sh-mode . bash-ts-mode)))
   :hook ((package-upgrade-all . treesit-auto-install-all))
   :config (global-treesit-auto-mode))
 
 (use-package eglot
-  :hook (((go-ts-mode rust-ts-mode) . eglot-ensure)
+  :hook (((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
 		 (eglot-managed-mode . (lambda ()
 								 (eglot-format-buffer-on-save)
 								 (eglot-inlay-hints-mode 1)
@@ -1414,18 +1425,18 @@ Call a second time to restore the original window configuration."
   (setq-default eglot-workspace-configuration
 				'(:gopls
 				  (:usePlaceholders t
-				   :staticcheck t
-				   :gofumpt t
-				   :analyses
-				   (:nilness t
-					:shadow t
-					:unusedparams t
-					:unusedwrite t
-					:unusedvariable t)
-				   :hints
-				   (:assignVariableTypes t
-					:constantValues t
-					:rangeVariableTypes t))))
+									:staticcheck t
+									:gofumpt t
+									:analyses
+									(:nilness t
+											  :shadow t
+											  :unusedparams t
+											  :unusedwrite t
+											  :unusedvariable t)
+									:hints
+									(:assignVariableTypes t
+														  :constantValues t
+														  :rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-format-buffer-on-save ()
@@ -1529,14 +1540,16 @@ Call a second time to restore the original window configuration."
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
 (use-package flymake
- :diminish
- :hook (prog-mode . flymake-mode)
- :custom
- ((flymake-fringe-indicator-position 'right-fringe)
-  (flymake-show-diagnostics-at-end-of-line 'short)
-  (flymake-no-changes-timeout nil))
- :config (setq elisp-flymake-byte-compile-load-path
-               (append elisp-flymake-byte-compile-load-path load-path)))
+  :diminish
+  :hook (prog-mode . flymake-mode)
+  :custom
+  ((flymake-fringe-indicator-position 'right-fringe)
+   (flymake-show-diagnostics-at-end-of-line 'short)
+   (flymake-no-changes-timeout nil)
+   )
+  :config
+  (setq elisp-flymake-byte-compile-load-path
+        (append elisp-flymake-byte-compile-load-path load-path)))
 
 (use-package go-ts-mode
   :mode "\\.go\\'"
@@ -1562,8 +1575,23 @@ Call a second time to restore the original window configuration."
 
 (use-package rust-ts-mode
   :hook (rust-ts-mode . (lambda ()
-						  (setq-local compile-command "cargo build")))
-  :mode ("\\.rs\\'" . rust-ts-mode))
+						  (setq-local compile-command "cargo run")))
+  :config
+  ;; (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer")))
+  )
+
+(use-package bash-ts-mode
+  :ensure nil
+  :mode ("\\.sh\\'" . bash-ts-mode))
+(use-package flymake-shellcheck
+   :ensure t
+   :commands flymake-shellcheck-load
+   :init
+   (add-hook 'bash-ts-mode-hook 'flymake-shellcheck-load))
+
+(use-package js-ts-mode
+  :ensure nil
+  :mode ("\\.js\\'" . js-ts-mode))
 
 (use-package toml-ts-mode
   :hook (toml-ts-mode . goto-address-prog-mode))
@@ -1663,45 +1691,17 @@ Call a second time to restore the original window configuration."
 
 ;; we recommend using use-package to organize your init.el
 (use-package codeium
-    ;; if you use straight
-    ;; otherwise, make sure that the codeium.el file is on load-path
-    :vc (:url "https://github.com/Exafunction/codeium.el.git"
-               :branch "main" :rev :newest)
-	:hook (emacs-startup .  (lambda () (run-with-timer 0.1 nil #'codeium-init)))
- 
-    ;; :defer t ;; lazy loading, if you want
-	:custom
-	(codeium-log-buffer nil)
-    :config
-    (setq use-dialog-box nil) ;; do not use popup boxes
-
-    ;; get codeium status in the modeline
-    (setq codeium-mode-line-enable
-        (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-    (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t)
-    ;; alternatively for a more extensive mode-line
-    ;; (add-to-list 'mode-line-format '(-50 "" codeium-mode-line) t)
-
-    ;; use M-x codeium-diagnose to see apis/fields that would be sent to the local language server
-    (setq codeium-api-enabled
-        (lambda (api)
-            (memq api '(GetCompletions Heartbeat CancelRequest GetAuthToken RegisterUser auth-redirect AcceptCompletion))))
-    ;; you can also set a config for a single buffer like this:
-    ;; (add-hook 'python-mode-hook
-    ;;     (lambda ()
-    ;;         (setq-local codeium/editor_options/tab_size 4)))
-
-    ;; You can overwrite all the codeium configs!
-    ;; for example, we recommend limiting the string sent to codeium for better performance
-    (defun my-codeium/document/text ()
-        (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-    ;; if you change the text, you should also change the cursor_offset
-    ;; warning: this is measured by UTF-8 encoded bytes
-    (defun my-codeium/document/cursor_offset ()
-        (codeium-utf8-byte-length
-            (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
-    (setq codeium/document/text 'my-codeium/document/text)
-    (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset))
+  :defer t
+  :vc (:url "https://github.com/Exafunction/codeium.el.git"
+            :branch "main" :rev :newest)
+  ;; :hook (emacs-startup .  (lambda () (run-with-timer 0.1 nil #'codeium-init)))
+  :custom
+  (codeium-log-buffer nil)
+  :config
+  (defun my-codeium/document/text ()
+	"limiting the string sent to codeium for better performance."
+    (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
+  (setq codeium/document/text 'my-codeium/document/text))
 
 (use-package cus-dir
   :vc (:url "https://gitlab.com/mauroaranda/cus-dir.git"
