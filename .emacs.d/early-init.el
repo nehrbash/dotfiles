@@ -34,6 +34,9 @@
 (set-scroll-bar-mode nil)
 (menu-bar-mode -1)
 
+;; disable mode line replaced with doom-modeline later
+(setq-default mode-line-format nil)
+
 ;; Silence compiler warnings to avoid disruption
 (setq-default comp-async-report-warnings-errors nil)
 (setq-default warning-minimum-level :emergency)

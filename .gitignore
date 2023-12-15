@@ -28,3 +28,5 @@
 /.config/hypr/monitors.conf
 /.config/sptlrx/config.yaml
 
+.config/hypr/monitors.conf
+/ltximg/

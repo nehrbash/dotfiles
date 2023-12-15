@@ -12,6 +12,8 @@
   (require 'package)
   (require 'use-package))
 (setq package-native-compile t
+	  native-comp-deferred-compilation t
+	  native-compile-prune-cache t
       async-bytecomp-package-mode t
       package-quickstart t
       package-install-upgrade-built-in t)
@@ -27,6 +29,93 @@
 (add-hook 'package-upgrade-all-hook
           (lambda ()
             (package-quickstart-refresh)))
+
+(use-package use-package-chords
+  :config (key-chord-mode 1))
+
+(use-package meow
+  :config
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+  (meow-motion-overwrite-define-key
+   ;; Use e to move up, n to move down.
+   ;; Since special modes usually use n to move down, we only overwrite e here.
+   '("e" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   '("?" . meow-cheatsheet)
+   ;; To execute the originally e in MOTION state, use SPC e.
+   '("e" . "H-e")
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument))
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("1" . meow-expand-1)
+   '("2" . meow-expand-2)
+   '("3" . meow-expand-3)
+   '("4" . meow-expand-4)
+   '("5" . meow-expand-5)
+   '("6" . meow-expand-6)
+   '("7" . meow-expand-7)
+   '("8" . meow-expand-8)
+   '("9" . meow-expand-9)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("/" . meow-visit)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("e" . meow-prev)
+   '("E" . meow-prev-expand)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-right)
+   '("I" . meow-right-expand)
+   '("j" . meow-join)
+   '("k" . meow-kill)
+   '("l" . meow-line)
+   '("L" . meow-goto-line)
+   '("m" . meow-mark-word)
+   '("M" . meow-mark-symbol)
+   '("n" . meow-next)
+   '("N" . meow-next-expand)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("r" . meow-replace)
+   '("s" . meow-insert)
+   '("S" . meow-open-above)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-search)
+   '("w" . meow-next-word)
+   '("W" . meow-next-symbol)
+   '("x" . meow-delete)
+   '("X" . meow-backward-delete)
+   '("y" . meow-save)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore))
+  (meow-global-mode 1))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -69,25 +158,14 @@
    Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
   (interactive)
   (push-mark (point) t nil))
-(global-set-key (kbd "C-`") 'push-mark-no-activate)
-
-(global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
-(global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
-(autoload 'mwheel-install "mwheel")
-(defun sanityinc/console-frame-setup ()
-  (xterm-mouse-mode 1) ; Mouse in a terminal (Use shift to paste with middle button)
-  (mouse-wheel-mode 1))
-(add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
 
 (use-package move-dup
-  :defer t
   :bind(("M-<up>" . move-dup-move-lines-up)
         ("M-<down>" . move-dup-move-lines-down)
         ("C-c d" . move-dup-duplicate-down)
         ("C-c u" . move-dup-duplicate-up)))
 
 (use-package whole-line-or-region
-  :ensure t
   :config (whole-line-or-region-global-mode t))
 
 (defun smarter-move-beginning-of-line (arg)
@@ -125,7 +203,6 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-x o" . switch-window))
 
 (use-package windswap
-  :defer 4
   :config
   (windmove-default-keybindings 'control)
   (windswap-default-keybindings 'shift 'control))
@@ -159,21 +236,21 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package recentf
   :ensure nil
+  :init
+  ;; save backup and auto save to system tmp 
+  (setq backup-directory-alist
+		`((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+		`((".*" ,temporary-file-directory t)))
+  (recentf-mode)
   :hook ((package-upgrade-all . recentf-cleanup))
   :custom
-  (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 25))
-;; save backup and auto save to system tmp 
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+  (recentf-max-saved-items 50))
 
 (use-package autorevert
-  :config (global-auto-revert-mode 1)
-  :delight auto-revert-mode)
+  :config (global-auto-revert-mode 1))
 
 (customize-set-variable 'tramp-default-method "ssh")
 (with-eval-after-load 'tramp
@@ -259,7 +336,6 @@ This is useful when followed by an immediate kill."
 
 (use-package symbol-overlay
   :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
-  :delight symbol-overlay-mode
   :config
   (define-key symbol-overlay-mode-map (kbd "M-i") 'symbol-overlay-put)
   (define-key symbol-overlay-mode-map (kbd "M-I") 'symbol-overlay-remove-all)
@@ -287,7 +363,6 @@ This is useful when followed by an immediate kill."
 (global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
 
 (use-package which-key
-  :delight which-key-mode
   :custom (which-key-idle-delay 1)
   :config (which-key-mode 1))
 
@@ -305,7 +380,6 @@ This is useful when followed by an immediate kill."
 (use-package whitespace-cleanup-mode
   :commands (whitespace-cleanup)
   :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
-  :delight
   :config
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
   (defun sanityinc/show-trailing-whitespace ()
@@ -401,19 +475,16 @@ Call a second time to restore the original window configuration."
 							(left-fringe . 10)
 							(right-fringe . 10)
 							(vertical-scroll-bars . nil)))
-
-
 (pixel-scroll-precision-mode t)
-(set-face-attribute 'header-line nil :height 100)
+(global-prettify-symbols-mode t)
 
 (use-package page-break-lines
-  :config (page-break-lines-mode))
+  :config (global-page-break-lines-mode))
 
 (use-package doom-themes
   :config
   (load-theme 'doom-gruvbox t)
   (doom-themes-org-config)
-  ;; Must be used *after* the theme is loaded
   (custom-set-faces
    '(org-document-title ((t (:height 3.8))))
    '(header-line ((t (:height 100))))
@@ -421,22 +492,22 @@ Call a second time to restore the original window configuration."
    '(org-level-2 ((t (:foreground "#83a598" :height 1.3))))
    '(org-level-3 ((t (:foreground "#d3869b" :height 1.1))))
    `(mode-line ((t (:background ,(doom-color 'base1))))))
-  :custom ((doom-themes-enable-bold t)
-           (doom-themes-enable-italic t)
-           (custom-safe-themes t)))
+  :custom (
+		   (custom-safe-themes t)
+		   (doom-themes-enable-bold t)
+           (doom-themes-enable-italic t)))
+
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
-(use-package global-prettify-symbols-mode
-  :ensure nil
-  :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
 
 (use-package doom-modeline
-  :config (doom-modeline-mode)
+  :hook ((after-init . doom-modeline-mode)
+		 (doom-modeline-mode .
+		   (lambda ()
+			 (doom-modeline-set-modeline 'simple-line 'default))))
   :init
   (line-number-mode -1)
   (column-number-mode -1)
-  (setq mode-line-position nil)
-  (setq mode-line-percent-position nil)
   :custom
   ((doom-modeline-project-detection 'project)
    (doom-gruvbox-padded-modeline t)
@@ -446,15 +517,20 @@ Call a second time to restore the original window configuration."
    (doom-modeline-env-version t)
    (doom-modeline-buffer-encoding nil)
    (doom-modeline-workspace-name nil)
-   (doom-modeline-buffer-file-name-style 'auto)
+   (doom-modeline-buffer-file-name-style 'buffer-name)
    (doom-modeline-height 27)
    (doom-modeline-buffer-state-icon t)
-   (doom-modeline-icon t))
+   (doom-modeline-icon t)
+   (doom-modeline-modal-icon t)
+   (mode-line-position nil)
+   (mode-line-percent-position nil)
+   (doom-modeline-mode-alist nil)
+   (auto-revert-check-vc-info t)) ;; for switching branches
   :config
-  ;; Define custom doom-modeline to remove position
   (doom-modeline-def-modeline 'simple-line
-	'(eldoc bar window-number modals matches follow buffer-info remote-host selection-info)
-	'(compilation objed-state misc-info persp-name lsp checker major-mode process vcs))
+	'(bar buffer-info remote-host)
+	'(modals compilation objed-state misc-info persp-name lsp checker process vcs))
+  ;; Set default mode-line
   (doom-modeline-set-modeline 'simple-line 'default))
 
 (use-package default-text-scale
@@ -464,15 +540,10 @@ Call a second time to restore the original window configuration."
 (use-package spacious-padding
   :config (spacious-padding-mode))
 
-(defun stealthily (fn &rest args)
-    "Apply FN to ARGS while inhibiting modification hooks."
-    (let ((inhibit-modification-hooks t))
-      (apply fn args)))
 (use-package minibuffer
   :ensure nil
-  :bind
-  (:map minibuffer-local-completion-map
-        ("<backtab>" . minibuffer-force-complete))
+  :bind (:map minibuffer-local-completion-map
+			  ("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
@@ -485,6 +556,11 @@ Call a second time to restore the original window configuration."
   :config  
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode)
+  :init
+  (defun stealthily (fn &rest args)
+	"Apply FN to ARGS while inhibiting modification hooks."
+	(let ((inhibit-modification-hooks t))
+      (apply fn args)))
   (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 
 (use-package vertico
@@ -499,7 +575,8 @@ Call a second time to restore the original window configuration."
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
   :after marginalia
-  :config (all-the-icons-completion-mode)
+  :config
+  (all-the-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
 
 (use-package orderless
@@ -552,6 +629,7 @@ Call a second time to restore the original window configuration."
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
+
          ("C-s" . (lambda () (interactive)(progn (push-mark-no-activate)(consult-line))))
          ("M-s ." . consult-line-thing-at-point)
          ("M-s m" . consult-multi-occur)
@@ -568,7 +646,6 @@ Call a second time to restore the original window configuration."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
-  (recentf-mode 1)
   ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defalias 'consult-line-thing-at-point 'consult-line)
   (defalias 'consult-ripgrep-symbol-at-point 'consult-ripgrep)
@@ -692,25 +769,24 @@ Call a second time to restore the original window configuration."
   (setq embark-action-indicator (lambda (map _target)
                                   (which-key--show-keymap "Embark" map nil nil 'no-paging)
                                   #'which-key--hide-popup-ignore-command)
-        embark-become-indicator embark-action-indicator))
+        embark-become-indicator embark-action-indicator)
+  (use-package embark-vc))
 
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
-(use-package embark-vc
-  :after embark)
 
 (use-package protogg
-  :defer t
   :vc (:url "https://github.com/nehrbash/protogg.git"
                :branch "main" :rev :newest)
   :custom (protogg-minibuffer-toggle-key "M-g")
-  :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
-         ("C-c x" . protogg-compile)
+  :bind (("C-c x" . protogg-compile)
          ([remap dired] . protogg-dired) ;; C-x d
          ("C-c e" . protogg-eshell)
          ("M-s d" . protogg-find-dired)
          ([remap find-file] . protogg-find-file) ;; C-x C-f
          ([remap list-buffers] . protogg-list-buffers) ;; type C-x C-b
+		 ;; note these are not interactive so they won't toggle.
+		 ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
          ([remap shell-command] . protogg-shell-command) ;; M-!
          ("C-c s" . protogg-shell)
          ([remap switch-to-buffer] . sn/consult-buffer)
@@ -720,6 +796,7 @@ Call a second time to restore the original window configuration."
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
+  :defer 1
   :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
                        (setq-local corfu-auto t
                                    corfu-auto-delay 0
@@ -736,22 +813,21 @@ Call a second time to restore the original window configuration."
   (corfu-quit-no-match 'separator)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
-  (corfu-auto-prefix 2)
+  (corfu-auto-prefix 1.3)
+  (completion-cycle-threshold 3)
   :config
   ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3)
   (defun orderless-fast-dispatch (word index total)
   (and (= index 0) (= total 1) (length< word 4)
        `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
   (orderless-define-completion-style orderless-fast
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
-  :init
   (global-corfu-mode)
   (corfu-popupinfo-mode))
 
 (use-package corfu-candidate-overlay
-  :after corfu
+  :after corfu 
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
                                :branch "master" :rev :newest)
   :config (corfu-candidate-overlay-mode +1))
@@ -763,10 +839,9 @@ Call a second time to restore the original window configuration."
 
 (use-package kind-icon
   :after corfu
-  :custom ((kind-icon-default-face 'corfu-default)
-		   (kind-icon-blend-background t)
-		   (kind-icon-blend-frac 0.2))
+  :custom ((kind-icon-default-face 'corfu-default))
   :config
+  (plist-put kind-icon-default-style :height 0.9)
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
@@ -790,26 +865,41 @@ Call a second time to restore the original window configuration."
   (add-to-list 'completion-at-point-functions #'cape-file))
 
 (use-package yasnippet
-  :hook (emacs-startup . yas-global-mode)
-  :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
+  :bind ("C-c s" . yas-insert-snippet)
+  :custom
+  (yas-verbosity 1)
+  (yas-wrap-around-region t)
   :config
   (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
-  (setq yas-verbosity 1)
-  (setq yas-wrap-around-region t))
+  (yas-global-mode))
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
 (use-package yasnippet-capf
-  :after cape
+  :after (cape yasnippet)
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 
 (use-package jinx
+  :bind (("M-$" . jinx-correct-word-save-to-file)
+		 ("C-M-$" . #'jinx-correct-all)
+		 ;; (:map jinx-overlay-map ;; change correct to right click not 
+		 ;; 	   ("<mouse-1>" . nil)
+		 ;; 	   ("<mouse-3>" . jinx-correct))
+		 )
   :init (global-jinx-mode)
   (add-to-list 'vertico-multiform-categories
                '(jinx grid (vertico-grid-annotate . 30)))
-  :bind (("M-$" . jinx-correct)
-		 ("C-M-$" . #'jinx-correct-all)))
+  :config
+  (defun jinx-correct-word-save-to-file ()
+	"Correct word between START and END, and save corrected word to a file, removing duplicates."
+	(interactive)
+	(progn
+	  (call-interactively #'jinx-correct)
+	  (let ((current-word (thing-at-point 'word t)))
+		(with-temp-buffer
+          (insert current-word)
+          (append-to-file (point-min) (point-max) (expand-file-name "~/.jinxcorrections") t))))))
 
 (use-package define-word
   :commands (define-word)
@@ -818,13 +908,11 @@ Call a second time to restore the original window configuration."
 (use-package dired
   :ensure nil
   :commands (dired dired-jump dired-omit-mode)
-  :hook (dired-mode . my-dired-mode-hook)
-  :delight dired-omit-mode
-  :init
-  (defun my-dired-mode-hook ()
-    (dired-omit-mode 1)
-    (setq mode-line-format nil)
-    (hl-line-mode 1))
+  :hook (dired-mode . (lambda ()
+						(dired-omit-mode 1)
+						(dired-hide-details-mode 1)
+						(toggle-mode-line)
+						(hl-line-mode 1)))
   :config
   (setq dired-omit-files "^\\.\\.?$")
   (setq-default dired-dwim-target t)
@@ -832,20 +920,17 @@ Call a second time to restore the original window configuration."
         dired-omit-verbose nil)
   (setq dired-recursive-deletes 'top))
 (use-package dired-single
-  :after dired
   :bind (:map dired-mode-map
               ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
               ("f" . dired-single-buffer)))
 (use-package dired-ranger
-  :after dired
   :bind (:map dired-mode-map
               ("w" . dired-ranger-copy)
               ("m" . dired-ranger-move)
               ("H" . dired-omit-mode)
               ("y" . dired-ranger-paste)))
 (use-package all-the-icons
-  :hook(package-upgrade-all . all-the-icons-install-fonts)
-  :if (display-graphic-p))
+  :hook (package-upgrade-all . all-the-icons-install-fonts))
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 (use-package dired-collapse
@@ -890,13 +975,29 @@ Call a second time to restore the original window configuration."
   :defer t)
 (use-package org
   :ensure org-contrib
+  :init
+  (defun gtd () (interactive) (org-agenda 'nil "g"))
   :bind (("C-c a" .  gtd)
+		 ("C-c c" . org-capture)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
+    :hook (org-mode . (lambda ()
+                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
+                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
+                      (setq-local prettify-symbols-alist
+                            '(("[ ]" .  "☐")
+                              ("[X]" . "☑" )
+                              ("#+TITLE:" . "")
+                              ("#+title: " . "")
+                              ("#+begin_src" . "⮓")
+                              ("#+end_src" . "⮒")))
+                      (prettify-symbols-mode 1)))
   :config
-  (require 'ox-extra)
+  (add-hook 'org-export-before-processing-hook
+			(lambda (backend)
+			  (require 'ox-extra)))
   (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
-  (defun gtd () (interactive) (org-agenda 'nil "g"))
+  
   (setq org-adapt-indentation t
         org-auto-align-tags nil
         org-edit-src-content-indentation 0
@@ -917,29 +1018,15 @@ Call a second time to restore the original window configuration."
 		;; TODO(SN): use auctex-mode to fix this https://github.com/karthink/org-auctex
 		org-startup-with-latex-preview nil
 		org-support-shift-select t
-        org-archive-location "%s_archive::* Archive"))
-
-
-
-(use-package org-appear
-  :vc (:url "https://github.com/awth13/org-appear.git"
-                  :branch "master" :rev :newest)
-  :hook (org-mode . org-appear-mode))
-
-(setq org-directory "~/doc")
-(setq org-default-notes-file (concat org-directory "/notes.org"))
-;; (require 'cl-lib)
-(setq org-agenda-files
-      (cl-remove-if-not #'file-exists-p
-                        '("~/doc/inbox.org"
-                          "~/doc/projects.org"
-                          "~/doc/gcal.org"
-                          "~/doc/repeater.org")))
-
-(use-package org
-  :bind
-  (("C-c c" . org-capture))
-  :config
+        org-archive-location "%s_archive::* Archive")
+  (setq org-directory "~/doc")
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-agenda-files
+		(cl-remove-if-not #'file-exists-p
+                          '("~/doc/inbox.org"
+							"~/doc/projects.org"
+							"~/doc/gcal.org"
+							"~/doc/repeater.org")))
   (setq org-capture-templates
         `(("t" "Tasks")
           ("tt" "Todo" entry (file "~/doc/inbox.org") 
@@ -962,41 +1049,7 @@ Call a second time to restore the original window configuration."
                                                                     (org-capture-finalize))))
           ("rv" "Open Roam UI in browser" entry (function (lambda ()
                                                             (org-roam-ui-open)
-                                                            (org-capture-finalize)))))))
-
-(with-eval-after-load 'org-agenda
-  (add-hook 'org-agenda-mode-hook
-            (lambda ()   (setq mode-line-format nil)
-              (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t)))
-)
-(with-eval-after-load 'org-mode
-  (add-hook 'before-save-hook
-            (lambda ()  (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
-
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
-  :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
-  (org-ellipsis " ⮟"))
-
-(use-package org
-  :hook (org-mode . (lambda ()
-                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
-                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
-                      (setq-local prettify-symbols-alist
-                            '(("[ ]" .  "☐")
-                              ("[X]" . "☑" )
-                              ("#+TITLE:" . "")
-                              ("#+title: " . "")
-                              ("#+begin_src" . "⮓")
-                              ("#+end_src" . "⮒")))
-                      (prettify-symbols-mode 1)))
-  :config
-  ;; This is needed as of Org 9.2
-  (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+                                                            (org-capture-finalize))))))
   (org-babel-do-load-languages
    'org-babel-load-languages
    `((dot . t)
@@ -1008,10 +1061,25 @@ Call a second time to restore the original window configuration."
      (sql . t)
      (sqlite . t))))
 
-(defvar org-clock-prefix-map (make-sparse-keymap)
-  "A keymap for handy global access to org helpers, particularly clocking.")
+(use-package org-appear
+  :vc (:url "https://github.com/awth13/org-appear.git"
+                  :branch "master" :rev :newest)
+  :hook (org-mode . org-appear-mode))
+
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
+  (org-ellipsis " ⮟"))
+
 (use-package org-clock
+  :defer 2
   :ensure nil
+  :config
+  (org-clock-persistence-insinuate)
+  :init
+  (defvar org-clock-prefix-map (make-sparse-keymap)
+	"A keymap for handy global access to org helpers, particularly clocking.")
   :bind-keymap ("C-c o" . org-clock-prefix-map)
   :bind (:map org-clock-prefix-map
 			  ("j" . org-clock-goto)
@@ -1035,12 +1103,11 @@ Call a second time to restore the original window configuration."
   (org-clock-report-include-clocking-task t)
   ;; use pretty things for the clocktable
   (org-pretty-entities t)
-  (org-clock-persist 'history)
-  (org-clock-persistence-insinuate))
+  (org-clock-persist 'history))
 
 (use-package type-break
-  :hook ((org-clock-in-prepare . type-break-mode)
-		 (after-init . type-break-mode))
+  :after org-clock
+  :hook ((org-clock-in-prepare . type-break-mode))
   ;; Setting interval of that of a pomodoro session
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
@@ -1056,7 +1123,7 @@ Call a second time to restore the original window configuration."
   ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
-  :config
+  :init
   (defun org-clock-in-to-task-by-title (task-title)
   "Clock into an Org Agenda task by its title within a custom agenda command."
   (interactive "sEnter the title of the task: ")
@@ -1094,7 +1161,9 @@ Call a second time to restore the original window configuration."
 												   " " formatted-time)
 								 :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
 								 :keystroke-count ,type-break-keystroke-count)))
-      (json-encode json-data))))
+      (json-encode json-data)))
+  :init
+  (type-break-mode))
 
 (use-package org-fragtog
   :hook (org-mode . org-fragtog-mode))
@@ -1117,12 +1186,16 @@ Call a second time to restore the original window configuration."
     (add-hook 'after-save-hook 'org-html-export-to-html nil t)
     (message "Enabled org html export on save for current buffer...")))
 
-(define-minor-mode wr-mode
+(use-package org
+  :bind ((:map org-mode-map
+               ("C-c v" . wr-mode)))
+  :init
+  (define-minor-mode wr-mode
     "Set up a buffer for word editing.
  This enables or modifies a number of settings so that the
  experience of word processing is a little more like that of a
  typical word processor."
-   :interactive t " Writing" nil
+	:interactive t " Writing" nil
     (if wr-mode
         (progn
           (setq truncate-lines nil
@@ -1147,18 +1220,16 @@ Call a second time to restore the original window configuration."
       (buffer-face-mode -1)
 	  (visual-fill-column-mode -1)
       (visual-line-mode -1)))
-(use-package org-pretty-table
-  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
-                        :branch "master" :rev :newest)
-  :hook (org-mode . org-pretty-table-mode))
-(use-package org
-  :bind ((:map org-mode-map
-               ("C-c v" . wr-mode)))
   :hook ((org-mode . wr-mode)
          (org-mode . (lambda ()
-            (setq-local buffer-face-mode-face '((:family "Google Sans" :weight bold )))
-            (setq-local corfu-auto-delay 0.8)
-            (buffer-face-mode)))))
+					   (setq-local buffer-face-mode-face '((:family "Google Sans" :weight bold )))
+					   (setq-local corfu-auto-delay 0.8)
+					   (buffer-face-mode)))))
+(use-package org-pretty-table
+  :defer t
+  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
+            :branch "master" :rev :newest)
+  :hook (org-mode . org-pretty-table-mode))
 
 (use-package visual-fill-column
   :defer t
@@ -1303,33 +1374,29 @@ Call a second time to restore the original window configuration."
    "Tangle Org file without asking for confirmation."
    (let ((org-confirm-babel-evaluate nil))
      (org-babel-tangle)))
-
  :hook
  (org-mode . (lambda ()
                (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
                          'run-at-end 'only-in-org-mode))))
 
-(use-package org-attach-screenshot
-  :commands (org-attach-screenshot)
-  :config
-  (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area"))
-
 (use-package pdf-tools
+  :defer 3
   :hook ((pdf-view-mode . (lambda ()
+							(setq-local scroll-bar-mode 1)
 							(pdf-view-midnight-minor-mode 1)))
 		 (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line))))
-  :custom (pdf-view-display-size 'fit-width)
-  :config (pdf-loader-install))
-
-(use-package markdown-mode
-  :mode ("\\.md\\'" . markdown-mode))
+  :custom ((pdf-view-display-size 'fit-width))
+  :config
+  (setopt pdf-continuous-suppress-introduction t) ;; from pdf-continuous-scroll-mode but needs to be set before it's loaded and putting it in pdf-continuous-scroll-mode init force pdf tools to load.
+  (pdf-loader-install))
+(use-package pdf-continuous-scroll-mode
+  :after pdf-tools
+   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
+            :branch "master" :rev :newest))
 
 (use-package org-roam
-  :init
-  (setq org-roam-v2-ack t)
-  :delight(org-roam-mode)
-  :config
-    (org-roam-db-autosync-mode)
+  :init (setq org-roam-v2-ack t)
+  :config (org-roam-db-autosync-mode)
   :custom 
   (org-roam-directory "~/doc/Roam/")
   (org-roam-completion-everywhere t)
@@ -1387,6 +1454,9 @@ Call a second time to restore the original window configuration."
   :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
   :vc (:url "https://github.com/jdtsmith/indent-bars.git"
             :branch "main" :rev :newest))
+
+(use-package centered-cursor-mode
+ :hook (prog-mode . centered-cursor-mode))
 
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
@@ -1451,13 +1521,17 @@ Call a second time to restore the original window configuration."
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
 
 (use-package git-gutter
-  :hook (eglot-server-initialized . (lambda (server) (run-at-time 1 nil (lambda() (git-gutter-mode)))))
-  :custom (
-		   (git-gutter:ask-p nil)
-		   (git-gutter:update-interval 2)))
+  :defer t
+  ;; hook eglot so that not enabled in most buffers and lower priority (also don't like it in text documents)
+  :hook (eglot-server-initialized . (lambda (server)
+									  (run-at-time 1 nil
+												   (lambda () (git-gutter-mode)))))
+  :custom
+  ((git-gutter:ask-p nil)
+   (git-gutter:update-interval 2)))
 
 (use-package git-gutter-fringe
-  :after  git-gutter
+  :after git-gutter
   :config
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
@@ -1478,6 +1552,20 @@ Call a second time to restore the original window configuration."
 (use-package magit-todos
   :after magit
   :hook(magit-mode . magit-todos-mode))
+(use-package blamer
+  :ensure t
+  :bind (("C-c C-i" . blamer-mode)
+         ("C-c i" . blamer-show-posframe-commit-info))
+  :custom
+  (blamer-idle-time 3)
+  (blamer-min-offset 70)
+  :custom-face
+  (blamer-face ((t :foreground "#7a88cf"
+                    :background nil
+                    :height 70
+                    :italic t)))
+  ;; :config  (global-blamer-mode 1) # don't actually want the clutter all the time.
+  )
 
 (use-package browse-at-remote
   :bind (("C-c g g" . browse-at-remote)
@@ -1540,13 +1628,11 @@ Call a second time to restore the original window configuration."
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
 (use-package flymake
-  :diminish
   :hook (prog-mode . flymake-mode)
   :custom
   ((flymake-fringe-indicator-position 'right-fringe)
    (flymake-show-diagnostics-at-end-of-line 'short)
-   (flymake-no-changes-timeout nil)
-   )
+   (flymake-no-changes-timeout nil))
   :config
   (setq elisp-flymake-byte-compile-load-path
         (append elisp-flymake-byte-compile-load-path load-path)))
@@ -1558,6 +1644,7 @@ Call a second time to restore the original window configuration."
    (gofumpt . "go install mvdan.cc/gofumpt@latest")
    (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
+						(subword-mode 1)
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
 									go-ts-mode-indent-offset 4))))
 (use-package go-tag
@@ -1574,6 +1661,7 @@ Call a second time to restore the original window configuration."
   :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
 
 (use-package rust-ts-mode
+  :mode ("\\.rs\\'" . rust-ts-mode)
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
   :config
@@ -1639,6 +1727,9 @@ Call a second time to restore the original window configuration."
 (use-package yuck-mode
   :mode ("\\.yuck\\'" . yuck-mode)
   :hook (yuck-mode . (lambda () (setq-local lisp-indent-offset 2))))
+
+(use-package markdown-mode
+  :mode ("\\.md\\'" . markdown-mode))
 
 (use-package mu4e
   :ensure nil
@@ -1717,8 +1808,9 @@ If not in a project, prompt for the project root."
           (let ((default-directory (project-root project)))
 			(customize-dirlocals))))))
 
-(use-package speed-type :commands speed-type-top-x
-  :defer t)
+(use-package speed-type
+  :defer t
+  :commands speed-type-top-x)
 
 (use-package google-this
   :bind ("M-s w" . google-this))

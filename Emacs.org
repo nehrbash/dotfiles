@@ -8,7 +8,6 @@
   - [[#meow---modal-editing][Meow - Modal Editing]]
   - [[#file-handler-functions][File Handler Functions]]
   - [[#mark-without-activate][Mark without Activate]]
-  - [[#xterm-integration-in-terminals-mouse][Xterm Integration In Terminals (Mouse)]]
   - [[#move--duplicating-lines][Move & Duplicating Lines]]
   - [[#whole-line-or-region][Whole Line Or Region]]
   - [[#beginning-of-line-text-then-line][Beginning Of Line Text Then Line]]
@@ -34,6 +33,7 @@
   - [[#improve-window-switching][Improve window switching]]
   - [[#jump-to-char][Jump to char]]
   - [[#dont-ask-to-kill-on-exit][Don't ask to kill on exit]]
+  - [[#unload-eshell][Unload eshell]]
 - [[#ui-stuff][UI Stuff]]
   - [[#general][General]]
   - [[#theme][Theme]]
@@ -53,11 +53,7 @@
 - [[#dired][Dired]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
-  - [[#extra-org-packages][Extra org packages]]
   - [[#org-appear][Org Appear]]
-  - [[#org-file-locations][Org File Locations]]
-  - [[#capturing][Capturing]]
-  - [[#dynamic-re-align-tags][Dynamic Re-align tags]]
   - [[#pretty-symbol-replacement][Pretty Symbol Replacement]]
   - [[#clock-inout][Clock In/Out]]
   - [[#type-breaks][Type Breaks]]
@@ -69,9 +65,7 @@
   - [[#agenda-views][Agenda Views]]
   - [[#table-of-contents][Table of Contents]]
   - [[#automatically-tangle-on-save][Automatically "Tangle" on Save]]
-  - [[#org-screenshot][Org Screenshot]]
   - [[#pdf-tools][PDF Tools]]
-  - [[#markdown][Markdown]]
   - [[#org-roam][Org Roam]]
   - [[#google-calendar][Google Calendar]]
 - [[#code-languages--file-modes][Code Languages & File Modes]]
@@ -87,6 +81,7 @@
   - [[#docker][Docker]]
   - [[#terraform][Terraform]]
   - [[#yuck][Yuck]]
+  - [[#markdown][Markdown]]
 - [[#fancy-bloat][Fancy Bloat]]
   - [[#mu4e---mail][Mu4e - Mail]]
   - [[#voice-to-text][Voice to Text]]
@@ -120,6 +115,8 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
   (require 'package)
   (require 'use-package))
 (setq package-native-compile t
+	  native-comp-deferred-compilation t
+	  native-compile-prune-cache t
       async-bytecomp-package-mode t
       package-quickstart t
       package-install-upgrade-built-in t)
@@ -144,7 +141,7 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 #+end_src
 
 #+RESULTS:
-: 0.353360 seconds
+: 0.548844 seconds
 
 ** Breakdown
 
@@ -157,117 +154,123 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 
 #+RESULTS: package-report-buffer :exports results 
 #+begin_example
-consult                   Configured    06:37:30.413574         0.02
-savehist                  Configured    06:37:28.945848         0.01
-minibuffer                Configured    06:37:28.958261         0.01
-which-key                 Configured    06:37:28.950825         0.01
-no-littering              Configured    06:37:28.927317         0.00
-move-dup                  Initialized   06:37:28.927578         0.00
-fullframe                 Configured    06:37:28.935026         0.00
-doom-themes               Configured    06:37:28.954814         0.00
-whole-line-or-region      Configured    06:37:28.933114         0.00
-marginalia                Configured    06:37:28.959584         0.00
-autorevert                Initialized   06:37:28.942587         0.00
-orderless                 Configured    06:37:29.109848         0.00
-windswap                  Configured    06:37:37.622593         0.00
-protogg                   Configured    06:37:30.372769         0.00
-multi-vterm               Initialized   06:37:29.099079         0.00
-org-roam                  Initialized   06:37:29.098281         0.00
-docker                    Initialized   06:37:29.103432         0.00
-winner                    Initialized   06:37:28.952896         0.00
-embark                    Initialized   06:37:28.960513         0.00
-multiple-cursors          Initialized   06:37:28.950885         0.00
-cape                      Declared      06:37:28.961350         0.00
-corfu                     Initialized   06:37:29.109834         0.00
-magit                     Initialized   06:37:29.098891         0.00
-org-gcal                  Initialized   06:37:32.015842         0.00
-org-agenda                Configured    06:37:32.015764         0.00
-anzu                      Initialized   06:37:28.947653         0.00
-eglot                     Initialized   06:37:29.098694         0.00
-consult-dir               Initialized   06:37:30.395178         0.00
-dired-ranger              Initialized   06:37:30.457361         0.00
-conda                     Initialized   06:37:29.103239         0.00
-browse-at-remote          Initialized   06:37:29.098786         0.00
-gptel                     Initialized   06:37:29.103721         0.00
-yasnippet                 Configured    06:37:29.303183         0.00
-tab-line                  Initialized   06:37:29.099330         0.00
-ibuffer-project           Initialized   06:37:28.947764         0.00
-dired-single              Initialized   06:37:30.457340         0.00
-default-text-scale        Initialized   06:37:28.954984         0.00
-python                    Configured    06:37:29.103120         0.00
-expand-region             Initialized   06:37:28.947861         0.00
-go-tag                    Initialized   06:37:29.102865         0.00
-page-break-lines          Configured    06:37:36.699302         0.00
-flyspell                  Configured    06:37:30.893849         0.00
-switch-window             Initialized   06:37:28.933184         0.00
-go-fill-struct            Initialized   06:37:29.102923         0.00
-go-ts-mode                Initialized   06:37:29.102798         0.00
-dired-hide-dotfiles       Initialized   06:37:28.962009         0.00
-go-gen-test               Initialized   06:37:29.102975         0.00
-symbol-overlay            Configured    06:37:30.921262         0.00
-recentf                   Configured    06:37:30.412873         0.00
-whisper                   Initialized   06:37:29.103660         0.00
-flyspell-correct          Initialized   06:37:30.893872         0.00
-doom-modeline             Configured    06:37:29.159455         0.00
-whitespace-cleanup-mode   Configured    06:37:30.918195         0.00
-jupyter                   Configured    06:37:36.697366         0.00
-google-this               Initialized   06:37:29.103799         0.00
-markdown-mode             Initialized   06:37:29.098198         0.00
-flycheck                  Configured    06:37:30.885001         0.00
-dired                     Configured    06:37:30.457331         0.00
-org-fragtog               Configured    06:37:31.961224         0.00
-paren                     Configured    06:37:28.952802         0.00
-visual-fill-column        Configured    06:37:31.948383         0.00
-git-gutter                Configured    06:37:30.866798         0.00
-mu4e                      Initialized   06:37:29.103630         0.00
-org                       Configured    06:37:29.098100         0.00
-org-bullets               Configured    06:37:31.964897         0.00
-ispell                    Configured    06:37:30.893701         0.00
-rainbow-mode              Configured    06:37:30.873593         0.00
-pdf-tools                 Initialized   06:37:29.098163         0.00
-docker-compose-mode       Initialized   06:37:29.103501         0.00
-org-pretty-table          Configured    06:37:31.958540         0.00
-yuck-mode                 Initialized   06:37:29.103568         0.00
-toc-org                   Configured    06:37:31.940635         0.00
-rust-ts-mode              Initialized   06:37:29.103026         0.00
-display-line-numbers      Configured    06:37:30.924091         0.00
-sudo-edit                 Initialized   06:37:28.933259         0.00
-vertico                   Configured    06:37:29.108825         0.00
-rainbow-delimiters        Configured    06:37:30.905995         0.00
-all-the-icons-completion  Initialized   06:37:28.959628         0.00
-treesit-auto              Initialized   06:37:29.098607         0.00
-flycheck-golangci-lint    Initialized   06:37:29.102835         0.00
-terraform-mode            Initialized   06:37:29.103527         0.00
-yaml-ts-mode              Initialized   06:37:29.103326         0.00
-csv-mode                  Initialized   06:37:29.103297         0.00
-global-prettify-symbols-mode Initialized   06:37:28.954883         0.00
-toml-ts-mode              Initialized   06:37:29.103081         0.00
-wgrep                     Initialized   06:37:28.959688         0.00
-tramp                     Initialized   06:37:28.942622         0.00
-all-the-icons-dired       Initialized   06:37:28.961933         0.00
-dockerfile-mode           Initialized   06:37:29.103476         0.00
-org-appear                Configured    06:37:31.966361         0.00
-dired-collapse            Initialized   06:37:28.961957         0.00
-diredfl                   Initialized   06:37:28.961981         0.00
-org-attach-screenshot     Initialized   06:37:29.098131         0.00
-embark-consult            Initialized   06:37:28.960644         0.00
-org-contrib               Initialized   06:37:28.962260         0.00
-flycheck-popup-tip        Configured    06:37:32.064725         0.00
-speed-type                Initialized   06:37:29.103776         0.00
-define-word               Initialized   06:37:28.961560         0.00
-kind-icon                 Declared      06:37:28.961189         0.00
-yasnippet-snippets        Configured    06:37:29.303213         0.00
-consult-flycheck          Initialized   06:37:30.884994         0.00
-org-roam-ui               Declared      06:37:29.098479         0.00
-magit-todos               Declared      06:37:29.098995         0.00
-flycheck-rust             Declared      06:37:29.103057         0.00
-consult-eglot             Declared      06:37:29.098720         0.00
-forge                     Declared      06:37:29.098968         0.00
-yasnippet-capf            Declared      06:37:28.961455         0.00
-corfu-terminal            Declared      06:37:28.961157         0.00
-corfu-candidate-overlay   Declared      06:37:28.961139         0.00
-embark-vc                 Declared      06:37:28.960663         0.00
-type-break                Declared      06:37:29.097350         0.00
+doom-modeline             Configured    00:54:21.086024         0.11
+doom-themes               Configured    00:54:21.030457         0.05
+kind-icon                 Configured    00:54:21.120146         0.02
+protogg                   Configured    00:54:21.107425         0.01
+minibuffer                Configured    00:54:21.092219         0.01
+autorevert                Configured    00:54:20.980575         0.01
+vertico                   Configured    00:54:21.095629         0.01
+consult                   Configured    00:54:22.592610         0.01
+spacious-padding          Configured    00:54:21.088976         0.01
+all-the-icons-completion  Configured    00:54:21.099992         0.01
+no-littering              Configured    00:54:20.961891         0.01
+move-dup                  Initialized   00:54:20.962241         0.00
+savehist                  Configured    00:54:20.999184         0.00
+corfu                     Configured    00:54:21.109354         0.00
+corfu-terminal            Configured    00:54:21.111333         0.00
+whole-line-or-region      Configured    00:54:20.967679         0.00
+git-gutter-fringe         Configured    00:54:21.322672         0.00
+marginalia                Configured    00:54:21.097034         0.00
+git-gutter                Configured    00:54:21.321234         0.00
+jinx                      Configured    00:54:21.122437         0.00
+page-break-lines          Configured    00:54:21.012764         0.00
+orderless                 Configured    00:54:21.101122         0.00
+cape                      Configured    00:54:21.120846         0.00
+fullframe                 Configured    00:54:20.968511         0.00
+org-roam                  Initialized   00:54:21.319228         0.00
+winner                    Initialized   00:54:21.003478         0.00
+eglot                     Initialized   00:54:21.319727         0.00
+org-clock                 Initialized   00:54:21.318011         0.00
+magit                     Initialized   00:54:21.322767         0.00
+docker                    Initialized   00:54:21.327249         0.00
+embark                    Initialized   00:54:21.101894         0.00
+multiple-cursors          Initialized   00:54:21.001477         0.00
+csv-mode                  Initialized   00:54:21.327123         0.00
+org-agenda                Configured    00:54:21.318898         0.00
+toc-org                   Configured    00:54:27.672431         0.00
+type-break                Configured    00:54:21.333217         0.00
+anzu                      Initialized   00:54:21.001100         0.00
+go-ts-mode                Configured    00:54:22.616475         0.00
+consult-dir               Initialized   00:54:22.592622         0.00
+eat                       Initialized   00:54:21.323139         0.00
+dired-ranger              Initialized   00:54:24.457574         0.00
+blamer                    Initialized   00:54:21.322953         0.00
+default-text-scale        Initialized   00:54:21.086088         0.00
+corfu-candidate-overlay   Configured    00:54:26.189127         0.00
+org-bullets               Configured    00:54:27.685745         0.00
+gptel                     Initialized   00:54:21.327538         0.00
+browse-at-remote          Initialized   00:54:21.323020         0.00
+dired-single              Initialized   00:54:24.457547         0.00
+ibuffer-project           Initialized   00:54:21.001211         0.00
+consult-eglot             Initialized   00:54:21.319833         0.00
+go-gen-test               Initialized   00:54:21.326861         0.00
+yasnippet                 Initialized   00:54:21.121092         0.00
+go-tag                    Initialized   00:54:21.326684         0.00
+go-fill-struct            Initialized   00:54:21.326748         0.00
+go-impl                   Initialized   00:54:21.326802         0.00
+switch-window             Initialized   00:54:20.967739         0.00
+pdf-tools                 Initialized   00:54:21.319084         0.00
+expand-region             Initialized   00:54:21.001307         0.00
+symbol-overlay            Configured    00:54:21.361231         0.00
+cus-dir                   Initialized   00:54:21.327674         0.00
+recentf                   Configured    00:54:22.592118         0.00
+which-key                 Configured    00:54:26.192715         0.00
+flymake                   Configured    00:54:21.340356         0.00
+dired-hide-dotfiles       Initialized   00:54:21.122892         0.00
+define-word               Initialized   00:54:21.122515         0.00
+codeium                   Initialized   00:54:21.327638         0.00
+whisper                   Initialized   00:54:21.327480         0.00
+google-this               Initialized   00:54:21.327741         0.00
+rainbow-delimiters        Configured    00:54:21.350202         0.00
+all-the-icons             Configured    00:54:21.122778         0.00
+mu4e                      Initialized   00:54:21.327446         0.00
+whitespace-cleanup-mode   Configured    00:54:21.359705         0.00
+dired                     Configured    00:54:24.457539         0.00
+visual-fill-column        Configured    00:54:27.680420         0.00
+org                       Configured    00:54:21.319002         0.00
+windswap                  Initialized   00:54:20.967805         0.00
+avy                       Initialized   00:54:21.003652         0.00
+org-pretty-table          Configured    00:54:27.682152         0.00
+devdocs                   Initialized   00:54:21.327784         0.00
+sudo-edit                 Initialized   00:54:20.967837         0.00
+paren                     Configured    00:54:21.003378         0.00
+consult-org-roam          Declared      00:54:21.319454         0.00
+rust-ts-mode              Initialized   00:54:21.326923         0.00
+rainbow-mode              Configured    00:54:21.345163         0.00
+org-fragtog               Configured    00:54:27.683790         0.00
+treesit-auto              Initialized   00:54:21.319601         0.00
+bash-ts-mode              Initialized   00:54:21.326956         0.00
+yuck-mode                 Initialized   00:54:21.327390         0.00
+display-line-numbers      Configured    00:54:21.362871         0.00
+markdown-mode             Initialized   00:54:21.319135         0.00
+org-attach-screenshot     Initialized   00:54:21.319033         0.00
+gcmh                      Configured    00:54:21.331406         0.00
+yaml-ts-mode              Initialized   00:54:21.327154         0.00
+docker-compose-mode       Initialized   00:54:21.327323         0.00
+indent-bars               Initialized   00:54:21.319512         0.00
+global-prettify-symbols-mode Initialized   00:54:21.030546         0.00
+js-ts-mode                Initialized   00:54:21.327012         0.00
+terraform-mode            Initialized   00:54:21.327361         0.00
+centered-cursor-mode      Configured    00:54:21.347240         0.00
+toml-ts-mode              Initialized   00:54:21.327040         0.00
+dockerfile-mode           Initialized   00:54:21.327296         0.00
+wgrep                     Initialized   00:54:21.101157         0.00
+speed-type                Initialized   00:54:21.327716         0.00
+org-contrib               Initialized   00:54:21.123049         0.00
+embark-consult            Initialized   00:54:21.102028         0.00
+flymake-shellcheck        Initialized   00:54:21.326985         0.00
+diredfl                   Initialized   00:54:21.122862         0.00
+dired-collapse            Initialized   00:54:21.122838         0.00
+org-appear                Configured    00:54:27.687355         0.00
+all-the-icons-dired       Initialized   00:54:21.122811         0.00
+magit-todos               Declared      00:54:21.322891         0.00
+yasnippet-capf            Declared      00:54:21.121162         0.00
+forge                     Declared      00:54:21.322861         0.00
+embark-vc                 Declared      00:54:21.102051         0.00
+pdf-continuous-scroll-mode Declared      00:54:21.319112         0.00
+yasnippet-snippets        Declared      00:54:21.121138         0.00
+org-roam-ui               Declared      00:54:21.319478         0.00
 #+end_example
    
 * Editing Utilities
@@ -279,91 +282,92 @@ type-break                Declared      06:37:29.097350         0.00
 
 ** Meow - Modal Editing
 
-#+begin_src emacs
+#+begin_src emacs-lisp
+(use-package use-package-chords
+  :config (key-chord-mode 1))
+
 (use-package meow
   :config
-  (defun meow-setup ()
-    (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-    (meow-motion-overwrite-define-key
-     ;; Use e to move up, n to move down.
-     ;; Since special modes usually use n to move down, we only overwrite e here.
-     '("e" . meow-prev)
-     '("<escape>" . ignore))
-    (meow-leader-define-key
-     '("?" . meow-cheatsheet)
-     ;; To execute the originally e in MOTION state, use SPC e.
-     '("e" . "H-e")
-     '("1" . meow-digit-argument)
-     '("2" . meow-digit-argument)
-     '("3" . meow-digit-argument)
-     '("4" . meow-digit-argument)
-     '("5" . meow-digit-argument)
-     '("6" . meow-digit-argument)
-     '("7" . meow-digit-argument)
-     '("8" . meow-digit-argument)
-     '("9" . meow-digit-argument)
-     '("0" . meow-digit-argument))
-    (meow-normal-define-key
-     '("0" . meow-expand-0)
-     '("1" . meow-expand-1)
-     '("2" . meow-expand-2)
-     '("3" . meow-expand-3)
-     '("4" . meow-expand-4)
-     '("5" . meow-expand-5)
-     '("6" . meow-expand-6)
-     '("7" . meow-expand-7)
-     '("8" . meow-expand-8)
-     '("9" . meow-expand-9)
-     '("-" . negative-argument)
-     '(";" . meow-reverse)
-     '("," . meow-inner-of-thing)
-     '("." . meow-bounds-of-thing)
-     '("[" . meow-beginning-of-thing)
-     '("]" . meow-end-of-thing)
-     '("/" . meow-visit)
-     '("a" . meow-append)
-     '("A" . meow-open-below)
-     '("b" . meow-back-word)
-     '("B" . meow-back-symbol)
-     '("c" . meow-change)
-     '("d" . meow-delete)
-     '("e" . meow-prev)
-     '("E" . meow-prev-expand)
-     '("f" . meow-find)
-     '("g" . meow-cancel-selection)
-     '("G" . meow-grab)
-     '("h" . meow-left)
-     '("H" . meow-left-expand)
-     '("i" . meow-right)
-     '("I" . meow-right-expand)
-     '("j" . meow-join)
-     '("k" . meow-kill)
-     '("l" . meow-line)
-     '("L" . meow-goto-line)
-     '("m" . meow-mark-word)
-     '("M" . meow-mark-symbol)
-     '("n" . meow-next)
-     '("N" . meow-next-expand)
-     '("o" . meow-block)
-     '("O" . meow-to-block)
-     '("p" . meow-yank)
-     '("q" . meow-quit)
-     '("r" . meow-replace)
-     '("s" . meow-insert)
-     '("S" . meow-open-above)
-     '("t" . meow-till)
-     '("u" . meow-undo)
-     '("U" . meow-undo-in-selection)
-     '("v" . meow-search)
-     '("w" . meow-next-word)
-     '("W" . meow-next-symbol)
-     '("x" . meow-delete)
-     '("X" . meow-backward-delete)
-     '("y" . meow-save)
-     '("z" . meow-pop-selection)
-     '("'" . repeat)
-     '("<escape>" . ignore)))
-  (meow-setup)
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+  (meow-motion-overwrite-define-key
+   ;; Use e to move up, n to move down.
+   ;; Since special modes usually use n to move down, we only overwrite e here.
+   '("e" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   '("?" . meow-cheatsheet)
+   ;; To execute the originally e in MOTION state, use SPC e.
+   '("e" . "H-e")
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument))
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("1" . meow-expand-1)
+   '("2" . meow-expand-2)
+   '("3" . meow-expand-3)
+   '("4" . meow-expand-4)
+   '("5" . meow-expand-5)
+   '("6" . meow-expand-6)
+   '("7" . meow-expand-7)
+   '("8" . meow-expand-8)
+   '("9" . meow-expand-9)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("/" . meow-visit)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("e" . meow-prev)
+   '("E" . meow-prev-expand)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-right)
+   '("I" . meow-right-expand)
+   '("j" . meow-join)
+   '("k" . meow-kill)
+   '("l" . meow-line)
+   '("L" . meow-goto-line)
+   '("m" . meow-mark-word)
+   '("M" . meow-mark-symbol)
+   '("n" . meow-next)
+   '("N" . meow-next-expand)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("r" . meow-replace)
+   '("s" . meow-insert)
+   '("S" . meow-open-above)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-search)
+   '("w" . meow-next-word)
+   '("W" . meow-next-symbol)
+   '("x" . meow-delete)
+   '("X" . meow-backward-delete)
+   '("y" . meow-save)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore))
   (meow-global-mode 1))
 #+end_src   
    
@@ -432,29 +436,16 @@ This Emacs Lisp block defines a function called "toggle-mode-line" that toggles 
 
 ** Mark without Activate
 
+used before consult line so it's in the mark stack.
+   
 #+begin_src emacs-lisp
 (defun push-mark-no-activate ()
   "Pushes `point' to `mark-ring' and does not activate the region
    Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
   (interactive)
   (push-mark (point) t nil))
-(global-set-key (kbd "C-`") 'push-mark-no-activate)
 #+end_src
    
-** Xterm Integration In Terminals (Mouse)
-
-#+begin_src emacs-lisp
-  (global-set-key [mouse-4] (lambda () (interactive) (scroll-down 1)))
-  (global-set-key [mouse-5] (lambda () (interactive) (scroll-up 1)))
-  (autoload 'mwheel-install "mwheel")
-  (defun sanityinc/console-frame-setup ()
-    (xterm-mouse-mode 1) ; Mouse in a terminal (Use shift to paste with middle button)
-    (mouse-wheel-mode 1))
-  (add-hook 'after-make-console-frame-hooks 'sanityinc/console-frame-setup)
-#+end_src
-
-This Emacs Lisp config block sets up mouse scrolling and mouse support in the terminal. It binds the mouse scroll up and down events to scroll functions, autoloads the =mwheel= package, defines a frame setup function for the console, enables mouse mode in the terminal, and activates mouse wheel mode.
-
 ** Move & Duplicating Lines
 
    Shift lines up and down with M-up and M-down. When paredit is enabled,
@@ -464,7 +455,6 @@ This Emacs Lisp config block sets up mouse scrolling and mouse support in the te
 
 #+begin_src emacs-lisp
 (use-package move-dup
-  :defer t
   :bind(("M-<up>" . move-dup-move-lines-up)
         ("M-<down>" . move-dup-move-lines-down)
         ("C-c d" . move-dup-duplicate-down)
@@ -479,7 +469,6 @@ Cut/copy the current line if no region is active.
 
 #+begin_src emacs-lisp
 (use-package whole-line-or-region
-  :ensure t
   :config (whole-line-or-region-global-mode t))
 #+end_src
 
@@ -540,7 +529,6 @@ This config block sets up the Emacs package "switch-window" by configuring its o
    
 #+begin_src emacs-lisp
 (use-package windswap
-  :defer 4
   :config
   (windmove-default-keybindings 'control)
   (windswap-default-keybindings 'shift 'control))
@@ -598,17 +586,18 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
 #+begin_src emacs-lisp
 (use-package recentf
   :ensure nil
+  :init
+  ;; save backup and auto save to system tmp 
+  (setq backup-directory-alist
+		`((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+		`((".*" ,temporary-file-directory t)))
+  (recentf-mode)
   :hook ((package-upgrade-all . recentf-cleanup))
   :custom
-  (bookmark-save-flag 1)
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 25))
-;; save backup and auto save to system tmp 
-(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory)))
-(setq auto-save-file-name-transforms
-      `((".*" ,temporary-file-directory t)))
+  (recentf-max-saved-items 50))
 #+end_src
 
 ** Auto update file
@@ -617,8 +606,7 @@ This Emacs Lisp code configures the =windswap= package, which provides functions
    
 #+begin_src emacs-lisp
 (use-package autorevert
-  :config (global-auto-revert-mode 1)
-  :delight auto-revert-mode)
+  :config (global-auto-revert-mode 1))
 #+end_src
 
 ** TRAMP
@@ -744,7 +732,6 @@ This is useful when followed by an immediate kill."
 #+begin_src emacs-lisp 
 (use-package symbol-overlay
   :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
-  :delight symbol-overlay-mode
   :config
   (define-key symbol-overlay-mode-map (kbd "M-i") 'symbol-overlay-put)
   (define-key symbol-overlay-mode-map (kbd "M-I") 'symbol-overlay-remove-all)
@@ -784,7 +771,6 @@ This is useful when followed by an immediate kill."
 
 #+begin_src emacs-lisp
 (use-package which-key
-  :delight which-key-mode
   :custom (which-key-idle-delay 1)
   :config (which-key-mode 1))
 #+end_src
@@ -812,7 +798,6 @@ This is useful when followed by an immediate kill."
 (use-package whitespace-cleanup-mode
   :commands (whitespace-cleanup)
   :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
-  :delight
   :config
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
   (defun sanityinc/show-trailing-whitespace ()
@@ -925,6 +910,8 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 #+end_src
 
+** Unload eshell
+
 * UI Stuff
 
   Packages I had at one point or another for UI.
@@ -942,10 +929,8 @@ Call a second time to restore the original window configuration."
 							(left-fringe . 10)
 							(right-fringe . 10)
 							(vertical-scroll-bars . nil)))
-
-
 (pixel-scroll-precision-mode t)
-(set-face-attribute 'header-line nil :height 100)
+(global-prettify-symbols-mode t)
 #+end_src
 
 *** Page Break
@@ -954,7 +939,7 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package page-break-lines
-  :config (page-break-lines-mode))
+  :config (global-page-break-lines-mode))
 #+end_src
 
 ** Theme
@@ -964,7 +949,6 @@ Call a second time to restore the original window configuration."
   :config
   (load-theme 'doom-gruvbox t)
   (doom-themes-org-config)
-  ;; Must be used *after* the theme is loaded
   (custom-set-faces
    '(org-document-title ((t (:height 3.8))))
    '(header-line ((t (:height 100))))
@@ -972,26 +956,30 @@ Call a second time to restore the original window configuration."
    '(org-level-2 ((t (:foreground "#83a598" :height 1.3))))
    '(org-level-3 ((t (:foreground "#d3869b" :height 1.1))))
    `(mode-line ((t (:background ,(doom-color 'base1))))))
-  :custom ((doom-themes-enable-bold t)
-           (doom-themes-enable-italic t)
-           (custom-safe-themes t)))
+  :custom (
+		   (custom-safe-themes t)
+		   (doom-themes-enable-bold t)
+           (doom-themes-enable-italic t)))
+#+end_src
+
+*** Different color Delimiters
+
+#+begin_src emacs-lisp
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
-(use-package global-prettify-symbols-mode
-  :ensure nil
-  :hook ((prog-mode text-mode) . global-prettify-symbols-mode))
 #+end_src
 
 ** Modeline
 
  #+begin_src emacs-lisp
  (use-package doom-modeline
-   :config (doom-modeline-mode)
+   :hook ((after-init . doom-modeline-mode)
+		  (doom-modeline-mode .
+			(lambda ()
+			  (doom-modeline-set-modeline 'simple-line 'default))))
    :init
    (line-number-mode -1)
    (column-number-mode -1)
-   (setq mode-line-position nil)
-   (setq mode-line-percent-position nil)
    :custom
    ((doom-modeline-project-detection 'project)
 	(doom-gruvbox-padded-modeline t)
@@ -1001,15 +989,20 @@ Call a second time to restore the original window configuration."
 	(doom-modeline-env-version t)
 	(doom-modeline-buffer-encoding nil)
 	(doom-modeline-workspace-name nil)
-	(doom-modeline-buffer-file-name-style 'auto)
+	(doom-modeline-buffer-file-name-style 'buffer-name)
 	(doom-modeline-height 27)
 	(doom-modeline-buffer-state-icon t)
-	(doom-modeline-icon t))
+	(doom-modeline-icon t)
+	(doom-modeline-modal-icon t)
+	(mode-line-position nil)
+	(mode-line-percent-position nil)
+	(doom-modeline-mode-alist nil)
+	(auto-revert-check-vc-info t)) ;; for switching branches
    :config
-   ;; Define custom doom-modeline to remove position
    (doom-modeline-def-modeline 'simple-line
-	 '(eldoc bar window-number modals matches follow buffer-info remote-host selection-info)
-	 '(compilation objed-state misc-info persp-name lsp checker major-mode process vcs))
+	 '(bar buffer-info remote-host)
+	 '(modals compilation objed-state misc-info persp-name lsp checker process vcs))
+   ;; Set default mode-line
    (doom-modeline-set-modeline 'simple-line 'default))
    #+end_src
  
@@ -1041,15 +1034,10 @@ Call a second time to restore the original window configuration."
 ** Minbuffer
 
 #+begin_src emacs-lisp
-(defun stealthily (fn &rest args)
-    "Apply FN to ARGS while inhibiting modification hooks."
-    (let ((inhibit-modification-hooks t))
-      (apply fn args)))
 (use-package minibuffer
   :ensure nil
-  :bind
-  (:map minibuffer-local-completion-map
-        ("<backtab>" . minibuffer-force-complete))
+  :bind (:map minibuffer-local-completion-map
+			  ("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
@@ -1062,6 +1050,11 @@ Call a second time to restore the original window configuration."
   :config  
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode)
+  :init
+  (defun stealthily (fn &rest args)
+	"Apply FN to ARGS while inhibiting modification hooks."
+	(let ((inhibit-modification-hooks t))
+      (apply fn args)))
   (advice-add 'minibuf-eldef-setup-minibuffer :around #'stealthily))
 #+end_src
 
@@ -1080,7 +1073,8 @@ Call a second time to restore the original window configuration."
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
   :after marginalia
-  :config (all-the-icons-completion-mode)
+  :config
+  (all-the-icons-completion-mode)
   (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
 #+end_src
 
@@ -1150,6 +1144,7 @@ Call a second time to restore the original window configuration."
          ("M-s g" . consult-grep)
          ("M-s G" . consult-git-grep)
          ("M-s r" . consult-ripgrep)
+
          ("C-s" . (lambda () (interactive)(progn (push-mark-no-activate)(consult-line))))
          ("M-s ." . consult-line-thing-at-point)
          ("M-s m" . consult-multi-occur)
@@ -1166,7 +1161,6 @@ Call a second time to restore the original window configuration."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
-  (recentf-mode 1)
   ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defalias 'consult-line-thing-at-point 'consult-line)
   (defalias 'consult-ripgrep-symbol-at-point 'consult-ripgrep)
@@ -1296,29 +1290,28 @@ Call a second time to restore the original window configuration."
   (setq embark-action-indicator (lambda (map _target)
                                   (which-key--show-keymap "Embark" map nil nil 'no-paging)
                                   #'which-key--hide-popup-ignore-command)
-        embark-become-indicator embark-action-indicator))
+        embark-become-indicator embark-action-indicator)
+  (use-package embark-vc))
 
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
-(use-package embark-vc
-  :after embark)
 #+end_src   
 
 ** Protogg
 
 #+begin_src emacs-lisp
 (use-package protogg
-  :defer t
   :vc (:url "https://github.com/nehrbash/protogg.git"
                :branch "main" :rev :newest)
   :custom (protogg-minibuffer-toggle-key "M-g")
-  :bind (([remap async-shell-command] . protogg-async-shell-command) ;; M-&
-         ("C-c x" . protogg-compile)
+  :bind (("C-c x" . protogg-compile)
          ([remap dired] . protogg-dired) ;; C-x d
          ("C-c e" . protogg-eshell)
          ("M-s d" . protogg-find-dired)
          ([remap find-file] . protogg-find-file) ;; C-x C-f
          ([remap list-buffers] . protogg-list-buffers) ;; type C-x C-b
+		 ;; note these are not interactive so they won't toggle.
+		 ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
          ([remap shell-command] . protogg-shell-command) ;; M-!
          ("C-c s" . protogg-shell)
          ([remap switch-to-buffer] . sn/consult-buffer)
@@ -1334,6 +1327,7 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package corfu
+  :defer 1
   :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
                        (setq-local corfu-auto t
                                    corfu-auto-delay 0
@@ -1350,17 +1344,16 @@ Call a second time to restore the original window configuration."
   (corfu-quit-no-match 'separator)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
-  (corfu-auto-prefix 2)
+  (corfu-auto-prefix 1.3)
+  (completion-cycle-threshold 3)
   :config
   ;; TAB cycle if there are only few candidates
-  (setq completion-cycle-threshold 3)
   (defun orderless-fast-dispatch (word index total)
   (and (= index 0) (= total 1) (length< word 4)
        `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
   (orderless-define-completion-style orderless-fast
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
-  :init
   (global-corfu-mode)
   (corfu-popupinfo-mode))
 #+end_src
@@ -1369,7 +1362,7 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package corfu-candidate-overlay
-  :after corfu
+  :after corfu 
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
                                :branch "master" :rev :newest)
   :config (corfu-candidate-overlay-mode +1))
@@ -1389,10 +1382,9 @@ Call a second time to restore the original window configuration."
 #+begin_src emacs-lisp
 (use-package kind-icon
   :after corfu
-  :custom ((kind-icon-default-face 'corfu-default)
-		   (kind-icon-blend-background t)
-		   (kind-icon-blend-frac 0.2))
+  :custom ((kind-icon-default-face 'corfu-default))
   :config
+  (plist-put kind-icon-default-style :height 0.9)
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 #+end_src    
 
@@ -1427,32 +1419,47 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package yasnippet
-  :hook (emacs-startup . yas-global-mode)
-  :bind (:map yas-minor-mode-map ("C-c s" . yas-insert-snippet))
+  :bind ("C-c s" . yas-insert-snippet)
+  :custom
+  (yas-verbosity 1)
+  (yas-wrap-around-region t)
   :config
   (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
-  (setq yas-verbosity 1)
-  (setq yas-wrap-around-region t))
+  (yas-global-mode))
 (use-package yasnippet-snippets
   :after yasnippet
   :hook (package-upgrade-all . (lambda () (yas-reload-all))))
 (use-package yasnippet-capf
-  :after cape
+  :after (cape yasnippet)
   :config
   (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling
 
-   Using =flyspell-correct= as it uses =completing-read= by default so that it uses consult for it's completions frontend 
+   Using =flyspell-correct= as it uses =completing-read= by default so that it uses consult for it's completions frontedz
    
 #+begin_src emacs-lisp
 (use-package jinx
+  :bind (("M-$" . jinx-correct-word-save-to-file)
+		 ("C-M-$" . #'jinx-correct-all)
+		 ;; (:map jinx-overlay-map ;; change correct to right click not 
+		 ;; 	   ("<mouse-1>" . nil)
+		 ;; 	   ("<mouse-3>" . jinx-correct))
+		 )
   :init (global-jinx-mode)
   (add-to-list 'vertico-multiform-categories
                '(jinx grid (vertico-grid-annotate . 30)))
-  :bind (("M-$" . jinx-correct)
-		 ("C-M-$" . #'jinx-correct-all)))
+  :config
+  (defun jinx-correct-word-save-to-file ()
+	"Correct word between START and END, and save corrected word to a file, removing duplicates."
+	(interactive)
+	(progn
+	  (call-interactively #'jinx-correct)
+	  (let ((current-word (thing-at-point 'word t)))
+		(with-temp-buffer
+          (insert current-word)
+          (append-to-file (point-min) (point-max) (expand-file-name "~/.jinxcorrections") t))))))
 #+end_src
 		
 *** Define word
@@ -1473,13 +1480,11 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package dired
   :ensure nil
   :commands (dired dired-jump dired-omit-mode)
-  :hook (dired-mode . my-dired-mode-hook)
-  :delight dired-omit-mode
-  :init
-  (defun my-dired-mode-hook ()
-    (dired-omit-mode 1)
-    (setq mode-line-format nil)
-    (hl-line-mode 1))
+  :hook (dired-mode . (lambda ()
+						(dired-omit-mode 1)
+						(dired-hide-details-mode 1)
+						(toggle-mode-line)
+						(hl-line-mode 1)))
   :config
   (setq dired-omit-files "^\\.\\.?$")
   (setq-default dired-dwim-target t)
@@ -1487,20 +1492,17 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
         dired-omit-verbose nil)
   (setq dired-recursive-deletes 'top))
 (use-package dired-single
-  :after dired
   :bind (:map dired-mode-map
               ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
               ("f" . dired-single-buffer)))
 (use-package dired-ranger
-  :after dired
   :bind (:map dired-mode-map
               ("w" . dired-ranger-copy)
               ("m" . dired-ranger-move)
               ("H" . dired-omit-mode)
               ("y" . dired-ranger-paste)))
 (use-package all-the-icons
-  :hook(package-upgrade-all . all-the-icons-install-fonts)
-  :if (display-graphic-p))
+  :hook (package-upgrade-all . all-the-icons-install-fonts))
 (use-package all-the-icons-dired
   :hook (dired-mode . all-the-icons-dired-mode))
 (use-package dired-collapse
@@ -1557,13 +1559,29 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :defer t)
 (use-package org
   :ensure org-contrib
+  :init
+  (defun gtd () (interactive) (org-agenda 'nil "g"))
   :bind (("C-c a" .  gtd)
+		 ("C-c c" . org-capture)
          (:map org-mode-map
                ( "C-M-<up>" . org-up-element)))
+    :hook (org-mode . (lambda ()
+                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
+                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
+                      (setq-local prettify-symbols-alist
+                            '(("[ ]" .  "☐")
+                              ("[X]" . "☑" )
+                              ("#+TITLE:" . "")
+                              ("#+title: " . "")
+                              ("#+begin_src" . "⮓")
+                              ("#+end_src" . "⮒")))
+                      (prettify-symbols-mode 1)))
   :config
-  (require 'ox-extra)
+  (add-hook 'org-export-before-processing-hook
+			(lambda (backend)
+			  (require 'ox-extra)))
   (setq org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
-  (defun gtd () (interactive) (org-agenda 'nil "g"))
+  
   (setq org-adapt-indentation t
         org-auto-align-tags nil
         org-edit-src-content-indentation 0
@@ -1584,48 +1602,15 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 		;; TODO(SN): use auctex-mode to fix this https://github.com/karthink/org-auctex
 		org-startup-with-latex-preview nil
 		org-support-shift-select t
-        org-archive-location "%s_archive::* Archive"))
-#+end_src
-
-** Extra org packages
-
-#+begin_src emacs-lisp
-#+end_src
-   
-** Org Appear
-
-Provides a way to toggle visibility of hidden elements such as emphasis markers, links, etc. by customizing specific variables.
-
-#+begin_src emacs-lisp
-(use-package org-appear
-  :vc (:url "https://github.com/awth13/org-appear.git"
-                  :branch "master" :rev :newest)
-  :hook (org-mode . org-appear-mode))
-#+end_src
-
-** Org File Locations
-
-    Set registers to jump to certain files like type C-x r j e to open .Emacs
-
-#+begin_src emacs-lisp
-(setq org-directory "~/doc")
-(setq org-default-notes-file (concat org-directory "/notes.org"))
-;; (require 'cl-lib)
-(setq org-agenda-files
-      (cl-remove-if-not #'file-exists-p
-                        '("~/doc/inbox.org"
-                          "~/doc/projects.org"
-                          "~/doc/gcal.org"
-                          "~/doc/repeater.org")))
-#+End_src
-
-** Capturing
-
-#+BEGIN_SRC emacs-lisp
-(use-package org
-  :bind
-  (("C-c c" . org-capture))
-  :config
+        org-archive-location "%s_archive::* Archive")
+  (setq org-directory "~/doc")
+  (setq org-default-notes-file (concat org-directory "/notes.org"))
+  (setq org-agenda-files
+		(cl-remove-if-not #'file-exists-p
+                          '("~/doc/inbox.org"
+							"~/doc/projects.org"
+							"~/doc/gcal.org"
+							"~/doc/repeater.org")))
   (setq org-capture-templates
         `(("t" "Tasks")
           ("tt" "Todo" entry (file "~/doc/inbox.org") 
@@ -1648,49 +1633,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
                                                                     (org-capture-finalize))))
           ("rv" "Open Roam UI in browser" entry (function (lambda ()
                                                             (org-roam-ui-open)
-                                                            (org-capture-finalize)))))))
-#+end_src
-
-** Dynamic Re-align tags
-
-#+begin_src emacs-lisp
-(with-eval-after-load 'org-agenda
-  (add-hook 'org-agenda-mode-hook
-            (lambda ()   (setq mode-line-format nil)
-              (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t)))
-)
-(with-eval-after-load 'org-mode
-  (add-hook 'before-save-hook
-            (lambda ()  (add-hook 'window-configuration-change-hook 'org-agenda-align-tags nil t))))
-#+end_src
-
-** Pretty Symbol Replacement
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-bullets
-  :hook (org-mode . org-bullets-mode)
-  :custom
-  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
-  (org-ellipsis " ⮟"))
-
-(use-package org
-  :hook (org-mode . (lambda ()
-                      (set-face-attribute 'org-table nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
-                      (set-face-attribute 'org-block nil :inherit 'fixed-pitch :font "Source Code Pro-10" :height 1.0)
-                      (setq-local prettify-symbols-alist
-                            '(("[ ]" .  "☐")
-                              ("[X]" . "☑" )
-                              ("#+TITLE:" . "")
-                              ("#+title: " . "")
-                              ("#+begin_src" . "⮓")
-                              ("#+end_src" . "⮒")))
-                      (prettify-symbols-mode 1)))
-  :config
-  ;; This is needed as of Org 9.2
-  (require 'org-tempo)
-  (add-to-list 'org-structure-template-alist '("sh" . "src shell"))
-  (add-to-list 'org-structure-template-alist '("el" . "src emacs-lisp"))
-  (add-to-list 'org-structure-template-alist '("py" . "src python"))
+                                                            (org-capture-finalize))))))
   (org-babel-do-load-languages
    'org-babel-load-languages
    `((dot . t)
@@ -1702,15 +1645,40 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
      (sql . t)
      (sqlite . t))))
 #+end_src
+   
+** Org Appear
+
+Provides a way to toggle visibility of hidden elements such as emphasis markers, links, etc. by customizing specific variables.
+
+#+begin_src emacs-lisp
+(use-package org-appear
+  :vc (:url "https://github.com/awth13/org-appear.git"
+                  :branch "master" :rev :newest)
+  :hook (org-mode . org-appear-mode))
+#+end_src
+
+** Pretty Symbol Replacement
+
+#+BEGIN_SRC emacs-lisp
+(use-package org-bullets
+  :hook (org-mode . org-bullets-mode)
+  :custom
+  (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
+  (org-ellipsis " ⮟"))
+#+end_src
 
 ** Clock In/Out
    Pads visited in Org-mode are opened in Evince (and other file extensions are handled according to the defaults)
 
 #+begin_src emacs-lisp
-(defvar org-clock-prefix-map (make-sparse-keymap)
-  "A keymap for handy global access to org helpers, particularly clocking.")
 (use-package org-clock
+  :defer 2
   :ensure nil
+  :config
+  (org-clock-persistence-insinuate)
+  :init
+  (defvar org-clock-prefix-map (make-sparse-keymap)
+	"A keymap for handy global access to org helpers, particularly clocking.")
   :bind-keymap ("C-c o" . org-clock-prefix-map)
   :bind (:map org-clock-prefix-map
 			  ("j" . org-clock-goto)
@@ -1734,16 +1702,15 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   (org-clock-report-include-clocking-task t)
   ;; use pretty things for the clocktable
   (org-pretty-entities t)
-  (org-clock-persist 'history)
-  (org-clock-persistence-insinuate))
+  (org-clock-persist 'history))
 #+end_src
 
 ** Type Breaks
 
 #+begin_src emacs-lisp
 (use-package type-break
-  :hook ((org-clock-in-prepare . type-break-mode)
-		 (after-init . type-break-mode))
+  :after org-clock
+  :hook ((org-clock-in-prepare . type-break-mode))
   ;; Setting interval of that of a pomodoro session
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
@@ -1759,7 +1726,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
   ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
-  :config
+  :init
   (defun org-clock-in-to-task-by-title (task-title)
   "Clock into an Org Agenda task by its title within a custom agenda command."
   (interactive "sEnter the title of the task: ")
@@ -1797,7 +1764,9 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 												   " " formatted-time)
 								 :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
 								 :keystroke-count ,type-break-keystroke-count)))
-      (json-encode json-data))))
+      (json-encode json-data)))
+  :init
+  (type-break-mode))
 #+end_src   
 
 ** Latex Fragments
@@ -1832,12 +1801,16 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 ** Writing Mode
 
 #+begin_src emacs-lisp
-(define-minor-mode wr-mode
+(use-package org
+  :bind ((:map org-mode-map
+               ("C-c v" . wr-mode)))
+  :init
+  (define-minor-mode wr-mode
     "Set up a buffer for word editing.
  This enables or modifies a number of settings so that the
  experience of word processing is a little more like that of a
  typical word processor."
-   :interactive t " Writing" nil
+	:interactive t " Writing" nil
     (if wr-mode
         (progn
           (setq truncate-lines nil
@@ -1862,18 +1835,16 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (buffer-face-mode -1)
 	  (visual-fill-column-mode -1)
       (visual-line-mode -1)))
-(use-package org-pretty-table
-  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
-                        :branch "master" :rev :newest)
-  :hook (org-mode . org-pretty-table-mode))
-(use-package org
-  :bind ((:map org-mode-map
-               ("C-c v" . wr-mode)))
   :hook ((org-mode . wr-mode)
          (org-mode . (lambda ()
-            (setq-local buffer-face-mode-face '((:family "Google Sans" :weight bold )))
-            (setq-local corfu-auto-delay 0.8)
-            (buffer-face-mode)))))
+					   (setq-local buffer-face-mode-face '((:family "Google Sans" :weight bold )))
+					   (setq-local corfu-auto-delay 0.8)
+					   (buffer-face-mode)))))
+(use-package org-pretty-table
+  :defer t
+  :vc (:url "https://github.com/Fuco1/org-pretty-table.git"
+            :branch "master" :rev :newest)
+  :hook (org-mode . org-pretty-table-mode))
 #+end_src
 
 *** Set Margins for org mode
@@ -2046,21 +2017,11 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    "Tangle Org file without asking for confirmation."
    (let ((org-confirm-babel-evaluate nil))
      (org-babel-tangle)))
-
  :hook
  (org-mode . (lambda ()
                (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
                          'run-at-end 'only-in-org-mode))))
 #+end_src
-
-** Org Screenshot
-
-#+BEGIN_SRC emacs-lisp
-(use-package org-attach-screenshot
-  :commands (org-attach-screenshot)
-  :config
-  (setq org-attach-screenshot-command-line "/usr/share/sway/scripts/grimshot copy area"))
-#+END_SRC
 
 ** PDF Tools
 
@@ -2071,29 +2032,27 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 #+begin_src emacs-lisp
 (use-package pdf-tools
+  :defer 3
   :hook ((pdf-view-mode . (lambda ()
+							(setq-local scroll-bar-mode 1)
 							(pdf-view-midnight-minor-mode 1)))
 		 (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line))))
-  :custom (pdf-view-display-size 'fit-width)
-  :config (pdf-loader-install))
-#+end_src
-
-** Markdown
-
-#+begin_src emacs-lisp
-(use-package markdown-mode
-  :mode ("\\.md\\'" . markdown-mode))
+  :custom ((pdf-view-display-size 'fit-width))
+  :config
+  (setopt pdf-continuous-suppress-introduction t) ;; from pdf-continuous-scroll-mode but needs to be set before it's loaded and putting it in pdf-continuous-scroll-mode init force pdf tools to load.
+  (pdf-loader-install))
+(use-package pdf-continuous-scroll-mode
+  :after pdf-tools
+   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
+            :branch "master" :rev :newest))
 #+end_src
 
 ** Org Roam
 
 #+begin_src emacs-lisp
 (use-package org-roam
-  :init
-  (setq org-roam-v2-ack t)
-  :delight(org-roam-mode)
-  :config
-    (org-roam-db-autosync-mode)
+  :init (setq org-roam-v2-ack t)
+  :config (org-roam-db-autosync-mode)
   :custom 
   (org-roam-directory "~/doc/Roam/")
   (org-roam-completion-everywhere t)
@@ -2181,6 +2140,15 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
             :branch "main" :rev :newest))  
 #+end_src
 	
+*** Keep cursor in center of screen
+	
+	I just like this more for coding
+
+#+begin_src emacs-lisp
+(use-package centered-cursor-mode
+ :hook (prog-mode . centered-cursor-mode))  
+#+end_src
+
 *** HEX Colors
 
    Show hex colors while coding or editing themes.
@@ -2269,13 +2237,17 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 
 #+begin_src emacs-lisp
 (use-package git-gutter
-  :hook (eglot-server-initialized . (lambda (server) (run-at-time 1 nil (lambda() (git-gutter-mode)))))
-  :custom (
-		   (git-gutter:ask-p nil)
-		   (git-gutter:update-interval 2)))
+  :defer t
+  ;; hook eglot so that not enabled in most buffers and lower priority (also don't like it in text documents)
+  :hook (eglot-server-initialized . (lambda (server)
+									  (run-at-time 1 nil
+												   (lambda () (git-gutter-mode)))))
+  :custom
+  ((git-gutter:ask-p nil)
+   (git-gutter:update-interval 2)))
 
 (use-package git-gutter-fringe
-  :after  git-gutter
+  :after git-gutter
   :config
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
@@ -2302,6 +2274,20 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 (use-package magit-todos
   :after magit
   :hook(magit-mode . magit-todos-mode))
+(use-package blamer
+  :ensure t
+  :bind (("C-c C-i" . blamer-mode)
+         ("C-c i" . blamer-show-posframe-commit-info))
+  :custom
+  (blamer-idle-time 3)
+  (blamer-min-offset 70)
+  :custom-face
+  (blamer-face ((t :foreground "#7a88cf"
+                    :background nil
+                    :height 70
+                    :italic t)))
+  ;; :config  (global-blamer-mode 1) # don't actually want the clutter all the time.
+  )
 #+end_src
 
 **** Open in browser
@@ -2334,7 +2320,8 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
 		   (eat-enable-yank-to-terminal t))
   :bind (("M-t" . eat-project-other)
 		 (("M-t" . eat-other-window))))
-#+end_src	
+#+end_src
+
 *** Compile Helpers 
 
 #+begin_src emacs-lisp
@@ -2374,17 +2361,16 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
       (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 #+end_src
+
 *** static checking
 
 #+begin_src emacs-lisp
 (use-package flymake
-  :diminish
   :hook (prog-mode . flymake-mode)
   :custom
   ((flymake-fringe-indicator-position 'right-fringe)
    (flymake-show-diagnostics-at-end-of-line 'short)
-   (flymake-no-changes-timeout nil)
-   )
+   (flymake-no-changes-timeout nil))
   :config
   (setq elisp-flymake-byte-compile-load-path
         (append elisp-flymake-byte-compile-load-path load-path)))
@@ -2408,6 +2394,7 @@ Provides a way to toggle visibility of hidden elements such as emphasis markers,
    (gofumpt . "go install mvdan.cc/gofumpt@latest")
    (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
+						(subword-mode 1)
 						(setq-local compile-command "go build -v && go test -v -cover && go vet"
 									go-ts-mode-indent-offset 4))))
 (use-package go-tag
@@ -2430,6 +2417,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package rust-ts-mode
+  :mode ("\\.rs\\'" . rust-ts-mode)
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
   :config
@@ -2449,7 +2437,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
    :init
    (add-hook 'bash-ts-mode-hook 'flymake-shellcheck-load))
 #+end_src
-
    
 ** Java Script
 
@@ -2459,7 +2446,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :mode ("\\.js\\'" . js-ts-mode))
 #+end_src
 
-   
 ** TOML
 
 #+begin_src emacs-lisp 
@@ -2592,6 +2578,13 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :hook (yuck-mode . (lambda () (setq-local lisp-indent-offset 2))))
 #+end_src
 
+** Markdown
+
+#+begin_src emacs-lisp
+(use-package markdown-mode
+  :mode ("\\.md\\'" . markdown-mode))
+#+end_src
+
 * Fancy Bloat
   
 ** Mu4e - Mail
@@ -2710,8 +2703,9 @@ If not in a project, prompt for the project root."
   Typing practice inside Emacs.  
   
 #+begin_src emacs-lisp
-(use-package speed-type :commands speed-type-top-x
-  :defer t)
+(use-package speed-type
+  :defer t
+  :commands speed-type-top-x)
 #+end_src
 
 ** Google This
