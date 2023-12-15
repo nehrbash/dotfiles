@@ -102,9 +102,6 @@ systemctl enable greetd.service
 * WM Hyprland
 
   I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
-  Install hyprland  manually because of the nvidia patch. 
-  - =xdg-desktop-portal-hyprland-git=
-  - =hyprland-git= or  =hyprland-nvidia-git=
 	
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync
@@ -115,6 +112,10 @@ brightnessctl
 wget
 nwg-displays
 wlr-randr
+grimblast-git
+hyprland-git
+xdg-desktop-portal-hyprland-git
+wl-clipboard
 #+end_src
 
 ** Services
@@ -274,10 +275,19 @@ fi
 emacs-pdf-tools-git
 aspell
 aspell-en
+hspell
+nuspell
+libvoikko
 ripgrep
 isync
 mu
+enchant
 dropbox
+texlive
+latexmk
+bash-language-server
+curl
+shellcheck
 #+end_src
 
 #+begin_src sh :tangle install.sh

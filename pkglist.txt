@@ -8,6 +8,10 @@ brightnessctl
 wget
 nwg-displays
 wlr-randr
+grimblast-git
+hyprland-git
+xdg-desktop-portal-hyprland-git
+wl-clipboard
 eww-tray-wayland-git
 swayidle
 nwg-look
@@ -42,7 +46,16 @@ cava
 emacs-pdf-tools-git
 aspell
 aspell-en
+hspell
+nuspell
+libvoikko
 ripgrep
 isync
 mu
+enchant
 dropbox
+texlive
+latexmk
+bash-language-server
+curl
+shellcheck

@@ -114,7 +114,7 @@ function main() {
     _screenshot_command_="$1"
     _notif_message_="$2"
 
-    $_screenshot_command_ $_SCREENSHOT_DIR_\/$_start_job_.png> /dev/null 2>&1
+    $_screenshot_command_ $_SCREENSHOT_DIR_\/$_start_job_.png> $_LOG_FILE_ 2>&1
     check
 
     get_latest_img
