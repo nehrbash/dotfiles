@@ -906,73 +906,82 @@ Call a second time to restore the original window configuration."
   :bind ("M-^" . define-word-at-point))
 
 (use-package dired
+  :defer t
   :ensure nil
-  :commands (dired dired-jump dired-omit-mode)
+  :commands (dired dired-jump)
   :hook (dired-mode . (lambda ()
 						(dired-omit-mode 1)
 						(dired-hide-details-mode 1)
 						(toggle-mode-line)
 						(hl-line-mode 1)))
-  :config
-  (setq dired-omit-files "^\\.\\.?$")
-  (setq-default dired-dwim-target t)
-  (setq dired-listing-switches "-agho --group-directories-first"
-        dired-omit-verbose nil)
-  (setq dired-recursive-deletes 'top))
+  :custom
+  ((dired-mouse-drag-files t)
+   (dired-omit-files "^\\.\\.?$")
+   (dired-listing-switches "-agho --group-directories-first")
+   (dired-omit-verbose nil)
+   (dired-recursive-deletes 'top)
+   (dired-dwim-target t)))
 (use-package dired-single
+  :after dired
   :bind (:map dired-mode-map
               ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
               ("f" . dired-single-buffer)))
 (use-package dired-ranger
+  :after dired
   :bind (:map dired-mode-map
               ("w" . dired-ranger-copy)
               ("m" . dired-ranger-move)
               ("H" . dired-omit-mode)
               ("y" . dired-ranger-paste)))
 (use-package all-the-icons
+  :defer t
   :hook (package-upgrade-all . all-the-icons-install-fonts))
 (use-package all-the-icons-dired
+  :after dired
   :hook (dired-mode . all-the-icons-dired-mode))
 (use-package dired-collapse
+  :after dired
   :hook  (dired-mode . dired-collapse-mode))
 (use-package diredfl
+  :after dired
   :hook (dired-mode . diredfl-mode))
 (use-package dired-hide-dotfiles
+  :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (:map dired-mode-map
               ("." . dired-hide-dotfiles-mode)))
 
 (use-package consult-dir
-  :after (consult)
+  :after consult
   :bind (("C-x C-d" . consult-dir)
          (:map vertico-map
-         ("C-x C-d" . consult-dir)
-         ("C-x C-j" . consult-dir-jump-file)))
+			   ("C-x C-d" . consult-dir)
+			   ("C-x C-j" . consult-dir-jump-file)))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
-  "Get a list of hosts from docker."
-  (when (require 'docker-tramp nil t)
-    (let ((hosts)
-          (docker-tramp-use-names t))
-      (dolist (cand (docker-tramp--parse-running-containers))
-        (let ((user (unless (string-empty-p (car cand))
+	"Get a list of hosts from docker."
+	(when (require 'docker-tramp nil t)
+      (let ((hosts)
+			(docker-tramp-use-names t))
+		(dolist (cand (docker-tramp--parse-running-containers))
+          (let ((user (unless (string-empty-p (car cand))
                         (concat (car cand) "@")))
-              (host (car (cdr cand))))
-          (push (concat "/docker:" user host ":/") hosts)))
-      hosts)))
-(defvar consult-dir--source-tramp-docker
-  `(:name     "Docker"
-    :narrow   ?d
-    :category file
-    :face     consult-file
-    :history  file-name-history
-    :items    ,#'consult-dir--tramp-docker-hosts)
-  "Docker candiadate source for `consult-dir'.")
-(add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
+				(host (car (cdr cand))))
+			(push (concat "/docker:" user host ":/") hosts)))
+		hosts)))
+  (defvar consult-dir--source-tramp-docker
+	`(:name     "Docker"
+				:narrow   ?d
+				:category file
+				:face     consult-file
+				:history  file-name-history
+				:items    ,#'consult-dir--tramp-docker-hosts)
+	"Docker candiadate source for `consult-dir'.")
+  (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
 (use-package org-contrib
-  :defer t)
+  :defer t) ;; install but don't require unless needed.
 (use-package org
   :ensure org-contrib
   :init
@@ -1062,11 +1071,13 @@ Call a second time to restore the original window configuration."
      (sqlite . t))))
 
 (use-package org-appear
+  :after org
   :vc (:url "https://github.com/awth13/org-appear.git"
                   :branch "master" :rev :newest)
   :hook (org-mode . org-appear-mode))
 
 (use-package org-bullets
+  :after org
   :hook (org-mode . org-bullets-mode)
   :custom
   (org-bullets-bullet-list '("◉" "○" "●" "○" "●" "○" "●"))
