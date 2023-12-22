@@ -125,27 +125,30 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
    With the added vc no need to use =straight.el= or =elpaca=
 
 #+begin_src emacs-lisp
-(eval-when-compile
-  (require 'package)
-  (require 'use-package))
-(setq package-native-compile t
-	  native-comp-deferred-compilation t
-	  native-compile-prune-cache t
-	  async-bytecomp-package-mode t
-	  package-quickstart t
-	  package-install-upgrade-built-in t)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(setq use-package-always-ensure t
-	  use-package-expand-minimally t
-	  use-package-compute-statistics t)
-;; Use no-littering to automatically set common paths to the new user-emacs-directory
-(use-package no-littering)
-(setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-(load custom-file 'noerror 'nomessage)
-;; set this after no-littering
-(add-hook 'package-upgrade-all-hook
-		  (lambda ()
-			(package-quickstart-refresh)))
+  (eval-when-compile
+    (require 'package)
+    (require 'use-package))
+  (setq package-native-compile t
+	    native-comp-deferred-compilation t
+	    native-compile-prune-cache t
+	    async-bytecomp-package-mode t
+	    package-quickstart t
+	    package-install-upgrade-built-in t)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (setq use-package-always-ensure t
+	    use-package-expand-minimally t
+	    use-package-compute-statistics t)
+  ;; Use no-littering to automatically set common paths to the new user-emacs-directory
+  (use-package no-littering)
+  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+  (load custom-file 'noerror 'nomessage)
+  ;; set this after no-littering
+  (add-hook 'package-upgrade-all-hook
+		    (lambda ()
+			  (package-quickstart-refresh)))
+(require 'server)
+(unless (server-running-p)
+  (server-start)) ;; start server
 #+end_src
 
 ** Startup Time
@@ -507,7 +510,7 @@ org-roam-ui               Declared      00:54:21.319478         0.00
 	   "occur"
 	   isearch-occur
 	   :transient nil)]])
-  (define-key isearch-mode-map (kbd "<M-space>") 'sn/isearch-menu))
+  (define-key isearch-mode-map (kbd "C-t") 'sn/isearch-menu))
 #+end_src
 
 
@@ -1091,9 +1094,6 @@ Call a second time to restore the original window configuration."
 
 ** Theme
 
--   '(org-document-title ((t (:height 3.8))))
-
-
 #+begin_src emacs-lisp
 (use-package ef-themes
   :custom
@@ -1101,37 +1101,34 @@ Call a second time to restore the original window configuration."
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
   :config
-  (defun my-ef-themes-mode-line ()
-	"Tweak the style of the mode lines."
+  (defun my-ef-themes-mod ()
+	"Tweak the style of the ef theme."
 	(ef-themes-with-colors
 	  (custom-set-faces
 	   `(pdf-view-midnight-colors ((,c :foreground ,fg-main :background ,bg-alt)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 3 :color ,fg-dim))))
-	   `(mode-line-inactive ((,c :box (:line-width 3 :color ,bg-active))))
-	   `(org-document-title ((,c :height 3.8)))
-	   `(org-table ((,c (:inherit 'default :font "Source Code Pro-10"))))
-	   `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro"))))
-	   `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro-10"))))
+	   `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
+	   `(org-document-title ((,c :height 2.1)))
+	   ;; `(org-modern-todo ((,c :height 1.2)))
+	   ;; `(org-modern-done ((,c :height 1.2)))
+	   `(org-modern-tag ((,c :height 1.2)))
+	   `(default ((,c :font "Source Code Pro" :height 128)))
+	   `(unspecified-bg ((,c (:inherit 'default )))) ;; supress errors
+	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
+	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
 	   )))
   (setq ef-themes-headings ; read the manual's entry or the doc string
-		'((0 variable-pitch light 1.9)
+		'((0 variable-pitch light 2.1)
 		  (1 variable-pitch light 1.8)
-		  (2 variable-pitch regular 1.7)
-		  (3 variable-pitch regular 1.6)
-		  (4 variable-pitch regular 1.5)
-		  (5 variable-pitch 1.4) ; absence of weight means `bold'
-		  (6 variable-pitch 1.3)
-		  (7 variable-pitch 1.2)
-		  (t variable-pitch 1.1)
-		  (agenda-date 1.3)
+		  (t variable-pitch 1.2)
+		  (agenda-date 1.9)
 		  (agenda-structure variable-pitch light 1.8)
 		  (t variable-pitch)))
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mode-line)
+  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
   (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark)
-  )
+  (ef-themes-select 'ef-melissa-dark))
 #+end_src
 
 *** Different color Delimiters
@@ -1143,8 +1140,8 @@ Call a second time to restore the original window configuration."
 
 ** Modeline
 
- #+begin_src emacs-lisp
- (use-package doom-modeline
+#+begin_src emacs-lisp
+(use-package doom-modeline
    :init
    (line-number-mode -1)
    (column-number-mode -1)
@@ -1182,26 +1179,26 @@ Call a second time to restore the original window configuration."
 
 	Change global font size easily
 
-	#+begin_src emacs-lisp
-	(use-package default-text-scale
-	  :bind (("C-M-=". default-text-scale-increase)
-			 ("C-M--" . default-text-scale-decrease)))
+#+begin_src emacs-lisp
+(use-package default-text-scale
+		  :bind (("C-M-=". default-text-scale-increase)
+				 ("C-M--" . default-text-scale-decrease)))
 	#+end_src
 
 *** Padding
 
-   #+begin_src emacs-lisp
-   (use-package spacious-padding
-	 :custom
-	 (spacious-padding-widths
-	  '( :internal-border-width 15
-		 :header-line-width 4
-		 :mode-line-width 2
-		 :tab-width 4
-		 :right-divider-width 30
-		 :scroll-bar-width 8))
-	 :config (spacious-padding-mode))
-   #+end_src
+#+begin_src emacs-lisp
+(use-package spacious-padding
+	:config (spacious-padding-mode 1)
+	:custom
+	(spacious-padding-widths
+	 '( :internal-border-width 15
+		:header-line-width 4
+		:mode-line-width 2
+		:tab-width 4
+		:right-divider-width 30
+		:scroll-bar-width 8)))
+#+end_src
 
 * Mini-buffer / Completion Framework
 
@@ -1283,22 +1280,23 @@ Call a second time to restore the original window configuration."
   :after vertico
   :defer t
   :bind ((:map meow-normal-state-keymap
-			   ("C-f" . consult-buffer-other-window)
-			   ("M-f". consult-buffer);; orig. switch-to-buffer-other-window
-			   ("P" . consult-yank-pop))
+			   ("C-b" . consult-buffer-other-window)
+			   ("M-b". consult-buffer);; orig. switch-to-buffer-other-window
+			   ("P" . consult-yank-pop)
+			   ("M-o" . consult-outline)
+			   ("C-M-r" . consult-register)
+			   ("C-M-s" . consult-register-store))
 
-		 ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
 		 ;; Custom M-# bindings for fast register access
 		 ("M-#" . consult-register-load)
-		 ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-		 ("C-M-#" . consult-register)
+
+
 		 ;; Other custom bindings
 		 ("<help> a" . consult-apropos)            ;; orig. apropos-command
 		 ;; M-g bindings (goto-map)
 		 ("M-g e" . consult-compile-error)
 		 ("M-g n" . consult-flymake)
-		 ("M-g g" . consult-goto-line)             ;; orig. goto-line
-		 ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+						;; Alternative: consult-org-heading
 		 ("M-g m" . consult-mark)
 		 ("M-g k" . consult-global-mark)
 		 ("M-g i" . consult-imenu)
@@ -2572,9 +2570,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
-  ((flymake-fringe-indicator-position 'right-fringe)
-   (flymake-show-diagnostics-at-end-of-line 'short)
-   (flymake-no-changes-timeout nil))
+  (flymake-fringe-indicator-position 'right-fringe)
+  (flymake-show-diagnostics-at-end-of-line 'short)
   :config
   (setq elisp-flymake-byte-compile-load-path
 		(append elisp-flymake-byte-compile-load-path load-path)))

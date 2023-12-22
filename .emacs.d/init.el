@@ -9,26 +9,28 @@
 (load-all-environment-variables)
 
 (eval-when-compile
-  (require 'package)
-  (require 'use-package))
-(setq package-native-compile t
-	  native-comp-deferred-compilation t
-	  native-compile-prune-cache t
-	  async-bytecomp-package-mode t
-	  package-quickstart t
-	  package-install-upgrade-built-in t)
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(setq use-package-always-ensure t
-	  use-package-expand-minimally t
-	  use-package-compute-statistics t)
-;; Use no-littering to automatically set common paths to the new user-emacs-directory
-(use-package no-littering)
-(setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-(load custom-file 'noerror 'nomessage)
-;; set this after no-littering
-(add-hook 'package-upgrade-all-hook
-		  (lambda ()
-			(package-quickstart-refresh)))
+    (require 'package)
+    (require 'use-package))
+  (setq package-native-compile t
+	    native-comp-deferred-compilation t
+	    native-compile-prune-cache t
+	    async-bytecomp-package-mode t
+	    package-quickstart t
+	    package-install-upgrade-built-in t)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (setq use-package-always-ensure t
+	    use-package-expand-minimally t
+	    use-package-compute-statistics t)
+  ;; Use no-littering to automatically set common paths to the new user-emacs-directory
+  (use-package no-littering)
+  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
+  (load custom-file 'noerror 'nomessage)
+  ;; set this after no-littering
+  (add-hook 'package-upgrade-all-hook
+		    (lambda ()
+			  (package-quickstart-refresh)))
+;; (load "server")
+;; (unless (server-running-p) (server-start)) ;; start server
 
 ;; (use-package use-package-chords
 ;;   :config (key-chord-mode 1))
@@ -229,7 +231,7 @@
 	   "occur"
 	   isearch-occur
 	   :transient nil)]])
-  (define-key isearch-mode-map (kbd "<M-space>") 'sn/isearch-menu))
+  (define-key isearch-mode-map (kbd "C-t") 'sn/isearch-menu))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -604,84 +606,81 @@ Call a second time to restore the original window configuration."
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
   :config
-  (defun my-ef-themes-mode-line ()
-	"Tweak the style of the mode lines."
+  (defun my-ef-themes-mod ()
+	"Tweak the style of the ef theme."
 	(ef-themes-with-colors
 	  (custom-set-faces
 	   `(pdf-view-midnight-colors ((,c :foreground ,fg-main :background ,bg-alt)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 3 :color ,fg-dim))))
-	   `(mode-line-inactive ((,c :box (:line-width 3 :color ,bg-active))))
-	   `(org-document-title ((,c :height 3.8)))
-	   `(org-table ((,c (:inherit 'default :font "Source Code Pro-10"))))
-	   `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro"))))
-	   `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro-10"))))
+	   `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
+	   `(org-document-title ((,c :height 2.1)))
+	   ;; `(org-modern-todo ((,c :height 1.2)))
+	   ;; `(org-modern-done ((,c :height 1.2)))
+	   `(org-modern-tag ((,c :height 1.2)))
+	   `(default ((,c :font "Source Code Pro" :height 128)))
+	   `(unspecified-bg ((,c (:inherit 'default )))) ;; supress errors
+	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
+	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
 	   )))
   (setq ef-themes-headings ; read the manual's entry or the doc string
-		'((0 variable-pitch light 1.9)
+		'((0 variable-pitch light 2.1)
 		  (1 variable-pitch light 1.8)
-		  (2 variable-pitch regular 1.7)
-		  (3 variable-pitch regular 1.6)
-		  (4 variable-pitch regular 1.5)
-		  (5 variable-pitch 1.4) ; absence of weight means `bold'
-		  (6 variable-pitch 1.3)
-		  (7 variable-pitch 1.2)
-		  (t variable-pitch 1.1)
-		  (agenda-date 1.3)
+		  (t variable-pitch 1.2)
+		  (agenda-date 1.9)
 		  (agenda-structure variable-pitch light 1.8)
 		  (t variable-pitch)))
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mode-line)
+  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
   (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark)
-  )
+  (ef-themes-select 'ef-melissa-dark))
 
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
 (use-package doom-modeline
-  :init
-  (line-number-mode -1)
-  (column-number-mode -1)
-  :custom
-  ((doom-modeline-project-detection 'project)
-   (doom-gruvbox-padded-modeline nil)
-   (doom-modeline-vcs-max-length 30)
-   (doom-modeline-hud t)
-   (doom-modeline-unicode-fallback t)
-   (doom-modeline-env-version t)
-   (doom-modeline-buffer-encoding nil)
-   (doom-modeline-workspace-name nil)
-   (doom-modeline-buffer-file-name-style 'buffer-name)
-   (doom-modeline-height 27)
-   (doom-modeline-buffer-state-icon nil)
-   (doom-modeline-icon t)
-   (doom-modeline-modal-icon t)
-   (mode-line-position nil)
-   (mode-line-percent-position nil)
-   (doom-modeline-mode-alist nil)
-   (auto-revert-check-vc-info t)) ;; for switching branches
-  :config
-  (doom-modeline-def-modeline 'simple-line
-	'(bar buffer-info remote-host)
-	'(modals compilation objed-state misc-info persp-name lsp checker process vcs))
-  ;; Set default mode-line
-  (doom-modeline-set-modeline 'simple-line 'default))
+   :init
+   (line-number-mode -1)
+   (column-number-mode -1)
+   :custom
+   ((doom-modeline-project-detection 'project)
+	(doom-gruvbox-padded-modeline nil)
+	(doom-modeline-vcs-max-length 30)
+	(doom-modeline-hud t)
+	(doom-modeline-unicode-fallback t)
+	(doom-modeline-env-version t)
+	(doom-modeline-buffer-encoding nil)
+	(doom-modeline-workspace-name nil)
+	(doom-modeline-buffer-file-name-style 'buffer-name)
+	(doom-modeline-height 27)
+	(doom-modeline-buffer-state-icon nil)
+	(doom-modeline-icon t)
+	(doom-modeline-modal-icon t)
+	(mode-line-position nil)
+	(mode-line-percent-position nil)
+	(doom-modeline-mode-alist nil)
+	(auto-revert-check-vc-info t)) ;; for switching branches
+   :config
+   (doom-modeline-def-modeline 'simple-line
+	 '(bar buffer-info remote-host)
+	 '(modals compilation objed-state misc-info persp-name lsp checker process vcs))
+   ;; Set default mode-line
+   (doom-modeline-set-modeline 'simple-line 'default))
 
 (use-package default-text-scale
-  :bind (("C-M-=". default-text-scale-increase)
-		 ("C-M--" . default-text-scale-decrease)))
+		  :bind (("C-M-=". default-text-scale-increase)
+				 ("C-M--" . default-text-scale-decrease)))
 
 (use-package spacious-padding
-  :custom
-  (spacious-padding-widths
-   '( :internal-border-width 15
-	  :header-line-width 4
-	  :mode-line-width 2
-	  :tab-width 4
-	  :right-divider-width 30
-	  :scroll-bar-width 8))
-  :config (spacious-padding-mode))
+	:config (spacious-padding-mode 1)
+	:custom
+	(spacious-padding-widths
+	 '( :internal-border-width 15
+		:header-line-width 4
+		:mode-line-width 2
+		:tab-width 4
+		:right-divider-width 30
+		:scroll-bar-width 8)))
 
 (use-package minibuffer
   :ensure nil
@@ -735,22 +734,23 @@ Call a second time to restore the original window configuration."
   :after vertico
   :defer t
   :bind ((:map meow-normal-state-keymap
-			   ("C-f" . consult-buffer-other-window)
-			   ("M-f". consult-buffer);; orig. switch-to-buffer-other-window
-			   ("P" . consult-yank-pop))
+			   ("C-b" . consult-buffer-other-window)
+			   ("M-b". consult-buffer);; orig. switch-to-buffer-other-window
+			   ("P" . consult-yank-pop)
+			   ("M-o" . consult-outline)
+			   ("C-M-r" . consult-register)
+			   ("C-M-s" . consult-register-store))
 
-		 ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
 		 ;; Custom M-# bindings for fast register access
 		 ("M-#" . consult-register-load)
-		 ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-		 ("C-M-#" . consult-register)
+
+
 		 ;; Other custom bindings
 		 ("<help> a" . consult-apropos)            ;; orig. apropos-command
 		 ;; M-g bindings (goto-map)
 		 ("M-g e" . consult-compile-error)
 		 ("M-g n" . consult-flymake)
-		 ("M-g g" . consult-goto-line)             ;; orig. goto-line
-		 ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+						;; Alternative: consult-org-heading
 		 ("M-g m" . consult-mark)
 		 ("M-g k" . consult-global-mark)
 		 ("M-g i" . consult-imenu)
@@ -1211,43 +1211,43 @@ Call a second time to restore the original window configuration."
   (global-org-modern-mode))
 
 (use-package org
-  :bind ((:map org-mode-map
-			   ("C-c v" . wr-mode)))
-  :init
-  (define-minor-mode wr-mode
+      :bind ((:map org-mode-map
+			       ("C-c v" . wr-mode)))
+      :init
+      (define-minor-mode wr-mode
 	"Set up a buffer for word editing.
-  This enables or modifies a number of settings so that the
-  experience of word processing is a little more like that of a
-  typical word processor."
+      This enables or modifies a number of settings so that the
+      experience of word processing is a little more like that of a
+      typical word processor."
 	:interactive t " Writing" nil
 	(if wr-mode
 		(progn
-		  (setq truncate-lines nil
+		      (setq truncate-lines nil
 				word-wrap t
 				cursor-type 'bar)
-		  (when (eq major-mode 'org)
+		      (when (eq major-mode 'org)
 			(kill-local-variable 'buffer-face-mode-face))
-		  (buffer-face-mode 1)
-		  (setq-local
-		   blink-cursor-interval 0.8
-		   buffer-face-mode-face '((:family "Google Sans" :weight bold ))
-		   show-trailing-whitespace nil
-		   line-spacing 0.2
-		   electric-pair-mode nil)
-		  (visual-line-mode 1)
-		  (variable-pitch-mode 1))
+		      (buffer-face-mode 1)
+		      (setq-local
+		       blink-cursor-interval 0.8
+		       buffer-face-mode-face '((:family "Google Sans" :weight bold ))
+		       show-trailing-whitespace nil
+		       line-spacing 0.2
+		       electric-pair-mode nil)
+		      (visual-line-mode 1)
+		      (variable-pitch-mode 1))
 
-	  (kill-local-variable 'truncate-lines)
-	  (kill-local-variable 'word-wrap)
-	  (kill-local-variable 'cursor-type)
-	  (kill-local-variable 'blink-cursor-interval)
-	  (kill-local-variable 'show-trailing-whitespace)
-	  (kill-local-variable 'line-spacing)
-	  (kill-local-variable 'electric-pair-mode)
-	  (buffer-face-mode -1)
-	  (visual-line-mode -1)
-	  (variable-pitch-mode -1)))
-  :hook (org-mode . wr-mode))
+	      (kill-local-variable 'truncate-lines)
+	      (kill-local-variable 'word-wrap)
+	      (kill-local-variable 'cursor-type)
+	      (kill-local-variable 'blink-cursor-interval)
+	      (kill-local-variable 'show-trailing-whitespace)
+	      (kill-local-variable 'line-spacing)
+	      (kill-local-variable 'electric-pair-mode)
+	      (buffer-face-mode -1)
+	      (visual-line-mode -1)
+	      (variable-pitch-mode -1)))
+      :hook (org-mode . wr-mode))
 
 (use-package org-appear
   :after org
@@ -1795,9 +1795,8 @@ Call a second time to restore the original window configuration."
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
-  ((flymake-fringe-indicator-position 'right-fringe)
-   (flymake-show-diagnostics-at-end-of-line 'short)
-   (flymake-no-changes-timeout nil))
+  (flymake-fringe-indicator-position 'right-fringe)
+  (flymake-show-diagnostics-at-end-of-line 'short)
   :config
   (setq elisp-flymake-byte-compile-load-path
 		(append elisp-flymake-byte-compile-load-path load-path)))
