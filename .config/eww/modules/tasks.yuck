@@ -83,8 +83,7 @@
 			  :class {t.state == "PROJECT" ? "" : "checkbox"}
 			  :onchecked "scripts/tasks -c \"${t.title}\""
 			  :onunchecked "scripts/tasks -o"
-			  ;; :active {t.state == "PROJECT" ? "false" : "true"}
-			  ;; checked {t.state == "INPROGRESS" }
+			  :checked {t.state == "INPROGRESS" }
 			  ;; MR already open for this, https://github.com/elkowar/eww/pull/916
 			  )
 			(button
