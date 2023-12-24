@@ -30,3 +30,14 @@
 
 .config/hypr/monitors.conf
 /ltximg/
+/.emacs.d/tramp
+/.emacs.d/transient/
+/.emacs.d/type-break
+/.emacs.d/recentf
+/.emacs.d/projects
+/.emacs.d/places
+/.emacs.d/package-quickstart.el
+/.emacs.d/org-roam.db
+/.emacs.d/history
+/.emacs.d/forge-database.sqlite
+/.emacs.d/auto-save-list/

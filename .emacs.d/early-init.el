@@ -51,11 +51,5 @@
 (setq-default comp-async-report-warnings-errors nil)
 (setq-default warning-minimum-level :emergency)
 
-;; Change where cache is stored
-(setq-default package-quickstart-file "~/.emacs.d/var/package-quickstart.el")
-(setq-default package-user-dir "~/.emacs.d/var/elpa/")
-(when (boundp 'native-comp-eln-load-path)
-  (startup-redirect-eln-cache (expand-file-name "~/.emacs.d/var/eln-cache" user-emacs-directory)))
-
 (provide 'early-init)
 ;;; early-init.el ends here

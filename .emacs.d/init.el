@@ -9,28 +9,374 @@
 (load-all-environment-variables)
 
 (eval-when-compile
-    (require 'package)
-    (require 'use-package))
-  (setq package-native-compile t
-	    native-comp-deferred-compilation t
-	    native-compile-prune-cache t
-	    async-bytecomp-package-mode t
-	    package-quickstart t
-	    package-install-upgrade-built-in t)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (setq use-package-always-ensure t
-	    use-package-expand-minimally t
-	    use-package-compute-statistics t)
-  ;; Use no-littering to automatically set common paths to the new user-emacs-directory
-  (use-package no-littering)
-  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-  (load custom-file 'noerror 'nomessage)
-  ;; set this after no-littering
-  (add-hook 'package-upgrade-all-hook
-		    (lambda ()
-			  (package-quickstart-refresh)))
-;; (load "server")
-;; (unless (server-running-p) (server-start)) ;; start server
+  (require 'package)
+  (require 'use-package))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(setq native-comp-deferred-compilation t
+	  native-compile-prune-cache t
+	  package-install-upgrade-built-in t
+	  package-native-compile t
+	  package-quickstart t
+	  use-package-always-ensure t
+	  use-package-compute-statistics t
+	  use-package-expand-minimally t
+	  async-bytecomp-package-mode t)
+(add-hook 'package-upgrade-all-hook
+		  (lambda ()
+			(package-quickstart-refresh)))
+
+(use-package ef-themes
+  :hook (server-after-make-frame . (lambda ()
+									 (if (server-running-p)
+										 (ef-themes-select 'ef-melissa-dark)))) ;; tired of server frames being wrong
+  :custom
+  (custom-safe-themes t)
+  (ef-themes-mixed-fonts t)
+  (ef-themes-variable-pitch-ui t)
+  :config
+  (defun my-ef-themes-mod ()
+	"Tweak the style of the ef theme."
+	(ef-themes-with-colors
+	  (custom-set-faces
+	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
+	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
+	   ;; `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
+	   `(org-document-title ((,c :height 1.8)))
+	   `(org-modern-todo ((,c :height 1.2)))
+	   `(org-modern-done ((,c :height 1.2)))
+	   `(org-modern-tag ((,c :height 1.2)))
+	   `(default ((,c :font "Source Code Pro" :height 128)))
+	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))) ;; supress errors
+	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
+	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
+	   )))
+  (setq ef-themes-headings ; read the manual's entry or the doc string
+		'((0 variable-pitch light 2.1)
+		  (1 variable-pitch light 1.8)
+		  (t variable-pitch 1.2)
+		  (agenda-date 1.9)
+		  (agenda-structure variable-pitch light 1.8)
+		  (t variable-pitch)))
+  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
+  (mapc #'disable-theme custom-enabled-themes)
+  (ef-themes-select 'ef-melissa-dark))
+
+(use-package rainbow-delimiters
+  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
+
+(use-package doom-modeline
+  :hook (package-upgrade-all . (lambda () (nerd-icons-install-fonts)))
+  :init
+  (line-number-mode -1)
+  (column-number-mode -1)
+  :custom
+  ((doom-modeline-project-detection 'project)
+   (doom-gruvbox-padded-modeline nil)
+   (doom-modeline-vcs-max-length 30)
+   (doom-modeline-hud t)
+   (doom-modeline-unicode-fallback t)
+   (doom-modeline-env-version t)
+   (doom-modeline-buffer-encoding nil)
+   (doom-modeline-workspace-name nil)
+   (doom-modeline-buffer-file-name-style 'buffer-name)
+   (doom-modeline-height 27)
+   (doom-modeline-buffer-state-icon nil)
+   (doom-modeline-icon t)
+   (doom-modeline-modal-icon t)
+   (mode-line-position nil)
+   (mode-line-percent-position nil)
+   (doom-modeline-mode-alist nil)
+   (auto-revert-check-vc-info t)) ;; for switching branches
+  :config
+  (doom-modeline-def-modeline 'simple-line
+			  '(bar buffer-info remote-host)
+			  '(modals compilation objed-state misc-info persp-name lsp checker process vcs))
+  ;; Set default mode-line
+  (doom-modeline-set-modeline 'simple-line 'default))
+
+(set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
+(pixel-scroll-precision-mode t)
+(global-prettify-symbols-mode t)
+
+(use-package page-break-lines
+  :config (global-page-break-lines-mode))
+
+(use-package default-text-scale
+		  :bind (("C-M-=". default-text-scale-increase)
+				 ("C-M--" . default-text-scale-decrease)))
+
+(use-package spacious-padding
+	:config (spacious-padding-mode 1)
+	:custom
+	(spacious-padding-widths
+	 '( :internal-border-width 15
+		:header-line-width 4
+		:mode-line-width 2
+		:tab-width 4
+		:right-divider-width 30
+		:scroll-bar-width 8)))
+
+(setq-default
+ fill-column 120
+ blink-cursor-interval 0.4
+ buffers-menu-max-size 30
+ case-fold-search t
+ column-number-mode t
+ ediff-split-window-function 'split-window-horizontally
+ ediff-window-setup-function 'ediff-setup-windows-plain
+ tab-width 4
+ mouse-yank-at-point t
+ save-interprogram-paste-before-kill t
+ set-mark-command-repeat-pop t
+ tooltip-delay .8
+ ring-bell-function 'ignore)
+(delete-selection-mode t)
+(global-goto-address-mode t)
+(add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
+(setq browse-url-browser-function #'browse-url-firefox)
+(setq use-dialog-box nil) ;; disable pop-ups
+(global-set-key (kbd "C-c C-p") 'find-file-at-point)
+(set-default 'truncate-lines t) ;; don't wrap lines globally
+
+(use-package recentf
+  :ensure nil
+  :init
+  ;; save backup and auto save to system tmp
+  (setq backup-directory-alist
+		`((".*" . ,temporary-file-directory)))
+  (setq auto-save-file-name-transforms
+		`((".*" ,temporary-file-directory t)))
+  (recentf-mode)
+  :hook ((package-upgrade-all . recentf-cleanup))
+  :custom
+  (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
+  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+  (recentf-max-saved-items 50)
+  (recentf-exclude '("*/type-break.el$"
+					 ".*![^!]*!.*"
+					 "*/ssh:*")))
+
+(use-package autorevert
+  :init (global-auto-revert-mode 1))
+
+(customize-set-variable 'tramp-default-method "ssh")
+(with-eval-after-load 'tramp
+  (setq tramp-verbose 0
+		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster settings
+  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
+  (add-to-list 'tramp-connection-properties
+			 (list (regexp-quote "/ssh:ag-nehrbash:")
+				   "remote-shell" "/usr/bin/bash"
+				   "direct-async-process" t
+				   "tramp-direct-async" t)))
+(setq vc-handled-backends '(Git)) ;; I only use git
+
+(use-package savehist
+  :ensure nil
+  :init (savehist-mode 1)
+  :config
+  (setq history-length 25))
+
+(save-place-mode 1)
+
+(use-package anzu
+  :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
+		 ([remap query-replace] . anzu-query-replace)
+		 ("C-M-w". isearch-yank-symbol))
+  :custom
+  (anzu-mode-lighter "")
+  :config
+  (defun sanityinc/isearch-exit-other-end ()
+	"Exit isearch, but at the other end of the search string.
+This is useful when followed by an immediate kill."
+	(interactive)
+	(isearch-exit)
+	(goto-char isearch-other-end))
+  (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
+  ;; Search back/forth for the symbol at point
+  ;; See http://www.emacswiki.org/emacs/SearchAtPoint
+  (defun isearch-yank-symbol ()
+	"*Put symbol at current point into search string."
+	(interactive)
+	(let ((sym (thing-at-point 'symbol)))
+	  (if sym
+		  (progn
+			(setq isearch-regexp t
+				  isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
+				  isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
+				  isearch-yank-flag t))
+		(ding)))
+	(isearch-search-and-update)))
+
+(use-package ibuffer-project
+  :bind ("C-x C-b" . ibuffer)
+  :custom ((ibuffer-show-empty-filter-groups nil)
+		   (ibuffer-project-use-cache t))
+  :config
+  (defun ibuffer-set-up-preferred-filters ()
+			   (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups))
+			   (unless (eq ibuffer-sorting-mode 'project-file-relative)
+				 (ibuffer-do-sort-by-project-file-relative)))
+  :hook (ibuffer . ibuffer-set-up-preferred-filters))
+
+(setq ad-redefinition-action 'accept)
+
+(defun sanityinc/newline-at-end-of-line ()
+  "Move to end of line, enter a newline, and reindent."
+  (interactive)
+  (move-end-of-line 1)
+  (newline-and-indent))
+
+(global-set-key (kbd "RET") 'newline-and-indent)
+(global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
+
+(use-package display-line-numbers
+  :if (fboundp 'display-line-numbers-mode)
+  :init
+  (setq-default display-line-numbers-width 3)
+  (setq-default display-line-numbers-type 'relative)
+  :hook (prog-mode . display-line-numbers-mode))
+
+(use-package expand-region
+  :bind (("M-C e" . er/expand-region)
+		 ("M-C o" . er/mark-outside-pairs)))
+
+(use-package symbol-overlay
+  :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
+  :config
+  (define-key symbol-overlay-mode-map (kbd "M-i") 'symbol-overlay-put)
+  (define-key symbol-overlay-mode-map (kbd "M-I") 'symbol-overlay-remove-all)
+  (define-key symbol-overlay-mode-map (kbd "M-n") 'symbol-overlay-jump-next)
+  (define-key symbol-overlay-mode-map (kbd "M-p") 'symbol-overlay-jump-prev))
+
+(defun kill-back-to-indentation ()
+  "Kill from point back to the first non-whitespace character on the line."
+  (interactive)
+  (let ((prev-pos
+		 (point)))
+	(back-to-indentation)
+	(kill-region (point) prev-pos)))
+
+(global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
+
+(defun sanityinc/backward-up-sexp (arg)
+  "Jump up to the start of the ARG'th enclosing sexp."
+  (interactive "p")
+  (let ((ppss (syntax-ppss)))
+	(cond ((elt ppss 3)
+		   (goto-char (elt ppss 8))
+		   (sanityinc/backward-up-sexp (1- arg)))
+		  ((backward-up-list arg)))))
+(global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
+
+(use-package which-key
+  :custom (which-key-idle-delay 1)
+  :config (which-key-mode 1))
+
+(use-package multiple-cursors
+  :bind (("C-<" . mc/mark-previous-like-this)
+		 ("C->" . mc/mark-next-like-this)
+		 ("C-+" . mc/mark-next-like-this)
+		 ("C-c C-<" . mc/mark-all-like-this)
+		 ;; From active region to multiple cursors:
+		 ("C-c m r" . set-rectangular-region-anchor)
+		 ("C-c m c" . mc/edit-lines)
+		 ("C-c m e" . mc/edit-ends-of-lines)
+		 ("C-c m a" . mc/edit-beginnings-of-lines)))
+
+(use-package whitespace-cleanup-mode
+  :commands (whitespace-cleanup)
+  :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
+  :config
+  (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
+  (defun sanityinc/show-trailing-whitespace ()
+	"Enable display of trailing whitespace in this buffer."
+	(setq-local show-trailing-whitespace t)
+	(whitespace-cleanup-mode 1)))
+
+(electric-pair-mode t)
+(use-package paren ; highight matching paren
+  :ensure nil
+  :hook (prog-mode . show-paren-mode))
+
+(use-package winner
+  :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
+		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
+		 ("C-x 1" . sanityinc/toggle-delete-other-windows)
+		 ("C-x |" . split-window-horizontally-instead)
+		 ("C-x _" . split-window-vertically-instead)
+		 ("<f7>" . sanityinc/split-window)
+		 ("C-c <down>" . sanityinc/toggle-current-window-dedication))
+  :config
+  (defun split-window-func-with-other-buffer-vertically ()
+	"Split this window vertically and switch to the new window."
+	(interactive)
+	(split-window-vertically)
+	(let ((target-window (next-window)))
+	  (set-window-buffer target-window (other-buffer))
+	  (select-window target-window)))
+
+  (defun split-window-func-with-other-buffer-horizontally ()
+	"Split this window horizontally and switch to the new window."
+	(interactive)
+	(split-window-horizontally)
+	(let ((target-window (next-window)))
+	  (set-window-buffer target-window (other-buffer))
+	  (select-window target-window)))
+
+  (defun sanityinc/toggle-delete-other-windows ()
+	"Delete other windows in frame if any, or restore previous window config."
+	(interactive)
+	(if (and (bound-and-true-p winner-mode)
+		   (equal (selected-window) (next-window)))
+		(winner-undo)
+	  (delete-other-windows)))
+
+  (defun split-window-horizontally-instead ()
+	"Kill any other windows and re-split such that the current window is on the top half of the frame."
+	(interactive)
+	(let ((other-buffer (and (next-window) (window-buffer (next-window)))))
+	  (delete-other-windows)
+	  (split-window-horizontally)
+	  (when other-buffer
+		(set-window-buffer (next-window) other-buffer))))
+
+  (defun split-window-vertically-instead ()
+	"Kill any other windows and re-split such that the current window is on the left half of the frame."
+	(interactive)
+	(let ((other-buffer (and (next-window) (window-buffer (next-window)))))
+	  (delete-other-windows)
+	  (split-window-vertically)
+	  (when other-buffer
+		(set-window-buffer (next-window) other-buffer))))
+
+  (defun sanityinc/split-window()
+	"Split the window to see the most recent buffer in the other window.
+Call a second time to restore the original window configuration."
+	(interactive)
+	(if (eq last-command 'sanityinc/split-window)
+		(progn
+		  (jump-to-register :sanityinc/split-window)
+		  (setq this-command 'sanityinc/unsplit-window))
+	  (window-configuration-to-register :sanityinc/split-window)
+	  (switch-to-buffer-other-window nil)))
+
+  (defun sanityinc/toggle-current-window-dedication ()
+	"Toggle whether the current window is dedicated to its current buffer."
+	(interactive)
+	(let* ((window (selected-window))
+		   (was-dedicated (window-dedicated-p window)))
+	  (set-window-dedicated-p window (not was-dedicated))
+	  (message "Window %sdedicated to %s"
+			   (if was-dedicated "no longer " "")
+			   (buffer-name)))))
+
+(use-package avy
+  :bind ("C-:" . avy-goto-char-timer))
+
+(setq confirm-kill-processes nil)
 
 ;; (use-package use-package-chords
 ;;   :config (key-chord-mode 1))
@@ -325,362 +671,10 @@ point reaches the beginning or end of the buffer, stop there."
   (windmove-default-keybindings 'control)
   (windswap-default-keybindings 'shift 'control))
 
-(use-package golden-ratio
-  :init (golden-ratio-mode))
-
 (use-package sudo-edit
   :commands (sudo-edit))
 
 (use-package fullframe)
-
-(setq-default
- fill-column 120
- blink-cursor-interval 0.4
- buffers-menu-max-size 30
- case-fold-search t
- column-number-mode t
- ediff-split-window-function 'split-window-horizontally
- ediff-window-setup-function 'ediff-setup-windows-plain
- tab-width 4
- mouse-yank-at-point t
- save-interprogram-paste-before-kill t
- set-mark-command-repeat-pop t
- tooltip-delay .8
- ring-bell-function 'ignore)
-(delete-selection-mode t)
-(global-goto-address-mode t)
-(add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
-(setq browse-url-browser-function #'browse-url-firefox)
-(setq use-dialog-box nil) ;; disable pop-ups
-(global-set-key (kbd "C-c C-p") 'find-file-at-point)
-(set-default 'truncate-lines t) ;; don't wrap lines globally
-
-(use-package recentf
-  :ensure nil
-  :init
-  ;; save backup and auto save to system tmp
-  (setq backup-directory-alist
-		`((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms
-		`((".*" ,temporary-file-directory t)))
-  (recentf-mode)
-  :hook ((package-upgrade-all . recentf-cleanup))
-  :custom
-  (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
-  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 50)
-  (recentf-exclude '("*/type-break.el$"
-					 ".*![^!]*!.*"
-					 "*/ssh:*")))
-
-(use-package autorevert
-  :init (global-auto-revert-mode 1))
-
-(customize-set-variable 'tramp-default-method "ssh")
-(with-eval-after-load 'tramp
-  (setq tramp-verbose 0
-		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster settings
-  (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
-  (add-to-list 'tramp-connection-properties
-			 (list (regexp-quote "/ssh:ag-nehrbash:")
-				   "remote-shell" "/usr/bin/bash"
-				   "direct-async-process" t
-				   "tramp-direct-async" t)))
-(setq vc-handled-backends '(Git)) ;; I only use git
-
-(use-package savehist
-  :ensure nil
-  :init (savehist-mode 1)
-  :config
-  (setq history-length 25))
-
-(save-place-mode 1)
-
-(use-package anzu
-  :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
-		 ([remap query-replace] . anzu-query-replace)
-		 ("C-M-w". isearch-yank-symbol))
-  :custom
-  (anzu-mode-lighter "")
-  :config
-  (defun sanityinc/isearch-exit-other-end ()
-	"Exit isearch, but at the other end of the search string.
-This is useful when followed by an immediate kill."
-	(interactive)
-	(isearch-exit)
-	(goto-char isearch-other-end))
-  (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
-  ;; Search back/forth for the symbol at point
-  ;; See http://www.emacswiki.org/emacs/SearchAtPoint
-  (defun isearch-yank-symbol ()
-	"*Put symbol at current point into search string."
-	(interactive)
-	(let ((sym (thing-at-point 'symbol)))
-	  (if sym
-		  (progn
-			(setq isearch-regexp t
-				  isearch-string (concat "\\_<" (regexp-quote sym) "\\_>")
-				  isearch-message (mapconcat 'isearch-text-char-description isearch-string "")
-				  isearch-yank-flag t))
-		(ding)))
-	(isearch-search-and-update)))
-
-(use-package ibuffer-project
-  :bind ("C-x C-b" . ibuffer)
-  :custom ((ibuffer-show-empty-filter-groups nil)
-		   (ibuffer-project-use-cache t))
-  :config
-  (defun ibuffer-set-up-preferred-filters ()
-			   (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups))
-			   (unless (eq ibuffer-sorting-mode 'project-file-relative)
-				 (ibuffer-do-sort-by-project-file-relative)))
-  :hook (ibuffer . ibuffer-set-up-preferred-filters))
-
-(setq ad-redefinition-action 'accept)
-
-(defun sanityinc/newline-at-end-of-line ()
-  "Move to end of line, enter a newline, and reindent."
-  (interactive)
-  (move-end-of-line 1)
-  (newline-and-indent))
-
-(global-set-key (kbd "RET") 'newline-and-indent)
-(global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
-
-(use-package display-line-numbers
-  :if (fboundp 'display-line-numbers-mode)
-  :init
-  (setq-default display-line-numbers-width 3)
-  (setq-default display-line-numbers-type 'relative)
-  :hook (prog-mode . display-line-numbers-mode))
-
-(use-package expand-region
-  :bind (("M-C e" . er/expand-region)
-		 ("M-C o" . er/mark-outside-pairs)))
-
-(use-package symbol-overlay
-  :hook ((prog-mode html-mode yaml-mode conf-mode) . symbol-overlay-mode)
-  :config
-  (define-key symbol-overlay-mode-map (kbd "M-i") 'symbol-overlay-put)
-  (define-key symbol-overlay-mode-map (kbd "M-I") 'symbol-overlay-remove-all)
-  (define-key symbol-overlay-mode-map (kbd "M-n") 'symbol-overlay-jump-next)
-  (define-key symbol-overlay-mode-map (kbd "M-p") 'symbol-overlay-jump-prev))
-
-(defun kill-back-to-indentation ()
-  "Kill from point back to the first non-whitespace character on the line."
-  (interactive)
-  (let ((prev-pos
-		 (point)))
-	(back-to-indentation)
-	(kill-region (point) prev-pos)))
-
-(global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
-
-(defun sanityinc/backward-up-sexp (arg)
-  "Jump up to the start of the ARG'th enclosing sexp."
-  (interactive "p")
-  (let ((ppss (syntax-ppss)))
-	(cond ((elt ppss 3)
-		   (goto-char (elt ppss 8))
-		   (sanityinc/backward-up-sexp (1- arg)))
-		  ((backward-up-list arg)))))
-(global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
-
-(use-package which-key
-  :custom (which-key-idle-delay 1)
-  :config (which-key-mode 1))
-
-(use-package multiple-cursors
-  :bind (("C-<" . mc/mark-previous-like-this)
-		 ("C->" . mc/mark-next-like-this)
-		 ("C-+" . mc/mark-next-like-this)
-		 ("C-c C-<" . mc/mark-all-like-this)
-		 ;; From active region to multiple cursors:
-		 ("C-c m r" . set-rectangular-region-anchor)
-		 ("C-c m c" . mc/edit-lines)
-		 ("C-c m e" . mc/edit-ends-of-lines)
-		 ("C-c m a" . mc/edit-beginnings-of-lines)))
-
-(use-package whitespace-cleanup-mode
-  :commands (whitespace-cleanup)
-  :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
-  :config
-  (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
-  (defun sanityinc/show-trailing-whitespace ()
-	"Enable display of trailing whitespace in this buffer."
-	(setq-local show-trailing-whitespace t)
-	(whitespace-cleanup-mode 1)))
-
-(electric-pair-mode t)
-(use-package paren ; highight matching paren
-  :ensure nil
-  :hook (prog-mode . show-paren-mode))
-
-(use-package winner
-  :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
-		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
-		 ("C-x 1" . sanityinc/toggle-delete-other-windows)
-		 ("C-x |" . split-window-horizontally-instead)
-		 ("C-x _" . split-window-vertically-instead)
-		 ("<f7>" . sanityinc/split-window)
-		 ("C-c <down>" . sanityinc/toggle-current-window-dedication))
-  :config
-  (defun split-window-func-with-other-buffer-vertically ()
-	"Split this window vertically and switch to the new window."
-	(interactive)
-	(split-window-vertically)
-	(let ((target-window (next-window)))
-	  (set-window-buffer target-window (other-buffer))
-	  (select-window target-window)))
-
-  (defun split-window-func-with-other-buffer-horizontally ()
-	"Split this window horizontally and switch to the new window."
-	(interactive)
-	(split-window-horizontally)
-	(let ((target-window (next-window)))
-	  (set-window-buffer target-window (other-buffer))
-	  (select-window target-window)))
-
-  (defun sanityinc/toggle-delete-other-windows ()
-	"Delete other windows in frame if any, or restore previous window config."
-	(interactive)
-	(if (and (bound-and-true-p winner-mode)
-		   (equal (selected-window) (next-window)))
-		(winner-undo)
-	  (delete-other-windows)))
-
-  (defun split-window-horizontally-instead ()
-	"Kill any other windows and re-split such that the current window is on the top half of the frame."
-	(interactive)
-	(let ((other-buffer (and (next-window) (window-buffer (next-window)))))
-	  (delete-other-windows)
-	  (split-window-horizontally)
-	  (when other-buffer
-		(set-window-buffer (next-window) other-buffer))))
-
-  (defun split-window-vertically-instead ()
-	"Kill any other windows and re-split such that the current window is on the left half of the frame."
-	(interactive)
-	(let ((other-buffer (and (next-window) (window-buffer (next-window)))))
-	  (delete-other-windows)
-	  (split-window-vertically)
-	  (when other-buffer
-		(set-window-buffer (next-window) other-buffer))))
-
-  (defun sanityinc/split-window()
-	"Split the window to see the most recent buffer in the other window.
-Call a second time to restore the original window configuration."
-	(interactive)
-	(if (eq last-command 'sanityinc/split-window)
-		(progn
-		  (jump-to-register :sanityinc/split-window)
-		  (setq this-command 'sanityinc/unsplit-window))
-	  (window-configuration-to-register :sanityinc/split-window)
-	  (switch-to-buffer-other-window nil)))
-
-  (defun sanityinc/toggle-current-window-dedication ()
-	"Toggle whether the current window is dedicated to its current buffer."
-	(interactive)
-	(let* ((window (selected-window))
-		   (was-dedicated (window-dedicated-p window)))
-	  (set-window-dedicated-p window (not was-dedicated))
-	  (message "Window %sdedicated to %s"
-			   (if was-dedicated "no longer " "")
-			   (buffer-name)))))
-
-(use-package avy
-  :bind ("C-:" . avy-goto-char-timer))
-
-(setq confirm-kill-processes nil)
-
-(set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
-(pixel-scroll-precision-mode t)
-(global-prettify-symbols-mode t)
-
-(use-package page-break-lines
-  :config (global-page-break-lines-mode))
-
-(use-package ef-themes
-  :custom
-  (custom-safe-themes t)
-  (ef-themes-mixed-fonts t)
-  (ef-themes-variable-pitch-ui t)
-  :config
-  (defun my-ef-themes-mod ()
-	"Tweak the style of the ef theme."
-	(ef-themes-with-colors
-	  (custom-set-faces
-	   `(pdf-view-midnight-colors ((,c :foreground ,fg-main :background ,bg-alt)))
-	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
-	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
-	   `(org-document-title ((,c :height 2.1)))
-	   ;; `(org-modern-todo ((,c :height 1.2)))
-	   ;; `(org-modern-done ((,c :height 1.2)))
-	   `(org-modern-tag ((,c :height 1.2)))
-	   `(default ((,c :font "Source Code Pro" :height 128)))
-	   `(unspecified-bg ((,c (:inherit 'default )))) ;; supress errors
-	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
-	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
-	   )))
-  (setq ef-themes-headings ; read the manual's entry or the doc string
-		'((0 variable-pitch light 2.1)
-		  (1 variable-pitch light 1.8)
-		  (t variable-pitch 1.2)
-		  (agenda-date 1.9)
-		  (agenda-structure variable-pitch light 1.8)
-		  (t variable-pitch)))
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark))
-
-(use-package rainbow-delimiters
-  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
-
-(use-package doom-modeline
-   :init
-   (line-number-mode -1)
-   (column-number-mode -1)
-   :custom
-   ((doom-modeline-project-detection 'project)
-	(doom-gruvbox-padded-modeline nil)
-	(doom-modeline-vcs-max-length 30)
-	(doom-modeline-hud t)
-	(doom-modeline-unicode-fallback t)
-	(doom-modeline-env-version t)
-	(doom-modeline-buffer-encoding nil)
-	(doom-modeline-workspace-name nil)
-	(doom-modeline-buffer-file-name-style 'buffer-name)
-	(doom-modeline-height 27)
-	(doom-modeline-buffer-state-icon nil)
-	(doom-modeline-icon t)
-	(doom-modeline-modal-icon t)
-	(mode-line-position nil)
-	(mode-line-percent-position nil)
-	(doom-modeline-mode-alist nil)
-	(auto-revert-check-vc-info t)) ;; for switching branches
-   :config
-   (doom-modeline-def-modeline 'simple-line
-	 '(bar buffer-info remote-host)
-	 '(modals compilation objed-state misc-info persp-name lsp checker process vcs))
-   ;; Set default mode-line
-   (doom-modeline-set-modeline 'simple-line 'default))
-
-(use-package default-text-scale
-		  :bind (("C-M-=". default-text-scale-increase)
-				 ("C-M--" . default-text-scale-decrease)))
-
-(use-package spacious-padding
-	:config (spacious-padding-mode 1)
-	:custom
-	(spacious-padding-widths
-	 '( :internal-border-width 15
-		:header-line-width 4
-		:mode-line-width 2
-		:tab-width 4
-		:right-divider-width 30
-		:scroll-bar-width 8)))
 
 (use-package minibuffer
   :ensure nil
@@ -695,8 +689,12 @@ Call a second time to restore the original window configuration."
    '(read-only t cursor-intangible t face minibuffer-prompt))
   :hook
   (completion-list-mode . force-truncate-lines)
-  (minibuffer-setup . cursor-intangible-mode)
+  (minibuffer-setup . (lambda ()
+						(set-window-scroll-bars (minibuffer-window) nil nil)
+						(cursor-intangible-mode 1)))
   :config
+  (set-window-scroll-bars (minibuffer-window) nil nil)
+  (set-window-scroll-bars (minibuffer-window) nil nil)
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode))
 
@@ -1211,43 +1209,43 @@ Call a second time to restore the original window configuration."
   (global-org-modern-mode))
 
 (use-package org
-      :bind ((:map org-mode-map
-			       ("C-c v" . wr-mode)))
-      :init
-      (define-minor-mode wr-mode
+  :bind ((:map org-mode-map
+			   ("C-c v" . wr-mode)))
+  :init
+  (define-minor-mode wr-mode
 	"Set up a buffer for word editing.
-      This enables or modifies a number of settings so that the
-      experience of word processing is a little more like that of a
-      typical word processor."
+  This enables or modifies a number of settings so that the
+  experience of word processing is a little more like that of a
+  typical word processor."
 	:interactive t " Writing" nil
 	(if wr-mode
 		(progn
-		      (setq truncate-lines nil
+		  (setq truncate-lines nil
 				word-wrap t
 				cursor-type 'bar)
-		      (when (eq major-mode 'org)
+		  (when (eq major-mode 'org)
 			(kill-local-variable 'buffer-face-mode-face))
-		      (buffer-face-mode 1)
-		      (setq-local
-		       blink-cursor-interval 0.8
-		       buffer-face-mode-face '((:family "Google Sans" :weight bold ))
-		       show-trailing-whitespace nil
-		       line-spacing 0.2
-		       electric-pair-mode nil)
-		      (visual-line-mode 1)
-		      (variable-pitch-mode 1))
+		  (buffer-face-mode 1)
+		  (setq-local
+		   blink-cursor-interval 0.8
+		   buffer-face-mode-face '((:family "Google Sans" :weight bold ))
+		   show-trailing-whitespace nil
+		   line-spacing 0.2
+		   electric-pair-mode nil)
+		  (visual-line-mode 1)
+		  (variable-pitch-mode 1))
 
-	      (kill-local-variable 'truncate-lines)
-	      (kill-local-variable 'word-wrap)
-	      (kill-local-variable 'cursor-type)
-	      (kill-local-variable 'blink-cursor-interval)
-	      (kill-local-variable 'show-trailing-whitespace)
-	      (kill-local-variable 'line-spacing)
-	      (kill-local-variable 'electric-pair-mode)
-	      (buffer-face-mode -1)
-	      (visual-line-mode -1)
-	      (variable-pitch-mode -1)))
-      :hook (org-mode . wr-mode))
+	  (kill-local-variable 'truncate-lines)
+	  (kill-local-variable 'word-wrap)
+	  (kill-local-variable 'cursor-type)
+	  (kill-local-variable 'blink-cursor-interval)
+	  (kill-local-variable 'show-trailing-whitespace)
+	  (kill-local-variable 'line-spacing)
+	  (kill-local-variable 'electric-pair-mode)
+	  (buffer-face-mode -1)
+	  (visual-line-mode -1)
+	  (variable-pitch-mode -1)))
+  :hook (org-mode . wr-mode))
 
 (use-package org-appear
   :after org
@@ -1260,9 +1258,9 @@ Call a second time to restore the original window configuration."
 
 (use-package org-clock
   :ensure nil  ;; built in
-  :defer 2 ;; lazy load but still constinue clock after a bit
   :config
   (org-clock-persistence-insinuate)
+  (org-resolve-clocks)
   :init
   (defvar org-clock-prefix-map (make-sparse-keymap)
 	"A keymap for handy global access to org helpers, particularly clocking.")
@@ -1292,7 +1290,6 @@ Call a second time to restore the original window configuration."
   (org-clock-persist 'history))
 
 (use-package type-break
-  :after org-clock
   :hook ((after-init . type-break-mode)
 		 (org-clock-in-prepare . type-break-mode))
   :custom
@@ -1559,18 +1556,21 @@ Call a second time to restore the original window configuration."
   :hook (org-mode . toc-org-mode))
 
 (use-package pdf-tools
-  :defer 3
-  :hook ((pdf-view-mode . (lambda ()
-							(setq-local scroll-bar-mode 1)
-							(pdf-view-midnight-minor-mode 1)))
-		 (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line))))
-  :custom ((pdf-view-display-size 'fit-width))
+  :defer t
+  :hook
+  (pdf-view-mode . (lambda ()
+					 (pdf-view-midnight-minor-mode 1)))
+  (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line)))
+  :custom
+  (pdf-view-display-size 'fit-width)
   :config
-  (setopt pdf-continuous-suppress-introduction t) ;; from pdf-continuous-scroll-mode but needs to be set before it's loaded and putting it in pdf-continuous-scroll-mode init force pdf tools to load.
+  (setopt pdf-continuous-suppress-introduction t)
   (pdf-loader-install))
+
 (use-package pdf-continuous-scroll-mode
+  :defer t
   :after pdf-tools
-   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
+  :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
 			:branch "master" :rev :newest))
 
 (use-package org-roam
@@ -1639,15 +1639,17 @@ Call a second time to restore the original window configuration."
 
 (use-package eglot
   :ensure cape
-  :hook (((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
-		 (eglot-managed-mode . (lambda ()
-								 (eglot-format-buffer-on-save)
-								 (eglot-inlay-hints-mode 1)
-								 (setq-local
-								  completion-at-point-functions
-								  (list
-									#'eglot-completion-at-point
-									#'cape-file)))))
+  :hook
+  ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
+  (eglot-managed-mode . (lambda ()
+						  (add-hook 'before-save-hook #'eglot-format-buffer -10 t)
+						  (add-hook 'before-save-hook #'eglot-organize-imports nil t)
+						  (list (cape-super-capf
+								 #'codeium-completion-at-point
+								 #'eglot-completion-at-point
+								 #'yasnippet-capf
+								 #'cape-file))))
+
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
 			  ("C-c C-c" . project-compile)
@@ -1676,8 +1678,8 @@ Call a second time to restore the original window configuration."
 														  :rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
-  (defun eglot-format-buffer-on-save ()
-	(add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (defun eglot-organize-imports () (interactive)
+		 (eglot-code-actions nil nil "source.organizeImports" t))
   (defun project-find-go-module (dir)
 	(when-let ((root (locate-dominating-file dir "go.mod")))
 	  (cons 'go-module root)))
@@ -1735,26 +1737,43 @@ Call a second time to restore the original window configuration."
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
 
-(use-package eat
-  :hook ((eat-mode . (lambda ()
-					   (setq-local
-						left-margin-width 3
-						right-margin-width 3
+(use-package multi-vterm
+  :hook
+  (vterm-mode . (lambda ()
+				  (toggle-mode-line)
+				  (setq left-margin-width 1
+						right-margin-width 1
 						cursor-type 'bar)
-					   (toggle-mode-line)
-					   ;; (face-remap-add-relative
-					   ;;	'default
-					   ;;	:foreground (doom-color 'fg-alt)
-					   ;;	:background (doom-color 'base1))
-					   ;; (face-remap-add-relative
-					   ;;	'fringe
-					   ;;	:foreground (doom-color 'fg-alt)
-					   ;;	:background (doom-color 'base1))
-					   )))
-  :custom ((eat-kill-buffer-on-exit t)
-		   (eat-enable-yank-to-terminal t))
-  :bind (("M-t" . eat-project-other)
-		 (("M-t" . eat-other-window))))
+				  (face-remap-add-relative
+				   'default
+				   :family "Iosevka"
+				   :background "#281d12")
+				  (face-remap-add-relative
+				   'fringe
+				   :background "#281d12")))
+  :bind
+  (("M-t" . multi-vterm-dedicated-toggle)
+   ("C-M-t" . multi-vterm-project)
+   :map vterm-mode-map
+   ("M-t" . multi-vterm-dedicated-toggle)
+   ("C-M-t" . multi-vterm-project)
+   ("C-M-r" . (lambda ()
+				(interactive)
+				(let ((vterm-buffer-name-string nil))
+				  (rename-buffer (concat "Term " (read-string "Term: "))))))
+   ("C-M-s" . (lambda ()
+				(interactive)
+				(consult-buffer '(consult--source-vterm))))
+   ("M-w" . copy-region-as-kill)
+   ("C-y" . vterm-yank))
+  :custom
+  (vterm-buffer-name "Term")
+  (multi-vterm-buffer-name "Term")
+  (vterm-buffer-name-string "Term %s")
+  (vterm-buffer-maximum-size 1000)
+  :config
+  (add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
+  (add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash")))
 
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil
@@ -1776,8 +1795,6 @@ Call a second time to restore the original window configuration."
 		  (funcall orig edit-command))
 	  (funcall orig edit-command)))
   (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
-
-(global-set-key [f6] 'recompile)
 
 (defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
   "Put \"*Shell Command Output*\" buffers into view-mode."
@@ -1829,8 +1846,7 @@ Call a second time to restore the original window configuration."
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
   :config
-  ;; (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer")))
-  )
+  (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
 
 (use-package bash-ts-mode
   :ensure nil
@@ -1847,6 +1863,54 @@ Call a second time to restore the original window configuration."
 
 (use-package toml-ts-mode
   :hook (toml-ts-mode . goto-address-prog-mode))
+
+(use-package python
+  :mode ("\\.py\\'" . python-mode)
+  :interpreter ("python" . python-mode))
+(use-package conda
+  :after python
+  :commands (conda-env-list conda-env-activate)
+  :config
+  ;; The location of your anaconda home will be guessed from a list of common
+  ;; possibilities, starting with `conda-anaconda-home''s default value (which
+  ;; will consult a ANACONDA_HOME envvar, if it exists).
+  ;;
+  ;; If none of these work for you, `conda-anaconda-home' must be set
+  ;; explicitly. Afterwards, run M-x `conda-env-activate' to switch between
+  ;; environments
+  (or (cl-loop for dir in (list conda-anaconda-home
+								"~/.anaconda"
+								"~/.miniconda"
+								"~/.miniconda3"
+								"~/.miniforge3"
+								"~/anaconda3"
+								"~/miniconda3"
+								"~/miniforge3"
+								"~/opt/miniconda3"
+								"/usr/bin/anaconda3"
+								"/usr/local/anaconda3"
+								"/usr/local/miniconda3"
+								"/usr/local/Caskroom/miniconda/base"
+								"~/.conda")
+			   if (file-directory-p dir)
+			   return (setq conda-anaconda-home (expand-file-name dir)
+							conda-env-home-directory (expand-file-name dir)))
+	  (message "Cannot find Anaconda installation"))
+
+  ;; integration with term/eshell
+  (conda-env-initialize-interactive-shells)
+
+  (add-to-list 'global-mode-string
+			   '(conda-env-current-name (" conda:" conda-env-current-name " "))
+			   'append))
+(use-package jupyter
+  :defer t
+  :config
+  (add-to-list 'org-babel-load-languages '(jupyter . t))
+  (setq code-cells-convert-ipynb-style '(
+										 ("pandoc" "--to" "ipynb" "--from" "org")
+										 ("pandoc" "--to" "org" "--from" "ipynb")
+										 org-mode)))
 
 (use-package csv-mode
   :mode ("\\.[Cc][Ss][Vv]\\'" . python-mode)

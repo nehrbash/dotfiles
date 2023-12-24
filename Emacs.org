@@ -9,19 +9,10 @@
   - [[#load-package-manager][Load Package Manager]]
   - [[#startup-time][Startup Time]]
   - [[#breakdown][Breakdown]]
-- [[#editing-utilities][Editing Utilities]]
-  - [[#meow---modal-editing][Meow - Modal Editing]]
-  - [[#transit][Transit]]
-  - [[#file-handler-functions][File Handler Functions]]
-  - [[#mark-without-activate][Mark without Activate]]
-  - [[#move--duplicating-lines][Move & Duplicating Lines]]
-  - [[#whole-line-or-region][Whole Line Or Region]]
-  - [[#beginning-of-line-text-then-line][Beginning Of Line Text Then Line]]
-  - [[#switch-windows-via-letters][Switch Windows Via Letters]]
-  - [[#swap-windows][Swap Windows]]
-  - [[#golden-ratio][golden ratio]]
-  - [[#sudo-editing][Sudo Editing]]
-  - [[#place-buffer-as-fullframe][Place Buffer As Fullframe]]
+- [[#ui-look][UI Look]]
+  - [[#theme][Theme]]
+  - [[#modeline][Modeline]]
+  - [[#general][General]]
 - [[#general-settings][General Settings]]
   - [[#track-recent-files][Track Recent Files]]
   - [[#auto-update-file][Auto update file]]
@@ -35,17 +26,12 @@
   - [[#symbol-overlay][symbol-overlay]]
   - [[#kill-backwards][kill backwards]]
   - [[#define-backward-up-sexp][Define backward-up-sexp]]
-  - [[#whitespaces][Whitespaces]]
+  - [[#white-spaces][White spaces]]
   - [[#matching-and-highlighting-delimiters][Matching and Highlighting Delimiters]]
   - [[#improve-window-switching][Improve window switching]]
   - [[#jump-to-char][Jump to char]]
   - [[#dont-ask-to-kill-on-exit][Don't ask to kill on exit]]
-  - [[#unload-eshell][Unload eshell]]
-- [[#ui-stuff][UI Stuff]]
-  - [[#general][General]]
-  - [[#theme][Theme]]
-  - [[#modeline][Modeline]]
-  - [[#gui-frames][GUI Frames]]
+  - [[#editing-utilities][Editing Utilities]]
 - [[#mini-buffer--completion-framework][Mini-buffer / Completion Framework]]
   - [[#minbuffer][Minbuffer]]
   - [[#vertico][Vertico]]
@@ -125,30 +111,22 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
    With the added vc no need to use =straight.el= or =elpaca=
 
 #+begin_src emacs-lisp
-  (eval-when-compile
-    (require 'package)
-    (require 'use-package))
-  (setq package-native-compile t
-	    native-comp-deferred-compilation t
-	    native-compile-prune-cache t
-	    async-bytecomp-package-mode t
-	    package-quickstart t
-	    package-install-upgrade-built-in t)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (setq use-package-always-ensure t
-	    use-package-expand-minimally t
-	    use-package-compute-statistics t)
-  ;; Use no-littering to automatically set common paths to the new user-emacs-directory
-  (use-package no-littering)
-  (setq custom-file (no-littering-expand-etc-file-name "custom.el"))
-  (load custom-file 'noerror 'nomessage)
-  ;; set this after no-littering
-  (add-hook 'package-upgrade-all-hook
-		    (lambda ()
-			  (package-quickstart-refresh)))
-(require 'server)
-(unless (server-running-p)
-  (server-start)) ;; start server
+(eval-when-compile
+  (require 'package)
+  (require 'use-package))
+(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+(setq native-comp-deferred-compilation t
+	  native-compile-prune-cache t
+	  package-install-upgrade-built-in t
+	  package-native-compile t
+	  package-quickstart t
+	  use-package-always-ensure t
+	  use-package-compute-statistics t
+	  use-package-expand-minimally t
+	  async-bytecomp-package-mode t)
+(add-hook 'package-upgrade-all-hook
+		  (lambda ()
+			(package-quickstart-refresh)))
 #+end_src
 
 ** Startup Time
@@ -290,419 +268,139 @@ yasnippet-snippets        Declared      00:54:21.121138         0.00
 org-roam-ui               Declared      00:54:21.319478         0.00
 #+end_example
 
-* Editing Utilities
+* UI Look
 
-  General editing configurations.
-
+  Near top so that it loads early
+  
   Packages I had at one point or another for UI.
-  - [[https://github.com/abo-abo/avy][avy]]
+  - [[https://github.com/gonewest818/dimmer.el][Dimmer]]
+  - [[https://github.com/emacs-dashboard/emacs-dashboard][Dashboard]]
+  - [[https://github.com/ema2159/centaur-tabs][Centaur tabs]]
+  - Treemacs
 
-** Meow - Modal Editing
+** Theme
 
-| x | =C-x=  |
-| h | =C-h=  |
-| c | =C-c=  |
-| m | =M-=   |
-| g | =C-M-= |
+
 
 #+begin_src emacs-lisp
-;; (use-package use-package-chords
-;;   :config (key-chord-mode 1))
-(use-package meow
+(use-package ef-themes
+  :hook (server-after-make-frame . (lambda ()
+									 (if (server-running-p)
+										 (ef-themes-select 'ef-melissa-dark)))) ;; tired of server frames being wrong
+  :custom
+  (custom-safe-themes t)
+  (ef-themes-mixed-fonts t)
+  (ef-themes-variable-pitch-ui t)
   :config
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-  (meow-motion-overwrite-define-key
-   ;; Use e to move up, n to move down.
-   ;; Since special modes usually use n to move down, we only overwrite e here.
-   '("e" . meow-prev)
-   '("<escape>" . ignore))
-   (meow-leader-define-key
-   '("?" . meow-cheatsheet)
-   ;; To execute the originally e in MOTION state, use SPC e.
-   '("e" . "H-e")
-   '("o" . switch-window)
-   '("1" . meow-digit-argument)
-   '("2" . meow-digit-argument)
-   '("3" . meow-digit-argument)
-   '("4" . meow-digit-argument)
-   '("5" . meow-digit-argument)
-   '("6" . meow-digit-argument)
-   '("7" . meow-digit-argument)
-   '("8" . meow-digit-argument)
-   '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument))
-   (meow-normal-define-key
-   '("0" . meow-expand-0)
-   '("1" . meow-expand-1)
-   '("2" . meow-expand-2)
-   '("3" . meow-expand-3)
-   '("4" . meow-expand-4)
-   '("5" . meow-expand-5)
-   '("6" . meow-expand-6)
-   '("7" . meow-expand-7)
-   '("8" . meow-expand-8)
-   '("9" . meow-expand-9)
-   '("-" . negative-argument)
-   '(";" . meow-reverse)
-   '("," . meow-inner-of-thing)
-   '("." . meow-bounds-of-thing)
-   '("[" . meow-beginning-of-thing)
-   '("]" . meow-end-of-thing)
-   '("/" . meow-visit)
-   '("a" . meow-append)
-   '("A" . meow-open-below)
-   '("b" . meow-back-word)
-   '("B" . meow-back-symbol)
-   '("c" . meow-change)
-   '("d" . meow-delete)
-   '("e" . meow-prev)
-   '("E" . meow-prev-expand)
-   '("f" . meow-find)
-   '("g" . meow-cancel-selection)
-   '("G" . meow-grab)
-   '("h" . meow-left)
-   '("H" . meow-left-expand)
-   '("i" . meow-right)
-   '("I" . meow-right-expand)
-   '("j" . meow-join)
-   '("k" . meow-kill)
-   '("l" . meow-line)
-   '("L" . meow-goto-line)
-   '("m" . meow-mark-word)
-   '("M" . meow-mark-symbol)
-   '("n" . meow-next)
-   '("N" . meow-next-expand)
-   '("o" . meow-block)
-   '("O" . meow-to-block)
-   '("p" . meow-yank)
-   '("q" . meow-quit)
-   '("r" . meow-replace)
-   '("s" . meow-insert)
-   '("S" . meow-open-above)
-   '("t" . meow-till)
-   '("u" . meow-undo)
-   '("U" . meow-undo-in-selection)
-   '("v" . meow-search)
-   '("w" . meow-next-word)
-   '("W" . meow-next-symbol)
-   '("x" . meow-delete)
-   '("X" . meow-backward-delete)
-   '("y" . meow-save)
-   '("z" . meow-pop-selection)
-   '("'" . repeat)
-   '("<escape>" . ignore))
-
-  ;; (setq meow-smex-keymap (make-keymap))
-  ;; (meow-define-state paren
-  ;;	"meow state for interacting with smartparens"
-  ;;	:lighter " [P]"
-  ;;	:keymap meow-paren-keymap)
-
-  ;; ;; meow-define-state creates the variable
-  ;; (setq meow-cursor-type-paren 'hollow)
-
-  ;; (meow-define-keys 'paren
-  ;;	'("<escape>" . meow-normal-mode)
-  ;;	'("l" . sp-forward-sexp)
-  ;;	'("h" . sp-backward-sexp)
-  ;;	'("j" . sp-down-sexp)
-  ;;	'("k" . sp-up-sexp)
-  ;;	'("n" . sp-forward-slurp-sexp)
-  ;;	'("b" . sp-forward-barf-sexp)
-  ;;	'("v" . sp-backward-barf-sexp)
-  ;;	'("c" . sp-backward-slurp-sexp)
-  ;;	'("u" . meow-undo))
-  ;; (meow-define-state paren
-  ;;	"meow state for interacting with smartparens"
-  ;;	:lighter " [P]"
-  ;;	:keymap meow-paren-keymap)
-
-  ;; ;; meow-define-state creates the variable
-  ;; (setq meow-cursor-type-paren 'hollow)
-
-  ;; (meow-define-keys 'paren
-  ;;	'("<escape>" . meow-normal-mode)
-  ;;	'("l" . sp-forward-sexp)
-  ;;	'("h" . sp-backward-sexp)
-  ;;	'("j" . sp-down-sexp)
-  ;;	'("k" . sp-up-sexp)
-  ;;	'("n" . sp-forward-slurp-sexp)
-  ;;	'("b" . sp-forward-barf-sexp)
-  ;;	'("v" . sp-backward-barf-sexp)
-  ;;	'("c" . sp-backward-slurp-sexp)
-  ;;	'("u" . meow-undo))
-  (meow-global-mode 1))
+  (defun my-ef-themes-mod ()
+	"Tweak the style of the ef theme."
+	(ef-themes-with-colors
+	  (custom-set-faces
+	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
+	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
+	   ;; `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
+	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
+	   `(org-document-title ((,c :height 1.8)))
+	   `(org-modern-todo ((,c :height 1.2)))
+	   `(org-modern-done ((,c :height 1.2)))
+	   `(org-modern-tag ((,c :height 1.2)))
+	   `(default ((,c :font "Source Code Pro" :height 128)))
+	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))) ;; supress errors
+	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
+	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
+	   )))
+  (setq ef-themes-headings ; read the manual's entry or the doc string
+		'((0 variable-pitch light 2.1)
+		  (1 variable-pitch light 1.8)
+		  (t variable-pitch 1.2)
+		  (agenda-date 1.9)
+		  (agenda-structure variable-pitch light 1.8)
+		  (t variable-pitch)))
+  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
+  (mapc #'disable-theme custom-enabled-themes)
+  (ef-themes-select 'ef-melissa-dark))
 #+end_src
 
-
-** Transit
+*** Different color Delimiters
 
 #+begin_src emacs-lisp
-(use-package transient
-  :config
-  (transient-define-prefix sn/isearch-menu ()
-	"isearch Menu"
-	[["Edit Search String"
-	  ("e"
-	   "Edit the search string (recursive)"
-	   isearch-edit-string
-	   :transient nil)
-	  ("w"
-	   "Pull next word or character word from buffer"
-	   isearch-yank-word-or-char
-	   :transient nil)
-	  ("s"
-	   "Pull next symbol or character from buffer"
-	   isearch-yank-symbol-or-char
-	   :transient nil)
-	  ("l"
-	   "Pull rest of line from buffer"
-	   isearch-yank-line
-	   :transient nil)
-	  ("y"
-	   "Pull string from kill ring"
-	   isearch-yank-kill
-	   :transient nil)
-	  ("t"
-	   "Pull thing from buffer"
-	   isearch-forward-thing-at-point
-	   :transient nil)]
-
-	 ["Replace"
-	  ("q"
-	   "Start ‘query-replace’"
-	   isearch-query-replace
-	   :if-nil buffer-read-only
-	   :transient nil)
-	  ("l"
-	   "Start ‘consult-line’"
-	   consult-line
-	   :transient nil)
-	  ("x"
-	   "Start ‘query-replace-regexp’"
-	   isearch-query-replace-regexp
-	   :if-nil buffer-read-only
-	   :transient nil)]]
-	[["Toggle"
-	  ("X"
-	   "Toggle regexp searching"
-	   isearch-toggle-regexp
-	   :transient nil)
-	  ("S"
-	   "Toggle symbol searching"
-	   isearch-toggle-symbol
-	   :transient nil)
-	  ("W"
-	   "Toggle word searching"
-	   isearch-toggle-word
-	   :transient nil)
-	  ("F"
-	   "Toggle case fold"
-	   isearch-toggle-case-fold
-	   :transient nil)
-	  ("L"
-	   "Toggle lax whitespace"
-	   isearch-toggle-lax-whitespace
-	   :transient nil)]
-
-	 ["Misc"
-	  ("o"
-	   "occur"
-	   isearch-occur
-	   :transient nil)]])
-  (define-key isearch-mode-map (kbd "C-t") 'sn/isearch-menu))
+(use-package rainbow-delimiters
+  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 #+end_src
 
-
-** File Handler Functions
-*** Handier way to add modes to auto-mode-alist
+** Modeline
 
 #+begin_src emacs-lisp
-(defun add-auto-mode (mode &rest patterns)
-  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
-  (dolist (pattern patterns)
-	(add-to-list 'auto-mode-alist (cons pattern mode))))
+  (use-package doom-modeline
+    :hook (package-upgrade-all . (lambda () (nerd-icons-install-fonts)))
+    :init
+    (line-number-mode -1)
+    (column-number-mode -1)
+    :custom
+    ((doom-modeline-project-detection 'project)
+     (doom-gruvbox-padded-modeline nil)
+     (doom-modeline-vcs-max-length 30)
+     (doom-modeline-hud t)
+     (doom-modeline-unicode-fallback t)
+     (doom-modeline-env-version t)
+     (doom-modeline-buffer-encoding nil)
+     (doom-modeline-workspace-name nil)
+     (doom-modeline-buffer-file-name-style 'buffer-name)
+     (doom-modeline-height 27)
+     (doom-modeline-buffer-state-icon nil)
+     (doom-modeline-icon t)
+     (doom-modeline-modal-icon t)
+     (mode-line-position nil)
+     (mode-line-percent-position nil)
+     (doom-modeline-mode-alist nil)
+     (auto-revert-check-vc-info t)) ;; for switching branches
+    :config
+    (doom-modeline-def-modeline 'simple-line
+				'(bar buffer-info remote-host)
+				'(modals compilation objed-state misc-info persp-name lsp checker process vcs))
+    ;; Set default mode-line
+    (doom-modeline-set-modeline 'simple-line 'default))
+   #+end_src
+
+** General
+
+#+begin_src emacs-lisp
+(set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
+(pixel-scroll-precision-mode t)
+(global-prettify-symbols-mode t)
 #+end_src
 
-
-This Emacs Lisp block defines a function called =add-auto-mode= which allows you to easily add entries to =auto-mode-alist=. This allows you to associate a major mode with a specific file pattern. The function takes a =MODE= argument and a variable number of =PATTERNS= arguments, and it adds each pattern-mode pair to =auto-mode-alist=.
-
-*** Delete the current file
-
+*** Page Break Lines render
+	
 #+begin_src emacs-lisp
-(defun delete-this-file ()
-  "Delete the current file, and kill the buffer."
-  (interactive)
-  (unless (buffer-file-name)
-	(error "No file is currently being edited"))
-  (when (yes-or-no-p (format "Really delete '%s'?"
-							 (file-name-nondirectory buffer-file-name)))
-	(delete-file (buffer-file-name))
-	(kill-this-buffer)))
+(use-package page-break-lines
+  :config (global-page-break-lines-mode))
 #+end_src
 
-This Emacs Lisp config block defines a function called =delete-this-file=. It deletes the current file and kills the buffer associated with it. It first checks if there is a file being edited in the buffer. If not, it throws an error. Then, it prompts the user for confirmation to delete the file. If the user confirms, it proceeds to delete the file using =delete-file= and kills the buffer using =kill-this-buffer
+*** Window Size
 
-*** Rename the current file
-
-#+begin_src emacs-lisp
-(defun rename-this-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
-  (interactive "sNew name: ")
-  (let ((name (buffer-name))
-		(filename (buffer-file-name)))
-	(unless filename
-	  (error "Buffer '%s' is not visiting a file!" name))
-	(progn
-	  (when (file-exists-p filename)
-		(rename-file filename new-name 1))
-	  (set-visited-file-name new-name)
-	  (rename-buffer new-name))))
-#+end_src
-
-This Emacs Lisp configuration block defines a function called =rename-this-file-and-buffer= which renames both the current buffer and the file it's visiting to a new name specified by the user. It takes user input for the new name using the =interactive= keyword, checks if the buffer is visiting a file, renames the file if it exists, updates the visited file name, and renames the buffer accordingly.
-
-*** Toggle Mode Line
+	Change global font size easily
 
 #+begin_src emacs-lisp
-(defun toggle-mode-line ()
-  "toggles the modeline on and off"
-	   (interactive)
-	   (setq mode-line-format
-			 (if (equal mode-line-format nil)
-				 (default-value 'mode-line-format)))
-	   (redraw-display))
-#+end_src
+(use-package default-text-scale
+		  :bind (("C-M-=". default-text-scale-increase)
+				 ("C-M--" . default-text-scale-decrease)))
+	#+end_src
 
-
-This Emacs Lisp block defines a function called "toggle-mode-line" that toggles the display of the mode line on and off. When called interactively, it checks if the mode line is currently visible by comparing it to nil. If it is visible, it sets the mode-line-format to the default value, effectively hiding the mode line. If it is not visible, it sets the mode-line-format to nil, showing the mode line. Finally, it redraws the display to reflect the changes.
-
-** Mark without Activate
-
-used before consult line so it's in the mark stack.
+*** Padding
 
 #+begin_src emacs-lisp
-(defun push-mark-no-activate ()
-  "Pushes `point' to `mark-ring' and does not activate the region
-   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
-  (interactive)
-  (push-mark (point) t nil))
-#+end_src
-
-** Move & Duplicating Lines
-
-   Shift lines up and down with M-up and M-down. When paredit is enabled,
-   it will use those keybindings. For this reason, you might prefer to
-   use M-S-up and M-S-down, which will work even in lisp modes.
-   use M-S-up and M-S-down, which will work even in lisp modes.
-
-#+begin_src emacs-lisp
-(use-package move-dup
-  :bind(("M-<up>" . move-dup-move-lines-up)
-		("M-<down>" . move-dup-move-lines-down)
-		("C-c d" . move-dup-duplicate-down)
-		("C-c u" . move-dup-duplicate-up)))
-#+end_src
-
-This configuration block uses the =use-package= macro to manage the =move-dup= package. It sets up several keybindings and enables =move-dup= globally after initialization with the =after-init= hook. The keybindings allow you to move lines up and down, duplicate lines up and down using different key combinations.
-
-** Whole Line Or Region
-
-Cut/copy the current line if no region is active.
-
-#+begin_src emacs-lisp
-(use-package whole-line-or-region
-  :config (whole-line-or-region-global-mode t))
-#+end_src
-
-This Emacs Lisp code block configures the =whole-line-or-region= package, enabling global mode and binding the key combination "M-j" to the function =comment-dwim=.
-
-** Beginning Of Line Text Then Line
-
-#+begin_src emacs-lisp
-(defun smarter-move-beginning-of-line (arg)
-  "Move point back to indentation of beginning of line.
-
-Move point to the first non-whitespace character on this line.
-If point is already there, move to the beginning of the line.
-Effectively toggle between the first non-whitespace character and
-the beginning of the line.
-
-If ARG is not nil or 1, move forward ARG - 1 lines first.  If
-point reaches the beginning or end of the buffer, stop there."
-  (interactive "^p")
-  (setq arg (or arg 1))
-
-  ;; Move lines first
-  (when (/= arg 1)
-	(let ((line-move-visual nil))
-	  (forward-line (1- arg))))
-
-  (let ((orig-point (point)))
-	(back-to-indentation)
-	(when (= orig-point (point))
-	  (move-beginning-of-line 1))))
-
-;; remap C-a to `smarter-move-beginning-of-line'
-(global-set-key [remap move-beginning-of-line]
-				'smarter-move-beginning-of-line)
-#+end_src
-
-This Emacs Lisp configuration block defines a function called =smarter-move-beginning-of-line=. This function moves the cursor to the indentation of the beginning of the current line. If the cursor is already at the indentation, it moves to the actual beginning of the line. The function also accepts an argument =ARG= which, if non-nil or non-zero, moves the cursor forward =ARG - 1= lines before executing the main logic.
-
-This configuration also remaps =C-a= (the default keybinding for =move-beginning-of-line=) to the =smarter-move-beginning-of-line= function using the =global-set-key= function.
-
-** Switch Windows Via Letters
-
-#+begin_src emacs-lisp
-(use-package switch-window
-  :init
-	(meow-leader-define-key
-	'("o" . switch-window))
-  :config
-  (setq switch-window-shortcut-style 'alphabet
-		switch-window-timeout nil)
-  :bind ("C-x o" . switch-window))
-#+end_src
-
-This config block sets up the Emacs package "switch-window" by configuring its options and binding the key combination "C-x o" to activate it.
-
-** Swap Windows
-
-   - Switch buffer focus using control + arrow key.
-   - Move buffer direction with control+shift+arrow key.
-
-#+begin_src emacs-lisp
-(use-package windswap
-  :config
-  (windmove-default-keybindings 'control)
-  (windswap-default-keybindings 'shift 'control))
-#+end_src
-
-This Emacs Lisp code configures the =windswap= package, which provides functions to navigate and rearrange windows. It sets up keybindings for both =windmove= (to move between windows) and =windswap= (to swap windows) using the control and shift keys. This configuration is executed after Emacs initializes.
-
-** golden ratio
-
-#+begin_src emacs-lisp
-(use-package golden-ratio
-  :init (golden-ratio-mode))
-
-#+end_src
-
-
-** Sudo Editing
-
-   This is completely unnecessary since you could just tramp the same file really quick but using this package is a slightly nicer user experience.
-
-#+begin_src emacs-lisp
-(use-package sudo-edit
-  :commands (sudo-edit))
-#+end_src
-
-** Place Buffer As Fullframe
-
-#+begin_src emacs-lisp
-(use-package fullframe)
+(use-package spacious-padding
+	:config (spacious-padding-mode 1)
+	:custom
+	(spacious-padding-widths
+	 '( :internal-border-width 15
+		:header-line-width 4
+		:mode-line-width 2
+		:tab-width 4
+		:right-divider-width 30
+		:scroll-bar-width 8)))
 #+end_src
 
 * General Settings
@@ -947,7 +645,7 @@ This is useful when followed by an immediate kill."
 		 ("C-c m a" . mc/edit-beginnings-of-lines)))
 #+end_src
 
-** Whitespaces
+** White spaces
 
    View and auto remove them.
 
@@ -1067,138 +765,411 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 #+end_src
 
-** Unload eshell
+** Editing Utilities
 
-* UI Stuff
+   General editing configurations.
 
-  Packages I had at one point or another for UI.
-  - [[https://github.com/gonewest818/dimmer.el][Dimmer]]
-  - [[https://github.com/emacs-dashboard/emacs-dashboard][Dashboard]]
-  - [[https://github.com/ema2159/centaur-tabs][Centaur tabs]]
-  - Treemacs
+   Packages I had at one point or another for UI.
+   - [[https://github.com/abo-abo/avy][avy]]
 
-** General
+*** Meow - Modal Editing
 
-#+begin_src emacs-lisp
-(set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
-(pixel-scroll-precision-mode t)
-(global-prettify-symbols-mode t)
-#+end_src
+ | x | =C-x=  |
+ | h | =C-h=  |
+ | c | =C-c=  |
+ | m | =M-=   |
+ | g | =C-M-= |
 
-*** Page Break Lines render
-
-#+begin_src emacs-lisp
-(use-package page-break-lines
-  :config (global-page-break-lines-mode))
-#+end_src
-
-** Theme
-
-#+begin_src emacs-lisp
-(use-package ef-themes
-  :custom
-  (custom-safe-themes t)
-  (ef-themes-mixed-fonts t)
-  (ef-themes-variable-pitch-ui t)
-  :config
-  (defun my-ef-themes-mod ()
-	"Tweak the style of the ef theme."
-	(ef-themes-with-colors
-	  (custom-set-faces
-	   `(pdf-view-midnight-colors ((,c :foreground ,fg-main :background ,bg-alt)))
-	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
-	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   `(mode-line ((,c :background ,bg-active :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
-	   `(org-document-title ((,c :height 2.1)))
-	   ;; `(org-modern-todo ((,c :height 1.2)))
-	   ;; `(org-modern-done ((,c :height 1.2)))
-	   `(org-modern-tag ((,c :height 1.2)))
-	   `(default ((,c :font "Source Code Pro" :height 128)))
-	   `(unspecified-bg ((,c (:inherit 'default )))) ;; supress errors
-	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
-	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
-	   )))
-  (setq ef-themes-headings ; read the manual's entry or the doc string
-		'((0 variable-pitch light 2.1)
-		  (1 variable-pitch light 1.8)
-		  (t variable-pitch 1.2)
-		  (agenda-date 1.9)
-		  (agenda-structure variable-pitch light 1.8)
-		  (t variable-pitch)))
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark))
-#+end_src
-
-*** Different color Delimiters
-
-#+begin_src emacs-lisp
-(use-package rainbow-delimiters
-  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
-#+end_src
-
-** Modeline
-
-#+begin_src emacs-lisp
-(use-package doom-modeline
-   :init
-   (line-number-mode -1)
-   (column-number-mode -1)
-   :custom
-   ((doom-modeline-project-detection 'project)
-	(doom-gruvbox-padded-modeline nil)
-	(doom-modeline-vcs-max-length 30)
-	(doom-modeline-hud t)
-	(doom-modeline-unicode-fallback t)
-	(doom-modeline-env-version t)
-	(doom-modeline-buffer-encoding nil)
-	(doom-modeline-workspace-name nil)
-	(doom-modeline-buffer-file-name-style 'buffer-name)
-	(doom-modeline-height 27)
-	(doom-modeline-buffer-state-icon nil)
-	(doom-modeline-icon t)
-	(doom-modeline-modal-icon t)
-	(mode-line-position nil)
-	(mode-line-percent-position nil)
-	(doom-modeline-mode-alist nil)
-	(auto-revert-check-vc-info t)) ;; for switching branches
+ #+begin_src emacs-lisp
+ ;; (use-package use-package-chords
+ ;;   :config (key-chord-mode 1))
+ (use-package meow
    :config
-   (doom-modeline-def-modeline 'simple-line
-	 '(bar buffer-info remote-host)
-	 '(modals compilation objed-state misc-info persp-name lsp checker process vcs))
-   ;; Set default mode-line
-   (doom-modeline-set-modeline 'simple-line 'default))
-   #+end_src
+   (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+   (meow-motion-overwrite-define-key
+	;; Use e to move up, n to move down.
+	;; Since special modes usually use n to move down, we only overwrite e here.
+	'("e" . meow-prev)
+	'("<escape>" . ignore))
+	(meow-leader-define-key
+	'("?" . meow-cheatsheet)
+	;; To execute the originally e in MOTION state, use SPC e.
+	'("e" . "H-e")
+	'("o" . switch-window)
+	'("1" . meow-digit-argument)
+	'("2" . meow-digit-argument)
+	'("3" . meow-digit-argument)
+	'("4" . meow-digit-argument)
+	'("5" . meow-digit-argument)
+	'("6" . meow-digit-argument)
+	'("7" . meow-digit-argument)
+	'("8" . meow-digit-argument)
+	'("9" . meow-digit-argument)
+	'("0" . meow-digit-argument))
+	(meow-normal-define-key
+	'("0" . meow-expand-0)
+	'("1" . meow-expand-1)
+	'("2" . meow-expand-2)
+	'("3" . meow-expand-3)
+	'("4" . meow-expand-4)
+	'("5" . meow-expand-5)
+	'("6" . meow-expand-6)
+	'("7" . meow-expand-7)
+	'("8" . meow-expand-8)
+	'("9" . meow-expand-9)
+	'("-" . negative-argument)
+	'(";" . meow-reverse)
+	'("," . meow-inner-of-thing)
+	'("." . meow-bounds-of-thing)
+	'("[" . meow-beginning-of-thing)
+	'("]" . meow-end-of-thing)
+	'("/" . meow-visit)
+	'("a" . meow-append)
+	'("A" . meow-open-below)
+	'("b" . meow-back-word)
+	'("B" . meow-back-symbol)
+	'("c" . meow-change)
+	'("d" . meow-delete)
+	'("e" . meow-prev)
+	'("E" . meow-prev-expand)
+	'("f" . meow-find)
+	'("g" . meow-cancel-selection)
+	'("G" . meow-grab)
+	'("h" . meow-left)
+	'("H" . meow-left-expand)
+	'("i" . meow-right)
+	'("I" . meow-right-expand)
+	'("j" . meow-join)
+	'("k" . meow-kill)
+	'("l" . meow-line)
+	'("L" . meow-goto-line)
+	'("m" . meow-mark-word)
+	'("M" . meow-mark-symbol)
+	'("n" . meow-next)
+	'("N" . meow-next-expand)
+	'("o" . meow-block)
+	'("O" . meow-to-block)
+	'("p" . meow-yank)
+	'("q" . meow-quit)
+	'("r" . meow-replace)
+	'("s" . meow-insert)
+	'("S" . meow-open-above)
+	'("t" . meow-till)
+	'("u" . meow-undo)
+	'("U" . meow-undo-in-selection)
+	'("v" . meow-search)
+	'("w" . meow-next-word)
+	'("W" . meow-next-symbol)
+	'("x" . meow-delete)
+	'("X" . meow-backward-delete)
+	'("y" . meow-save)
+	'("z" . meow-pop-selection)
+	'("'" . repeat)
+	'("<escape>" . ignore))
 
-** GUI Frames
+   ;; (setq meow-smex-keymap (make-keymap))
+   ;; (meow-define-state paren
+   ;;	"meow state for interacting with smartparens"
+   ;;	:lighter " [P]"
+   ;;	:keymap meow-paren-keymap)
 
-   UI Features that are related to the Emacs GUI.
+   ;; ;; meow-define-state creates the variable
+   ;; (setq meow-cursor-type-paren 'hollow)
 
-*** Window Size
+   ;; (meow-define-keys 'paren
+   ;;	'("<escape>" . meow-normal-mode)
+   ;;	'("l" . sp-forward-sexp)
+   ;;	'("h" . sp-backward-sexp)
+   ;;	'("j" . sp-down-sexp)
+   ;;	'("k" . sp-up-sexp)
+   ;;	'("n" . sp-forward-slurp-sexp)
+   ;;	'("b" . sp-forward-barf-sexp)
+   ;;	'("v" . sp-backward-barf-sexp)
+   ;;	'("c" . sp-backward-slurp-sexp)
+   ;;	'("u" . meow-undo))
+   ;; (meow-define-state paren
+   ;;	"meow state for interacting with smartparens"
+   ;;	:lighter " [P]"
+   ;;	:keymap meow-paren-keymap)
 
-	Change global font size easily
+   ;; ;; meow-define-state creates the variable
+   ;; (setq meow-cursor-type-paren 'hollow)
 
-#+begin_src emacs-lisp
-(use-package default-text-scale
-		  :bind (("C-M-=". default-text-scale-increase)
-				 ("C-M--" . default-text-scale-decrease)))
-	#+end_src
+   ;; (meow-define-keys 'paren
+   ;;	'("<escape>" . meow-normal-mode)
+   ;;	'("l" . sp-forward-sexp)
+   ;;	'("h" . sp-backward-sexp)
+   ;;	'("j" . sp-down-sexp)
+   ;;	'("k" . sp-up-sexp)
+   ;;	'("n" . sp-forward-slurp-sexp)
+   ;;	'("b" . sp-forward-barf-sexp)
+   ;;	'("v" . sp-backward-barf-sexp)
+   ;;	'("c" . sp-backward-slurp-sexp)
+   ;;	'("u" . meow-undo))
+   (meow-global-mode 1))
+ #+end_src
 
-*** Padding
 
-#+begin_src emacs-lisp
-(use-package spacious-padding
-	:config (spacious-padding-mode 1)
-	:custom
-	(spacious-padding-widths
-	 '( :internal-border-width 15
-		:header-line-width 4
-		:mode-line-width 2
-		:tab-width 4
-		:right-divider-width 30
-		:scroll-bar-width 8)))
-#+end_src
+*** Transit
+
+ #+begin_src emacs-lisp
+ (use-package transient
+   :config
+   (transient-define-prefix sn/isearch-menu ()
+	 "isearch Menu"
+	 [["Edit Search String"
+	   ("e"
+		"Edit the search string (recursive)"
+		isearch-edit-string
+		:transient nil)
+	   ("w"
+		"Pull next word or character word from buffer"
+		isearch-yank-word-or-char
+		:transient nil)
+	   ("s"
+		"Pull next symbol or character from buffer"
+		isearch-yank-symbol-or-char
+		:transient nil)
+	   ("l"
+		"Pull rest of line from buffer"
+		isearch-yank-line
+		:transient nil)
+	   ("y"
+		"Pull string from kill ring"
+		isearch-yank-kill
+		:transient nil)
+	   ("t"
+		"Pull thing from buffer"
+		isearch-forward-thing-at-point
+		:transient nil)]
+
+	  ["Replace"
+	   ("q"
+		"Start ‘query-replace’"
+		isearch-query-replace
+		:if-nil buffer-read-only
+		:transient nil)
+	   ("l"
+		"Start ‘consult-line’"
+		consult-line
+		:transient nil)
+	   ("x"
+		"Start ‘query-replace-regexp’"
+		isearch-query-replace-regexp
+		:if-nil buffer-read-only
+		:transient nil)]]
+	 [["Toggle"
+	   ("X"
+		"Toggle regexp searching"
+		isearch-toggle-regexp
+		:transient nil)
+	   ("S"
+		"Toggle symbol searching"
+		isearch-toggle-symbol
+		:transient nil)
+	   ("W"
+		"Toggle word searching"
+		isearch-toggle-word
+		:transient nil)
+	   ("F"
+		"Toggle case fold"
+		isearch-toggle-case-fold
+		:transient nil)
+	   ("L"
+		"Toggle lax whitespace"
+		isearch-toggle-lax-whitespace
+		:transient nil)]
+
+	  ["Misc"
+	   ("o"
+		"occur"
+		isearch-occur
+		:transient nil)]])
+   (define-key isearch-mode-map (kbd "C-t") 'sn/isearch-menu))
+ #+end_src
+
+
+*** File Handler Functions
+**** Handier way to add modes to auto-mode-alist
+
+ #+begin_src emacs-lisp
+ (defun add-auto-mode (mode &rest patterns)
+   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
+   (dolist (pattern patterns)
+	 (add-to-list 'auto-mode-alist (cons pattern mode))))
+ #+end_src
+
+
+ This Emacs Lisp block defines a function called =add-auto-mode= which allows you to easily add entries to =auto-mode-alist=. This allows you to associate a major mode with a specific file pattern. The function takes a =MODE= argument and a variable number of =PATTERNS= arguments, and it adds each pattern-mode pair to =auto-mode-alist=.
+
+**** Delete the current file
+
+ #+begin_src emacs-lisp
+ (defun delete-this-file ()
+   "Delete the current file, and kill the buffer."
+   (interactive)
+   (unless (buffer-file-name)
+	 (error "No file is currently being edited"))
+   (when (yes-or-no-p (format "Really delete '%s'?"
+							  (file-name-nondirectory buffer-file-name)))
+	 (delete-file (buffer-file-name))
+	 (kill-this-buffer)))
+ #+end_src
+
+ This Emacs Lisp config block defines a function called =delete-this-file=. It deletes the current file and kills the buffer associated with it. It first checks if there is a file being edited in the buffer. If not, it throws an error. Then, it prompts the user for confirmation to delete the file. If the user confirms, it proceeds to delete the file using =delete-file= and kills the buffer using =kill-this-buffer
+
+**** Rename the current file
+
+ #+begin_src emacs-lisp
+ (defun rename-this-file-and-buffer (new-name)
+   "Renames both current buffer and file it's visiting to NEW-NAME."
+   (interactive "sNew name: ")
+   (let ((name (buffer-name))
+		 (filename (buffer-file-name)))
+	 (unless filename
+	   (error "Buffer '%s' is not visiting a file!" name))
+	 (progn
+	   (when (file-exists-p filename)
+		 (rename-file filename new-name 1))
+	   (set-visited-file-name new-name)
+	   (rename-buffer new-name))))
+ #+end_src
+
+ This Emacs Lisp configuration block defines a function called =rename-this-file-and-buffer= which renames both the current buffer and the file it's visiting to a new name specified by the user. It takes user input for the new name using the =interactive= keyword, checks if the buffer is visiting a file, renames the file if it exists, updates the visited file name, and renames the buffer accordingly.
+
+**** Toggle Mode Line
+
+ #+begin_src emacs-lisp
+ (defun toggle-mode-line ()
+   "toggles the modeline on and off"
+		(interactive)
+		(setq mode-line-format
+			  (if (equal mode-line-format nil)
+				  (default-value 'mode-line-format)))
+		(redraw-display))
+ #+end_src
+
+
+ This Emacs Lisp block defines a function called "toggle-mode-line" that toggles the display of the mode line on and off. When called interactively, it checks if the mode line is currently visible by comparing it to nil. If it is visible, it sets the mode-line-format to the default value, effectively hiding the mode line. If it is not visible, it sets the mode-line-format to nil, showing the mode line. Finally, it redraws the display to reflect the changes.
+
+*** Mark without Activate
+
+ used before consult line so it's in the mark stack.
+
+ #+begin_src emacs-lisp
+ (defun push-mark-no-activate ()
+   "Pushes `point' to `mark-ring' and does not activate the region
+	Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+   (interactive)
+   (push-mark (point) t nil))
+ #+end_src
+
+*** Move & Duplicating Lines
+
+	Shift lines up and down with M-up and M-down. When paredit is enabled,
+	it will use those keybindings. For this reason, you might prefer to
+	use M-S-up and M-S-down, which will work even in lisp modes.
+	use M-S-up and M-S-down, which will work even in lisp modes.
+
+ #+begin_src emacs-lisp
+ (use-package move-dup
+   :bind(("M-<up>" . move-dup-move-lines-up)
+		 ("M-<down>" . move-dup-move-lines-down)
+		 ("C-c d" . move-dup-duplicate-down)
+		 ("C-c u" . move-dup-duplicate-up)))
+ #+end_src
+
+ This configuration block uses the =use-package= macro to manage the =move-dup= package. It sets up several keybindings and enables =move-dup= globally after initialization with the =after-init= hook. The keybindings allow you to move lines up and down, duplicate lines up and down using different key combinations.
+
+*** Whole Line Or Region
+
+ Cut/copy the current line if no region is active.
+
+ #+begin_src emacs-lisp
+ (use-package whole-line-or-region
+   :config (whole-line-or-region-global-mode t))
+ #+end_src
+
+ This Emacs Lisp code block configures the =whole-line-or-region= package, enabling global mode and binding the key combination "M-j" to the function =comment-dwim=.
+
+*** Beginning Of Line Text Then Line
+
+ #+begin_src emacs-lisp
+ (defun smarter-move-beginning-of-line (arg)
+   "Move point back to indentation of beginning of line.
+
+ Move point to the first non-whitespace character on this line.
+ If point is already there, move to the beginning of the line.
+ Effectively toggle between the first non-whitespace character and
+ the beginning of the line.
+
+ If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+ point reaches the beginning or end of the buffer, stop there."
+   (interactive "^p")
+   (setq arg (or arg 1))
+
+   ;; Move lines first
+   (when (/= arg 1)
+	 (let ((line-move-visual nil))
+	   (forward-line (1- arg))))
+
+   (let ((orig-point (point)))
+	 (back-to-indentation)
+	 (when (= orig-point (point))
+	   (move-beginning-of-line 1))))
+
+ ;; remap C-a to `smarter-move-beginning-of-line'
+ (global-set-key [remap move-beginning-of-line]
+				 'smarter-move-beginning-of-line)
+ #+end_src
+
+ This Emacs Lisp configuration block defines a function called =smarter-move-beginning-of-line=. This function moves the cursor to the indentation of the beginning of the current line. If the cursor is already at the indentation, it moves to the actual beginning of the line. The function also accepts an argument =ARG= which, if non-nil or non-zero, moves the cursor forward =ARG - 1= lines before executing the main logic.
+
+ This configuration also remaps =C-a= (the default keybinding for =move-beginning-of-line=) to the =smarter-move-beginning-of-line= function using the =global-set-key= function.
+
+*** Switch Windows Via Letters
+
+ #+begin_src emacs-lisp
+ (use-package switch-window
+   :init
+	 (meow-leader-define-key
+	 '("o" . switch-window))
+   :config
+   (setq switch-window-shortcut-style 'alphabet
+		 switch-window-timeout nil)
+   :bind ("C-x o" . switch-window))
+ #+end_src
+
+ This config block sets up the Emacs package "switch-window" by configuring its options and binding the key combination "C-x o" to activate it.
+
+*** Swap Windows
+
+	- Switch buffer focus using control + arrow key.
+	- Move buffer direction with control+shift+arrow key.
+
+ #+begin_src emacs-lisp
+ (use-package windswap
+   :config
+   (windmove-default-keybindings 'control)
+   (windswap-default-keybindings 'shift 'control))
+ #+end_src
+
+ This Emacs Lisp code configures the =windswap= package, which provides functions to navigate and rearrange windows. It sets up keybindings for both =windmove= (to move between windows) and =windswap= (to swap windows) using the control and shift keys. This configuration is executed after Emacs initializes.
+
+*** Sudo Editing
+
+	This is completely unnecessary since you could just tramp the same file really quick but using this package is a slightly nicer user experience.
+
+ #+begin_src emacs-lisp
+ (use-package sudo-edit
+   :commands (sudo-edit))
+ #+end_src
+
+*** Place Buffer As Fullframe
+
+ #+begin_src emacs-lisp
+ (use-package fullframe)
+ #+end_src
 
 * Mini-buffer / Completion Framework
 
@@ -1220,8 +1191,12 @@ Call a second time to restore the original window configuration."
    '(read-only t cursor-intangible t face minibuffer-prompt))
   :hook
   (completion-list-mode . force-truncate-lines)
-  (minibuffer-setup . cursor-intangible-mode)
+  (minibuffer-setup . (lambda ()
+						(set-window-scroll-bars (minibuffer-window) nil nil)
+						(cursor-intangible-mode 1)))
   :config
+  (set-window-scroll-bars (minibuffer-window) nil nil)
+  (set-window-scroll-bars (minibuffer-window) nil nil)
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode))
 #+end_src
@@ -1914,9 +1889,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package org-clock
   :ensure nil  ;; built in
-  :defer 2 ;; lazy load but still constinue clock after a bit
   :config
   (org-clock-persistence-insinuate)
+  (org-resolve-clocks)
   :init
   (defvar org-clock-prefix-map (make-sparse-keymap)
 	"A keymap for handy global access to org helpers, particularly clocking.")
@@ -1952,7 +1927,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package type-break
-  :after org-clock
   :hook ((after-init . type-break-mode)
 		 (org-clock-in-prepare . type-break-mode))
   :custom
@@ -2267,21 +2241,29 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :defer 3
-  :hook ((pdf-view-mode . (lambda ()
-							(setq-local scroll-bar-mode 1)
-							(pdf-view-midnight-minor-mode 1)))
-		 (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line))))
-  :custom ((pdf-view-display-size 'fit-width))
+  :defer t
+  :hook
+  (pdf-view-mode . (lambda ()
+					 (pdf-view-midnight-minor-mode 1)))
+  (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line)))
+  :custom
+  (pdf-view-display-size 'fit-width)
   :config
-  (setopt pdf-continuous-suppress-introduction t) ;; from pdf-continuous-scroll-mode but needs to be set before it's loaded and putting it in pdf-continuous-scroll-mode init force pdf tools to load.
+  (setopt pdf-continuous-suppress-introduction t)
   (pdf-loader-install))
-(use-package pdf-continuous-scroll-mode
-  :after pdf-tools
-   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
-			:branch "master" :rev :newest))
 #+end_src
 
+*** Multi Page Scroll
+
+#+begin_src emacs-lisp
+(use-package pdf-continuous-scroll-mode
+  :defer t
+  :after pdf-tools
+  :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
+			:branch "master" :rev :newest))  
+#+end_src
+	
+	
 ** Org Roam
 
 #+begin_src emacs-lisp
@@ -2386,15 +2368,17 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package eglot
   :ensure cape
-  :hook (((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
-		 (eglot-managed-mode . (lambda ()
-								 (eglot-format-buffer-on-save)
-								 (eglot-inlay-hints-mode 1)
-								 (setq-local
-								  completion-at-point-functions
-								  (list
-									#'eglot-completion-at-point
-									#'cape-file)))))
+  :hook
+  ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
+  (eglot-managed-mode . (lambda ()
+						  (add-hook 'before-save-hook #'eglot-format-buffer -10 t)
+						  (add-hook 'before-save-hook #'eglot-organize-imports nil t)
+						  (list (cape-super-capf
+								 #'codeium-completion-at-point
+								 #'eglot-completion-at-point
+								 #'yasnippet-capf
+								 #'cape-file))))
+
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
 			  ("C-c C-c" . project-compile)
@@ -2423,8 +2407,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 														  :rangeVariableTypes t))))
   (fset #'jsonrpc--log-event #'ignore)
   :init
-  (defun eglot-format-buffer-on-save ()
-	(add-hook 'before-save-hook #'eglot-format-buffer -10 t))
+  (defun eglot-organize-imports () (interactive)
+		 (eglot-code-actions nil nil "source.organizeImports" t))
   (defun project-find-go-module (dir)
 	(when-let ((root (locate-dominating-file dir "go.mod")))
 	  (cons 'go-module root)))
@@ -2501,29 +2485,73 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 *** Terminal
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package eat
   :hook ((eat-mode . (lambda ()
-					   (setq-local
-						left-margin-width 3
-						right-margin-width 3
-						cursor-type 'bar)
-					   (toggle-mode-line)
-					   ;; (face-remap-add-relative
-					   ;;	'default
-					   ;;	:foreground (doom-color 'fg-alt)
-					   ;;	:background (doom-color 'base1))
-					   ;; (face-remap-add-relative
-					   ;;	'fringe
-					   ;;	:foreground (doom-color 'fg-alt)
-					   ;;	:background (doom-color 'base1))
-					   )))
+			  (setq-local
+			   left-margin-width 3
+			   right-margin-width 3
+			   cursor-type 'bar)
+			  (toggle-mode-line)
+			  (face-remap-add-relative
+			   'default
+			   :family "Iosevka"
+			   :background "#281d12")
+			  (face-remap-add-relative
+			   'fringe
+			   :background "#281d12")
+			  )))
   :custom ((eat-kill-buffer-on-exit t)
 		   (eat-enable-yank-to-terminal t))
   :bind (("M-t" . eat-project-other)
-		 (("M-t" . eat-other-window))))
+		 (("C-M-t" . eat-other-window))))
 #+end_src
 
+**** Vterm
+
+	 because eat does not support tramp
+
+#+begin_src emacs-lisp
+(use-package multi-vterm
+  :hook
+  (vterm-mode . (lambda ()
+				  (toggle-mode-line)
+				  (setq left-margin-width 1
+						right-margin-width 1
+						cursor-type 'bar)
+				  (face-remap-add-relative
+				   'default
+				   :family "Iosevka"
+				   :background "#281d12")
+				  (face-remap-add-relative
+				   'fringe
+				   :background "#281d12")))
+  :bind
+  (("M-t" . multi-vterm-dedicated-toggle)
+   ("C-M-t" . multi-vterm-project)
+   :map vterm-mode-map
+   ("M-t" . multi-vterm-dedicated-toggle)
+   ("C-M-t" . multi-vterm-project)
+   ("C-M-r" . (lambda ()
+				(interactive)
+				(let ((vterm-buffer-name-string nil))
+				  (rename-buffer (concat "Term " (read-string "Term: "))))))
+   ("C-M-s" . (lambda ()
+				(interactive)
+				(consult-buffer '(consult--source-vterm))))
+   ("M-w" . copy-region-as-kill)
+   ("C-y" . vterm-yank))
+  :custom
+  (vterm-buffer-name "Term")
+  (multi-vterm-buffer-name "Term")
+  (vterm-buffer-name-string "Term %s")
+  (vterm-buffer-maximum-size 1000)
+  :config
+  (add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
+  (add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash")))  
+#+end_src
+	 
+	 
 *** Compile Helpers
 
 #+begin_src emacs-lisp
@@ -2547,8 +2575,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 		  (funcall orig edit-command))
 	  (funcall orig edit-command)))
   (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
-
-(global-set-key [f6] 'recompile)
 
 (defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
   "Put \"*Shell Command Output*\" buffers into view-mode."
@@ -2578,14 +2604,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+end_src
 
 ** Go
-
-   Don't forget to install golsp =go get golang.org/x/tools/gopls@latest=
-   other tools
-
 - gomodifytags
 - goplay
-
-
 
 #+begin_src emacs-lisp
 (use-package go-ts-mode
@@ -2622,8 +2642,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
   :config
-  ;; (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer")))
-  )
+  (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
 #+end_src
 
 ** Shell
@@ -2658,7 +2677,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
    install server pip install -U jedi-language-server
 
-#+begin_src emacs
+#+begin_src emacs-lisp
 (use-package python
   :mode ("\\.py\\'" . python-mode)
   :interpreter ("python" . python-mode))
@@ -2699,7 +2718,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 			   '(conda-env-current-name (" conda:" conda-env-current-name " "))
 			   'append))
 (use-package jupyter
-  :defer 3
+  :defer t
   :config
   (add-to-list 'org-babel-load-languages '(jupyter . t))
   (setq code-cells-convert-ipynb-style '(
@@ -2770,7 +2789,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 #+end_src
 
 ** Yuck
-
+   
    Yuck is the eww configuration language.
 
 #+begin_src emacs-lisp
