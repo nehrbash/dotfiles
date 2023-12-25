@@ -43,3 +43,4 @@
 /.emacs.d/auto-save-list/
 /.emacs.d/multisession/
 /.emacs.d/eshell/
+/.emacs.d/.cache/

@@ -81,7 +81,6 @@
   - [[#google-this][Google This]]
   - [[#dev-documentation][Dev Documentation]]
 - [[#runtime-performance][Runtime Performance]]
-  - [[#minibuffer-turn-off-gc-for-large-lists-and-commands][Minibuffer turn off GC for large lists and commands]]
 - [[#inspiration][Inspiration]]
 
 * Package Manager
@@ -89,6 +88,14 @@
 Dropped straight.el because vc provides the one feature I was needing. That is source pulling packages.  ~use-package~  and ~vc-use-package~ are now built-in as well.
 
 ~use-package~ can be used to add to load path using ~:load-path "~lisp"~
+
+#+begin_src emacs-lisp
+;;; init.el --- Initialization file for Emacs -*- lexical-binding: nil -*-
+;;; Commentary: Emacs Startup File, initialization for Emacs
+;;; Code: 
+#+end_src
+
+
 
 ** Load All Environment Variables
 
@@ -115,18 +122,29 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
   (require 'package)
   (require 'use-package))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(setq native-comp-deferred-compilation t
-	  native-compile-prune-cache t
-	  package-install-upgrade-built-in t
-	  package-native-compile t
-	  package-quickstart t
-	  use-package-always-ensure t
-	  use-package-compute-statistics t
-	  use-package-expand-minimally t
-	  async-bytecomp-package-mode t)
-(add-hook 'package-upgrade-all-hook
-		  (lambda ()
-			(package-quickstart-refresh)))
+(setq
+ warning-minimum-level :emergency
+ comp-async-report-warnings-errors nil
+ native-comp-jit-compilation t
+ native-compile-prune-cache t
+ package-install-upgrade-built-in t
+ package-native-compile t
+ package-quickstart t
+ use-package-always-ensure t
+ use-package-compute-statistics t
+ use-package-expand-minimally t
+ async-bytecomp-package-mode t)
+(use-package async
+  :init (async-bytecomp-package-mode 1))
+(defun sn/finish-install()
+  (interactive)
+  (treesit-auto-install-all)
+  (all-the-icons-install-fonts)
+  (yas-reload-all)
+  (recentf-cleanup)
+  (nerd-icons-install-fonts)
+  (package-quickstart-refresh))
+(add-hook 'package-upgrade-all-hook 'sn/finish-install)
 #+end_src
 
 ** Startup Time
@@ -136,7 +154,7 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 #+end_src
 
 #+RESULTS:
-: 0.548844 seconds
+: 0.545082 seconds
 
 ** Breakdown
 
@@ -149,123 +167,127 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 
 #+RESULTS: package-report-buffer :exports results
 #+begin_example
-doom-modeline             Configured    00:54:21.086024         0.11
-doom-themes               Configured    00:54:21.030457         0.05
-kind-icon                 Configured    00:54:21.120146         0.02
-protogg                   Configured    00:54:21.107425         0.01
-minibuffer                Configured    00:54:21.092219         0.01
-autorevert                Configured    00:54:20.980575         0.01
-vertico                   Configured    00:54:21.095629         0.01
-consult                   Configured    00:54:22.592610         0.01
-spacious-padding          Configured    00:54:21.088976         0.01
-all-the-icons-completion  Configured    00:54:21.099992         0.01
-no-littering              Configured    00:54:20.961891         0.01
-move-dup                  Initialized   00:54:20.962241         0.00
-savehist                  Configured    00:54:20.999184         0.00
-corfu                     Configured    00:54:21.109354         0.00
-corfu-terminal            Configured    00:54:21.111333         0.00
-whole-line-or-region      Configured    00:54:20.967679         0.00
-git-gutter-fringe         Configured    00:54:21.322672         0.00
-marginalia                Configured    00:54:21.097034         0.00
-git-gutter                Configured    00:54:21.321234         0.00
-jinx                      Configured    00:54:21.122437         0.00
-page-break-lines          Configured    00:54:21.012764         0.00
-orderless                 Configured    00:54:21.101122         0.00
-cape                      Configured    00:54:21.120846         0.00
-fullframe                 Configured    00:54:20.968511         0.00
-org-roam                  Initialized   00:54:21.319228         0.00
-winner                    Initialized   00:54:21.003478         0.00
-eglot                     Initialized   00:54:21.319727         0.00
-org-clock                 Initialized   00:54:21.318011         0.00
-magit                     Initialized   00:54:21.322767         0.00
-docker                    Initialized   00:54:21.327249         0.00
-embark                    Initialized   00:54:21.101894         0.00
-multiple-cursors          Initialized   00:54:21.001477         0.00
-csv-mode                  Initialized   00:54:21.327123         0.00
-org-agenda                Configured    00:54:21.318898         0.00
-toc-org                   Configured    00:54:27.672431         0.00
-type-break                Configured    00:54:21.333217         0.00
-anzu                      Initialized   00:54:21.001100         0.00
-go-ts-mode                Configured    00:54:22.616475         0.00
-consult-dir               Initialized   00:54:22.592622         0.00
-eat                       Initialized   00:54:21.323139         0.00
-dired-ranger              Initialized   00:54:24.457574         0.00
-blamer                    Initialized   00:54:21.322953         0.00
-default-text-scale        Initialized   00:54:21.086088         0.00
-corfu-candidate-overlay   Configured    00:54:26.189127         0.00
-org-bullets               Configured    00:54:27.685745         0.00
-gptel                     Initialized   00:54:21.327538         0.00
-browse-at-remote          Initialized   00:54:21.323020         0.00
-dired-single              Initialized   00:54:24.457547         0.00
-ibuffer-project           Initialized   00:54:21.001211         0.00
-consult-eglot             Initialized   00:54:21.319833         0.00
-go-gen-test               Initialized   00:54:21.326861         0.00
-yasnippet                 Initialized   00:54:21.121092         0.00
-go-tag                    Initialized   00:54:21.326684         0.00
-go-fill-struct            Initialized   00:54:21.326748         0.00
-go-impl                   Initialized   00:54:21.326802         0.00
-switch-window             Initialized   00:54:20.967739         0.00
-pdf-tools                 Initialized   00:54:21.319084         0.00
-expand-region             Initialized   00:54:21.001307         0.00
-symbol-overlay            Configured    00:54:21.361231         0.00
-cus-dir                   Initialized   00:54:21.327674         0.00
-recentf                   Configured    00:54:22.592118         0.00
-which-key                 Configured    00:54:26.192715         0.00
-flymake                   Configured    00:54:21.340356         0.00
-dired-hide-dotfiles       Initialized   00:54:21.122892         0.00
-define-word               Initialized   00:54:21.122515         0.00
-codeium                   Initialized   00:54:21.327638         0.00
-whisper                   Initialized   00:54:21.327480         0.00
-google-this               Initialized   00:54:21.327741         0.00
-rainbow-delimiters        Configured    00:54:21.350202         0.00
-all-the-icons             Configured    00:54:21.122778         0.00
-mu4e                      Initialized   00:54:21.327446         0.00
-whitespace-cleanup-mode   Configured    00:54:21.359705         0.00
-dired                     Configured    00:54:24.457539         0.00
-visual-fill-column        Configured    00:54:27.680420         0.00
-org                       Configured    00:54:21.319002         0.00
-windswap                  Initialized   00:54:20.967805         0.00
-avy                       Initialized   00:54:21.003652         0.00
-org-pretty-table          Configured    00:54:27.682152         0.00
-devdocs                   Initialized   00:54:21.327784         0.00
-sudo-edit                 Initialized   00:54:20.967837         0.00
-paren                     Configured    00:54:21.003378         0.00
-consult-org-roam          Declared      00:54:21.319454         0.00
-rust-ts-mode              Initialized   00:54:21.326923         0.00
-rainbow-mode              Configured    00:54:21.345163         0.00
-org-fragtog               Configured    00:54:27.683790         0.00
-treesit-auto              Initialized   00:54:21.319601         0.00
-bash-ts-mode              Initialized   00:54:21.326956         0.00
-yuck-mode                 Initialized   00:54:21.327390         0.00
-display-line-numbers      Configured    00:54:21.362871         0.00
-markdown-mode             Initialized   00:54:21.319135         0.00
-org-attach-screenshot     Initialized   00:54:21.319033         0.00
-gcmh                      Configured    00:54:21.331406         0.00
-yaml-ts-mode              Initialized   00:54:21.327154         0.00
-docker-compose-mode       Initialized   00:54:21.327323         0.00
-indent-bars               Initialized   00:54:21.319512         0.00
-global-prettify-symbols-mode Initialized   00:54:21.030546         0.00
-js-ts-mode                Initialized   00:54:21.327012         0.00
-terraform-mode            Initialized   00:54:21.327361         0.00
-centered-cursor-mode      Configured    00:54:21.347240         0.00
-toml-ts-mode              Initialized   00:54:21.327040         0.00
-dockerfile-mode           Initialized   00:54:21.327296         0.00
-wgrep                     Initialized   00:54:21.101157         0.00
-speed-type                Initialized   00:54:21.327716         0.00
-org-contrib               Initialized   00:54:21.123049         0.00
-embark-consult            Initialized   00:54:21.102028         0.00
-flymake-shellcheck        Initialized   00:54:21.326985         0.00
-diredfl                   Initialized   00:54:21.122862         0.00
-dired-collapse            Initialized   00:54:21.122838         0.00
-org-appear                Configured    00:54:27.687355         0.00
-all-the-icons-dired       Initialized   00:54:21.122811         0.00
-magit-todos               Declared      00:54:21.322891         0.00
-yasnippet-capf            Declared      00:54:21.121162         0.00
-forge                     Declared      00:54:21.322861         0.00
-embark-vc                 Declared      00:54:21.102051         0.00
-pdf-continuous-scroll-mode Declared      00:54:21.319112         0.00
-yasnippet-snippets        Declared      00:54:21.121138         0.00
-org-roam-ui               Declared      00:54:21.319478         0.00
+ef-themes                 Configured    22:36:05.835123         0.15
+doom-modeline             Configured    22:36:05.893427         0.12
+meow                      Configured    22:36:05.987184         0.05
+recentf                   Configured    22:36:05.935440         0.04
+transient                 Configured    22:36:05.993764         0.01
+windswap                  Configured    22:36:06.001632         0.01
+kind-icon                 Configured    22:36:07.238737         0.01
+corfu-candidate-overlay   Configured    22:36:07.222854         0.01
+minibuffer                Configured    22:36:06.005669         0.01
+autorevert                Configured    22:36:05.941338         0.01
+protogg                   Configured    22:36:06.019454         0.01
+vertico                   Configured    22:36:06.009122         0.01
+all-the-icons-completion  Configured    22:36:06.013445         0.01
+which-key                 Configured    22:36:05.960909         0.00
+default-text-scale        Initialized   22:36:05.903506         0.00
+corfu-terminal            Configured    22:36:07.226828         0.00
+spacious-padding          Configured    22:36:05.909229         0.00
+savehist                  Configured    22:36:05.956287         0.00
+treesit-auto              Configured    22:36:06.140117         0.00
+async                     Configured    22:36:05.783420         0.00
+whole-line-or-region      Configured    22:36:05.995545         0.00
+org-modern                Configured    22:36:06.136805         0.00
+marginalia                Configured    22:36:06.010517         0.00
+jinx                      Configured    22:36:06.022183         0.00
+page-break-lines          Configured    22:36:05.903452         0.00
+orderless                 Configured    22:36:06.014517         0.00
+cape                      Configured    22:36:06.020608         0.00
+fullframe                 Configured    22:36:06.002336         0.00
+corfu                     Configured    22:36:07.217043         0.00
+consult                   Configured    22:36:12.898501         0.00
+multi-vterm               Initialized   22:36:06.140963         0.00
+org-roam                  Initialized   22:36:06.138088         0.00
+org-clock                 Initialized   22:36:06.137312         0.00
+eglot                     Initialized   22:36:06.140261         0.00
+winner                    Initialized   22:36:05.963004         0.00
+docker                    Initialized   22:36:06.146579         0.00
+embark                    Initialized   22:36:06.015244         0.00
+magit                     Initialized   22:36:06.140536         0.00
+multiple-cursors          Initialized   22:36:05.960960         0.00
+consult-dir               Initialized   22:36:12.898512         0.00
+org-agenda                Initialized   22:36:06.137747         0.00
+anzu                      Initialized   22:36:05.958215         0.00
+type-break                Configured    22:36:06.151865         0.00
+dired-ranger              Initialized   22:36:13.865084         0.00
+move-dup                  Initialized   22:36:05.993888         0.00
+switch-window             Initialized   22:36:05.995619         0.00
+gptel                     Initialized   22:36:06.146898         0.00
+ibuffer-project           Initialized   22:36:05.958340         0.00
+blamer                    Initialized   22:36:06.140693         0.00
+yasnippet                 Initialized   22:36:06.020850         0.00
+go-tag                    Initialized   22:36:06.145933         0.00
+browse-at-remote          Initialized   22:36:06.140808         0.00
+dired-single              Initialized   22:36:13.865055         0.00
+org-gcal                  Initialized   22:36:06.137914         0.00
+go-impl                   Initialized   22:36:06.146053         0.00
+expand-region             Initialized   22:36:05.958443         0.00
+go-gen-test               Initialized   22:36:06.146105         0.00
+consult-eglot             Initialized   22:36:06.140370         0.00
+go-fill-struct            Initialized   22:36:06.145994         0.00
+conda                     Initialized   22:36:06.146400         0.00
+cus-dir                   Initialized   22:36:06.147008         0.00
+git-timemachine           Initialized   22:36:06.140765         0.00
+python                    Configured    22:36:06.146321         0.00
+project                   Configured    22:36:06.019401         0.00
+whisper                   Initialized   22:36:06.146837         0.00
+symbol-overlay            Configured    22:36:14.226135         0.00
+define-word               Initialized   22:36:06.022324         0.00
+go-ts-mode                Initialized   22:36:06.145888         0.00
+mu4e                      Initialized   22:36:06.146807         0.00
+google-this               Initialized   22:36:06.147119         0.00
+dired                     Configured    22:36:13.865043         0.00
+avy                       Initialized   22:36:05.963138         0.00
+ibrowse                   Initialized   22:36:06.147053         0.00
+pdf-tools                 Initialized   22:36:06.137988         0.00
+dired-hide-dotfiles       Initialized   22:36:13.865125         0.00
+whitespace-cleanup-mode   Configured    22:36:14.223740         0.00
+codeium                   Initialized   22:36:06.146973         0.00
+rust-ts-mode              Initialized   22:36:06.146169         0.00
+org                       Configured    22:36:06.137792         0.00
+flymake                   Configured    22:36:14.201979         0.00
+git-gutter                Initialized   22:36:06.140436         0.00
+paren                     Configured    22:36:05.962907         0.00
+rainbow-delimiters        Configured    22:36:14.231032         0.00
+consult-org-roam          Declared      22:36:06.138309         0.00
+tab-line                  Declared      22:36:06.141266         0.00
+embark-consult            Initialized   22:36:06.015382         0.00
+toc-org                   Configured    22:36:14.270355         0.00
+org-fragtog               Configured    22:36:14.273368         0.00
+sudo-edit                 Initialized   22:36:06.001672         0.00
+all-the-icons             Configured    22:36:06.022591         0.00
+wgrep                     Initialized   22:36:06.014556         0.00
+org-appear                Configured    22:36:14.274982         0.00
+rainbow-mode              Configured    22:36:14.208657         0.00
+docker-compose-mode       Initialized   22:36:06.146651         0.00
+flymake-shellcheck        Initialized   22:36:06.146234         0.00
+toml-ts-mode              Initialized   22:36:06.146287         0.00
+gcmh                      Configured    22:36:06.149997         0.00
+display-line-numbers      Configured    22:36:14.228947         0.00
+terraform-mode            Initialized   22:36:06.146686         0.00
+dockerfile-mode           Initialized   22:36:06.146624         0.00
+csv-mode                  Initialized   22:36:06.146454         0.00
+markdown-mode             Initialized   22:36:06.146744         0.00
+yuck-mode                 Initialized   22:36:06.146715         0.00
+indent-bars               Initialized   22:36:06.138368         0.00
+yaml-ts-mode              Initialized   22:36:06.146483         0.00
+devdocs                   Initialized   22:36:06.147158         0.00
+js-ts-mode                Initialized   22:36:06.146257         0.00
+speed-type                Initialized   22:36:06.147093         0.00
+org-contrib               Initialized   22:36:06.022901         0.00
+jupyter                   Initialized   22:36:06.146424         0.00
+bash-ts-mode              Initialized   22:36:06.146197         0.00
+dired-collapse            Initialized   22:36:13.865113         0.00
+diredfl                   Initialized   22:36:13.865119         0.00
+all-the-icons-dired       Initialized   22:36:13.865107         0.00
+magit-todos               Declared      22:36:06.140653         0.00
+yasnippet-capf            Declared      22:36:06.020913         0.00
+git-gutter-fringe         Declared      22:36:06.140468         0.00
+forge                     Declared      22:36:06.140625         0.00
+org-roam-ui               Declared      22:36:06.138337         0.00
+pdf-continuous-scroll-mode Declared      22:36:06.138015         0.00
+yasnippet-snippets        Declared      22:36:06.020888         0.00
 #+end_example
 
 * UI Look
@@ -280,17 +302,26 @@ org-roam-ui               Declared      00:54:21.319478         0.00
 
 ** Theme
 
-
-
 #+begin_src emacs-lisp
 (use-package ef-themes
-  :hook (server-after-make-frame . (lambda ()
-									 (if (server-running-p)
-										 (ef-themes-select 'ef-melissa-dark)))) ;; tired of server frames being wrong
+  :hook
+  (server-after-make-frame
+   . (lambda ()
+	   (ef-themes-with-colors
+		 (custom-set-faces
+		  `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim))))
+		 )))
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
+  (ef-themes-headings
+   '((0 variable-pitch light 2.1)
+	 (1 variable-pitch light 1.8)
+	 (t variable-pitch 1.2)
+	 (agenda-date 1.9)
+	 (agenda-structure variable-pitch light 1.8)
+	 (t variable-pitch)))
   :config
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
@@ -298,27 +329,19 @@ org-roam-ui               Declared      00:54:21.319478         0.00
 	  (custom-set-faces
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   ;; `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
+	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
 	   `(org-document-title ((,c :height 1.8)))
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
-	   `(default ((,c :font "Source Code Pro" :height 128)))
-	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))) ;; supress errors
-	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
-	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
-	   )))
-  (setq ef-themes-headings ; read the manual's entry or the doc string
-		'((0 variable-pitch light 2.1)
-		  (1 variable-pitch light 1.8)
-		  (t variable-pitch 1.2)
-		  (agenda-date 1.9)
-		  (agenda-structure variable-pitch light 1.8)
-		  (t variable-pitch)))
+	   `(default ((,c :font "Source Code Pro" :height 115)))
+	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (mapc #'disable-theme custom-enabled-themes)
+  ;; (mapc #'disable-theme custom-enabled-themes)
+  (ef-themes-select 'ef-melissa-dark)
+  :init
+  (spacious-padding-mode 1)
   (ef-themes-select 'ef-melissa-dark))
 #+end_src
 
@@ -332,35 +355,22 @@ org-roam-ui               Declared      00:54:21.319478         0.00
 ** Modeline
 
 #+begin_src emacs-lisp
-  (use-package doom-modeline
-    :hook (package-upgrade-all . (lambda () (nerd-icons-install-fonts)))
-    :init
-    (line-number-mode -1)
-    (column-number-mode -1)
-    :custom
-    ((doom-modeline-project-detection 'project)
-     (doom-gruvbox-padded-modeline nil)
-     (doom-modeline-vcs-max-length 30)
-     (doom-modeline-hud t)
-     (doom-modeline-unicode-fallback t)
-     (doom-modeline-env-version t)
-     (doom-modeline-buffer-encoding nil)
-     (doom-modeline-workspace-name nil)
-     (doom-modeline-buffer-file-name-style 'buffer-name)
-     (doom-modeline-height 27)
-     (doom-modeline-buffer-state-icon nil)
-     (doom-modeline-icon t)
-     (doom-modeline-modal-icon t)
-     (mode-line-position nil)
-     (mode-line-percent-position nil)
-     (doom-modeline-mode-alist nil)
-     (auto-revert-check-vc-info t)) ;; for switching branches
-    :config
-    (doom-modeline-def-modeline 'simple-line
-				'(bar modals buffer-info remote-host)
-				'(compilation objed-state misc-info persp-name lsp checker process vcs))
-    ;; Set default mode-line
-    (doom-modeline-set-modeline 'simple-line 'default))
+(use-package doom-modeline
+  :defer t
+  :init
+  (defun sn/set-modeline ()
+	(require 'doom-modeline)
+	(line-number-mode -1)
+	(column-number-mode -1)
+	(doom-modeline-def-modeline 'simple-line
+	  '(bar modals buffer-info remote-host)
+	  '(compilation objed-state misc-info persp-name lsp checker process vcs))
+	(doom-modeline-set-modeline 'simple-line 'default))
+  :custom
+  (doom-modeline-project-detection 'project)
+  (doom-modeline-vcs-max-length 30)
+  (doom-modeline-height 32)
+  :hook (after-init . sn/set-modeline))
    #+end_src
 
 ** General
@@ -392,15 +402,14 @@ org-roam-ui               Declared      00:54:21.319478         0.00
 
 #+begin_src emacs-lisp
 (use-package spacious-padding
-	:config (spacious-padding-mode 1)
-	:custom
-	(spacious-padding-widths
-	 '( :internal-border-width 15
-		:header-line-width 4
-		:mode-line-width 2
-		:tab-width 4
-		:right-divider-width 30
-		:scroll-bar-width 8)))
+  :custom
+  (spacious-padding-widths
+   '( :internal-border-width 15
+	  :header-line-width 4
+	  :mode-line-width 2
+	  :tab-width 4
+	  :right-divider-width 30
+	  :scroll-bar-width 8)))
 #+end_src
 
 * General Settings
@@ -445,7 +454,6 @@ org-roam-ui               Declared      00:54:21.319478         0.00
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
   (recentf-mode)
-  :hook ((package-upgrade-all . recentf-cleanup))
   :custom
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
@@ -924,6 +932,10 @@ Call a second time to restore the original window configuration."
 
  #+begin_src emacs-lisp
  (use-package transient
+   :defer t
+   :bind
+   (:map isearch-mode-map
+			   ("M-t" . sn/isearch-menu))
    :config
    (transient-define-prefix sn/isearch-menu ()
 	 "isearch Menu"
@@ -952,22 +964,18 @@ Call a second time to restore the original window configuration."
 		"Pull thing from buffer"
 		isearch-forward-thing-at-point
 		:transient nil)]
-
 	  ["Replace"
 	   ("q"
 		"Start ‘query-replace’"
-		isearch-query-replace
+		anzu-isearch-query-replace
 		:if-nil buffer-read-only
-		:transient nil)
-	   ("l"
-		"Start ‘consult-line’"
-		consult-line
 		:transient nil)
 	   ("x"
 		"Start ‘query-replace-regexp’"
-		isearch-query-replace-regexp
+		anzu-isearch-query-replace-regexp
 		:if-nil buffer-read-only
-		:transient nil)]]
+		:transient nil)
+	   ]]
 	 [["Toggle"
 	   ("X"
 		"Toggle regexp searching"
@@ -991,11 +999,22 @@ Call a second time to restore the original window configuration."
 		:transient nil)]
 
 	  ["Misc"
+	   ("l"
+		"Start ‘consult-line’"
+		consult-line
+		:transient nil)
+	   ("g"
+		"Start ‘consult-git-grep’"
+		consult-git-grep
+		:transient nil)
+	   ("r"
+		"Start ‘consult-ripgrep’"
+		consult-ripgrep
+		:transient nil)
 	   ("o"
 		"occur"
 		isearch-occur
-		:transient nil)]])
-   (define-key isearch-mode-map (kbd "C-t") 'sn/isearch-menu))
+		:transient nil)]]))
  #+end_src
 
 
@@ -1009,8 +1028,7 @@ Call a second time to restore the original window configuration."
 	 (add-to-list 'auto-mode-alist (cons pattern mode))))
  #+end_src
 
-
- This Emacs Lisp block defines a function called =add-auto-mode= which allows you to easily add entries to =auto-mode-alist=. This allows you to associate a major mode with a specific file pattern. The function takes a =MODE= argument and a variable number of =PATTERNS= arguments, and it adds each pattern-mode pair to =auto-mode-alist=.
+This Emacs Lisp block defines a function called =add-auto-mode= which allows you to easily add entries to =auto-mode-alist=. This allows you to associate a major mode with a specific file pattern. The function takes a =MODE= argument and a variable number of =PATTERNS= arguments, and it adds each pattern-mode pair to =auto-mode-alist=.
 
 **** Delete the current file
 
@@ -1093,14 +1111,14 @@ Call a second time to restore the original window configuration."
 
 *** Whole Line Or Region
 
- Cut/copy the current line if no region is active.
+	Cut/copy the current line if no region is active.
 
  #+begin_src emacs-lisp
  (use-package whole-line-or-region
    :config (whole-line-or-region-global-mode t))
  #+end_src
 
- This Emacs Lisp code block configures the =whole-line-or-region= package, enabling global mode and binding the key combination "M-j" to the function =comment-dwim=.
+This Emacs Lisp code block configures the =whole-line-or-region= package, enabling global mode and binding the key combination "M-j" to the function =comment-dwim=.
 
 *** Beginning Of Line Text Then Line
 
@@ -1172,11 +1190,11 @@ Call a second time to restore the original window configuration."
 
  #+begin_src emacs-lisp
  (use-package sudo-edit
+   :defer t
    :commands (sudo-edit))
  #+end_src
 
 *** Place Buffer As Fullframe
-
  #+begin_src emacs-lisp
  (use-package fullframe)
  #+end_src
@@ -1578,8 +1596,7 @@ Call a second time to restore the original window configuration."
   (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
   (yas-global-mode))
 (use-package yasnippet-snippets
-  :after yasnippet
-  :hook (package-upgrade-all . (lambda () (yas-reload-all))))
+  :after yasnippet)
 (use-package yasnippet-capf
   :after (cape yasnippet)
   :config
@@ -1656,8 +1673,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 			  ("H" . dired-omit-mode)
 			  ("y" . dired-ranger-paste)))
 (use-package all-the-icons
-  :defer t
-  :hook (package-upgrade-all . all-the-icons-install-fonts))
+  :defer t)
 (use-package all-the-icons-dired
   :after dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -2247,13 +2263,14 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :defer t
+  :ensure nil
+  :defer 2
   :hook
-  (pdf-view-mode . (lambda ()
-					 (pdf-view-midnight-minor-mode 1)))
-  (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line)))
+  (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
+						 (toggle-mode-line)))
   :custom
   (pdf-view-display-size 'fit-width)
+  (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   :config
   (setopt pdf-continuous-suppress-introduction t)
   (pdf-loader-install))
@@ -2263,7 +2280,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package pdf-continuous-scroll-mode
-  :defer t
+  :ensure nil
+  :defer 3
   :after pdf-tools
   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
 			:branch "master" :rev :newest))  
@@ -2327,11 +2345,23 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 *** Indent bars
 
+	Very faint indicator 
+	
 #+begin_src emacs-lisp
 (use-package indent-bars
-  :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
-  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
-			:branch "main" :rev :newest))
+  :defer t
+  :hook ((prog-mode conf-mode yaml-mode) . indent-bars-mode)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.2))
+  (indent-bars-pattern ".")
+  (indent-bars-width-frac 0.1)
+  (indent-bars-pad-frac 0.1)
+  (indent-bars-zigzag nil)
+  (indent-bars-color-by-depth nil)
+  (indent-bars-highlight-current-depth nil)
+  (indent-bars-display-on-blank-lines nil)
+:vc (:url "https://github.com/jdtsmith/indent-bars.git"
+		  :branch "main" :rev :newest))
 #+end_src
 
 *** HEX Colors
@@ -2355,7 +2385,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (setq major-mode-remap-alist
  '((js-mode . js-ts-mode)
    (sh-mode . bash-ts-mode)))
-  :hook ((package-upgrade-all . treesit-auto-install-all))
   :config (global-treesit-auto-mode))
 #+end_src
 
@@ -2363,7 +2392,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package eglot
-  :ensure cape
+  :defer t
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . (lambda ()
@@ -2508,8 +2537,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	 because eat does not support tramp
 
 #+begin_src emacs-lisp
-(use-package vterm)
+
 (use-package multi-vterm
+  :defer t
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
@@ -2591,6 +2621,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package tab-line
+  :after  multi-vterm
   :hook (vterm-mode . tab-line-mode)
   :custom
   (tab-line-new-button-show nil)
@@ -2618,9 +2649,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 #+end_src
 
-
-
-	 
 *** Compile Helpers
 
 #+begin_src emacs-lisp
@@ -2659,12 +2687,13 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 #+end_src
 
-*** static checking
+*** Static Checking
 
 #+begin_src emacs-lisp
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
+  (flymake-no-changes-timeout 0.2)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config
@@ -3014,25 +3043,13 @@ If not in a project, prompt for the project root."
 #+end_src
 
 * Runtime Performance
-
+  Makes garbage collection high while commands run and low when they end.
+  
 #+begin_src emacs-lisp
 (use-package gcmh
   :vc (:url "https://github.com/emacsmirror/gcmh.git"
 			   :branch "master" :rev :newest)
   :hook (after-init . gcmh-mode))
-#+end_src
-
-** Minibuffer turn off GC for large lists and commands
-
-#+begin_src emacs-lisp
-(defun doom-defer-garbage-collection-h ()
-  (setq gc-cons-threshold most-positive-fixnum))
-(defun doom-restore-garbage-collection-h ()
-  ;; Defer it so that commands launched immediately after will enjoy the
-  ;; benefits.
-  (run-at-time 1 nil (lambda () (setq gc-cons-threshold 16777216)))) ; 16mb
-(add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
-(add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
 #+end_src
 
 * Inspiration

@@ -1,4 +1,4 @@
-;;; early-init.el --- loads before init is loaded.
+;;; early-init.el --- loads before init is loaded.  -*- lexical-binding: t -*-
 ;;; Commentary:
 ;;; Code:
 
@@ -43,13 +43,10 @@
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)
 (menu-bar-mode -1)
+(set-window-scroll-bars (minibuffer-window) nil nil)
 
 ;; disable mode line replaced with doom-modeline later
 (setq-default mode-line-format nil)
-
-;; Silence compiler warnings to avoid disruption
-(setq-default comp-async-report-warnings-errors nil)
-(setq-default warning-minimum-level :emergency)
 
 (provide 'early-init)
 ;;; early-init.el ends here

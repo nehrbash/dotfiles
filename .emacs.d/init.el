@@ -1,3 +1,7 @@
+;;; init.el --- Initialization file for Emacs -*- lexical-binding: nil -*-
+;;; Commentary: Emacs Startup File, initialization for Emacs
+;;; Code:
+
 (defun load-all-environment-variables ()
 	"Load all environment variables from the user's shell."
 	(let ((shell-env (shell-command-to-string "env")))
@@ -12,27 +16,49 @@
   (require 'package)
   (require 'use-package))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(setq native-comp-deferred-compilation t
-	  native-compile-prune-cache t
-	  package-install-upgrade-built-in t
-	  package-native-compile t
-	  package-quickstart t
-	  use-package-always-ensure t
-	  use-package-compute-statistics t
-	  use-package-expand-minimally t
-	  async-bytecomp-package-mode t)
-(add-hook 'package-upgrade-all-hook
-		  (lambda ()
-			(package-quickstart-refresh)))
+(setq
+ warning-minimum-level :emergency
+ comp-async-report-warnings-errors nil
+ native-comp-jit-compilation t
+ native-compile-prune-cache t
+ package-install-upgrade-built-in t
+ package-native-compile t
+ package-quickstart t
+ use-package-always-ensure t
+ use-package-compute-statistics t
+ use-package-expand-minimally t
+ async-bytecomp-package-mode t)
+(use-package async
+  :init (async-bytecomp-package-mode 1))
+(defun sn/finish-install()
+  (interactive)
+  (treesit-auto-install-all)
+  (all-the-icons-install-fonts)
+  (yas-reload-all)
+  (recentf-cleanup)
+  (nerd-icons-install-fonts)
+  (package-quickstart-refresh))
+(add-hook 'package-upgrade-all-hook 'sn/finish-install)
 
 (use-package ef-themes
-  :hook (server-after-make-frame . (lambda ()
-									 (if (server-running-p)
-										 (ef-themes-select 'ef-melissa-dark)))) ;; tired of server frames being wrong
+  :hook
+  (server-after-make-frame
+   . (lambda ()
+	   (ef-themes-with-colors
+		 (custom-set-faces
+		  `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim))))
+		 )))
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
+  (ef-themes-headings
+   '((0 variable-pitch light 2.1)
+	 (1 variable-pitch light 1.8)
+	 (t variable-pitch 1.2)
+	 (agenda-date 1.9)
+	 (agenda-structure variable-pitch light 1.8)
+	 (t variable-pitch)))
   :config
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
@@ -40,61 +66,40 @@
 	  (custom-set-faces
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   ;; `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main :box (:line-width 1 :color ,fg-dim))))
-	   `(mode-line-inactive ((,c :box (:line-width 1 :color ,bg-active))))
+	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
 	   `(org-document-title ((,c :height 1.8)))
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
-	   `(default ((,c :font "Source Code Pro" :height 128)))
-	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))) ;; supress errors
-	   ;; `(org-table ((,c (:inherit 'org-modern-symbol :font "Source Code Pro" :height 160))))
-	   ;; `(org-block ((,c (:inherit 'fixed-pitch :font "Source Code Pro " :height 160))))
-	   )))
-  (setq ef-themes-headings ; read the manual's entry or the doc string
-		'((0 variable-pitch light 2.1)
-		  (1 variable-pitch light 1.8)
-		  (t variable-pitch 1.2)
-		  (agenda-date 1.9)
-		  (agenda-structure variable-pitch light 1.8)
-		  (t variable-pitch)))
+	   `(default ((,c :font "Source Code Pro" :height 115)))
+	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (mapc #'disable-theme custom-enabled-themes)
+  ;; (mapc #'disable-theme custom-enabled-themes)
+  (ef-themes-select 'ef-melissa-dark)
+  :init
+  (spacious-padding-mode 1)
   (ef-themes-select 'ef-melissa-dark))
 
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
 (use-package doom-modeline
-  :hook (package-upgrade-all . (lambda () (nerd-icons-install-fonts)))
+  :defer t
   :init
-  (line-number-mode -1)
-  (column-number-mode -1)
+  (defun sn/set-modeline ()
+	(require 'doom-modeline)
+	(line-number-mode -1)
+	(column-number-mode -1)
+	(doom-modeline-def-modeline 'simple-line
+	  '(bar modals buffer-info remote-host)
+	  '(compilation objed-state misc-info persp-name lsp checker process vcs))
+	(doom-modeline-set-modeline 'simple-line 'default))
   :custom
-  ((doom-modeline-project-detection 'project)
-   (doom-gruvbox-padded-modeline nil)
-   (doom-modeline-vcs-max-length 30)
-   (doom-modeline-hud t)
-   (doom-modeline-unicode-fallback t)
-   (doom-modeline-env-version t)
-   (doom-modeline-buffer-encoding nil)
-   (doom-modeline-workspace-name nil)
-   (doom-modeline-buffer-file-name-style 'buffer-name)
-   (doom-modeline-height 27)
-   (doom-modeline-buffer-state-icon nil)
-   (doom-modeline-icon t)
-   (doom-modeline-modal-icon t)
-   (mode-line-position nil)
-   (mode-line-percent-position nil)
-   (doom-modeline-mode-alist nil)
-   (auto-revert-check-vc-info t)) ;; for switching branches
-  :config
-  (doom-modeline-def-modeline 'simple-line
-			  '(bar modals buffer-info remote-host)
-			  '(compilation objed-state misc-info persp-name lsp checker process vcs))
-  ;; Set default mode-line
-  (doom-modeline-set-modeline 'simple-line 'default))
+  (doom-modeline-project-detection 'project)
+  (doom-modeline-vcs-max-length 30)
+  (doom-modeline-height 32)
+  :hook (after-init . sn/set-modeline))
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (pixel-scroll-precision-mode t)
@@ -108,15 +113,14 @@
 				 ("C-M--" . default-text-scale-decrease)))
 
 (use-package spacious-padding
-	:config (spacious-padding-mode 1)
-	:custom
-	(spacious-padding-widths
-	 '( :internal-border-width 15
-		:header-line-width 4
-		:mode-line-width 2
-		:tab-width 4
-		:right-divider-width 30
-		:scroll-bar-width 8)))
+  :custom
+  (spacious-padding-widths
+   '( :internal-border-width 15
+	  :header-line-width 4
+	  :mode-line-width 2
+	  :tab-width 4
+	  :right-divider-width 30
+	  :scroll-bar-width 8)))
 
 (setq-default
  fill-column 120
@@ -149,7 +153,6 @@
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
   (recentf-mode)
-  :hook ((package-upgrade-all . recentf-cleanup))
   :custom
   (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
@@ -516,6 +519,10 @@ Call a second time to restore the original window configuration."
   (meow-global-mode 1))
 
 (use-package transient
+  :defer t
+  :bind
+  (:map isearch-mode-map
+			  ("M-t" . sn/isearch-menu))
   :config
   (transient-define-prefix sn/isearch-menu ()
 	"isearch Menu"
@@ -544,22 +551,18 @@ Call a second time to restore the original window configuration."
 	   "Pull thing from buffer"
 	   isearch-forward-thing-at-point
 	   :transient nil)]
-
 	 ["Replace"
 	  ("q"
 	   "Start ‘query-replace’"
-	   isearch-query-replace
+	   anzu-isearch-query-replace
 	   :if-nil buffer-read-only
-	   :transient nil)
-	  ("l"
-	   "Start ‘consult-line’"
-	   consult-line
 	   :transient nil)
 	  ("x"
 	   "Start ‘query-replace-regexp’"
-	   isearch-query-replace-regexp
+	   anzu-isearch-query-replace-regexp
 	   :if-nil buffer-read-only
-	   :transient nil)]]
+	   :transient nil)
+	  ]]
 	[["Toggle"
 	  ("X"
 	   "Toggle regexp searching"
@@ -583,11 +586,22 @@ Call a second time to restore the original window configuration."
 	   :transient nil)]
 
 	 ["Misc"
+	  ("l"
+	   "Start ‘consult-line’"
+	   consult-line
+	   :transient nil)
+	  ("g"
+	   "Start ‘consult-git-grep’"
+	   consult-git-grep
+	   :transient nil)
+	  ("r"
+	   "Start ‘consult-ripgrep’"
+	   consult-ripgrep
+	   :transient nil)
 	  ("o"
 	   "occur"
 	   isearch-occur
-	   :transient nil)]])
-  (define-key isearch-mode-map (kbd "C-t") 'sn/isearch-menu))
+	   :transient nil)]]))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -682,6 +696,7 @@ point reaches the beginning or end of the buffer, stop there."
   (windswap-default-keybindings 'shift 'control))
 
 (use-package sudo-edit
+  :defer t
   :commands (sudo-edit))
 
 (use-package fullframe)
@@ -1010,8 +1025,7 @@ point reaches the beginning or end of the buffer, stop there."
   (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
   (yas-global-mode))
 (use-package yasnippet-snippets
-  :after yasnippet
-  :hook (package-upgrade-all . (lambda () (yas-reload-all))))
+  :after yasnippet)
 (use-package yasnippet-capf
   :after (cape yasnippet)
   :config
@@ -1070,8 +1084,7 @@ point reaches the beginning or end of the buffer, stop there."
 			  ("H" . dired-omit-mode)
 			  ("y" . dired-ranger-paste)))
 (use-package all-the-icons
-  :defer t
-  :hook (package-upgrade-all . all-the-icons-install-fonts))
+  :defer t)
 (use-package all-the-icons-dired
   :after dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -1562,19 +1575,21 @@ point reaches the beginning or end of the buffer, stop there."
   :hook (org-mode . toc-org-mode))
 
 (use-package pdf-tools
-  :defer t
+  :ensure nil
+  :defer 2
   :hook
-  (pdf-view-mode . (lambda ()
-					 (pdf-view-midnight-minor-mode 1)))
-  (pdf-annot-minor-mode . (lambda () (run-with-timer 0.1 nil 'toggle-mode-line)))
+  (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
+						 (toggle-mode-line)))
   :custom
   (pdf-view-display-size 'fit-width)
+  (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   :config
   (setopt pdf-continuous-suppress-introduction t)
   (pdf-loader-install))
 
 (use-package pdf-continuous-scroll-mode
-  :defer t
+  :ensure nil
+  :defer 3
   :after pdf-tools
   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
 			:branch "master" :rev :newest))
@@ -1623,9 +1638,19 @@ point reaches the beginning or end of the buffer, stop there."
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 
 (use-package indent-bars
-  :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
-  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
-			:branch "main" :rev :newest))
+  :defer t
+  :hook ((prog-mode conf-mode yaml-mode) . indent-bars-mode)
+  :custom
+  (indent-bars-color '(highlight :face-bg t :blend 0.2))
+  (indent-bars-pattern ".")
+  (indent-bars-width-frac 0.1)
+  (indent-bars-pad-frac 0.1)
+  (indent-bars-zigzag nil)
+  (indent-bars-color-by-depth nil)
+  (indent-bars-highlight-current-depth nil)
+  (indent-bars-display-on-blank-lines nil)
+:vc (:url "https://github.com/jdtsmith/indent-bars.git"
+		  :branch "main" :rev :newest))
 
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
@@ -1637,11 +1662,10 @@ point reaches the beginning or end of the buffer, stop there."
   (setq major-mode-remap-alist
  '((js-mode . js-ts-mode)
    (sh-mode . bash-ts-mode)))
-  :hook ((package-upgrade-all . treesit-auto-install-all))
   :config (global-treesit-auto-mode))
 
 (use-package eglot
-  :ensure cape
+  :defer t
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . (lambda ()
@@ -1740,8 +1764,8 @@ point reaches the beginning or end of the buffer, stop there."
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
 
-(use-package vterm)
 (use-package multi-vterm
+  :defer t
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
@@ -1816,6 +1840,7 @@ point reaches the beginning or end of the buffer, stop there."
     (multi-vterm-project)))
 
 (use-package tab-line
+  :after  multi-vterm
   :hook (vterm-mode . tab-line-mode)
   :custom
   (tab-line-new-button-show nil)
@@ -1879,6 +1904,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
+  (flymake-no-changes-timeout 0.2)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config
@@ -2120,12 +2146,3 @@ If not in a project, prompt for the project root."
   :vc (:url "https://github.com/emacsmirror/gcmh.git"
 			   :branch "master" :rev :newest)
   :hook (after-init . gcmh-mode))
-
-(defun doom-defer-garbage-collection-h ()
-  (setq gc-cons-threshold most-positive-fixnum))
-(defun doom-restore-garbage-collection-h ()
-  ;; Defer it so that commands launched immediately after will enjoy the
-  ;; benefits.
-  (run-at-time 1 nil (lambda () (setq gc-cons-threshold 16777216)))) ; 16mb
-(add-hook 'minibuffer-setup-hook #'doom-defer-garbage-collection-h)
-(add-hook 'minibuffer-exit-hook #'doom-restore-garbage-collection-h)
