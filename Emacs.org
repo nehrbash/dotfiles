@@ -357,8 +357,8 @@ org-roam-ui               Declared      00:54:21.319478         0.00
      (auto-revert-check-vc-info t)) ;; for switching branches
     :config
     (doom-modeline-def-modeline 'simple-line
-				'(bar buffer-info remote-host)
-				'(modals compilation objed-state misc-info persp-name lsp checker process vcs))
+				'(bar modals buffer-info remote-host)
+				'(compilation objed-state misc-info persp-name lsp checker process vcs))
     ;; Set default mode-line
     (doom-modeline-set-modeline 'simple-line 'default))
    #+end_src
@@ -785,13 +785,23 @@ Call a second time to restore the original window configuration."
  ;;   :config (key-chord-mode 1))
  (use-package meow
    :config
+   (setq meow-replace-state-name-list
+	'((normal . "🟢")
+	  (motion . "🟡")
+	  (keypad . "🟣")
+	  (insert . "🟠")
+	  (beacon . "🔴")))
+   (add-to-list 'meow-mode-state-list '(org-mode . insert))
+   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
+   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
+   (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
    (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
    (meow-motion-overwrite-define-key
 	;; Use e to move up, n to move down.
 	;; Since special modes usually use n to move down, we only overwrite e here.
 	'("e" . meow-prev)
 	'("<escape>" . ignore))
-	(meow-leader-define-key
+   (meow-leader-define-key
 	'("?" . meow-cheatsheet)
 	;; To execute the originally e in MOTION state, use SPC e.
 	'("e" . "H-e")
@@ -806,7 +816,7 @@ Call a second time to restore the original window configuration."
 	'("8" . meow-digit-argument)
 	'("9" . meow-digit-argument)
 	'("0" . meow-digit-argument))
-	(meow-normal-define-key
+   (meow-normal-define-key
 	'("0" . meow-expand-0)
 	'("1" . meow-expand-1)
 	'("2" . meow-expand-2)
@@ -1195,8 +1205,6 @@ Call a second time to restore the original window configuration."
 						(set-window-scroll-bars (minibuffer-window) nil nil)
 						(cursor-intangible-mode 1)))
   :config
-  (set-window-scroll-bars (minibuffer-window) nil nil)
-  (set-window-scroll-bars (minibuffer-window) nil nil)
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode))
 #+end_src
@@ -1458,7 +1466,6 @@ Call a second time to restore the original window configuration."
 		 ;; note these are not interactive so they won't toggle.
 		 ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
 		 ([remap shell-command] . protogg-shell-command) ;; M-!
-		 ("C-c s" . protogg-shell)
 		 ([remap switch-to-buffer] . sn/consult-buffer)
 		 ("M-s i" . sn/imenu))
   :config
@@ -1554,7 +1561,6 @@ Call a second time to restore the original window configuration."
   :init
   (defalias 'cape-codeium (cape-capf-interactive #'codeium-completion-at-point))
   (add-to-list 'completion-at-point-functions #'cape-dict)
-  ;; (add-to-list 'completion-at-point-functions #'yasnippet-capf)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file))
 #+end_src
@@ -2262,8 +2268,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
 			:branch "master" :rev :newest))  
 #+end_src
-	
-	
+
 ** Org Roam
 
 #+begin_src emacs-lisp
@@ -2327,15 +2332,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :hook ((python-mode conf-mode yaml-mode) . indent-bars-mode)
   :vc (:url "https://github.com/jdtsmith/indent-bars.git"
 			:branch "main" :rev :newest))
-#+end_src
-
-*** Keep cursor in center of screen
-
-	I just like this more for coding.
-
-#+begin_src emacs-lisp
-(use-package centered-cursor-mode
- :hook ((prog-mode yaml-mode conf-mode) . centered-cursor-mode))
 #+end_src
 
 *** HEX Colors
@@ -2512,13 +2508,14 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	 because eat does not support tramp
 
 #+begin_src emacs-lisp
+(use-package vterm)
 (use-package multi-vterm
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
-				  (setq left-margin-width 1
-						right-margin-width 1
-						cursor-type 'bar)
+				  (setq-local left-margin-width 3
+							  right-margin-width 3
+							  cursor-type 'bar)
 				  (face-remap-add-relative
 				   'default
 				   :family "Iosevka"
@@ -2527,30 +2524,102 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 				   'fringe
 				   :background "#281d12")))
   :bind
-  (("M-t" . multi-vterm-dedicated-toggle)
-   ("C-M-t" . multi-vterm-project)
+  (("M-t" . toggle-vterm-buffer)
    :map vterm-mode-map
-   ("M-t" . multi-vterm-dedicated-toggle)
-   ("C-M-t" . multi-vterm-project)
+   ("M-t" . toggle-vterm-buffer)
    ("C-M-r" . (lambda ()
-				(interactive)
-				(let ((vterm-buffer-name-string nil))
-				  (rename-buffer (concat "Term " (read-string "Term: "))))))
+                (interactive)
+                (setq-local vterm-buffer-name-string nil)
+                (rename-buffer (concat "Term " (read-string "Term: ")))))
+   ("C-M-t" . vterm-new-tab)
+   ("C-M-p" . vterm-new-tab-projcet)
+   ("C-M-f" . tab-line-switch-to-next-tab)
+   ("C-M-b" . tab-line-switch-to-prev-tab)
    ("C-M-s" . (lambda ()
-				(interactive)
-				(consult-buffer '(consult--source-vterm))))
+                (interactive)
+                (consult-buffer '(consult--source-vterm))))
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
   :custom
+  (vterm-always-compile-module t)
   (vterm-buffer-name "Term")
-  (multi-vterm-buffer-name "Term")
   (vterm-buffer-name-string "Term %s")
-  (vterm-buffer-maximum-size 1000)
+  (vterm-buffer-maximum-size 800)
+  (vterm-tramp-shells
+   '(("ssh" "/bin/bash")
+	 ("docker" "/bin/bash")
+	 ("sudo" "/bin/bash")))
   :config
-  (add-to-list 'vterm-tramp-shells '("ssh" "/usr/bin/zsh"))
-  (add-to-list 'vterm-tramp-shells '("sudo" "/bin/bash")))  
+  (add-to-list 'display-buffer-alist `(,vterm-buffer-name
+                                       (display-buffer-reuse-window display-buffer-at-bottom)
+                                       (dedicated . t)
+                                       (reusable-frames . visible)
+                                       (window-height . 0.3)))
+  :init
+  (defun toggle-vterm-buffer ()
+    "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
+    (interactive)
+    (let ((vterm-buffer (seq-find (lambda (buffer)
+									(string-prefix-p "Term" (buffer-name buffer)))
+								  (buffer-list))))
+      (if vterm-buffer
+          (if (and (eq (current-buffer) vterm-buffer) ;; if in term buffer, hide buffer
+                   (get-buffer-window vterm-buffer))
+              (delete-window (get-buffer-window vterm-buffer))
+            (if (get-buffer-window vterm-buffer) ;; if not seletected focus it.
+                (select-window (get-buffer-window vterm-buffer))
+              (progn ;; show veterm buffer
+                (display-buffer vterm-buffer)
+                (select-window (get-buffer-window vterm-buffer)))))
+		  (vterm "Term")) ;; else make new term
+	  )) 
+   (defun vterm-new-tab ()
+	"Create a new tab for the toggled vterm buffers"
+	(interactive)
+    (vterm "Term"))
+   (defun vterm-new-tab-projcet ()
+	"Create a new tab for the toggled vterm buffers"
+	(interactive)
+	(toggle-vterm-buffer) ;; I need to fugure out how to call vterm without createing new buffer.
+    (multi-vterm-project)))
 #+end_src
-	 
+
+**** Centaur Tabs for Terms
+
+    Centaur tabs is pretty but forces global mode. I only want term Tabs
+    - source:  https://jdhao.github.io/2021/09/30/emacs_custom_tabline/
+
+#+begin_src emacs-lisp
+(use-package tab-line
+  :hook (vterm-mode . tab-line-mode)
+  :custom
+  (tab-line-new-button-show nil)
+  (tab-line-close-button-show nil)
+  (tab-line-separator nil)
+  :config
+  (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
+	(with-current-buffer buffer
+	  ;; TODO color things
+	  (format "%s" (buffer-name buffer))))
+
+  (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
+  ;; Set face attributes for the tab-line
+  (set-face-attribute 'tab-line nil ;; background behind tabs
+                      :foreground "#281d12" :background "#281d12")
+  (set-face-attribute 'tab-line-tab nil ;; active tab in another window
+                      :inherit 'tab-line
+                      :background "#a2c080" :foreground "#281d12" :box nil)
+  (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
+                      :background "#a2c080" :foreground "#281d12" :box nil)
+  (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
+                      :background "#90918a" :foreground "#281d12" :box nil)
+  (set-face-attribute 'tab-line-highlight nil ;; mouseover
+                      :background "#79665f" :foreground "#281d12" :box nil)
+  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
+#+end_src
+
+
+
 	 
 *** Compile Helpers
 
