@@ -16,7 +16,7 @@
   (require 'package)
   (require 'use-package))
 (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(setq
+(setopt
  warning-minimum-level :emergency
  comp-async-report-warnings-errors nil
  native-comp-jit-compilation t
@@ -65,6 +65,15 @@
 	(ef-themes-with-colors
 	  (custom-set-faces
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
+	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
+	   `(tab-line-tab ((,c   :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
+	   `(tab-line-tab-current ((,c  :background ,fg-alt :foreground "#281d12")))
+	   `(tab-line-tab-inactive ((,c  :background ,fg-dim :foreground "#281d12")))
+	   `(tab-line-highlight ((,c  :background ,bg-active :foreground "#281d12")))
+	   `(tab-line-env-default ((,c  :background ,green-faint )))
+	   `(tab-line-env-1 ((,c  :background ,red-faint )))
+	   `(tab-line-env-2 ((,c  :background ,yellow-faint )))
+	   `(tab-line-env-3 ((,c  :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
 	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
@@ -139,9 +148,8 @@
 (delete-selection-mode t)
 (global-goto-address-mode t)
 (add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
-(setq browse-url-browser-function #'browse-url-firefox)
-(setq use-dialog-box nil) ;; disable pop-ups
-(global-set-key (kbd "C-c C-p") 'find-file-at-point)
+(setopt browse-url-browser-function #'browse-url-firefox)
+(setopt use-dialog-box nil) ;; disable pop-ups
 (set-default 'truncate-lines t) ;; don't wrap lines globally
 
 (use-package recentf
@@ -415,7 +423,8 @@ Call a second time to restore the original window configuration."
    '("7" . meow-digit-argument)
    '("8" . meow-digit-argument)
    '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument))
+   '("0" . meow-digit-argument)
+   '("f ." . find-file-at-point))
   (meow-normal-define-key
    '("0" . meow-expand-0)
    '("1" . meow-expand-1)
@@ -1765,7 +1774,6 @@ point reaches the beginning or end of the buffer, stop there."
 		 ("C-c g k" . browse-at-remote-kill)))
 
 (use-package multi-vterm
-  :defer t
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
@@ -1840,31 +1848,66 @@ point reaches the beginning or end of the buffer, stop there."
     (multi-vterm-project)))
 
 (use-package tab-line
-  :after  multi-vterm
   :hook (vterm-mode . tab-line-mode)
   :custom
   (tab-line-new-button-show nil)
   (tab-line-close-button-show nil)
   (tab-line-separator nil)
   :config
-  (defun my/tab-line-tab-name-buffer (buffer &optional _buffers)
-	(with-current-buffer buffer
-	  ;; TODO color things
-	  (format "%s" (buffer-name buffer))))
+  ;; (defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
+  ;; 	(with-current-buffer buffer
+  ;;     (format " %s " (buffer-name buffer))))
+  ;; (setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
 
-  (setq tab-line-tab-name-function #'my/tab-line-tab-name-buffer)
-  ;; Set face attributes for the tab-line
-  (set-face-attribute 'tab-line nil ;; background behind tabs
-                      :foreground "#281d12" :background "#281d12")
-  (set-face-attribute 'tab-line-tab nil ;; active tab in another window
-                      :inherit 'tab-line
-                      :background "#a2c080" :foreground "#281d12" :box nil)
-  (set-face-attribute 'tab-line-tab-current nil ;; active tab in current window
-                      :background "#a2c080" :foreground "#281d12" :box nil)
-  (set-face-attribute 'tab-line-tab-inactive nil ;; inactive tab
-                      :background "#90918a" :foreground "#281d12" :box nil)
-  (set-face-attribute 'tab-line-highlight nil ;; mouseover
-                      :background "#79665f" :foreground "#281d12" :box nil)
+
+;; (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
+;;   "Return FACE for TAB according to if ':ssh:' is in the buffer name.
+;;  For use in `tab-line-tab-face-functions'."
+;;   (let* ((buffer (if buffer-p tab (cdr (assq 'buffer tab))))
+;;          (buffer-name (buffer-name buffer))
+;;          (is-ssh (string-match-p ":ssh:" buffer-name)))
+
+;;     (if is-ssh
+;;         (setf face `(:background "#ff7f7f" :foreground ,bg-main :inherit (tab-line-tab-special ,face)))
+;;       (setf face `(:background "#ff7f4f" :foreground ,bg-main :inherit (tab-line-tab-default ,face)))))
+;;     face)
+
+;; (setq tab-line-tab-face-functions '(sn/line-tab-face-env))
+
+  (defface tab-line-env-default
+  '((t :background "red" :foreground "white")) 
+  "Face for default tab.")
+  (defface tab-line-env-1
+  '((t :background "red" :foreground "white")) 
+  "Face for tabs in project.")
+  (defface tab-line-env-2
+  '((t :background "red" :foreground "white")) 
+  "Face for tabs of ssh connections.")
+  (defface tab-line-env-3
+  '((t :background "red" :foreground "white")) 
+  "Face for tabs in docker container.")
+
+  
+ (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
+  "Return FACE for TAB according to if ':ssh:' or ':docker:' is in the buffer name.
+   For use in `tab-line-tab-face-functions'."
+  (let* ((buffer (if buffer-p tab (cdr (assq 'buffer tab))))
+         (buffer-name (buffer-name buffer))
+         (is-ssh (string-match-p ":ssh:" buffer-name))
+         (is-docker (string-match-p ":docker:" buffer-name))
+         (in-project (project-current)))
+    (cond
+     (is-ssh (setq face 'tab-line-env-1))
+     (is-docker (setq face 'tab-line-env-2))
+     (in-project (setq face 'tab-line-env-3))
+     (t (setq face '(tab-line-env-default)))))
+  face)
+
+(setq tab-line-tab-face-functions '(sn/line-tab-face-env))
+
+
+
+
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 
 (setq-default compilation-scroll-output t)
