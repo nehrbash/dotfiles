@@ -846,6 +846,9 @@ point reaches the beginning or end of the buffer, stop there."
 		  (lambda () (consult--buffer-query :sort 'visibility
 											:as #'buffer-name
 											:include '("Term\\ ")))))
+  (defun consult-term ()
+                (interactive)
+                (consult-buffer '(consult--source-vterm)))
   (defvar consult--source-star
 	(list :name     "*Star-Buffers*"
 		  :category 'buffer
@@ -1773,7 +1776,8 @@ point reaches the beginning or end of the buffer, stop there."
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
 
-(use-package multi-vterm
+(use-package multi-vterm)
+(use-package vterm
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
@@ -1799,9 +1803,7 @@ point reaches the beginning or end of the buffer, stop there."
    ("C-M-p" . vterm-new-tab-projcet)
    ("C-M-f" . tab-line-switch-to-next-tab)
    ("C-M-b" . tab-line-switch-to-prev-tab)
-   ("C-M-s" . (lambda ()
-                (interactive)
-                (consult-buffer '(consult--source-vterm))))
+   ("C-M-s" . consult-term)
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
   :custom
@@ -1836,7 +1838,7 @@ point reaches the beginning or end of the buffer, stop there."
                 (display-buffer vterm-buffer)
                 (select-window (get-buffer-window vterm-buffer)))))
 		  (vterm "Term")) ;; else make new term
-	  )) 
+	  ))
    (defun vterm-new-tab ()
 	"Create a new tab for the toggled vterm buffers"
 	(interactive)
@@ -1854,10 +1856,10 @@ point reaches the beginning or end of the buffer, stop there."
   (tab-line-close-button-show nil)
   (tab-line-separator nil)
   :config
-  ;; (defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
-  ;; 	(with-current-buffer buffer
-  ;;     (format " %s " (buffer-name buffer))))
-  ;; (setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
+  (defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
+  	(with-current-buffer buffer
+      (format " %s " (buffer-name buffer))))
+  (setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
 
 
 ;; (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
@@ -1875,31 +1877,59 @@ point reaches the beginning or end of the buffer, stop there."
 ;; (setq tab-line-tab-face-functions '(sn/line-tab-face-env))
 
   (defface tab-line-env-default
-  '((t :background "red" :foreground "white")) 
-  "Face for default tab.")
+	'((t :background "green" :foreground "white"))
+	"Face for default tab.")
   (defface tab-line-env-1
-  '((t :background "red" :foreground "white")) 
+  '((t :background "red" :foreground "white"))
   "Face for tabs in project.")
   (defface tab-line-env-2
-  '((t :background "red" :foreground "white")) 
+  '((t :background "blue" :foreground "white"))
   "Face for tabs of ssh connections.")
   (defface tab-line-env-3
-  '((t :background "red" :foreground "white")) 
+  '((t :background "purple" :foreground "white"))
   "Face for tabs in docker container.")
 
-  
+(defvar project-face-alist nil
+  "Project name mappeded to tab face.")
+(setq project-face-alist
+  '(("project" . 'tab-line-env-1)
+	("projcet2" . 'tab-line-env-2)))
+
+(defvar available-faces
+ '(tab-line-env-1 tab-line-env-2 tab-line-env-3))
+
+(defun get-face-for-project (project)
+  "Get the face associated with the given PROJECT name.
+If the project doesn't exist, return a random face and add a new mapping."
+  (let* ((project-face (assoc 'project project-face-alist))
+         (face (when project-face (cdr 'project-face))))
+    (if face
+        face
+      ;; If the project doesn't exist, generate a random face and add a new mapping
+      (let ((random-face (nth (random (length available-faces)) available-faces)))
+        (add-to-list 'project-face-alist (cons project random-face))
+        random-face))))
+
+(defun get-project-name (file-path)
+  "Get the project name from FILE-PATH using project.el."
+  (let ((project (project-current nil (file-name-directory file-path))))
+    (if project
+        (project-name project)
+	  nil)))
+
+
  (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
-  "Return FACE for TAB according to if ':ssh:' or ':docker:' is in the buffer name.
+  "Return FACE for TAB according to if ':ssh:' or ':docker:' or project name of the buffer.
    For use in `tab-line-tab-face-functions'."
   (let* ((buffer (if buffer-p tab (cdr (assq 'buffer tab))))
          (buffer-name (buffer-name buffer))
          (is-ssh (string-match-p ":ssh:" buffer-name))
          (is-docker (string-match-p ":docker:" buffer-name))
-         (in-project (project-current)))
+		 (project (get-project-name buffer-name)))
     (cond
+     (project (setq face (get-face-for-project project)))
      (is-ssh (setq face 'tab-line-env-1))
      (is-docker (setq face 'tab-line-env-2))
-     (in-project (setq face 'tab-line-env-3))
      (t (setq face '(tab-line-env-default)))))
   face)
 
