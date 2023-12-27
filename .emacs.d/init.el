@@ -62,8 +62,12 @@
   :config
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
+	(spacious-padding-mode 1) ;; load spacious-padding after load theme but before edits.
 	(ef-themes-with-colors
 	  (custom-set-faces
+	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) ;; fix spacious padding
+	   `(window-divider-first-pixel ((t :background ,bg-main :foreground ,bg-main)))
+       `(window-divider-last-pixel ((t :background ,bg-main :foreground ,bg-main)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
 	   `(tab-line-tab ((,c   :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
@@ -85,9 +89,6 @@
 	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
   ;; (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark)
-  :init
-  (spacious-padding-mode 1)
   (ef-themes-select 'ef-melissa-dark))
 
 (use-package rainbow-delimiters
@@ -162,7 +163,6 @@
 		`((".*" ,temporary-file-directory t)))
   (recentf-mode)
   :custom
-  (bookmark-default-file (expand-file-name "var/bookmarks.el" user-emacs-directory))
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 50)
   (recentf-exclude '("*/type-break.el$"
@@ -389,16 +389,14 @@ Call a second time to restore the original window configuration."
 
 (setq confirm-kill-processes nil)
 
-;; (use-package use-package-chords
-;;   :config (key-chord-mode 1))
 (use-package meow
   :config
   (setq meow-replace-state-name-list
-   '((normal . "🟢")
-	 (motion . "🟡")
-	 (keypad . "🟣")
-	 (insert . "🟠")
-	 (beacon . "🔴")))
+		'((normal . "🟢")
+		  (motion . "🟡")
+		  (keypad . "🟣")
+		  (insert . "🟠")
+		  (beacon . "🔴")))
   (add-to-list 'meow-mode-state-list '(org-mode . insert))
   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
@@ -526,6 +524,10 @@ Call a second time to restore the original window configuration."
   ;;	'("c" . sp-backward-slurp-sexp)
   ;;	'("u" . meow-undo))
   (meow-global-mode 1))
+
+(use-package avy
+  :commands avy-goto-char-timer
+  :bind ("C-'" . avy-goto-char-timer))
 
 (use-package transient
   :defer t
@@ -691,13 +693,15 @@ point reaches the beginning or end of the buffer, stop there."
 				'smarter-move-beginning-of-line)
 
 (use-package switch-window
-  :init
-	(meow-leader-define-key
-	'("o" . switch-window))
+  :custom
+  (switch-window-shortcut-style 'alphabet)
+  (switch-window-timeout 2)
   :config
-  (setq switch-window-shortcut-style 'alphabet
-		switch-window-timeout nil)
-  :bind ("C-x o" . switch-window))
+  (meow-leader-define-key
+	'("o" . switch-window))
+
+  :bind ("C-c o" . switch-window)
+  )
 
 (use-package windswap
   :config
@@ -711,6 +715,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package fullframe)
 
 (use-package minibuffer
+  :defer t
   :ensure nil
   :bind (:map minibuffer-local-completion-map
 			  ("<backtab>" . minibuffer-force-complete))
@@ -731,8 +736,9 @@ point reaches the beginning or end of the buffer, stop there."
   (minibuffer-electric-default-mode))
 
 (use-package vertico
-  :init
-  (vertico-mode)
+  :after minibuffer
+  :config
+  (vertico-mode 1)
   (vertico-multiform-mode 1))
 (use-package marginalia
   :init (marginalia-mode)
@@ -741,10 +747,9 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
-  :after marginalia
-  :config
-  (all-the-icons-completion-mode)
-  (add-hook 'marginalia-mode-hook #'all-the-icons-completion-marginalia-setup))
+  :hook (marginalia-mode-hook . all-the-icons-completion-marginalia-setup)
+  :init
+  (all-the-icons-completion-mode))
 
 (use-package orderless
   :custom
@@ -763,41 +768,40 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package consult
   :after vertico
   :defer t
-  :bind ((:map meow-normal-state-keymap
-			   ("C-b" . consult-buffer-other-window)
-			   ("M-b". consult-buffer);; orig. switch-to-buffer-other-window
-			   ("P" . consult-yank-pop)
-			   ("M-o" . consult-outline)
-			   ("C-M-r" . consult-register)
-			   ("C-M-s" . consult-register-store))
+  :bind
+  (:map meow-normal-state-keymap
+		("C-b" . consult-buffer-other-window)
+		("M-b". consult-buffer);; orig. switch-to-buffer-other-window
+		("P" . consult-yank-pop)
+		("M-o" . consult-outline)
+		("C-M-r" . consult-register)
+		("C-M-s" . consult-register-store))
 
-		 ;; Custom M-# bindings for fast register access
-		 ("M-#" . consult-register-load)
+  ;; Custom M-# bindings for fast register access
+  ("M-#" . consult-register-load)
+  ;; Other custom bindings
+  ("<help> a" . consult-apropos)            ;; orig. apropos-command
+  ;; M-g bindings (goto-map)
+  ("M-g e" . consult-compile-error)
+  ("M-g n" . consult-flymake)
+  ;; Alternative: consult-org-heading
+  ("M-g m" . consult-mark)
+  ("M-g k" . consult-global-mark)
+  ("M-g i" . consult-imenu)
+  ("M-g I" . consult-imenu-multi)
 
-
-		 ;; Other custom bindings
-		 ("<help> a" . consult-apropos)            ;; orig. apropos-command
-		 ;; M-g bindings (goto-map)
-		 ("M-g e" . consult-compile-error)
-		 ("M-g n" . consult-flymake)
-						;; Alternative: consult-org-heading
-		 ("M-g m" . consult-mark)
-		 ("M-g k" . consult-global-mark)
-		 ("M-g i" . consult-imenu)
-		 ("M-g I" . consult-imenu-multi)
-
-		 ("M-s f" . consult-find)
-		 ("M-s L" . consult-locate)
-		 ("M-s G" . consult-git-grep)
-		 ("M-s r" . consult-ripgrep)
-		 ("M-s m" . consult-multi-occur)
-		 ("M-s k" . consult-keep-lines)
-		 ("M-s u" . consult-focus-lines))
+  ("M-s f" . consult-find)
+  ("M-s L" . consult-locate)
+  ("M-s G" . consult-git-grep)
+  ("M-s r" . consult-ripgrep)
+  ("M-s m" . consult-multi-occur)
+  ("M-s k" . consult-keep-lines)
+  ("M-s u" . consult-focus-lines)
   :init
-   (meow-leader-define-key
-	'("b" . consult-bookmark)
-	'("<f4>" . consult-kmacro)
-	'("h" . consult-recent-file))
+  (meow-leader-define-key
+   '("b" . consult-bookmark)
+   '("<f4>" . consult-kmacro)
+   '("h" . consult-recent-file))
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
   (advice-add #'consult-line :before (lambda (&optional initial start)(push-mark-no-activate)) '((name . "add-mark")))
@@ -847,8 +851,8 @@ point reaches the beginning or end of the buffer, stop there."
 											:as #'buffer-name
 											:include '("Term\\ ")))))
   (defun consult-term ()
-                (interactive)
-                (consult-buffer '(consult--source-vterm)))
+    (interactive)
+    (consult-buffer '(consult--source-vterm)))
   (defvar consult--source-star
 	(list :name     "*Star-Buffers*"
 		  :category 'buffer
@@ -1291,16 +1295,12 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure nil  ;; built in
   :config
   (org-clock-persistence-insinuate)
-  (org-resolve-clocks)
-  :init
-  (defvar org-clock-prefix-map (make-sparse-keymap)
-	"A keymap for handy global access to org helpers, particularly clocking.")
-  :bind-keymap ("C-c o" . org-clock-prefix-map)
-  :bind (:map org-clock-prefix-map
-			  ("j" . org-clock-goto)
-			  ("l" . org-clock-in-last)
-			  ("i" . org-clock-in)
-			  ("o" . org-clock-out))
+  :bind
+  (:map meow-normal-state-keymap
+		("C-o j" . org-clock-goto)
+		("C-o l" . org-clock-in-last)
+		("C-o i" . org-clock-in)
+		("C-o o" . org-clock-out))
   :custom
   (org-clock-in-resume t)
   (org-clock-persist t)
@@ -1321,21 +1321,20 @@ point reaches the beginning or end of the buffer, stop there."
   (org-clock-persist 'history))
 
 (use-package type-break
-  :hook ((after-init . type-break-mode)
-		 (org-clock-in-prepare . type-break-mode))
+  :hook (org-clock-in-prepare . type-break-mode)
   :custom
   (type-break-interval (* 25 60)) ;; 25 mins
   (type-break-good-rest-interval (* 5 60)) ;; 5 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
   (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
   (type-break-demo-boring-stats t)
+  (type-break-file-name nil) ;; don't save across sessions file is annoying
   (type-break-query-mode t)
   (type-break-warning-repeat nil)
   (type-break-query-function 'sn/type-break-query)
   ;; This will stop the warnings before it's time to take a break
   (type-break-time-warning-intervals '())
   (type-break-keystroke-warning-intervals '())
-  (type-break-terse-messages t)
   ;; (type-break-query-function '(lambda (a &rest b) t))
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
@@ -1664,8 +1663,8 @@ point reaches the beginning or end of the buffer, stop there."
 :vc (:url "https://github.com/jdtsmith/indent-bars.git"
 		  :branch "main" :rev :newest))
 
-(use-package rainbow-mode
-  :hook (prog-mode . rainbow-mode))
+;; (use-package rainbow-mode
+;;   :hook (prog-mode . rainbow-mode))
 
 (use-package treesit-auto
   :init
@@ -1686,7 +1685,6 @@ point reaches the beginning or end of the buffer, stop there."
 						  (list (cape-super-capf
 								 #'codeium-completion-at-point
 								 #'eglot-completion-at-point
-								 #'yasnippet-capf
 								 #'cape-file))))
 
   :bind (:map eglot-mode-map
@@ -1776,8 +1774,11 @@ point reaches the beginning or end of the buffer, stop there."
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
 
-(use-package multi-vterm)
+(use-package multi-vterm
+  :after vterm)
 (use-package vterm
+  :defer t
+  :commands toggle-vterm-buffer
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
@@ -1799,10 +1800,10 @@ point reaches the beginning or end of the buffer, stop there."
                 (interactive)
                 (setq-local vterm-buffer-name-string nil)
                 (rename-buffer (concat "Term " (read-string "Term: ")))))
-   ("C-M-t" . vterm-new-tab)
+   ("C-M-t" . multi-vterm)
    ("C-M-p" . vterm-new-tab-projcet)
-   ("C-M-f" . tab-line-switch-to-next-tab)
-   ("C-M-b" . tab-line-switch-to-prev-tab)
+   ("C-M-f" . multi-vterm-next) ;;tab-line-switch-to-next-tab)
+   ("C-M-b" . multi-vterm-prev) ;;tab-line-switch-to-prev-tab)
    ("C-M-s" . consult-term)
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
@@ -1816,11 +1817,11 @@ point reaches the beginning or end of the buffer, stop there."
 	 ("docker" "/bin/bash")
 	 ("sudo" "/bin/bash")))
   :config
-  (add-to-list 'display-buffer-alist `(,vterm-buffer-name
+  (add-to-list 'display-buffer-alist `("^Term *"
                                        (display-buffer-reuse-window display-buffer-at-bottom)
-                                       (dedicated . t)
+                                       (dedicated . false)
                                        (reusable-frames . visible)
-                                       (window-height . 0.3)))
+                                       (window-height . 0.4)))
   :init
   (defun toggle-vterm-buffer ()
     "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
@@ -1842,103 +1843,12 @@ point reaches the beginning or end of the buffer, stop there."
    (defun vterm-new-tab ()
 	"Create a new tab for the toggled vterm buffers"
 	(interactive)
-    (vterm "Term"))
+    )
    (defun vterm-new-tab-projcet ()
 	"Create a new tab for the toggled vterm buffers"
 	(interactive)
 	(toggle-vterm-buffer) ;; I need to fugure out how to call vterm without createing new buffer.
     (multi-vterm-project)))
-
-(use-package tab-line
-  :hook (vterm-mode . tab-line-mode)
-  :custom
-  (tab-line-new-button-show nil)
-  (tab-line-close-button-show nil)
-  (tab-line-separator nil)
-  :config
-  (defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
-  	(with-current-buffer buffer
-      (format " %s " (buffer-name buffer))))
-  (setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
-
-
-;; (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
-;;   "Return FACE for TAB according to if ':ssh:' is in the buffer name.
-;;  For use in `tab-line-tab-face-functions'."
-;;   (let* ((buffer (if buffer-p tab (cdr (assq 'buffer tab))))
-;;          (buffer-name (buffer-name buffer))
-;;          (is-ssh (string-match-p ":ssh:" buffer-name)))
-
-;;     (if is-ssh
-;;         (setf face `(:background "#ff7f7f" :foreground ,bg-main :inherit (tab-line-tab-special ,face)))
-;;       (setf face `(:background "#ff7f4f" :foreground ,bg-main :inherit (tab-line-tab-default ,face)))))
-;;     face)
-
-;; (setq tab-line-tab-face-functions '(sn/line-tab-face-env))
-
-  (defface tab-line-env-default
-	'((t :background "green" :foreground "white"))
-	"Face for default tab.")
-  (defface tab-line-env-1
-  '((t :background "red" :foreground "white"))
-  "Face for tabs in project.")
-  (defface tab-line-env-2
-  '((t :background "blue" :foreground "white"))
-  "Face for tabs of ssh connections.")
-  (defface tab-line-env-3
-  '((t :background "purple" :foreground "white"))
-  "Face for tabs in docker container.")
-
-(defvar project-face-alist nil
-  "Project name mappeded to tab face.")
-(setq project-face-alist
-  '(("project" . 'tab-line-env-1)
-	("projcet2" . 'tab-line-env-2)))
-
-(defvar available-faces
- '(tab-line-env-1 tab-line-env-2 tab-line-env-3))
-
-(defun get-face-for-project (project)
-  "Get the face associated with the given PROJECT name.
-If the project doesn't exist, return a random face and add a new mapping."
-  (let* ((project-face (assoc 'project project-face-alist))
-         (face (when project-face (cdr 'project-face))))
-    (if face
-        face
-      ;; If the project doesn't exist, generate a random face and add a new mapping
-      (let ((random-face (nth (random (length available-faces)) available-faces)))
-        (add-to-list 'project-face-alist (cons project random-face))
-        random-face))))
-
-(defun get-project-name (file-path)
-  "Get the project name from FILE-PATH using project.el."
-  (let ((project (project-current nil (file-name-directory file-path))))
-    (if project
-        (project-name project)
-	  nil)))
-
-
- (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
-  "Return FACE for TAB according to if ':ssh:' or ':docker:' or project name of the buffer.
-   For use in `tab-line-tab-face-functions'."
-  (let* ((buffer (if buffer-p tab (cdr (assq 'buffer tab))))
-         (buffer-name (buffer-name buffer))
-         (is-ssh (string-match-p ":ssh:" buffer-name))
-         (is-docker (string-match-p ":docker:" buffer-name))
-		 (project (get-project-name buffer-name)))
-    (cond
-     (project (setq face (get-face-for-project project)))
-     (is-ssh (setq face 'tab-line-env-1))
-     (is-docker (setq face 'tab-line-env-2))
-     (t (setq face '(tab-line-env-default)))))
-  face)
-
-(setq tab-line-tab-face-functions '(sn/line-tab-face-env))
-
-
-
-
-  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil
@@ -1981,6 +1891,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config
+  
   (setq elisp-flymake-byte-compile-load-path
 		(append elisp-flymake-byte-compile-load-path load-path)))
 
