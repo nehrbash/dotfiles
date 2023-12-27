@@ -2,11 +2,11 @@
 
 set -e
 
-function focus() {
+focus() {
 	hyprctl 'dispatch togglespecialworkspace spot'
 }
 
-function active() {
+active() {
 	output=$(hyprctl workspaces -j | jq -r '.[] | select(.name == "special:spot")')
 
 	if [[ -z "$output" ]]; then
@@ -16,7 +16,7 @@ function active() {
 	fi
 }
 
-function setup() {
+setup() {
 	hyprctl --batch "dispatch exec [workspace special:spot] spotify-launcher; dispatch layoutmsg preselect l"
 	sleep 2
 	alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf &
