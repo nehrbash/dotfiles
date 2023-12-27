@@ -33,8 +33,9 @@ cursor:
 import:
 
 import:
+    - ~/.config/alacritty/ef.yml
   # uncomment the flavour you want below:
-  - ~/.config/alacritty/gruvbox.yml
+  # - ~/.config/alacritty/gruvbox.yml
   # - ~/.config/alacritty/dracula.yml
   # - ~/.config/alacritty/catppuccin/catppuccin-mocha.yml
 #  - ~/.config/alacritty/catppuccin/catppuccin-macchiato.yml
