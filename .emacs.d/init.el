@@ -1331,19 +1331,19 @@ point reaches the beginning or end of the buffer, stop there."
   (type-break-file-name nil) ;; don't save across sessions file is annoying
   (type-break-query-mode t)
   (type-break-warning-repeat nil)
-  (type-break-query-function 'sn/type-break-query)
   ;; This will stop the warnings before it's time to take a break
   (type-break-time-warning-intervals '())
   (type-break-keystroke-warning-intervals '())
-  ;; (type-break-query-function '(lambda (a &rest b) t))
+  (type-break-query-function '(lambda (a &rest b) t))
+  ;; (type-break-query-function 'sn/type-break-query)
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
   :init
-  (defun sn/type-break-query ()
+  (defun sn/type-break-query (a &rest b)
 	"Ask yes or no, and restart type-break if the answer is no."
 	(if (y-or-n-p "Do you want to continue type-break? ")
 		t
-	  (type-break-mode 1)))
+	  nil))
   (defun org-clock-in-to-task-by-title (task-title)
 	"Clock into an Org Agenda task by its title within a custom agenda command."
 	(interactive "sEnter the title of the task: ")
@@ -1363,25 +1363,26 @@ point reaches the beginning or end of the buffer, stop there."
 	  (format "%02d:%02d" minutes remaining-seconds)))
   (defun type-break-json-data ()
 	"Prints type break data used in eww bar."
-	(let* ((total-break-time (type-break-time-difference nil type-break-time-next-break))
-		   (time-difference (type-break-time-difference nil type-break-time-next-break))
-		   (formatted-time (format-seconds-to-mm-ss time-difference))
-		   (percent (if type-break-mode
-						(number-to-string (/ (* 100.0 time-difference)
-											 type-break-interval))
-					  "0"))
-		   (json-data `(:percent ,percent
-								 :time ,formatted-time
-								 :task ,(if (string-empty-p org-clock-heading)
-											"No Active Task"
-										  org-clock-heading)
-								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
-													   "No Active Task"
-													 org-clock-heading)
-												   " " formatted-time)
-								 :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
-								 :keystroke-count ,type-break-keystroke-count)))
-	  (json-encode json-data))))
+	(when (derived-mode-p 'type-break-mode)
+	  (let* ((total-break-time (type-break-time-difference nil type-break-time-next-break))
+			 (time-difference (type-break-time-difference nil type-break-time-next-break))
+			 (formatted-time (format-seconds-to-mm-ss time-difference))
+			 (percent (if type-break-mode
+						  (number-to-string (/ (* 100.0 time-difference)
+											   type-break-interval))
+						"0"))
+			 (json-data `(:percent ,percent
+								   :time ,formatted-time
+								   :task ,(if (string-empty-p org-clock-heading)
+											  "No Active Task"
+											org-clock-heading)
+								   :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
+														 "No Active Task"
+													   org-clock-heading)
+													 " " formatted-time)
+								   :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
+								   :keystroke-count ,type-break-keystroke-count)))
+		(json-encode json-data)))))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -1679,14 +1680,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
-  (eglot-managed-mode . (lambda ()
-						  (add-hook 'before-save-hook #'eglot-format-buffer -10 t)
-						  (add-hook 'before-save-hook #'eglot-organize-imports nil t)
-						  (list (cape-super-capf
-								 #'codeium-completion-at-point
-								 #'eglot-completion-at-point
-								 #'cape-file))))
-
+  (eglot-managed-mode . sn/setup-eglot)
   :bind (:map eglot-mode-map
 			  ;; "C-h ."  eldoc-doc-buffer
 			  ("C-c C-c" . project-compile)
@@ -1694,7 +1688,6 @@ point reaches the beginning or end of the buffer, stop there."
 			  ("C-c o" . eglot-code-action-organize-imports))
   :custom
   (eglot-autoshutdown t)
-  (eglot-events-buffer-size 0)
   (eglot-sync-connect nil)
   :config
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
@@ -1713,7 +1706,6 @@ point reaches the beginning or end of the buffer, stop there."
 									(:assignVariableTypes t
 														  :constantValues t
 														  :rangeVariableTypes t))))
-  (fset #'jsonrpc--log-event #'ignore)
   :init
   (defun eglot-organize-imports () (interactive)
 		 (eglot-code-actions nil nil "source.organizeImports" t))
@@ -1722,7 +1714,17 @@ point reaches the beginning or end of the buffer, stop there."
 	  (cons 'go-module root)))
   (cl-defmethod project-root ((project (head go-module)))
 	(cdr project))
-  (add-hook 'project-find-functions #'project-find-go-module))
+  (add-hook 'project-find-functions #'project-find-go-module)
+  (defun sn/setup-eglot ()
+	"Eglot customizations"
+	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
+	(add-hook 'before-save-hook #'eglot-organize-imports nil t)
+	(setq-local completion-at-point-functions
+				(list (cape-capf-super
+					   #'codeium-completion-at-point
+					   #'eglot-completion-at-point
+					   #'cape-file)))))
+
 (use-package consult-eglot
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
 
@@ -1802,8 +1804,8 @@ point reaches the beginning or end of the buffer, stop there."
                 (rename-buffer (concat "Term " (read-string "Term: ")))))
    ("C-M-t" . multi-vterm)
    ("C-M-p" . vterm-new-tab-projcet)
-   ("C-M-f" . multi-vterm-next) ;;tab-line-switch-to-next-tab)
-   ("C-M-b" . multi-vterm-prev) ;;tab-line-switch-to-prev-tab)
+   ("C-M-f" . tab-line-switch-to-next-tab)
+   ("C-M-b" . tab-line-switch-to-prev-tab)
    ("C-M-s" . consult-term)
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
@@ -1849,6 +1851,73 @@ point reaches the beginning or end of the buffer, stop there."
 	(interactive)
 	(toggle-vterm-buffer) ;; I need to fugure out how to call vterm without createing new buffer.
     (multi-vterm-project)))
+
+(use-package tab-line
+  :after vterm
+  :hook (vterm-mode . tab-line-mode)
+  :custom
+  (tab-line-new-button-show nil)
+  (tab-line-close-button-show nil)
+  (tab-line-separator nil)
+  :config
+  (defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
+  	(with-current-buffer buffer
+      (format " %s " (buffer-name buffer))))
+  (setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
+
+  (defface tab-line-env-default
+	'((t :background "green" :foreground "white"))
+	"Face for default tab.")
+  (defface tab-line-env-1
+	'((t :background "red" :foreground "white"))
+	"Face for tabs in project.")
+  (defface tab-line-env-2
+	'((t :background "blue" :foreground "white"))
+	"Face for tabs of ssh connections.")
+  (defface tab-line-env-3
+	'((t :background "purple" :foreground "white"))
+	"Face for tabs in docker container.")
+
+(defvar available-faces
+  '(tab-line-env-1 tab-line-env-2 tab-line-env-3))
+  
+(defcustom project-face-alist nil
+	"Project name mappeded to tab face.")
+
+(defun get-face-for-project (project-name)
+	"Get the face associated with the given PROJECT-NAME name.
+If the project doesn't exist, return a random face and add a new mapping."
+	(let ((face (cdr (assoc project-name project-face-alist))))
+	  (if face
+          face
+		;; If the project doesn't exist, generate a random face and add a new mapping
+		(let ((random-face (nth (random (length available-faces)) available-faces)))
+          (add-to-list 'project-face-alist (cons project-name random-face))
+          random-face))))
+
+  (defun get-project-name (file-path)
+	"Get the project name from FILE-PATH using project.el."
+	(let ((project (project-current nil (file-name-directory file-path))))
+      (if project
+          (project-name project)
+		nil)))
+
+  (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
+	"Return FACE for TAB according to if ':ssh:' or ':docker:' or project name of the buffer.
+   For use in `tab-line-tab-face-functions'."
+	(let* ((buffer-path (with-current-buffer tab
+						  (pwd)))
+           (is-ssh (string-match-p ":ssh:" buffer-path))
+           (is-docker (string-match-p ":docker:" buffer-path))
+           (project (get-project-name buffer-path)))
+	  (cond
+	   (project (get-face-for-project project))
+	   (is-ssh 'tab-line-env-1)
+	   (is-docker 'tab-line-env-2)
+	   (t 'tab-line-env-default))))
+
+  (setq tab-line-tab-face-functions '(sn/line-tab-face-env))
+  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil
