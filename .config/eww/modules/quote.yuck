@@ -2,19 +2,21 @@
   (box
     :class "ct_box"
     :orientation "v"
-    :space-evenly "false"
-    :vexpand "true"
-    :halign "center"
+	:vexpand "true"
+	:space-evenly "false"
     (box
+	  :orientation "h"
+	  :vexpand "true"
+	  :valign "start"
       (label
         :class "quote"
         :justify "center"
         :wrap true
         :text "${quote.quote}"))
     (box
-      :vexpand "true"
       :orientation "h"
       (label
         :class "author"
         :xalign 0.9
-        :text "-  ${quote.author}"))))
+        :text "-  ${quote.author}"))
+	))
