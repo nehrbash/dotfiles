@@ -21,10 +21,10 @@ setup() {
 	sleep 2
 	alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf &
 	sleep 0.3
-	hyprctl --batch "dispatch resizeactive -80% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r"
+	hyprctl --batch "dispatch resizeactive -60% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r"
 	alacritty -o font.size=6 -e cava -p ~/.config/cava/right.conf &
 	sleep 0.3
-	hyprctl --batch "dispatch resizeactive 60% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d"
+	hyprctl --batch "dispatch resizeactive 45% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d"
 	alacritty -o font.size=18 -e sptlrx &
 	sleep 0.3
 	hyprctl --batch "dispatch resizeactive 0 80%"

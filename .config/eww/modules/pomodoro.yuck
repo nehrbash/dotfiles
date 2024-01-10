@@ -27,17 +27,20 @@
       :orientation "h"
       :space-evenly "false"
       :valign "center"
-      (circular-progress
-        :value {pomo.percent}
-        :class "pomo_circle"
-        :thickness 10
-        :clockwise false
-        :start-at 75
-        (label
-          :halign "center"
-          :valign "center"
-          :class "pomo_icon"
-          :wrap false))
+	  (button
+		:onclick "scripts/tasks -b"
+		(circular-progress
+          :value {pomo.percent}
+          :class "pomo_circle"
+          :thickness 10
+          :clockwise false
+          :start-at 75
+          (label
+			:halign "center"
+			:valign "center"
+			:class "pomo_icon"
+			:style {pomo.time != "00:00" ? "background-image: url('images/tomatoe3.png');" : "background-image: url('images/tomatoe3-sad.png');"}
+			:wrap false)))
       (box
         :orientation "v"
         :space-evenly "true"
@@ -46,5 +49,17 @@
         (label
           :class "pomo_time"
           :text {pomo.time})))
-    (label :class "pomo_task" :wrap true :text {pomo.task})))
+	(box
+	  :space-evenly "false"
+      (label
+		:hexpand "true"
+		:class "pomo_task"
+		:wrap true
+		:text {pomo.task})
+	  (button
+		:onclick "scripts/tasks -d"
+		(label
+		  :class "pomo_task"
+		  :wrap true
+		  :text "✅")))))
 

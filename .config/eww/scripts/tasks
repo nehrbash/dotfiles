@@ -19,13 +19,13 @@ function update() {
   fi
     # Use the default behavior without the tag filter
     csv=$(emacs -batch -eval "
-(org-batch-agenda-csv \"$tag|INBOX\"
+(org-batch-agenda-csv \"\<work>-inbox\"
   org-agenda-files '(\"~/doc/inbox.org\" \"~/doc/projects.org\")
   org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
                      (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")
                      (sequence \"WAITING(w@/!)\" \"DELEGATED(e!)\" \"HOLD(h)\" \"|\" \"CANCELLED(c@/!)\"))
 )")
-  # echo "$csv"
+
 out=$(echo "$csv" | jq -Rsnc '
 {"tasks":
   [inputs
@@ -41,7 +41,7 @@ out=$(echo "$csv" | jq -Rsnc '
   echo "$out"
 }
 
-while getopts "c:o:f:" option; do
+while getopts "c:obdf:" option; do
   case $option in
     c) taskname=$OPTARG
        emacsclient -e "(org-clock-in-to-task-by-title \"$taskname\")"
@@ -52,8 +52,16 @@ while getopts "c:o:f:" option; do
        eww update "tasks=$(update)"
        exit 0
        ;;
+	b) emacsclient -e '(sn/type-break-toggle)'
+       eww update "tasks=$(update)"
+       exit 0
+       ;;
+	d) emacsclient -e '(sn/org-mark-current-done)'
+       eww update "tasks=$(update)"
+       exit 0
+       ;;
     f) filter=$OPTARG
-	   # echo "$(update "$filter")"
+	   echo "$(update "$filter")"
        eww update "tasks=$(update "$filter")"
        exit 0
        ;;

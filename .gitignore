@@ -44,3 +44,7 @@
 /.emacs.d/multisession/
 /.emacs.d/eshell/
 /.emacs.d/.cache/
+/.local/bin/emacs-lsp-booster
+/.emacs.d/bookmarks
+/.emacs.d/persist/
+/.emacs.d/.org-id-locations

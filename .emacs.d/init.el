@@ -40,6 +40,9 @@
   (package-quickstart-refresh))
 (add-hook 'package-upgrade-all-hook 'sn/finish-install)
 
+(setq custom-file "~/.emacs.d/custom.el")
+(load custom-file 'noerror 'nomessage)
+
 (use-package ef-themes
   :hook
   (server-after-make-frame
@@ -65,6 +68,7 @@
 	(spacious-padding-mode 1) ;; load spacious-padding after load theme but before edits.
 	(ef-themes-with-colors
 	  (custom-set-faces
+	   `(term ((t  :background "#281d12")))
 	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) ;; fix spacious padding
 	   `(window-divider-first-pixel ((t :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((t :background ,bg-main :foreground ,bg-main)))
@@ -79,6 +83,7 @@
 	   `(tab-line-env-2 ((,c  :background ,yellow-faint )))
 	   `(tab-line-env-3 ((,c  :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
+	   `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
 	   `(org-document-title ((,c :height 1.8)))
@@ -88,8 +93,9 @@
 	   `(default ((,c :font "Source Code Pro" :height 115)))
 	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  ;; (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark))
+  (mapc #'disable-theme custom-enabled-themes)
+  (ef-themes-select 'ef-melissa-dark)
+  (my-ef-themes-mod))
 
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
@@ -155,21 +161,71 @@
 
 (use-package recentf
   :ensure nil
+  :custom
+  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
+  (recentf-max-saved-items 50)
+  (recentf-exclude '("*/type-break.el$"
+					 ".*![^!]*!.*"
+					 "*/ssh:*"))
   :init
   ;; save backup and auto save to system tmp
   (setq backup-directory-alist
 		`((".*" . ,temporary-file-directory)))
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
-  (recentf-mode)
-  :custom
-  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 50)
-  (recentf-exclude '("*/type-break.el$"
-					 ".*![^!]*!.*"
-					 "*/ssh:*")))
+  (recentf-mode 1)
+  :config
+  (defvar recentfs-list-on-last-sync nil
+    "List of recent files reference point.")
+
+  (defun recentfs-update-sync ()
+    "Load saved projects from `recentf-list'."
+    (setq recentfs-list-on-last-sync
+          (and (sequencep recentf-list)
+               (copy-sequence recentf-list))))
+
+  (defadvice recentf-load-list (after recentfs-loaded-sync activate)
+    (recentfs-update-sync))
+
+  (defadvice recentf-save-list (around recentfs activate)
+    (recentfs-merge-lists)
+    ad-do-it
+    (recentfs-update-sync))
+
+  (defun recentfs-load-list ()
+    "Load a previously saved recent list and return it as a value
+instead of setting it."
+    (let ((file (expand-file-name recentf-save-file))
+          (recentf-filter-changer-current nil) ;; ignored atm
+          (recentf-list nil))
+      (when (file-readable-p file)
+        (load-file file))
+      recentf-list))
+
+  (defun recentfs-merge-lists ()
+    "Merge any change from `recentf-list'.
+
+This enables multiple Emacs processes to make changes without
+overwriting each other's changes."
+    (let* ((known-now recentf-list)
+           (known-on-last-sync recentfs-list-on-last-sync)
+           (known-on-file (recentfs-load-list))
+           (removed-after-sync (-difference known-on-last-sync known-now))
+           (removed-in-other-process
+            (-difference known-on-last-sync known-on-file))
+           (new-in-other-process
+            (-difference
+             known-on-file
+             (-concat removed-after-sync removed-in-other-process known-now)))
+           (result (-distinct
+                    (-difference
+                     (-concat new-in-other-process known-now)
+                     (-concat removed-after-sync removed-in-other-process)))))
+      (setq recentf-list result))))
 
 (use-package autorevert
+  :custom
+  (auto-revert-use-notify nil)
   :init (global-auto-revert-mode 1))
 
 (customize-set-variable 'tramp-default-method "ssh")
@@ -739,7 +795,9 @@ point reaches the beginning or end of the buffer, stop there."
   :after minibuffer
   :config
   (vertico-mode 1)
-  (vertico-multiform-mode 1))
+  (vertico-multiform-mode 1)
+  (add-to-list 'vertico-multiform-commands
+			   '(meow-visit flat)))
 (use-package marginalia
   :init (marginalia-mode)
   :bind (:map minibuffer-local-map
@@ -967,7 +1025,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package corfu
   :defer 1
   :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
-					   (setq-local corfu-auto t
+					   (setq-local ;; corfu-auto t
 								   corfu-auto-delay 0
 								   corfu-auto-prefix 1
 									completion-styles '(orderless-fast basic)
@@ -1043,9 +1101,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package yasnippet-snippets
   :after yasnippet)
 (use-package yasnippet-capf
-  :after (cape yasnippet)
-  :config
-  (add-to-list 'completion-at-point-functions #'yasnippet-capf)) ;; Prefer the name of the snippet instead)
+  :after (cape yasnippet) ) ;; Prefer the name of the snippet instead)
 
 (use-package jinx
   :bind (("M-$" . jinx-correct-word-save-to-file)
@@ -1053,7 +1109,8 @@ point reaches the beginning or end of the buffer, stop there."
 		 (:map jinx-overlay-map ;; change correct to right click not
 			   ("<mouse-1>" . nil)
 			   ("<mouse-3>" . jinx-correct)))
-  :init (global-jinx-mode)
+  :init
+  (global-jinx-mode)
   (add-to-list 'vertico-multiform-categories
 			   '(jinx grid (vertico-grid-annotate . 30)))
   :config
@@ -1194,15 +1251,18 @@ point reaches the beginning or end of the buffer, stop there."
 							"~/doc/repeater.org")))
   (org-capture-templates
 		`(("t" "Tasks")
-		  ("tt" "Todo" entry (file "~/doc/inbox.org")
-		   "* TODO %?\n%U\n%a\n" :clock-keep t)
-		  ("tt" "Todo" entry (file "~/doc/inbox.org")
-		   "* TODO %?\n%U\n%a\n" :clock-keep t)
-		  ("tn" "Next" entry (file "~/doc/inbox.org")
-		   "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-keep t)
-		  ("ti" "Inprogress" entry (file "~/doc/inbox.org")
-		   "* NEXT %?\nSCHEDULED: %t\n%U\n%a\n" :clock-keep t :clock-in t)
-		  ("p" "New Project (clock-in)" entry (file "~/doc/projects.org")
+		  ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
+		   "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
+		  ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
+		   "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
+		  ("p" "New Project")
+		  ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+		   "* PROJECT %?\n" :clock-keep t)
+		  ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+		   "* PROJECT %?\n" :clock-keep t :clock-in t)
+		  ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
+		   "* PROJECT %?\n" :clock-keep t)
+		  ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
 		   "* PROJECT %?\n" :clock-keep t :clock-in t)
 		  ("c" "Current task" checkitem (clock))
 		  ("r" "Roam")
@@ -1244,8 +1304,9 @@ point reaches the beginning or end of the buffer, stop there."
   (global-org-modern-mode))
 
 (use-package org
-  :bind ((:map org-mode-map
-			   ("C-c v" . wr-mode)))
+  :bind
+  (:map org-mode-map
+		("C-c v" . wr-mode))
   :init
   (define-minor-mode wr-mode
 	"Set up a buffer for word editing.
@@ -1263,7 +1324,6 @@ point reaches the beginning or end of the buffer, stop there."
 		  (buffer-face-mode 1)
 		  (setq-local
 		   blink-cursor-interval 0.8
-		   buffer-face-mode-face '((:family "Google Sans" :weight bold ))
 		   show-trailing-whitespace nil
 		   line-spacing 0.2
 		   electric-pair-mode nil)
@@ -1321,8 +1381,11 @@ point reaches the beginning or end of the buffer, stop there."
   (org-clock-persist 'history))
 
 (use-package type-break
-  :hook (org-clock-in-prepare . type-break-mode)
+  :hook
+  (org-clock-in . type-break-mode)
+  (org-clock-out . (lambda () (type-break-mode -1)))
   :custom
+  (org-clock-ask-before-exiting nil)
   (type-break-interval (* 25 60)) ;; 25 mins
   (type-break-good-rest-interval (* 5 60)) ;; 5 mins
   (type-break-good-break-interval (* 5 60)) ;; 5 mins
@@ -1334,11 +1397,23 @@ point reaches the beginning or end of the buffer, stop there."
   ;; This will stop the warnings before it's time to take a break
   (type-break-time-warning-intervals '())
   (type-break-keystroke-warning-intervals '())
-  (type-break-query-function '(lambda (a &rest b) t))
+  ;; (type-break-query-function '(lambda (a &rest b) t))
   ;; (type-break-query-function 'sn/type-break-query)
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
   :init
+  (defun sn/org-mark-current-done ()
+	"Clock out of the current task and mark it as DONE."
+	(interactive)
+	(let ((org-clock-out-switch-to-state "DONE"))
+      (org-clock-out)
+	  (setq org-clock-heading "")
+	  (org-save-all-org-buffers)))
+  (defun sn/type-break-toggle ()
+	(interactive)
+	(if type-break-mode
+		(type-break-mode -1)
+	  (type-break-mode 1)))
   (defun sn/type-break-query (a &rest b)
 	"Ask yes or no, and restart type-break if the answer is no."
 	(if (y-or-n-p "Do you want to continue type-break? ")
@@ -1363,26 +1438,25 @@ point reaches the beginning or end of the buffer, stop there."
 	  (format "%02d:%02d" minutes remaining-seconds)))
   (defun type-break-json-data ()
 	"Prints type break data used in eww bar."
-	(when (derived-mode-p 'type-break-mode)
-	  (let* ((total-break-time (type-break-time-difference nil type-break-time-next-break))
-			 (time-difference (type-break-time-difference nil type-break-time-next-break))
-			 (formatted-time (format-seconds-to-mm-ss time-difference))
-			 (percent (if type-break-mode
-						  (number-to-string (/ (* 100.0 time-difference)
-											   type-break-interval))
-						"0"))
-			 (json-data `(:percent ,percent
-								   :time ,formatted-time
-								   :task ,(if (string-empty-p org-clock-heading)
-											  "No Active Task"
-											org-clock-heading)
-								   :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
-														 "No Active Task"
-													   org-clock-heading)
-													 " " formatted-time)
-								   :keystroke ,(or (cdr type-break-keystroke-threshold) "none")
-								   :keystroke-count ,type-break-keystroke-count)))
-		(json-encode json-data)))))
+	(let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
+		   (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
+							 "00:00"))
+		   (percent (if type-break-mode
+						(number-to-string (/ (* 100.0 time-difference)
+											 type-break-interval))
+					  "0"))
+		   (json-data `(:percent ,percent
+								 :time ,formatted-time
+								 :task ,(if (string-empty-p org-clock-heading)
+											"No Active Task"
+										  org-clock-heading)
+								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
+													   "No Active Task"
+													 org-clock-heading)
+												   " " formatted-time)
+								 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
+								 :keystroke-count ,type-break-keystroke-count)))
+	  (json-encode json-data))))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -1406,12 +1480,7 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure nil
   :hook (org-agenda-mode . hl-line-mode)
   :custom
-  (org-agenda-prefix-format "  %i %?-2 t%s")
-  ;; (org-agenda-prefix-format
-  ;;  '((agenda . " %i %-12:c%?-12t% s")
-  ;;	 (todo . " %i %-12:c")
-  ;;	 (tags . " %i %-12:c")
-  ;;	 (search . " %i %-12:c")))
+  (org-agenda-prefix-format "%i  %?-2 t%s")
   (org-agenda-tags-column 0)
   (org-agenda-block-separator ?─)
   (org-agenda-time-grid
@@ -1447,7 +1516,7 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
-  (let ((active-project-match "-INBOX/PROJECT"))
+  (let ((active-project-match "-inbox/PROJECT"))
 	(setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
 		  org-agenda-compact-blocks t
 		  org-agenda-sticky t
@@ -1464,7 +1533,7 @@ point reaches the beginning or end of the buffer, stop there."
 	(setq org-agenda-custom-commands
 		  `(("g" "GTD"
 			 ((agenda "" nil)
-			  (tags "INBOX"
+			  (tags "inbox"
 					((org-agenda-overriding-header "Inbox")
 					 (org-tags-match-list-sublevels nil)
 					 (org-agenda-skip-function
@@ -1475,13 +1544,14 @@ point reaches the beginning or end of the buffer, stop there."
 					  (org-agenda-tags-todo-honor-ignore-options t)
 					  (org-tags-match-list-sublevels t)
 					  (org-agenda-todo-ignore-scheduled 'future)))
-			  (tags-todo "-INBOX"
+			  (tags-todo "-inbox"
 						 ((org-agenda-overriding-header "Next Actions")
 						  (org-agenda-tags-todo-honor-ignore-options t)
 						  (org-agenda-todo-ignore-scheduled 'future)
-						  (org-agenda-skip-function '(lambda ()
-													   (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
-														   (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
+						  (org-agenda-skip-function
+						   '(lambda ()
+							  (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
+								  (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
 						  (org-tags-match-list-sublevels t)
 						  (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
 			  (tags-todo ,active-project-match
@@ -1489,7 +1559,7 @@ point reaches the beginning or end of the buffer, stop there."
 						  (org-tags-match-list-sublevels t)
 						  (org-agenda-sorting-strategy
 						   '(category-keep))))
-			  (tags-todo "-INBOX-NEXT-REPEATER"
+			  (tags-todo "-inbox-repeater"
 						 ((org-agenda-overriding-header "Orphaned Tasks")
 						  (org-agenda-tags-todo-honor-ignore-options t)
 						  (org-agenda-todo-ignore-scheduled 'future)
@@ -1510,7 +1580,7 @@ point reaches the beginning or end of the buffer, stop there."
 						  (org-agenda-tags-todo-honor-ignore-options t)
 						  (org-agenda-todo-ignore-scheduled 'future)
 						  (org-agenda-sorting-strategy '(category-keep))))
-			  (tags-todo "-INBOX"
+			  (tags-todo "-inbox"
 						 ((org-agenda-overriding-header "On Hold")
 						  (org-agenda-skip-function
 						   '(lambda ()
@@ -1520,13 +1590,14 @@ point reaches the beginning or end of the buffer, stop there."
 						  (org-agenda-sorting-strategy '(category-keep))))))))))
 
 (use-package org
-  :hook ((org-clock-in . (lambda () (org-todo "INPROGRESS")
-						   (org-save-all-org-buffers)))
-		 (org-clock-out . (lambda ()
-							;; (unless (string-equal (org-get-todo-state) "DONE"))
-							(org-todo "NEXT")
-							(setq org-clock-heading "")
-							(org-save-all-org-buffers))))
+  :hook
+  (org-clock-in . (lambda () (org-todo "INPROGRESS")
+					(org-save-all-org-buffers)))
+  (org-clock-out . (lambda ()
+					 (unless (string-equal (org-get-todo-state) "DONE")
+					   (org-todo "NEXT")
+					   (setq org-clock-heading "")
+					   (org-save-all-org-buffers))))
   :custom
   (org-todo-keywords
    (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
@@ -1535,7 +1606,15 @@ point reaches the beginning or end of the buffer, stop there."
    org-todo-repeat-to-state "NEXT")
   (org-todo-keyword-faces
    (quote (("NEXT" :inherit warning)
-		   ("PROJECT" :inherit font-lock-string-face)))))
+		   ("PROJECT" :inherit font-lock-string-face))))
+  :config
+(defun sn/org-clock-in-if-inprogress ()
+  "Clock in when the task state is changed to INPROGRESS."
+  (when (string= org-state "INPROGRESS")
+    (org-clock-in)))
+
+(add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress)
+)
 
 (setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
@@ -1693,19 +1772,66 @@ point reaches the beginning or end of the buffer, stop there."
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
 				'(:gopls
-				  (:usePlaceholders t
-									:staticcheck t
-									:gofumpt t
-									:analyses
-									(:nilness t
-											  :shadow t
-											  :unusedparams t
-											  :unusedwrite t
-											  :unusedvariable t)
-									:hints
-									(:assignVariableTypes t
-														  :constantValues t
-														  :rangeVariableTypes t))))
+				 (:usePlaceholders t
+								   :staticcheck t
+								   :gofumpt t
+								   :analyses
+								   (:nilness t
+											 :shadow t
+											 :unusedparams t
+											 :unusedwrite t
+											 :unusedvariable t)
+								   :hints
+								   (:assignVariableTypes t
+														 :constantValues t
+														 :rangeVariableTypes t))
+				 :js-ts
+                 (:format 
+				  (:convertTabsToSpaces t
+										:indentSize 1
+										:tabSize 1
+										:tabWidth 1))))
+ 
+(defun eglot-booster-plain-command (com)
+  "Test if command COM is a plain eglot server command."
+  (and (consp com)
+       (not (integerp (cadr com)))
+       (not (seq-intersection '(:initializationOptions :autoport) com))))
+
+(defun eglot-booster ()
+  "Boost plain eglot server programs with emacs-lsp-booster.
+The emacs-lsp-booster program must be compiled and available on
+variable `exec-path'.  Only local stdin/out based lsp servers can
+be boosted."
+  (interactive)
+  (unless (executable-find "emacs-lsp-booster")
+    (user-error "The emacs-lsp-booster program is not installed"))
+  (if (get 'eglot-server-programs 'lsp-booster-p)
+      (message "eglot-server-programs already boosted.")
+    (let ((cnt 0)
+	  (orig-read (symbol-function 'jsonrpc--json-read)))
+      (dolist (entry eglot-server-programs)
+	(cond
+	 ((functionp (cdr entry))
+	  (cl-incf cnt)
+	  (let ((fun (cdr entry)))
+	    (setcdr entry (lambda (&rest r) ; wrap function
+			    (let ((res (apply fun r)))
+			      (if (eglot-booster-plain-command res)
+				  (cons "emacs-lsp-booster" res)
+				res))))))
+	 ((eglot-booster-plain-command (cdr entry))
+	  (cl-incf cnt)
+	  (setcdr entry (cons "emacs-lsp-booster" (cdr entry))))))
+      (defalias 'jsonrpc--json-read
+	(lambda ()
+	  (or (and (= (following-char) ?#)
+		   (let ((bytecode (read (current-buffer))))
+		     (when (byte-code-function-p bytecode)
+		       (funcall bytecode))))
+	      (funcall orig-read))))
+      (message "Boosted %d eglot-server-programs" cnt))
+    (put 'eglot-server-programs 'lsp-booster-p t)))
   :init
   (defun eglot-organize-imports () (interactive)
 		 (eglot-code-actions nil nil "source.organizeImports" t))
@@ -1723,10 +1849,13 @@ point reaches the beginning or end of the buffer, stop there."
 				(list (cape-capf-super
 					   #'codeium-completion-at-point
 					   #'eglot-completion-at-point
-					   #'cape-file)))))
+					   #'cape-file
+					   #'yasnippet-capf)))))
 
 (use-package consult-eglot
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
+
+
 
 (use-package git-gutter
   :defer t
@@ -1776,6 +1905,31 @@ point reaches the beginning or end of the buffer, stop there."
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
 
+(use-package eat
+  :hook ((eat-mode . (lambda ()
+					   (setq-local
+						left-margin-width 3
+						right-margin-width 3
+						cursor-type 'bar)
+					   (toggle-mode-line)
+					   (face-remap-add-relative
+						'default
+						:family "Iosevka"
+						:background "#281d12")
+					   (face-remap-set-base
+						'default
+						:family "Iosevka"
+						:background "#281d12")
+					   (face-remap-add-relative
+						'fringe
+						:background "#281d12")
+					   )))
+  :custom ((eat-kill-buffer-on-exit t)
+		   (eat-enable-yank-to-terminal t))
+  ;; :bind (("M-t" . eat-project-other)
+  ;; 		 (("C-M-t" . eat-other-window)))
+  )
+
 (use-package multi-vterm
   :after vterm)
 (use-package vterm
@@ -1788,9 +1942,14 @@ point reaches the beginning or end of the buffer, stop there."
 							  right-margin-width 3
 							  cursor-type 'bar)
 				  (face-remap-add-relative
-				   'default
-				   :family "Iosevka"
+				   'term
 				   :background "#281d12")
+				  (face-remap-add-relative
+				   'unspecified-fg
+				   :background "#281d12")
+				  (face-remap-add-relative
+				   'unspecified-bg
+				   :background)
 				  (face-remap-add-relative
 				   'fringe
 				   :background "#281d12")))
@@ -1878,13 +2037,20 @@ point reaches the beginning or end of the buffer, stop there."
 	'((t :background "purple" :foreground "white"))
 	"Face for tabs in docker container.")
 
-(defvar available-faces
-  '(tab-line-env-1 tab-line-env-2 tab-line-env-3))
+  (defvar available-faces
+	'(symbol-overlay-face-1
+	  symbol-overlay-face-2
+	  symbol-overlay-face-3
+	  symbol-overlay-face-4
+	  symbol-overlay-face-5
+	  symbol-overlay-face-6
+	  symbol-overlay-face-7
+	  symbol-overlay-face-8))
   
-(defcustom project-face-alist nil
+  (defcustom project-face-alist nil
 	"Project name mappeded to tab face.")
 
-(defun get-face-for-project (project-name)
+  (defun get-face-for-project (project-name)
 	"Get the face associated with the given PROJECT-NAME name.
 If the project doesn't exist, return a random face and add a new mapping."
 	(let ((face (cdr (assoc project-name project-face-alist))))
@@ -1905,8 +2071,8 @@ If the project doesn't exist, return a random face and add a new mapping."
   (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
 	"Return FACE for TAB according to if ':ssh:' or ':docker:' or project name of the buffer.
    For use in `tab-line-tab-face-functions'."
-	(let* ((buffer-path (with-current-buffer tab
-						  (pwd)))
+	(let* ((buffer-path (with-current-buffer (get-buffer tab)
+						  (buffer-file-name)))
            (is-ssh (string-match-p ":ssh:" buffer-path))
            (is-docker (string-match-p ":docker:" buffer-path))
            (project (get-project-name buffer-path)))
@@ -2068,9 +2234,9 @@ If the project doesn't exist, return a random face and add a new mapping."
 
 (use-package docker
   :ensure-system-package
-  ((docker . "paru -S docker")
-   (docker-compose . "paru -S docker-compose")
-   (devcontainer . "npm install -g @devcontainers/cli"))
+  (docker . "paru -S docker")
+  (docker-compose . "paru -S docker-compose")
+  (devcontainer . "npm install -g @devcontainers/cli")
   :bind ("C-c d" . docker)
   :config
   (fullframe docker-images tablist-quit)
