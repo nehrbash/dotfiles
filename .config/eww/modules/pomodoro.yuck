@@ -56,10 +56,10 @@
 		:class "pomo_task"
 		:wrap true
 		:text {pomo.task})
-	  (button
-		:onclick "scripts/tasks -d"
-		(label
-		  :class "pomo_task"
-		  :wrap true
-		  :text "✅")))))
+	  ;; (button
+	  ;; 	:onclick "scripts/tasks -d"
+	  ;; 	(label	  ;; 	  :class "pomo_task"
+	  ;; 	  :wrap true
+	  ;; 	  :text "✅"))
+	  )))
 

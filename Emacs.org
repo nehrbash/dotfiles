@@ -361,7 +361,7 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
 	   `(default ((,c :font "Source Code Pro" :height 115)))
-	   `(unspecified-bg ((,c :foreground ,bg-main :background ,bg-main))))))
+	   `(unspecified-bg ((,c :inherit 'default))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
   (mapc #'disable-theme custom-enabled-themes)
   (ef-themes-select 'ef-melissa-dark)
@@ -2057,8 +2057,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   ;; This will stop the warnings before it's time to take a break
   (type-break-time-warning-intervals '())
   (type-break-keystroke-warning-intervals '())
-  ;; (type-break-query-function '(lambda (a &rest b) t))
-  ;; (type-break-query-function 'sn/type-break-query)
+  (type-break-query-function 'sn/type-break-query)
   (type-break-mode-line-message-mode nil)
   (type-break-demo-functions '(type-break-demo-boring))
   :init
@@ -2075,10 +2074,12 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 		(type-break-mode -1)
 	  (type-break-mode 1)))
   (defun sn/type-break-query (a &rest b)
-	"Ask yes or no, and restart type-break if the answer is no."
-	(if (y-or-n-p "Do you want to continue type-break? ")
-		t
-	  nil))
+	"Auto say yes and ask to quit type break."
+	(if (> (type-break-time-difference
+                                 type-break-interval-start
+                                 type-break-time-last-break) 0)
+		(y-or-n-p "Do you want to continue type-break? ")
+	  t))
   (defun org-clock-in-to-task-by-title (task-title)
 	"Clock into an Org Agenda task by its title within a custom agenda command."
 	(interactive "sEnter the title of the task: ")
@@ -2115,7 +2116,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 													 org-clock-heading)
 												   " " formatted-time)
 								 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
-								 :keystroke-count ,type-break-keystroke-count)))
+								 :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
 	  (json-encode json-data))))
 #+end_src
 

@@ -79,7 +79,8 @@ sanitize() {
 }
 
 prevCover=''
-
+# initalize
+echo "{\"artist\":\"\",\"title\":\"No Media\",\"status\":\"\",\"position\":\"0.0\",\"position_time\":\"00:30\",\"length\":\"01:00\",\"cover\":\"~/.cache/eww_covers/cover_art.png\",\"color1\":\"#706159\",\"color2\":\"#D3CEC2\"}"
 playerctl --player=spotify -F metadata -f '{{title}}\{{artist}}\{{status}}\{{position}}\{{mpris:length}}\{{mpris:artUrl}}' 2>/dev/null | while IFS="$(printf '\')" read -r title artist status position len cover; do
 	if [[ "$cover" != "$prevCover" ]]; then
 		COVER=$(get_cover "$cover")

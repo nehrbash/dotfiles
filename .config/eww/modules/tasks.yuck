@@ -11,6 +11,7 @@
 	  (calendar-win))
     (box
 	  :orientation "h"
+	  :spacing 15
 	  :space-evenly false
 	  :halign "center"
 	  :hexpand true
@@ -21,10 +22,9 @@
 		:timeout "1s"
 		:onclick "${EWW_CMD} update cal_reveal=${!cal_reveal}"
 		(box
-		  :class "task-label"
 		  :space-evenly false
 		  (label
-			:text "Agenda [${tasks.num-tasks} / ${tasks.num-total}]")))
+			:text "Agenda [${tasks.num-tasks}/${tasks.num-total}]")))
 	  (box
 		:width 180
 		:class "toggle-bg"
@@ -67,12 +67,6 @@
 		:space-evenly "false"
 		:hexpand "false"
 		:halign "left"
-		(box
-          :orientation "h"
-          :space-evenly "false"
-          (label
-			:class "project"
-			:text "● INBOX"))
 		(for t in {tasks.tasks}
 		  (box
 			;; :class "task-row"

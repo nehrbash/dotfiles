@@ -37,6 +37,7 @@
 
 .task-label {
 	@include hoverable;
+	font-size: 1.2rem;
 	&:hover {
         background: $base;
     }

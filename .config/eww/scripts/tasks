@@ -19,7 +19,7 @@ function update() {
   fi
     # Use the default behavior without the tag filter
     csv=$(emacs -batch -eval "
-(org-batch-agenda-csv \"\<work>-inbox\"
+(org-batch-agenda-csv \"\+$tag\"
   org-agenda-files '(\"~/doc/inbox.org\" \"~/doc/projects.org\")
   org-todo-keywords '((sequence \"TODO(t)\" \"NEXT(n/!)\" \"INPROGRESS(i/!)\" \"|\" \"DONE(d!/!)\")
                      (sequence \"PROJECT(p)\" \"|\" \"DONE(d!/!)\" \"CANCELLED(c@/!)\")

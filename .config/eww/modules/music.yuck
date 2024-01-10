@@ -18,9 +18,10 @@
       (box
         :class "mr-15"
         :space-evenly false
-        (label
+		(button :onclick "spotify_toggle"
+		  (label
 		  :class "spotify-icon"
-          :text " ")
+          :text " "))
         (revealer
           :transition "slideright"
           :reveal music_reveal
