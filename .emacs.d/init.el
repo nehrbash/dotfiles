@@ -589,7 +589,9 @@ Call a second time to restore the original window configuration."
   :defer t
   :bind
   (:map isearch-mode-map
-			  ("M-t" . sn/isearch-menu))
+			  ("C-t" . sn/isearch-menu)
+			  ("C-r" . consult-ripgrep)
+			  ("C-f" . consult-line))
   :config
   (transient-define-prefix sn/isearch-menu ()
 	"isearch Menu"
@@ -851,7 +853,7 @@ point reaches the beginning or end of the buffer, stop there."
   ("M-s f" . consult-find)
   ("M-s L" . consult-locate)
   ("M-s G" . consult-git-grep)
-  ("M-s r" . consult-ripgrep)
+  ("C-S" . consult-ripgrep)
   ("M-s m" . consult-multi-occur)
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
@@ -931,7 +933,6 @@ point reaches the beginning or end of the buffer, stop there."
 					 :as #'buffer-name
 					 :exclude '("\\*."           ; star buffers
 								"\\#."
-								"^type-break.el"
 								"Term\\ "        ; Term buffers
 								"^magit"         ; magit buffers
 								"[\\.]org$"))))) ; org files
@@ -1415,7 +1416,7 @@ point reaches the beginning or end of the buffer, stop there."
 	  (type-break-mode 1)))
   (defun sn/type-break-query (a &rest b)
 	"Auto say yes and ask to quit type break."
-	(if (> (type-break-time-difference
+	(if (>= (type-break-time-difference
                                  type-break-interval-start
                                  type-break-time-last-break) 0)
 		(y-or-n-p "Do you want to continue type-break? ")
@@ -1942,18 +1943,19 @@ be boosted."
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
-				  (face-remap-add-relative
-				   'term
-				   :background "#281d12")
-				  (face-remap-add-relative
-				   'unspecified-fg
-				   :background "#281d12")
-				  (face-remap-add-relative
-				   'unspecified-bg
-				   :background)
-				  (face-remap-add-relative
-				   'fringe
-				   :background "#281d12")))
+				  ;; (face-remap-add-relative
+				  ;;  'term
+				  ;;  :background "#281d12")
+				  ;; (face-remap-add-relative
+				  ;;  'unspecified-fg
+				  ;;  :background "#281d12")
+				  ;; (face-remap-add-relative
+				  ;;  'unspecified-bg
+				  ;;  :background)
+				  ;; (face-remap-add-relative
+				  ;;  'fringe
+				  ;;  :background "#281d12")
+				  ))
   :bind
   (("M-t" . toggle-vterm-buffer)
    :map vterm-mode-map
@@ -2271,6 +2273,13 @@ If the project doesn't exist, return a random face and add a new mapping."
 
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
+
+(use-package web-mode
+  :mode ("\\.html$" .  web-mode)
+  :hook (web-mode . dg/web-mode-hook)
+  :config
+  (defun sn/web-mode-hook()
+	(web-mode-set-engine "go"))
 
 (use-package mu4e
   :ensure nil

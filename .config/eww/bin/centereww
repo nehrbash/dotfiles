@@ -5,7 +5,7 @@ if [ -f /tmp/hypr/swaync-dnd ]; then
 	dnd_store=$(cat /tmp/hypr/swaync-dnd)
 	rm /tmp/hypr/swaync-dnd
 fi
-actmonit=$(hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | .id')
+actmonit=$(hyprctl monitors -j | jaq -rc '.[] | select(.focused == true) | .model')
 state="$1"
 
 if [ "$state" = "toggle" ]; then

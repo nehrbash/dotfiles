@@ -71,6 +71,7 @@
   - [[#terraform][Terraform]]
   - [[#yuck][Yuck]]
   - [[#markdown][Markdown]]
+  - [[#all-things-html][All things HTML]]
 - [[#fancy-bloat][Fancy Bloat]]
   - [[#mu4e---mail][Mu4e - Mail]]
   - [[#voice-to-text][Voice to Text]]
@@ -1007,90 +1008,92 @@ Call a second time to restore the original window configuration."
 *** Transit
 
  #+begin_src emacs-lisp
- (use-package transient
-   :defer t
-   :bind
-   (:map isearch-mode-map
-			   ("M-t" . sn/isearch-menu))
-   :config
-   (transient-define-prefix sn/isearch-menu ()
-	 "isearch Menu"
-	 [["Edit Search String"
-	   ("e"
-		"Edit the search string (recursive)"
-		isearch-edit-string
-		:transient nil)
-	   ("w"
-		"Pull next word or character word from buffer"
-		isearch-yank-word-or-char
-		:transient nil)
-	   ("s"
-		"Pull next symbol or character from buffer"
-		isearch-yank-symbol-or-char
-		:transient nil)
-	   ("l"
-		"Pull rest of line from buffer"
-		isearch-yank-line
-		:transient nil)
-	   ("y"
-		"Pull string from kill ring"
-		isearch-yank-kill
-		:transient nil)
-	   ("t"
-		"Pull thing from buffer"
-		isearch-forward-thing-at-point
-		:transient nil)]
-	  ["Replace"
-	   ("q"
-		"Start ‘query-replace’"
-		anzu-isearch-query-replace
-		:if-nil buffer-read-only
-		:transient nil)
-	   ("x"
-		"Start ‘query-replace-regexp’"
-		anzu-isearch-query-replace-regexp
-		:if-nil buffer-read-only
-		:transient nil)
-	   ]]
-	 [["Toggle"
-	   ("X"
-		"Toggle regexp searching"
-		isearch-toggle-regexp
-		:transient nil)
-	   ("S"
-		"Toggle symbol searching"
-		isearch-toggle-symbol
-		:transient nil)
-	   ("W"
-		"Toggle word searching"
-		isearch-toggle-word
-		:transient nil)
-	   ("F"
-		"Toggle case fold"
-		isearch-toggle-case-fold
-		:transient nil)
-	   ("L"
-		"Toggle lax whitespace"
-		isearch-toggle-lax-whitespace
-		:transient nil)]
+   (use-package transient
+	 :defer t
+	 :bind
+	 (:map isearch-mode-map
+				 ("C-t" . sn/isearch-menu)
+				 ("C-r" . consult-ripgrep)
+				 ("C-f" . consult-line))
+	 :config
+	 (transient-define-prefix sn/isearch-menu ()
+	   "isearch Menu"
+	   [["Edit Search String"
+		 ("e"
+		  "Edit the search string (recursive)"
+		  isearch-edit-string
+		  :transient nil)
+		 ("w"
+		  "Pull next word or character word from buffer"
+		  isearch-yank-word-or-char
+		  :transient nil)
+		 ("s"
+		  "Pull next symbol or character from buffer"
+		  isearch-yank-symbol-or-char
+		  :transient nil)
+		 ("l"
+		  "Pull rest of line from buffer"
+		  isearch-yank-line
+		  :transient nil)
+		 ("y"
+		  "Pull string from kill ring"
+		  isearch-yank-kill
+		  :transient nil)
+		 ("t"
+		  "Pull thing from buffer"
+		  isearch-forward-thing-at-point
+		  :transient nil)]
+		["Replace"
+		 ("q"
+		  "Start ‘query-replace’"
+		  anzu-isearch-query-replace
+		  :if-nil buffer-read-only
+		  :transient nil)
+		 ("x"
+		  "Start ‘query-replace-regexp’"
+		  anzu-isearch-query-replace-regexp
+		  :if-nil buffer-read-only
+		  :transient nil)
+		 ]]
+	   [["Toggle"
+		 ("X"
+		  "Toggle regexp searching"
+		  isearch-toggle-regexp
+		  :transient nil)
+		 ("S"
+		  "Toggle symbol searching"
+		  isearch-toggle-symbol
+		  :transient nil)
+		 ("W"
+		  "Toggle word searching"
+		  isearch-toggle-word
+		  :transient nil)
+		 ("F"
+		  "Toggle case fold"
+		  isearch-toggle-case-fold
+		  :transient nil)
+		 ("L"
+		  "Toggle lax whitespace"
+		  isearch-toggle-lax-whitespace
+		  :transient nil)]
 
-	  ["Misc"
-	   ("l"
-		"Start ‘consult-line’"
-		consult-line
-		:transient nil)
-	   ("g"
-		"Start ‘consult-git-grep’"
-		consult-git-grep
-		:transient nil)
-	   ("r"
-		"Start ‘consult-ripgrep’"
-		consult-ripgrep
-		:transient nil)
-	   ("o"
-		"occur"
-		isearch-occur
-		:transient nil)]]))
+		["Misc"
+		 ("l"
+		  "Start ‘consult-line’"
+		  consult-line
+		  :transient nil)
+		 ("g"
+		  "Start ‘consult-git-grep’"
+		  consult-git-grep
+		  :transient nil)
+		 ("r"
+		  "Start ‘consult-ripgrep’"
+		  consult-ripgrep
+		  :transient nil)
+		 ("o"
+		  "occur"
+		  isearch-occur
+		  :transient nil)]]))
  #+end_src
 
 
@@ -1386,7 +1389,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   ("M-s f" . consult-find)
   ("M-s L" . consult-locate)
   ("M-s G" . consult-git-grep)
-  ("M-s r" . consult-ripgrep)
+  ("C-S" . consult-ripgrep)
   ("M-s m" . consult-multi-occur)
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
@@ -1466,7 +1469,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 					 :as #'buffer-name
 					 :exclude '("\\*."           ; star buffers
 								"\\#."
-								"^type-break.el"
 								"Term\\ "        ; Term buffers
 								"^magit"         ; magit buffers
 								"[\\.]org$"))))) ; org files
@@ -2075,7 +2077,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	  (type-break-mode 1)))
   (defun sn/type-break-query (a &rest b)
 	"Auto say yes and ask to quit type break."
-	(if (> (type-break-time-difference
+	(if (>= (type-break-time-difference
                                  type-break-interval-start
                                  type-break-time-last-break) 0)
 		(y-or-n-p "Do you want to continue type-break? ")
@@ -2718,18 +2720,19 @@ be boosted."
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
-				  (face-remap-add-relative
-				   'term
-				   :background "#281d12")
-				  (face-remap-add-relative
-				   'unspecified-fg
-				   :background "#281d12")
-				  (face-remap-add-relative
-				   'unspecified-bg
-				   :background)
-				  (face-remap-add-relative
-				   'fringe
-				   :background "#281d12")))
+				  ;; (face-remap-add-relative
+				  ;;  'term
+				  ;;  :background "#281d12")
+				  ;; (face-remap-add-relative
+				  ;;  'unspecified-fg
+				  ;;  :background "#281d12")
+				  ;; (face-remap-add-relative
+				  ;;  'unspecified-bg
+				  ;;  :background)
+				  ;; (face-remap-add-relative
+				  ;;  'fringe
+				  ;;  :background "#281d12")
+				  ))
   :bind
   (("M-t" . toggle-vterm-buffer)
    :map vterm-mode-map
@@ -3122,6 +3125,20 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :mode ("\\.md\\'" . markdown-mode))
 #+end_src
 
+** All things HTML
+
+   Only use go templates so this works for me. if I work with more complex projects I may need to refactor to set on a per-project case.
+   
+#+begin_src emacs-lisp
+(use-package web-mode
+  :mode ("\\.html$" .  web-mode)
+  :hook (web-mode . dg/web-mode-hook)
+  :config
+  (defun sn/web-mode-hook()
+	(web-mode-set-engine "go"))
+#+end_src
+
+   
 * Fancy Bloat
 
 ** Mu4e - Mail
