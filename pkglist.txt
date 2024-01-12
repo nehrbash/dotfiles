@@ -44,6 +44,7 @@ spotify-launcher
 sptlrx-bin
 cava
 emacs-pdf-tools-git
+emacs-lsp-booster-git
 aspell
 aspell-en
 hspell

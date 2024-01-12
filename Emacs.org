@@ -1318,7 +1318,11 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (vertico-mode 1)
   (vertico-multiform-mode 1)
   (add-to-list 'vertico-multiform-commands
-			   '(meow-visit flat)))
+			   '(meow-visit flat))
+  (add-to-list 'vertico-multiform-commands
+			   '(project-switch-project buffer))
+  (add-to-list 'vertico-multiform-commands
+			   '(consult-ripgrep buffer)))
 (use-package marginalia
   :init (marginalia-mode)
   :bind (:map minibuffer-local-map
@@ -1584,10 +1588,10 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 (use-package corfu
   :defer 1
   :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
-					   (setq-local ;; corfu-auto t
+					   (setq-local corfu-auto t
 								   corfu-auto-delay 0
 								   corfu-auto-prefix 1
-									completion-styles '(orderless-fast basic)
+								   completion-styles '(orderless-fast basic)
 								   corfu-popupinfo-delay 0.6))))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
 			  ("TAB" . corfu-next)
@@ -1665,7 +1669,8 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (defalias 'cape-codeium (cape-capf-interactive #'codeium-completion-at-point))
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
-  (add-to-list 'completion-at-point-functions #'cape-file))
+  (add-to-list 'completion-at-point-functions #'cape-file)
+  (add-to-list 'completion-at-point-functions #'cape-abbrev))
 #+end_src
 
 *** Snippets
@@ -1677,13 +1682,12 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :custom
   (yas-verbosity 1)
   (yas-wrap-around-region t)
-  :config
-  (add-to-list 'yas-snippet-dirs (expand-file-name "~/.emacs.d/etc/yasnippet/snippets"))
-  (yas-global-mode))
+  :init
+  (yas-global-mode 1))
 (use-package yasnippet-snippets
   :after yasnippet)
 (use-package yasnippet-capf
-  :after (cape yasnippet) ) ;; Prefer the name of the snippet instead)
+  :after yasnippet) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling
@@ -1818,7 +1822,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :defer t) ;; install but don't require unless needed.
 (use-package org
   :init
-  (defun gtd () (interactive) (org-agenda 'nil "g"))
+  (defun gtd () (interactive)
+		 (progn
+		   (org-resolve-clocks)
+		   (org-agenda 'nil "g")))
   :bind
   (("C-c a" .  gtd)
 		 ("C-c c" . org-capture)
@@ -2506,7 +2513,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package eglot
-  :defer t
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . sn/setup-eglot)
@@ -2522,93 +2528,58 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
 				'(:gopls
-				 (:usePlaceholders t
-								   :staticcheck t
-								   :gofumpt t
-								   :analyses
-								   (:nilness t
-											 :shadow t
-											 :unusedparams t
-											 :unusedwrite t
-											 :unusedvariable t)
-								   :hints
-								   (:assignVariableTypes t
-														 :constantValues t
-														 :rangeVariableTypes t))
-				 :js-ts
-                 (:format 
-				  (:convertTabsToSpaces t
-										:indentSize 1
-										:tabSize 1
-										:tabWidth 1))))
- 
-(defun eglot-booster-plain-command (com)
-  "Test if command COM is a plain eglot server command."
-  (and (consp com)
-       (not (integerp (cadr com)))
-       (not (seq-intersection '(:initializationOptions :autoport) com))))
+				  (:usePlaceholders t
+									:staticcheck t
+									:gofumpt t
+									:analyses
+									(:nilness t
+											  :shadow t
+											  :unusedparams t
+											  :unusedwrite t
+											  :unusedvariable t)
+									:hints
+									(:assignVariableTypes t
+														  :constantValues t
+														  :rangeVariableTypes t))
+				  :js-ts
+                  (:format 
+				   (:convertTabsToSpaces t
+										 :indentSize 1
+										 :tabSize 1
+										 :tabWidth 1))))
 
-(defun eglot-booster ()
-  "Boost plain eglot server programs with emacs-lsp-booster.
-The emacs-lsp-booster program must be compiled and available on
-variable `exec-path'.  Only local stdin/out based lsp servers can
-be boosted."
-  (interactive)
-  (unless (executable-find "emacs-lsp-booster")
-    (user-error "The emacs-lsp-booster program is not installed"))
-  (if (get 'eglot-server-programs 'lsp-booster-p)
-      (message "eglot-server-programs already boosted.")
-    (let ((cnt 0)
-	  (orig-read (symbol-function 'jsonrpc--json-read)))
-      (dolist (entry eglot-server-programs)
-	(cond
-	 ((functionp (cdr entry))
-	  (cl-incf cnt)
-	  (let ((fun (cdr entry)))
-	    (setcdr entry (lambda (&rest r) ; wrap function
-			    (let ((res (apply fun r)))
-			      (if (eglot-booster-plain-command res)
-				  (cons "emacs-lsp-booster" res)
-				res))))))
-	 ((eglot-booster-plain-command (cdr entry))
-	  (cl-incf cnt)
-	  (setcdr entry (cons "emacs-lsp-booster" (cdr entry))))))
-      (defalias 'jsonrpc--json-read
-	(lambda ()
-	  (or (and (= (following-char) ?#)
-		   (let ((bytecode (read (current-buffer))))
-		     (when (byte-code-function-p bytecode)
-		       (funcall bytecode))))
-	      (funcall orig-read))))
-      (message "Boosted %d eglot-server-programs" cnt))
-    (put 'eglot-server-programs 'lsp-booster-p t)))
   :init
   (defun eglot-organize-imports () (interactive)
 		 (eglot-code-actions nil nil "source.organizeImports" t))
-  (defun project-find-go-module (dir)
-	(when-let ((root (locate-dominating-file dir "go.mod")))
-	  (cons 'go-module root)))
-  (cl-defmethod project-root ((project (head go-module)))
-	(cdr project))
-  (add-hook 'project-find-functions #'project-find-go-module)
+  ;; (defun project-find-go-module (dir)
+  ;; 	(when-let ((root (locate-dominating-file dir "go.mod")))
+  ;; 	  (cons 'go-module root)))
+  ;; (cl-defmethod project-root ((project (head go-module)))
+  ;; 	(cdr project))
+  ;; (add-hook 'project-find-functions #'project-find-go-module)
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
 	(add-hook 'before-save-hook #'eglot-organize-imports nil t)
 	(setq-local completion-at-point-functions
 				(list (cape-capf-super
-					   #'codeium-completion-at-point
 					   #'eglot-completion-at-point
-					   #'cape-file
-					   #'yasnippet-capf)))))
-
+					   #'yasnippet-capf
+					   #'cape-keyword
+					   #'cape-file)
+					  #'codeium-completion-at-point))))
 (use-package consult-eglot
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
+
 #+end_src
 
 *** performance booter
 
 #+begin_src emacs-lisp
+(use-package eglot-booster
+ :vc (:url "https://github.com/jdtsmith/eglot-booster.git"
+			:branch "main" :rev :newest)
+	:config	(eglot-booster-mode))
 #+end_src
 
 *** Git
@@ -2914,6 +2885,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
+  (flymake-wrap-around nil)
   (flymake-no-changes-timeout 0.2)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
@@ -3214,10 +3186,10 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :defer t
   :vc (:url "https://github.com/Exafunction/codeium.el.git"
 			:branch "main" :rev :newest)
-  ;; :hook (emacs-startup .  (lambda () (run-with-timer 0.1 nil #'codeium-init)))
   :custom
   (codeium-log-buffer nil)
   :config
+  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
 	(buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))

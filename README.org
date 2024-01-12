@@ -273,6 +273,7 @@ fi
 
 #+begin_src txt :tangle pkglist.txt :padline no
 emacs-pdf-tools-git
+emacs-lsp-booster-git
 aspell
 aspell-en
 hspell
