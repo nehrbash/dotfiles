@@ -16,8 +16,8 @@ if [ "$state" = "toggle" ]; then
 fi
 if [ "$state" = "on" ]; then
 	touch /tmp/hypr/center_toggle
-	eww open control-menu-closer --screen $actmonit
-	eww open control-menu --screen $actmonit
+	eww open control-menu-closer --screen "$actmonit"
+	eww open control-menu --screen "$actmonit"
 	if [ "$dnd" = "true" ]; then
 		echo "$dnd" > /tmp/hypr/swaync-dnd
 	else
