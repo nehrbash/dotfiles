@@ -1210,16 +1210,11 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package org-contrib
   :defer t) ;; install but don't require unless needed.
 (use-package org
-  :init
-  (defun gtd () (interactive)
-		 (progn
-		   (org-resolve-clocks)
-		   (org-agenda 'nil "g")))
   :bind
-  (("C-c a" .  gtd)
-		 ("C-c c" . org-capture)
-		 (:map org-mode-map
-			   ( "C-M-<up>" . org-up-element)))
+  ("C-c a" .  gtd)
+  ("C-c c" . org-capture)
+  (:map org-mode-map
+		( "C-M-<up>" . org-up-element))
   :hook
   (org-export-before-processing .
 								(lambda (backend)
@@ -1305,6 +1300,25 @@ point reaches the beginning or end of the buffer, stop there."
  (org-mode . (lambda ()
 			   (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
 						 'run-at-end 'only-in-org-mode))))
+
+(defun gtd () (interactive)
+		 (progn
+		   (org-resolve-clocks)
+		   (org-agenda 'nil "g")))
+(defun sn/org-capture-frame ()
+  "Run org-capture in its own frame."
+  (interactive)
+  (require 'cl-lib)
+  (select-frame-by-name "capture")
+  (delete-other-windows)
+  (cl-letf (((symbol-function 'switch-to-buffer-other-window) #'switch-to-buffer))
+    (condition-case err
+        (org-capture)
+      ;; "q" signals (error "Abort") in `org-capture'
+      ;; delete the newly created frame in this scenario.
+      (user-error (when (string= (cadr err) "Abort")
+                    (delete-frame))))))
+(add-hook 'org-capture-mode-hook 'toggle-mode-line)
 
 (use-package org-modern
   :after org
@@ -1488,6 +1502,11 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package org-agenda
   :ensure nil
   :hook (org-agenda-mode . hl-line-mode)
+  :bind
+  (:map org-agenda-mode-map
+		("q" . (lambda ()
+				 (interactive)
+				 (shell-command "hyprctl dispatch togglespecialworkspace adgenda"))))
   :custom
   (org-agenda-prefix-format "%i  %?-2 t%s")
   (org-agenda-tags-column 0)
@@ -1824,13 +1843,13 @@ point reaches the beginning or end of the buffer, stop there."
   :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
 
 (use-package eglot-booster
- :vc (:url "https://github.com/jdtsmith/eglot-booster.git"
+  :after eglot
+  :vc (:url "https://github.com/jdtsmith/eglot-booster.git"
 			:branch "main" :rev :newest)
-	:config	(eglot-booster-mode))
+  :config	(eglot-booster-mode))
 
 (use-package dape
-  :bind
-  (:map ("<F7>" . dape))
+  :bind ("<F7>" . dape)
   ;; To use window configuration like gud (gdb-mi)
   :init
   (setq dape-buffer-window-arrangement 'gud)
@@ -2281,7 +2300,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   :hook (web-mode . dg/web-mode-hook)
   :config
   (defun sn/web-mode-hook()
-	(web-mode-set-engine "go"))
+	(web-mode-set-engine "go")))
 
 (use-package mu4e
   :ensure nil

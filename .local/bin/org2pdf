@@ -4,4 +4,4 @@
 tangle () {
     emacs --batch --eval "(require 'org)" --eval "(org-babel-tangle-file \"$1\")"
 }
-tangle $1
+tangle "$1"

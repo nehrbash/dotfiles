@@ -6,9 +6,9 @@
 - nwg-shell (monitors, settings)
 - Bar: eww
 - pipewire, easyeffects
-- File Manager: Gnome Files, Dirvish (Emacs), Dired (Emacs)
+- File Manager: Gnome Files, Dired (Emacs)
 - PDF Viewer: pdf-tools (Emacs)
-- Theme: Gruvbox
+- Theme: ef-melissa-dark )
 - cursor theme: Dracula
 - Fonts
   - Google Sans Bold

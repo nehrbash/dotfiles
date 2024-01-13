@@ -48,6 +48,7 @@
 - [[#dired][Dired]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
+  - [[#window-capture][Window capture]]
   - [[#ui-packages][UI Packages]]
   - [[#clock-inout][Clock In/Out]]
   - [[#type-breaks][Type Breaks]]
@@ -1821,16 +1822,11 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package org-contrib
   :defer t) ;; install but don't require unless needed.
 (use-package org
-  :init
-  (defun gtd () (interactive)
-		 (progn
-		   (org-resolve-clocks)
-		   (org-agenda 'nil "g")))
   :bind
-  (("C-c a" .  gtd)
-		 ("C-c c" . org-capture)
-		 (:map org-mode-map
-			   ( "C-M-<up>" . org-up-element)))
+  ("C-c a" .  gtd)
+  ("C-c c" . org-capture)
+  (:map org-mode-map
+		( "C-M-<up>" . org-up-element))
   :hook
   (org-export-before-processing .
 								(lambda (backend)
@@ -1924,6 +1920,30 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 						 'run-at-end 'only-in-org-mode))))
 #+end_src
 
+** Window capture
+
+#+begin_src emacs-lisp
+(defun gtd () (interactive)
+		 (progn
+		   (org-resolve-clocks)
+		   (org-agenda 'nil "g")))
+(defun sn/org-capture-frame ()
+  "Run org-capture in its own frame."
+  (interactive)
+  (require 'cl-lib)
+  (select-frame-by-name "capture")
+  (delete-other-windows)
+  (cl-letf (((symbol-function 'switch-to-buffer-other-window) #'switch-to-buffer))
+    (condition-case err
+        (org-capture)
+      ;; "q" signals (error "Abort") in `org-capture'
+      ;; delete the newly created frame in this scenario.
+      (user-error (when (string= (cadr err) "Abort")
+                    (delete-frame))))))
+(add-hook 'org-capture-mode-hook 'toggle-mode-line)
+#+end_src
+
+   
 ** UI Packages
 
 *** Modern Style
@@ -2157,6 +2177,11 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package org-agenda
   :ensure nil
   :hook (org-agenda-mode . hl-line-mode)
+  :bind
+  (:map org-agenda-mode-map
+		("q" . (lambda ()
+				 (interactive)
+				 (shell-command "hyprctl dispatch togglespecialworkspace adgenda"))))
   :custom
   (org-agenda-prefix-format "%i  %?-2 t%s")
   (org-agenda-tags-column 0)
@@ -2577,18 +2602,17 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package eglot-booster
- :vc (:url "https://github.com/jdtsmith/eglot-booster.git"
+  :after eglot
+  :vc (:url "https://github.com/jdtsmith/eglot-booster.git"
 			:branch "main" :rev :newest)
-	:config	(eglot-booster-mode))
+  :config	(eglot-booster-mode))
 #+end_src
-
 
 *** Dape
 
 #+begin_src emacs-lisp
 (use-package dape
-  :bind
-  (:map ("<F7>" . dape))
+  :bind ("<F7>" . dape)
   ;; To use window configuration like gud (gdb-mi)
   :init
   (setq dape-buffer-window-arrangement 'gud)
@@ -3144,7 +3168,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :hook (web-mode . dg/web-mode-hook)
   :config
   (defun sn/web-mode-hook()
-	(web-mode-set-engine "go"))
+	(web-mode-set-engine "go")))
 #+end_src
 
    
