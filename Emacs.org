@@ -122,23 +122,24 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
    With the added vc no need to use =straight.el= or =elpaca=
 
 #+begin_src emacs-lisp
-  (eval-when-compile
-    (require 'package)
-    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-    (require 'use-package))
-  (setopt
-   warning-minimum-level :emergency
-   comp-async-report-warnings-errors nil
-   native-comp-jit-compilation t
-   native-compile-prune-cache t
-   package-install-upgrade-built-in t
-   package-native-compile t
-   package-quickstart t
-   use-package-always-ensure t
-   use-package-compute-statistics t
-   use-package-expand-minimally t)
-  (use-package async
-    :init (async-bytecomp-package-mode 1))
+(eval-when-compile
+  (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+  (require 'use-package))
+(setopt
+ warning-minimum-level :emergency
+ comp-async-report-warnings-errors nil
+ native-comp-jit-compilation t
+ byte-compile-docstring-max-column 120
+ native-compile-prune-cache t
+ package-install-upgrade-built-in t
+ package-native-compile t
+ package-quickstart t
+ use-package-always-ensure t
+ use-package-compute-statistics t
+ use-package-expand-minimally t)
+(use-package async
+  :init (async-bytecomp-package-mode 1))
 
 #+end_src
 
@@ -156,7 +157,6 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
   (package-quickstart-refresh))
 (advice-add 'package-upgrade-all :after #'sn/finish-install-advice)
 #+end_src
-
    
 ** Set Custom file
 
@@ -1658,17 +1658,21 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 *** Snippets
 **** yasnippet
 
+
+
 #+begin_src emacs-lisp
 (use-package yasnippet
-  :hook ((prog-mode) . yas-minor-mode)
+  :hook ((text-mode
+	prog-mode
+	conf-mode
+	snippet-mode) . yas-minor-mode-on)
   :bind ("C-c s" . yas-insert-snippet)
   :custom
   (yas-verbosity 1)
+  (yas-snippet-dir "~/.emacs.d/snippets")
   (yas-wrap-around-region t))
-(use-package yasnippet-snippets
-  :after yasnippet)
-(use-package yasnippet-capf
-  :after yasnippet) ;; Prefer the name of the snippet instead)
+(use-package yasnippet-snippets)
+(use-package yasnippet-capf) ;; Prefer the name of the snippet instead)
 #+end_src
 
 ** Spelling

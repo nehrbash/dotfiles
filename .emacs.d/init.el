@@ -20,6 +20,7 @@
  warning-minimum-level :emergency
  comp-async-report-warnings-errors nil
  native-comp-jit-compilation t
+ byte-compile-docstring-max-column 120
  native-compile-prune-cache t
  package-install-upgrade-built-in t
  package-native-compile t
@@ -1065,15 +1066,17 @@ point reaches the beginning or end of the buffer, stop there."
   (add-to-list 'completion-at-point-functions #'cape-abbrev))
 
 (use-package yasnippet
-  :hook ((prog-mode) . yas-minor-mode)
+  :hook ((text-mode
+	prog-mode
+	conf-mode
+	snippet-mode) . yas-minor-mode-on)
   :bind ("C-c s" . yas-insert-snippet)
   :custom
   (yas-verbosity 1)
+  (yas-snippet-dir "~/.emacs.d/snippets")
   (yas-wrap-around-region t))
-(use-package yasnippet-snippets
-  :after yasnippet)
-(use-package yasnippet-capf
-  :after yasnippet) ;; Prefer the name of the snippet instead)
+(use-package yasnippet-snippets)
+(use-package yasnippet-capf) ;; Prefer the name of the snippet instead)
 
 (use-package jinx
   :bind
