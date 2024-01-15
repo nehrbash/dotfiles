@@ -10,7 +10,7 @@ style = "Beam"
 TERM = "xterm-256color"
 
 [font.bold]
-family = "Source Code Pro"
+family = "Iosevka"
 style = "Bold"
 
 [font.bold_italic]
@@ -18,12 +18,11 @@ family = "monospace"
 style = "Bold"
 
 [font.italic]
-family = "Source Code Pro"
+family = "Iosevka"
 style = "Italic"
 
 [font.normal]
-family = "Source Code Pro"
-style = "Regular"
+family = "Iosevka"
 
 [scrolling]
 history = 5000

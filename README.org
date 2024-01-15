@@ -5,7 +5,7 @@
 - [[https://archlinux.org/][Arch Linux]]
 - nwg-shell (monitors, settings)
 - Bar: eww
-- pipewire, easyeffects
+- pipe wire, easy effects
 - File Manager: Gnome Files, Dired (Emacs)
 - PDF Viewer: pdf-tools (Emacs)
 - Theme: ef-melissa-dark )

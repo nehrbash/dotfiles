@@ -7,6 +7,7 @@
 - [[#package-manager][Package Manager]]
   - [[#load-all-environment-variables][Load All Environment Variables]]
   - [[#load-package-manager][Load Package Manager]]
+  - [[#run-install-commands-after-upgrade-all][Run install commands after upgrade all]]
   - [[#set-custom-file][Set Custom file]]
   - [[#startup-time][Startup Time]]
   - [[#breakdown][Breakdown]]
@@ -93,7 +94,7 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 ~use-package~ can be used to add to load path using ~:load-path "~lisp"~
 
 #+begin_src emacs-lisp
-;;; init.el --- Initialization file for Emacs -*- lexical-binding: nil -*-
+;;; init.el --- Initialization file for Emacs -*- lexical-binding:t -*-
 ;;; Commentary: Emacs Startup File, initialization for Emacs
 ;;; Code: 
 #+end_src
@@ -121,35 +122,42 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
    With the added vc no need to use =straight.el= or =elpaca=
 
 #+begin_src emacs-lisp
-(eval-when-compile
-  (require 'package)
-  (require 'use-package))
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-(setopt
- warning-minimum-level :emergency
- comp-async-report-warnings-errors nil
- native-comp-jit-compilation t
- native-compile-prune-cache t
- package-install-upgrade-built-in t
- package-native-compile t
- package-quickstart t
- use-package-always-ensure t
- use-package-compute-statistics t
- use-package-expand-minimally t
- async-bytecomp-package-mode t)
-(use-package async
-  :init (async-bytecomp-package-mode 1))
-(defun sn/finish-install()
-  (interactive)
+  (eval-when-compile
+    (require 'package)
+    (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
+    (require 'use-package))
+  (setopt
+   warning-minimum-level :emergency
+   comp-async-report-warnings-errors nil
+   native-comp-jit-compilation t
+   native-compile-prune-cache t
+   package-install-upgrade-built-in t
+   package-native-compile t
+   package-quickstart t
+   use-package-always-ensure t
+   use-package-compute-statistics t
+   use-package-expand-minimally t)
+  (use-package async
+    :init (async-bytecomp-package-mode 1))
+
+#+end_src
+
+** Run install commands after upgrade all
+
+#+begin_src emacs-lisp
+(defun sn/finish-install-advice (orig-fun &rest args)
+  "Advice function to run additional tasks after package upgrade."
+  (apply orig-fun args)
   (treesit-auto-install-all)
   (all-the-icons-install-fonts)
   (yas-reload-all)
   (recentf-cleanup)
   (nerd-icons-install-fonts)
   (package-quickstart-refresh))
-(add-hook 'package-upgrade-all-hook 'sn/finish-install)
+(advice-add 'package-upgrade-all :after #'sn/finish-install-advice)
 #+end_src
 
+   
 ** Set Custom file
 
    Since we are tangling ~init.el~ we need to save ~custom.el~ separately. Also makes ~init.el~ cleaner.
@@ -316,13 +324,7 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 
 #+begin_src emacs-lisp
 (use-package ef-themes
-  :hook
-  (server-after-make-frame
-   . (lambda ()
-	   (ef-themes-with-colors
-		 (custom-set-faces
-		  `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim))))
-		 )))
+  :defer t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -334,14 +336,16 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
-  :config
+  :custom-face
+  (unspecified-bg ((t (:background "#281d12"))))  
+  :init
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
-	(spacious-padding-mode 1) ;; load spacious-padding after load theme but before edits.
+	(mapc #'disable-theme custom-enabled-themes)
+	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
 	  (custom-set-faces
-	   `(term ((t  :background "#281d12")))
-	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) ;; fix spacious padding
+	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) 
 	   `(window-divider-first-pixel ((t :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((t :background ,bg-main :foreground ,bg-main)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
@@ -362,26 +366,26 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
-	   `(default ((,c :font "Source Code Pro" :height 115)))
+	   `(fixed-pitch ((,c :font "Iosevka")))
+	   `(default ((,c :font "Iosevka" :height 115)))
 	   `(unspecified-bg ((,c :inherit 'default))))))
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark)
-  (my-ef-themes-mod))
-#+end_src
 
-*** Different color Delimiters
-
-#+begin_src emacs-lisp
-(use-package rainbow-delimiters
-  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
+  (defun sn/load-my-theme (frame)
+	(select-frame frame)
+	(when (display-graphic-p frame)
+	  (progn
+		(message "Loading theme")
+		(my-ef-themes-mod)	
+		(remove-hook 'after-make-frame-functions 'sn/load-my-theme nil))))
+  (if (daemonp)
+	  (add-hook 'after-make-frame-functions 'sn/load-my-theme)
+	(my-ef-themes-mod)))
 #+end_src
 
 ** Modeline
 
 #+begin_src emacs-lisp
 (use-package doom-modeline
-  :defer t
   :init
   (defun sn/set-modeline ()
 	(require 'doom-modeline)
@@ -391,21 +395,37 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	  '(bar modals buffer-info remote-host)
 	  '(compilation objed-state misc-info persp-name lsp checker process vcs))
 	(doom-modeline-set-modeline 'simple-line 'default))
+  (sn/set-modeline)
   :custom
   (doom-modeline-project-detection 'project)
   (doom-modeline-vcs-max-length 30)
-  (doom-modeline-height 32)
-  :hook (after-init . sn/set-modeline))
+  (doom-modeline-height 32))
    #+end_src
 
 ** General
 
 #+begin_src emacs-lisp
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
-(pixel-scroll-precision-mode t)
 (global-prettify-symbols-mode t)
 #+end_src
 
+*** Scolling
+
+	~C-v~ and ~M-v~ are scroll commands.
+
+#+begin_src emacs-lisp
+(use-package pixel-scroll
+  :ensure nil 
+  :bind
+  ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
+  ([remap scroll-down-command] . pixel-scroll-interpolate-up)
+  :custom
+  (pixel-scroll-precision-interpolate-page t)
+  (pixel-scroll-precision-use-momentum t)
+  :init
+  (pixel-scroll-precision-mode 1))
+#+end_src
+	
 *** Page Break Lines render
 	
 #+begin_src emacs-lisp
@@ -423,19 +443,27 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 				 ("C-M--" . default-text-scale-decrease)))
 	#+end_src
 
-*** Padding
+*** Different color Delimiters
 
 #+begin_src emacs-lisp
-(use-package spacious-padding
-  :custom
-  (spacious-padding-widths
-   '( :internal-border-width 15
-	  :header-line-width 4
-	  :mode-line-width 2
-	  :tab-width 4
-	  :right-divider-width 30
-	  :scroll-bar-width 8)))
+(use-package rainbow-delimiters
+  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 #+end_src
+
+*** Padding
+
+ #+begin_src emacs-lisp
+ (use-package spacious-padding
+   :config (spacious-padding-mode 1)
+   :custom
+   (spacious-padding-widths
+	'( :internal-border-width 15
+	   :header-line-width 4
+	   :mode-line-width 2
+	   :tab-width 4
+	   :right-divider-width 30
+	   :scroll-bar-width 8)))
+ #+end_src
 
 * General Settings
 
@@ -474,64 +502,17 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
   :custom
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 50)
-  (recentf-exclude '("*/type-break.el$"
-					 ".*![^!]*!.*"
-					 "*/ssh:*"))
+  (recentf-exclude '(".*![^!]*!.*"
+					 "*/ssh:*"
+					 "*/docker:*"
+					 "*/sshfs:*"))
   :init
   ;; save backup and auto save to system tmp
   (setq backup-directory-alist
 		`((".*" . ,temporary-file-directory)))
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
-  (recentf-mode 1)
-  :config
-  (defvar recentfs-list-on-last-sync nil
-    "List of recent files reference point.")
-
-  (defun recentfs-update-sync ()
-    "Load saved projects from `recentf-list'."
-    (setq recentfs-list-on-last-sync
-          (and (sequencep recentf-list)
-               (copy-sequence recentf-list))))
-
-  (defadvice recentf-load-list (after recentfs-loaded-sync activate)
-    (recentfs-update-sync))
-
-  (defadvice recentf-save-list (around recentfs activate)
-    (recentfs-merge-lists)
-    ad-do-it
-    (recentfs-update-sync))
-
-  (defun recentfs-load-list ()
-    "Load a previously saved recent list and return it as a value
-instead of setting it."
-    (let ((file (expand-file-name recentf-save-file))
-          (recentf-filter-changer-current nil) ;; ignored atm
-          (recentf-list nil))
-      (when (file-readable-p file)
-        (load-file file))
-      recentf-list))
-
-  (defun recentfs-merge-lists ()
-    "Merge any change from `recentf-list'.
-
-This enables multiple Emacs processes to make changes without
-overwriting each other's changes."
-    (let* ((known-now recentf-list)
-           (known-on-last-sync recentfs-list-on-last-sync)
-           (known-on-file (recentfs-load-list))
-           (removed-after-sync (-difference known-on-last-sync known-now))
-           (removed-in-other-process
-            (-difference known-on-last-sync known-on-file))
-           (new-in-other-process
-            (-difference
-             known-on-file
-             (-concat removed-after-sync removed-in-other-process known-now)))
-           (result (-distinct
-                    (-difference
-                     (-concat new-in-other-process known-now)
-                     (-concat removed-after-sync removed-in-other-process)))))
-      (setq recentf-list result))))
+  (recentf-mode 1))
 #+end_src
 
 ** Auto update file
@@ -550,10 +531,10 @@ overwriting each other's changes."
 Tramp was acting slow this helps...maybe
 
 #+begin_src emacs-lisp
-(customize-set-variable 'tramp-default-method "ssh")
+(setopt tramp-default-method "ssh"
+		tramp-verbose 0
+		tramp-use-ssh-controlmaster-options nil)
 (with-eval-after-load 'tramp
-  (setq tramp-verbose 0
-		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster settings
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
 			 (list (regexp-quote "/ssh:ag-nehrbash:")
@@ -1303,7 +1284,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :hook
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . (lambda ()
-						(set-window-scroll-bars (minibuffer-window) nil nil)
 						(cursor-intangible-mode 1)))
   :config
   (minibuffer-depth-indicate-mode)
@@ -1590,6 +1570,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :defer 1
   :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
 					   (setq-local corfu-auto t
+								   eldoc-idle-delay 0.1
 								   corfu-auto-delay 0
 								   corfu-auto-prefix 1
 								   completion-styles '(orderless-fast basic)
@@ -1625,7 +1606,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :after corfu
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
 							   :branch "master" :rev :newest)
-  :config (corfu-candidate-overlay-mode +1))
+  :init (corfu-candidate-overlay-mode +1))
 #+end_src
 
 *** More terminal support
@@ -1679,12 +1660,11 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 #+begin_src emacs-lisp
 (use-package yasnippet
+  :hook ((prog-mode) . yas-minor-mode)
   :bind ("C-c s" . yas-insert-snippet)
   :custom
   (yas-verbosity 1)
-  (yas-wrap-around-region t)
-  :init
-  (yas-global-mode 1))
+  (yas-wrap-around-region t))
 (use-package yasnippet-snippets
   :after yasnippet)
 (use-package yasnippet-capf
@@ -1693,29 +1673,31 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 ** Spelling
 
-   Using =flyspell-correct= as it uses =completing-read= by default so that it uses consult for it's completions frontedz
-
+   Using =flyspell-correct= as it uses =completing-read= by default so that it uses consult for it's completion
+    Flask
+    QWERTY
+    Xylophone
+    Blizzard
+    Trqvel
 #+begin_src emacs-lisp
 (use-package jinx
-  :bind (("M-$" . jinx-correct-word-save-to-file)
-		 ("C-M-$" . #'jinx-correct-all)
-		 (:map jinx-overlay-map ;; change correct to right click not
-			   ("<mouse-1>" . nil)
-			   ("<mouse-3>" . jinx-correct)))
+  :bind
+  (:map jinx-overlay-map
+		("C-M-$" . #'jinx-correct-all))
   :init
   (global-jinx-mode)
+  :config
   (add-to-list 'vertico-multiform-categories
 			   '(jinx grid (vertico-grid-annotate . 30)))
-  :config
-  (defun jinx-correct-word-save-to-file ()
-	"Correct word between START and END, and save corrected word to a file, removing duplicates."
+  (defun jinx-save-corrected-word ()
+	"Save corrected word to a file."
 	(interactive)
-	(progn
-	  (call-interactively #'jinx-correct)
 	  (let ((current-word (thing-at-point 'word t)))
 		(with-temp-buffer
 		  (insert current-word)
-		  (append-to-file (point-min) (point-max) (expand-file-name "~/.jinxcorrections") t))))))
+		  (insert "\n")
+		  (append-to-file (point-min) (point-max) (concat user-emacs-directory "jinx_corrections")))))
+  (advice-add 'jinx-correct :after #'jinx-save-corrected-word))
 #+end_src
 
 *** Define word
@@ -2407,9 +2389,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
    idk toggle-mode-line is not working for this mode but the timer work around forks fine
 
-#+begin_src emacs-lisp
-(use-package pdf-tools
-  :ensure nil
+#+begin_src emacs-lisp :tangle no
+(use-package pdf-tools 
   :defer 2
   :hook
   (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
@@ -2426,8 +2407,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package pdf-continuous-scroll-mode
-  :ensure nil
-  :defer 3
   :after pdf-tools
   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
 			:branch "master" :rev :newest))  
@@ -2542,7 +2521,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . sn/setup-eglot)
   :bind (:map eglot-mode-map
-			  ;; "C-h ."  eldoc-doc-buffer
+			  ("C-h ." . eldoc-doc-buffer)
 			  ("C-c C-c" . project-compile)
 			  ("C-c r" . eglot-rename)
 			  ("C-c o" . eglot-code-action-organize-imports))
@@ -2619,10 +2598,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
   :config
   ;; Info buffers to the right
-  ;; (setq dape-buffer-window-arrangement 'right)
+  (setq dape-buffer-window-arrangement 'right)
 
   ;; To not display info and/or buffers on startup
-  ;; (remove-hook 'dape-on-start-hooks 'dape-info)
+  (remove-hook 'dape-on-start-hooks 'dape-info)
   (remove-hook 'dape-on-start-hooks 'dape-repl)
 
   ;; To display info and/or repl buffers on stopped
@@ -2636,11 +2615,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   ;; Kill compile buffer on build success
   (add-hook 'dape-compile-compile-hooks 'kill-buffer)
 
-  ;; Save buffers on startup, useful for interpreted languages
   (add-hook 'dape-on-start-hooks
             (defun dape--save-on-start ()
-              (save-some-buffers t t)))
-  )
+              (save-some-buffers t t))))
 #+end_src
 	
 *** Git
@@ -2709,7 +2686,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 *** Terminal
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package eat
   :hook ((eat-mode . (lambda ()
 					   (setq-local
@@ -2731,9 +2708,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 					   )))
   :custom ((eat-kill-buffer-on-exit t)
 		   (eat-enable-yank-to-terminal t))
-  ;; :bind (("M-t" . eat-project-other)
-  ;; 		 (("C-M-t" . eat-other-window)))
-  )
+  :bind (("M-t" . eat-project-other)
+		 (("C-M-t" . eat-other-window))))
 #+end_src
 
 **** Vterm
@@ -3171,7 +3147,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 	(web-mode-set-engine "go")))
 #+end_src
 
-   
 * Fancy Bloat
 
 ** Mu4e - Mail

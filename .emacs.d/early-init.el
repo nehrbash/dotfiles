@@ -31,19 +31,19 @@
 (setq initial-frame-alist
 	  '((left-fringe . 10)
 		(right-fringe . 10)
-		;; (vertical-scroll-bars . nil)
+		(vertical-scroll-bars . nil)
 		)
 	  default-frame-alist
 	  '(;;(alpha-background . 90)
-		;;(font . "Source Code Pro-10")
+		(font . "Iosevka")
 		(left-fringe . 10)
 		(right-fringe . 10)
-		;; (vertical-scroll-bars . nil)
+		(vertical-scroll-bars . nil)
 		))
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)
 (menu-bar-mode -1)
-(set-window-scroll-bars (minibuffer-window) nil nil)
+;; (set-window-scroll-bars (minibuffer-window) nil nil)
 
 ;; disable mode line replaced with doom-modeline later
 (setq-default mode-line-format nil)

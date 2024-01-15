@@ -1,4 +1,4 @@
-;;; init.el --- Initialization file for Emacs -*- lexical-binding: nil -*-
+;;; init.el --- Initialization file for Emacs -*- lexical-binding:t -*-
 ;;; Commentary: Emacs Startup File, initialization for Emacs
 ;;; Code:
 
@@ -14,8 +14,8 @@
 
 (eval-when-compile
   (require 'package)
+  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
   (require 'use-package))
-(add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
 (setopt
  warning-minimum-level :emergency
  comp-async-report-warnings-errors nil
@@ -26,31 +26,26 @@
  package-quickstart t
  use-package-always-ensure t
  use-package-compute-statistics t
- use-package-expand-minimally t
- async-bytecomp-package-mode t)
+ use-package-expand-minimally t)
 (use-package async
   :init (async-bytecomp-package-mode 1))
-(defun sn/finish-install()
-  (interactive)
+
+(defun sn/finish-install-advice (orig-fun &rest args)
+  "Advice function to run additional tasks after package upgrade."
+  (apply orig-fun args)
   (treesit-auto-install-all)
   (all-the-icons-install-fonts)
   (yas-reload-all)
   (recentf-cleanup)
   (nerd-icons-install-fonts)
   (package-quickstart-refresh))
-(add-hook 'package-upgrade-all-hook 'sn/finish-install)
+(advice-add 'package-upgrade-all :after #'sn/finish-install-advice)
 
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file 'noerror 'nomessage)
 
 (use-package ef-themes
-  :hook
-  (server-after-make-frame
-   . (lambda ()
-	   (ef-themes-with-colors
-		 (custom-set-faces
-		  `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim))))
-		 )))
+  :defer t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -62,14 +57,16 @@
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
-  :config
+  :custom-face
+  (unspecified-bg ((t (:background "#281d12"))))  
+  :init
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
-	(spacious-padding-mode 1) ;; load spacious-padding after load theme but before edits.
+	(mapc #'disable-theme custom-enabled-themes)
+	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
 	  (custom-set-faces
-	   `(term ((t  :background "#281d12")))
-	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) ;; fix spacious padding
+	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) 
 	   `(window-divider-first-pixel ((t :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((t :background ,bg-main :foreground ,bg-main)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
@@ -90,18 +87,22 @@
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
-	   `(default ((,c :font "Source Code Pro" :height 115)))
+	   `(fixed-pitch ((,c :font "Iosevka")))
+	   `(default ((,c :font "Iosevka" :height 115)))
 	   `(unspecified-bg ((,c :inherit 'default))))))
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (mapc #'disable-theme custom-enabled-themes)
-  (ef-themes-select 'ef-melissa-dark)
-  (my-ef-themes-mod))
 
-(use-package rainbow-delimiters
-  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
+  (defun sn/load-my-theme (frame)
+	(select-frame frame)
+	(when (display-graphic-p frame)
+	  (progn
+		(message "Loading theme")
+		(my-ef-themes-mod)	
+		(remove-hook 'after-make-frame-functions 'sn/load-my-theme nil))))
+  (if (daemonp)
+	  (add-hook 'after-make-frame-functions 'sn/load-my-theme)
+	(my-ef-themes-mod)))
 
 (use-package doom-modeline
-  :defer t
   :init
   (defun sn/set-modeline ()
 	(require 'doom-modeline)
@@ -111,15 +112,25 @@
 	  '(bar modals buffer-info remote-host)
 	  '(compilation objed-state misc-info persp-name lsp checker process vcs))
 	(doom-modeline-set-modeline 'simple-line 'default))
+  (sn/set-modeline)
   :custom
   (doom-modeline-project-detection 'project)
   (doom-modeline-vcs-max-length 30)
-  (doom-modeline-height 32)
-  :hook (after-init . sn/set-modeline))
+  (doom-modeline-height 32))
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
-(pixel-scroll-precision-mode t)
 (global-prettify-symbols-mode t)
+
+(use-package pixel-scroll
+  :ensure nil 
+  :bind
+  ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
+  ([remap scroll-down-command] . pixel-scroll-interpolate-up)
+  :custom
+  (pixel-scroll-precision-interpolate-page t)
+  (pixel-scroll-precision-use-momentum t)
+  :init
+  (pixel-scroll-precision-mode 1))
 
 (use-package page-break-lines
   :config (global-page-break-lines-mode))
@@ -128,7 +139,11 @@
 		  :bind (("C-M-=". default-text-scale-increase)
 				 ("C-M--" . default-text-scale-decrease)))
 
+(use-package rainbow-delimiters
+  :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
+
 (use-package spacious-padding
+  :config (spacious-padding-mode 1)
   :custom
   (spacious-padding-widths
    '( :internal-border-width 15
@@ -164,74 +179,27 @@
   :custom
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 50)
-  (recentf-exclude '("*/type-break.el$"
-					 ".*![^!]*!.*"
-					 "*/ssh:*"))
+  (recentf-exclude '(".*![^!]*!.*"
+					 "*/ssh:*"
+					 "*/docker:*"
+					 "*/sshfs:*"))
   :init
   ;; save backup and auto save to system tmp
   (setq backup-directory-alist
 		`((".*" . ,temporary-file-directory)))
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
-  (recentf-mode 1)
-  :config
-  (defvar recentfs-list-on-last-sync nil
-    "List of recent files reference point.")
-
-  (defun recentfs-update-sync ()
-    "Load saved projects from `recentf-list'."
-    (setq recentfs-list-on-last-sync
-          (and (sequencep recentf-list)
-               (copy-sequence recentf-list))))
-
-  (defadvice recentf-load-list (after recentfs-loaded-sync activate)
-    (recentfs-update-sync))
-
-  (defadvice recentf-save-list (around recentfs activate)
-    (recentfs-merge-lists)
-    ad-do-it
-    (recentfs-update-sync))
-
-  (defun recentfs-load-list ()
-    "Load a previously saved recent list and return it as a value
-instead of setting it."
-    (let ((file (expand-file-name recentf-save-file))
-          (recentf-filter-changer-current nil) ;; ignored atm
-          (recentf-list nil))
-      (when (file-readable-p file)
-        (load-file file))
-      recentf-list))
-
-  (defun recentfs-merge-lists ()
-    "Merge any change from `recentf-list'.
-
-This enables multiple Emacs processes to make changes without
-overwriting each other's changes."
-    (let* ((known-now recentf-list)
-           (known-on-last-sync recentfs-list-on-last-sync)
-           (known-on-file (recentfs-load-list))
-           (removed-after-sync (-difference known-on-last-sync known-now))
-           (removed-in-other-process
-            (-difference known-on-last-sync known-on-file))
-           (new-in-other-process
-            (-difference
-             known-on-file
-             (-concat removed-after-sync removed-in-other-process known-now)))
-           (result (-distinct
-                    (-difference
-                     (-concat new-in-other-process known-now)
-                     (-concat removed-after-sync removed-in-other-process)))))
-      (setq recentf-list result))))
+  (recentf-mode 1))
 
 (use-package autorevert
   :custom
   (auto-revert-use-notify nil)
   :init (global-auto-revert-mode 1))
 
-(customize-set-variable 'tramp-default-method "ssh")
+(setopt tramp-default-method "ssh"
+		tramp-verbose 0
+		tramp-use-ssh-controlmaster-options nil)
 (with-eval-after-load 'tramp
-  (setq tramp-verbose 0
-		tramp-use-ssh-controlmaster-options nil) ;; use .ssh/config controlmaster settings
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
 			 (list (regexp-quote "/ssh:ag-nehrbash:")
@@ -787,7 +755,6 @@ point reaches the beginning or end of the buffer, stop there."
   :hook
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . (lambda ()
-						(set-window-scroll-bars (minibuffer-window) nil nil)
 						(cursor-intangible-mode 1)))
   :config
   (minibuffer-depth-indicate-mode)
@@ -1031,6 +998,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer 1
   :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
 					   (setq-local corfu-auto t
+								   eldoc-idle-delay 0.1
 								   corfu-auto-delay 0
 								   corfu-auto-prefix 1
 								   completion-styles '(orderless-fast basic)
@@ -1062,7 +1030,7 @@ point reaches the beginning or end of the buffer, stop there."
   :after corfu
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
 							   :branch "master" :rev :newest)
-  :config (corfu-candidate-overlay-mode +1))
+  :init (corfu-candidate-overlay-mode +1))
 
 (use-package corfu-terminal
   :after corfu
@@ -1097,37 +1065,34 @@ point reaches the beginning or end of the buffer, stop there."
   (add-to-list 'completion-at-point-functions #'cape-abbrev))
 
 (use-package yasnippet
+  :hook ((prog-mode) . yas-minor-mode)
   :bind ("C-c s" . yas-insert-snippet)
   :custom
   (yas-verbosity 1)
-  (yas-wrap-around-region t)
-  :init
-  (yas-global-mode 1))
+  (yas-wrap-around-region t))
 (use-package yasnippet-snippets
   :after yasnippet)
 (use-package yasnippet-capf
   :after yasnippet) ;; Prefer the name of the snippet instead)
 
 (use-package jinx
-  :bind (("M-$" . jinx-correct-word-save-to-file)
-		 ("C-M-$" . #'jinx-correct-all)
-		 (:map jinx-overlay-map ;; change correct to right click not
-			   ("<mouse-1>" . nil)
-			   ("<mouse-3>" . jinx-correct)))
+  :bind
+  (:map jinx-overlay-map
+		("C-M-$" . #'jinx-correct-all))
   :init
   (global-jinx-mode)
+  :config
   (add-to-list 'vertico-multiform-categories
 			   '(jinx grid (vertico-grid-annotate . 30)))
-  :config
-  (defun jinx-correct-word-save-to-file ()
-	"Correct word between START and END, and save corrected word to a file, removing duplicates."
+  (defun jinx-save-corrected-word ()
+	"Save corrected word to a file."
 	(interactive)
-	(progn
-	  (call-interactively #'jinx-correct)
 	  (let ((current-word (thing-at-point 'word t)))
 		(with-temp-buffer
 		  (insert current-word)
-		  (append-to-file (point-min) (point-max) (expand-file-name "~/.jinxcorrections") t))))))
+		  (insert "\n")
+		  (append-to-file (point-min) (point-max) (concat user-emacs-directory "jinx_corrections")))))
+  (advice-add 'jinx-correct :after #'jinx-save-corrected-word))
 
 (use-package define-word
   :commands (define-word)
@@ -1693,22 +1658,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
 
-(use-package pdf-tools
-  :ensure nil
-  :defer 2
-  :hook
-  (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
-						 (toggle-mode-line)))
-  :custom
-  (pdf-view-display-size 'fit-width)
-  (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
-  :config
-  (setopt pdf-continuous-suppress-introduction t)
-  (pdf-loader-install))
-
 (use-package pdf-continuous-scroll-mode
-  :ensure nil
-  :defer 3
   :after pdf-tools
   :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
 			:branch "master" :rev :newest))
@@ -1788,7 +1738,7 @@ point reaches the beginning or end of the buffer, stop there."
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . sn/setup-eglot)
   :bind (:map eglot-mode-map
-			  ;; "C-h ."  eldoc-doc-buffer
+			  ("C-h ." . eldoc-doc-buffer)
 			  ("C-c C-c" . project-compile)
 			  ("C-c r" . eglot-rename)
 			  ("C-c o" . eglot-code-action-organize-imports))
@@ -1856,10 +1806,10 @@ point reaches the beginning or end of the buffer, stop there."
 
   :config
   ;; Info buffers to the right
-  ;; (setq dape-buffer-window-arrangement 'right)
+  (setq dape-buffer-window-arrangement 'right)
 
   ;; To not display info and/or buffers on startup
-  ;; (remove-hook 'dape-on-start-hooks 'dape-info)
+  (remove-hook 'dape-on-start-hooks 'dape-info)
   (remove-hook 'dape-on-start-hooks 'dape-repl)
 
   ;; To display info and/or repl buffers on stopped
@@ -1873,11 +1823,9 @@ point reaches the beginning or end of the buffer, stop there."
   ;; Kill compile buffer on build success
   (add-hook 'dape-compile-compile-hooks 'kill-buffer)
 
-  ;; Save buffers on startup, useful for interpreted languages
   (add-hook 'dape-on-start-hooks
             (defun dape--save-on-start ()
-              (save-some-buffers t t)))
-  )
+              (save-some-buffers t t))))
 
 (use-package git-gutter
   :defer t
@@ -1926,31 +1874,6 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package browse-at-remote
   :bind (("C-c g g" . browse-at-remote)
 		 ("C-c g k" . browse-at-remote-kill)))
-
-(use-package eat
-  :hook ((eat-mode . (lambda ()
-					   (setq-local
-						left-margin-width 3
-						right-margin-width 3
-						cursor-type 'bar)
-					   (toggle-mode-line)
-					   (face-remap-add-relative
-						'default
-						:family "Iosevka"
-						:background "#281d12")
-					   (face-remap-set-base
-						'default
-						:family "Iosevka"
-						:background "#281d12")
-					   (face-remap-add-relative
-						'fringe
-						:background "#281d12")
-					   )))
-  :custom ((eat-kill-buffer-on-exit t)
-		   (eat-enable-yank-to-terminal t))
-  ;; :bind (("M-t" . eat-project-other)
-  ;; 		 (("C-M-t" . eat-other-window)))
-  )
 
 (use-package multi-vterm
   :after vterm)
