@@ -317,8 +317,8 @@ paru -Qqen
 #+end_src
 
 #+RESULTS:
-| alacritty                    |
 | amd-ucode                    |
+| ansible                      |
 | archlinux-keyring            |
 | aspell                       |
 | aspell-en                    |
@@ -328,7 +328,10 @@ paru -Qqen
 | baobab                       |
 | base                         |
 | base-devel                   |
+| bash-language-server         |
 | bc                           |
+| bemenu                       |
+| bind                         |
 | binutils                     |
 | bison                        |
 | blueberry                    |
@@ -343,6 +346,7 @@ paru -Qqen
 | cpio                         |
 | dart-sass                    |
 | debugedit                    |
+| direnv                       |
 | discord                      |
 | docker                       |
 | docker-compose               |
@@ -353,6 +357,7 @@ paru -Qqen
 | evince                       |
 | eza                          |
 | fakeroot                     |
+| fastfetch                    |
 | file                         |
 | file-roller                  |
 | findutils                    |
@@ -360,7 +365,6 @@ paru -Qqen
 | gamescope                    |
 | gawk                         |
 | gcc                          |
-| gdm                          |
 | gettext                      |
 | gimp                         |
 | git                          |
@@ -373,9 +377,7 @@ paru -Qqen
 | gnome-characters             |
 | gnome-clocks                 |
 | gnome-color-manager          |
-| gnome-console                |
 | gnome-contacts               |
-| gnome-control-center         |
 | gnome-disk-utility           |
 | gnome-font-viewer            |
 | gnome-keyring                |
@@ -386,18 +388,14 @@ paru -Qqen
 | gnome-nettool                |
 | gnome-photos                 |
 | gnome-remote-desktop         |
-| gnome-session                |
-| gnome-settings-daemon        |
 | gnome-shell                  |
-| gnome-shell-extensions       |
 | gnome-software               |
 | gnome-system-monitor         |
-| gnome-text-editor            |
-| gnome-tweaks                 |
 | gnome-user-docs              |
 | gnome-user-share             |
 | gnome-video-effects          |
 | gnome-weather                |
+| go-task                      |
 | greetd                       |
 | greetd-regreet               |
 | grep                         |
@@ -417,20 +415,24 @@ paru -Qqen
 | gvfs-smb                     |
 | gzip                         |
 | helvum                       |
+| hspell                       |
 | htop                         |
+| hyprland                     |
 | i2c-tools                    |
 | inetutils                    |
 | isync                        |
 | iwd                          |
+| jaq                          |
 | jq                           |
 | libgccjit                    |
 | libpulse                     |
 | libreoffice-fresh            |
+| libsixel                     |
 | libtool                      |
 | libu2f-server                |
 | libva-mesa-driver            |
+| libvoikko                    |
 | libxnvctrl                   |
-| light                        |
 | linux                        |
 | linux-firmware               |
 | linux-headers                |
@@ -440,18 +442,18 @@ paru -Qqen
 | m4                           |
 | make                         |
 | man-db                       |
-| mutter                       |
 | nano                         |
 | nautilus                     |
-| neovim                       |
 | net-tools                    |
 | network-manager-applet       |
 | networkmanager               |
 | nfs-utils                    |
+| nmap                         |
 | noto-fonts                   |
 | noto-fonts-cjk               |
 | noto-fonts-extra             |
 | ntfs-3g                      |
+| nuspell                      |
 | nvidia-dkms                  |
 | nvidia-settings              |
 | nvidia-utils                 |
@@ -471,6 +473,7 @@ paru -Qqen
 | pkcs11-helper                |
 | pkgconf                      |
 | playerctl                    |
+| plocate                      |
 | polkit-gnome                 |
 | python-pip                   |
 | python-pyqt5-webengine       |
@@ -484,6 +487,7 @@ paru -Qqen
 | rust-analyzer                |
 | rygel                        |
 | sed                          |
+| shellcheck                   |
 | simple-scan                  |
 | slurp                        |
 | smartmontools                |
@@ -493,11 +497,13 @@ paru -Qqen
 | sshfs                        |
 | steam                        |
 | stow                         |
+| strace                       |
 | sudo                         |
 | sushi                        |
 | swayidle                     |
 | swaylock                     |
 | syncthing                    |
+| sysprof                      |
 | terraform                    |
 | texinfo                      |
 | texlive-bibtexextra          |
@@ -525,13 +531,16 @@ paru -Qqen
 | tracker3-miners              |
 | tree-sitter                  |
 | ttf-font-awesome             |
+| ttf-iosevka-nerd             |
 | ttf-linux-libertine          |
-| ttf-victor-mono-nerd         |
+| typescript-language-server   |
+| unrar                        |
 | vlc                          |
 | wf-recorder                  |
 | wget                         |
 | which                        |
 | wine                         |
+| wireguard-tools              |
 | wireless_tools                |
 | wireplumber                  |
 | wl-clipboard                 |
@@ -539,6 +548,7 @@ paru -Qqen
 | wmctrl                       |
 | wofi                         |
 | wqy-zenhei                   |
+| xdg-desktop-portal-gtk       |
 | xdg-desktop-portal-hyprland  |
 | xdg-user-dirs-gtk            |
 | xdg-utils                    |

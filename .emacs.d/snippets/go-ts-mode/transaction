@@ -1,0 +1,12 @@
+# -*- mode: snippet -*-
+# name: transaction
+# key: txx
+# --
+tx, err := c.dbc.BeginTxx(ctx, nil)
+err != nil {
+nil, merry.Wrap(err)
+
+}
+defer tx.Rollback()
+$0
+err = merry.Wrap(tx.Commit())

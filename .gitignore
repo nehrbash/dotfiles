@@ -49,3 +49,4 @@
 /.emacs.d/persist/
 /.emacs.d/.org-id-locations
 */custom.el
+/.emacs.d/jinx_corrections

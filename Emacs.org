@@ -1498,14 +1498,14 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 #+begin_src emacs-lisp
 (use-package embark
-  :bind (("M-." . embark-act)
-		 ("C-;" . embark-dwin)
-		 ("C-h B" . embark-bindings)
-		 (:map minibuffer-mode-map
-			  ("M-e" . sn/edit-search-results))
-		 (:map embark-region-map
-		 ("w" . google-this)
-		 ("g" . gptel)))
+  :bind
+  ("C-;" . embark-act)
+  ("C-h B" . embark-bindings)
+  (:map minibuffer-mode-map
+		("M-e" . sn/edit-search-results))
+  (:map embark-region-map
+		("w" . google-this)
+		("g" . gptel))
   :init
   (defun sn/edit-search-results ()
 	"Export results using `embark-export' and activate `wgrep'."
@@ -1522,9 +1522,10 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (setq embark-action-indicator (lambda (map _target)
 								  (which-key--show-keymap "Embark" map nil nil 'no-paging)
 								  #'which-key--hide-popup-ignore-command)
-		embark-become-indicator embark-action-indicator)
-  (use-package embark-vc))
+		embark-become-indicator embark-action-indicator))
 
+(use-package embark-vc
+  :after embark)
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 #+end_src
@@ -1587,7 +1588,10 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 1.3)
   (completion-cycle-threshold 3)
+  (corfu-on-exact-match nil)
   :config
+  ;; (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
+  ;; (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
   ;; TAB cycle if there are only few candidates
   (defun orderless-fast-dispatch (word index total)
   (and (= index 0) (= total 1) (length< word 4)
@@ -2559,12 +2563,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :init
   (defun eglot-organize-imports () (interactive)
 		 (eglot-code-actions nil nil "source.organizeImports" t))
-  ;; (defun project-find-go-module (dir)
-  ;; 	(when-let ((root (locate-dominating-file dir "go.mod")))
-  ;; 	  (cons 'go-module root)))
-  ;; (cl-defmethod project-root ((project (head go-module)))
-  ;; 	(cdr project))
-  ;; (add-hook 'project-find-functions #'project-find-go-module)
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
@@ -2927,7 +2925,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   :hook (prog-mode . flymake-mode)
   :custom
   (flymake-wrap-around nil)
-  (flymake-no-changes-timeout 0.2)
+  (flymake-no-changes-timeout 0.8)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config
@@ -3229,6 +3227,29 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :custom
   (codeium-log-buffer nil)
   :config
+ ;; (defun sn/codeium-no-corfu-box (orig-fun &rest args)
+ ;;  "Advice to disable Corfu auto during Codeium if Corfu mode is enabled."
+ ;;  (when (and (fboundp 'corfu-mode) corfu-mode)
+ ;;    (let ((orig-corfu-auto corfu-auto))
+ ;;      (corfu-mode -1)
+ ;;      (setq-local corfu-auto nil)
+ ;;      (corfu-candidate-overlay-mode +1)
+ ;;      (unwind-protect
+ ;;          (apply orig-fun args)
+ ;;        (setq-local corfu-auto orig-corfu-auto)
+ ;;        (corfu-mode 1)))))
+ (defun sn/codeium-no-corfu-box (orig-fun &rest args)
+  "Advice to disable Corfu auto during Codeium if Corfu mode is enabled."
+  (apply orig-fun args)
+  (when completion-in-region--data
+    (let ((completion-extra-properties (nth 4 completion-in-region--data))
+          completion-cycle-threshold completion-cycling)
+      (apply #'consult-completion-in-region completion-in-region--data))))
+
+
+ (advice-add 'your-original-function-name :around #'sn/codeium-no-corfu-box)
+
+  
   (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
