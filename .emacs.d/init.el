@@ -31,15 +31,14 @@
 (use-package async
   :init (async-bytecomp-package-mode 1))
 
-(defun sn/finish-install-advice (orig-fun &rest args)
+(defun sn/finish-install-advice ()
   "Advice function to run additional tasks after package upgrade."
-  (apply orig-fun args)
-  (treesit-auto-install-all)
-  (all-the-icons-install-fonts)
-  (yas-reload-all)
-  (recentf-cleanup)
-  (nerd-icons-install-fonts)
-  (package-quickstart-refresh))
+  (progn
+	(treesit-auto-install-all)
+	(all-the-icons-install-fonts)
+	(yas-reload-all)
+	(recentf-cleanup)
+	(nerd-icons-install-fonts)))
 (advice-add 'package-upgrade-all :after #'sn/finish-install-advice)
 
 (setq custom-file "~/.emacs.d/custom.el")
@@ -106,7 +105,9 @@
 	(my-ef-themes-mod)))
 
 (use-package doom-modeline
-  :init
+  :hook (after-init . sn/set-modeline)
+  :defer t
+  :config
   (defun sn/set-modeline ()
 	(require 'doom-modeline)
 	(line-number-mode -1)
@@ -115,7 +116,6 @@
 	  '(bar modals buffer-info remote-host)
 	  '(compilation objed-state misc-info persp-name lsp checker process vcs))
 	(doom-modeline-set-modeline 'simple-line 'default))
-  (sn/set-modeline)
   :custom
   (doom-modeline-project-detection 'project)
   (doom-modeline-vcs-max-length 30)
@@ -172,13 +172,14 @@
  ring-bell-function 'ignore)
 (delete-selection-mode t)
 (global-goto-address-mode t)
-(add-hook 'after-init-hook 'transient-mark-mode) ;; standard highlighting
+(transient-mark-mode t)
 (setopt browse-url-browser-function #'browse-url-firefox)
 (setopt use-dialog-box nil) ;; disable pop-ups
 (set-default 'truncate-lines t) ;; don't wrap lines globally
 
 (use-package recentf
   :ensure nil
+  :defer
   :custom
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 50)
@@ -186,12 +187,11 @@
 					 "*/ssh:*"
 					 "*/docker:*"
 					 "*/sshfs:*"))
-  :init
-  ;; save backup and auto save to system tmp
-  (setq backup-directory-alist
+  (backup-directory-alist
 		`((".*" . ,temporary-file-directory)))
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
+  :init
   (recentf-mode 1))
 
 (use-package autorevert
@@ -417,6 +417,8 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 
 (use-package meow
+  :hook (after-init . meow-global-mode)
+  :demand t
   :config
   (setq meow-replace-state-name-list
 		'((normal . "🟢")
@@ -509,48 +511,7 @@ Call a second time to restore the original window configuration."
    '("y" . meow-save)
    '("z" . meow-pop-selection)
    '("'" . repeat)
-   '("<escape>" . ignore))
-
-  ;; (setq meow-smex-keymap (make-keymap))
-  ;; (meow-define-state paren
-  ;;	"meow state for interacting with smartparens"
-  ;;	:lighter " [P]"
-  ;;	:keymap meow-paren-keymap)
-
-  ;; ;; meow-define-state creates the variable
-  ;; (setq meow-cursor-type-paren 'hollow)
-
-  ;; (meow-define-keys 'paren
-  ;;	'("<escape>" . meow-normal-mode)
-  ;;	'("l" . sp-forward-sexp)
-  ;;	'("h" . sp-backward-sexp)
-  ;;	'("j" . sp-down-sexp)
-  ;;	'("k" . sp-up-sexp)
-  ;;	'("n" . sp-forward-slurp-sexp)
-  ;;	'("b" . sp-forward-barf-sexp)
-  ;;	'("v" . sp-backward-barf-sexp)
-  ;;	'("c" . sp-backward-slurp-sexp)
-  ;;	'("u" . meow-undo))
-  ;; (meow-define-state paren
-  ;;	"meow state for interacting with smartparens"
-  ;;	:lighter " [P]"
-  ;;	:keymap meow-paren-keymap)
-
-  ;; ;; meow-define-state creates the variable
-  ;; (setq meow-cursor-type-paren 'hollow)
-
-  ;; (meow-define-keys 'paren
-  ;;	'("<escape>" . meow-normal-mode)
-  ;;	'("l" . sp-forward-sexp)
-  ;;	'("h" . sp-backward-sexp)
-  ;;	'("j" . sp-down-sexp)
-  ;;	'("k" . sp-up-sexp)
-  ;;	'("n" . sp-forward-slurp-sexp)
-  ;;	'("b" . sp-forward-barf-sexp)
-  ;;	'("v" . sp-backward-barf-sexp)
-  ;;	'("c" . sp-backward-slurp-sexp)
-  ;;	'("u" . meow-undo))
-  (meow-global-mode 1))
+   '("<escape>" . ignore)))
 
 (use-package avy
   :commands avy-goto-char-timer
@@ -1035,9 +996,11 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package corfu-candidate-overlay
   :after corfu
+  :hook (text-mode . (lambda ()
+					   (setq-local corfu-auto nil)
+					   (corfu-candidate-overlay-mode +1)))
   :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
-							   :branch "master" :rev :newest)
-  :init (corfu-candidate-overlay-mode +1))
+							   :branch "master" :rev :newest))
 
 (use-package corfu-terminal
   :after corfu
@@ -1081,8 +1044,10 @@ point reaches the beginning or end of the buffer, stop there."
   (yas-verbosity 1)
   (yas-snippet-dir "~/.emacs.d/snippets")
   (yas-wrap-around-region t))
-(use-package yasnippet-snippets)
-(use-package yasnippet-capf) ;; Prefer the name of the snippet instead)
+(use-package yasnippet-snippets
+  :after yasnippet)
+(use-package yasnippet-capf
+  :defer t) ;; Prefer the name of the snippet instead)
 
 (use-package jinx
   :bind
@@ -1673,7 +1638,8 @@ point reaches the beginning or end of the buffer, stop there."
 			:branch "master" :rev :newest))
 
 (use-package org-roam
-  :init (setq org-roam-v2-ack t)
+  :defer t
+  :init (setq-default org-roam-v2-ack t)
   :config (org-roam-db-autosync-mode)
   :custom
   (org-roam-directory "~/doc/Roam/")
@@ -1729,16 +1695,16 @@ point reaches the beginning or end of the buffer, stop there."
   :vc (:url "https://github.com/jdtsmith/indent-bars.git"
 			:branch "main" :rev :newest))
 
-;; (use-package rainbow-mode
-;;   :hook (prog-mode . rainbow-mode))
+(use-package rainbow-mode
+  :hook (prog-mode . rainbow-mode))
 
 (use-package treesit-auto
-  :init
-  (setq treesit-font-lock-level 4)
-
-  (setq major-mode-remap-alist
- '((js-mode . js-ts-mode)
-   (sh-mode . bash-ts-mode)))
+  :custom
+  (treesit-auto-install t)
+  (treesit-font-lock-level 4)
+  (major-mode-remap-alist
+   '((js-mode . js-ts-mode)
+	 (sh-mode . bash-ts-mode)))
   :config (global-treesit-auto-mode))
 
 (use-package eglot
@@ -1831,45 +1797,43 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package git-gutter
   :defer t
-  ;; hook eglot so that not enabled in most buffers and lower priority (also don't like it in text documents)
   :hook (eglot-server-initialized . (lambda (server)
 									  (run-at-time 1 nil
 												   (lambda () (git-gutter-mode)))))
   :custom
-  ((git-gutter:ask-p nil)
-   (git-gutter:update-interval 2)))
+  (git-gutter:ask-p nil)
+  (git-gutter:update-interval 2))
 (use-package git-gutter-fringe
   :after git-gutter
   :config
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
+(use-package blamer
+  :bind
+  ("C-c C-i" . blamer-mode)
+  ("C-c i" . blamer-show-posframe-commit-info)
+  :custom
+  (blamer-idle-time 0.6)
+  (blamer-min-offset 70))
 
 (use-package magit
+  :defer t
   :commands (magit-status magit-dispatch project-switch-project)
   :config
   (require 'magit-extras)
+  ;; (require 'forge)
   (fullframe magit-status magit-mode-quit-window)
-  (setq-default magit-diff-refine-hunk t)
-  :bind (("C-x g" . magit-status)
-		 ("C-x M-g" . magit-dispatch)
-		 (:map magit-status-mode-map
-			   ("C-M-<up>" . magit-section-up))))
-(use-package forge
-  :after magit)
+  :custom
+  (magit-diff-refine-hunk t)
+  :bind
+  ("C-x g" . magit-status)
+  ("C-x M-g" . magit-dispatch))
 (use-package magit-todos
   :after magit
-  :hook(magit-mode . magit-todos-mode))
-(use-package blamer
-  :bind (("C-c C-i" . blamer-mode)
-		 ("C-c i" . blamer-show-posframe-commit-info))
-  :custom
-  (blamer-idle-time 0.6)
-  (blamer-min-offset 70)
-  ;; :config  (global-blamer-mode 1) # don't actually want the clutter all the time.
-  )
+  :hook (magit-mode . magit-todos-mode))
 (use-package git-timemachine
-  :commands (git-timemachine)
+  :defer t
   :bind ("C-c C-g" . git-timemachine)
   :custom (git-timemachine-show-minibuffer-details t))
 
@@ -2284,29 +2248,6 @@ If the project doesn't exist, return a random face and add a new mapping."
   :custom
   (codeium-log-buffer nil)
   :config
- ;; (defun sn/codeium-no-corfu-box (orig-fun &rest args)
- ;;  "Advice to disable Corfu auto during Codeium if Corfu mode is enabled."
- ;;  (when (and (fboundp 'corfu-mode) corfu-mode)
- ;;    (let ((orig-corfu-auto corfu-auto))
- ;;      (corfu-mode -1)
- ;;      (setq-local corfu-auto nil)
- ;;      (corfu-candidate-overlay-mode +1)
- ;;      (unwind-protect
- ;;          (apply orig-fun args)
- ;;        (setq-local corfu-auto orig-corfu-auto)
- ;;        (corfu-mode 1)))))
- (defun sn/codeium-no-corfu-box (orig-fun &rest args)
-  "Advice to disable Corfu auto during Codeium if Corfu mode is enabled."
-  (apply orig-fun args)
-  (when completion-in-region--data
-    (let ((completion-extra-properties (nth 4 completion-in-region--data))
-          completion-cycle-threshold completion-cycling)
-      (apply #'consult-completion-in-region completion-in-region--data))))
-
-
- (advice-add 'your-original-function-name :around #'sn/codeium-no-corfu-box)
-
-  
   (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
@@ -2314,6 +2255,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   (setq codeium/document/text 'my-codeium/document/text))
 
 (use-package cus-dir
+  :defer t
   :vc (:url "https://gitlab.com/mauroaranda/cus-dir.git"
 			:branch "master" :rev :newest)
   :bind ("C-x p d" . project-customize-dirlocals);; overwrite project-find-dir
