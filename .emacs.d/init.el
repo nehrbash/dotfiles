@@ -1450,12 +1450,6 @@ point reaches the beginning or end of the buffer, stop there."
   (org-agenda-prefix-format "%i  %?-2 t%s")
   (org-agenda-tags-column 0)
   (org-agenda-block-separator ?─)
-  (org-agenda-time-grid
-   '((daily today require-timed)
-	 (800 1000 1200 1400 1600 1800 2000)
-	 " ┄┄┄┄┄ " "┄┄┄┄┄┄┄┄┄┄┄┄┄┄┄"))
-  (org-agenda-current-time-string
-   "◀── now ─────────────────────────────────────────────────")
   (org-agenda-category-icon-alist
    `(
 	 ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
