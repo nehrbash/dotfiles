@@ -331,8 +331,8 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
   (ef-themes-variable-pitch-ui t)
   (ef-themes-headings
    '((0 variable-pitch light 2.1)
-	 (1 variable-pitch light 1.8)
-	 (t variable-pitch 1.2)
+	 (1 variable-pitch light 1.6)
+	 (t variable-pitch 1.1)
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
@@ -345,9 +345,9 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
 	  (custom-set-faces
-	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) 
-	   `(window-divider-first-pixel ((t :background ,bg-main :foreground ,bg-main)))
-       `(window-divider-last-pixel ((t :background ,bg-main :foreground ,bg-main)))
+	   `(window-divider ((,c :background ,bg-main :foreground ,bg-main))) 
+	   `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
+       `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
 	   `(tab-line-tab ((,c   :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
@@ -359,7 +359,7 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	   `(tab-line-env-2 ((,c  :background ,yellow-faint )))
 	   `(tab-line-env-3 ((,c  :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
 	   `(org-document-title ((,c :height 1.8)))
@@ -367,6 +367,8 @@ yasnippet-snippets        Declared      22:36:06.020888         0.00
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
 	   `(fixed-pitch ((,c :font "Iosevka")))
+	   `(variable-pitch ((,c :font "Iosevka Aile")))
+	   `(org-modern-symbol ((,c :font "Iosevka")))
 	   `(default ((,c :font "Iosevka" :height 115)))
 	   `(unspecified-bg ((,c :inherit 'default))))))
 
@@ -2476,6 +2478,13 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 #+end_src
 
+*** Auto indent comments past 120
+
+#+begin_src emacs-lisp
+(setopt comment-auto-fill-only-comments t)
+(add-hook 'prog-mode-hook #'auto-fill-mode)
+#+end_src
+	
 *** Indent bars
 
 	Very faint indicator 
@@ -2487,14 +2496,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.2))
   (indent-bars-pattern ".")
-  (indent-bars-width-frac 0.1)
+  (indent-bars-width-frac 0.3)
   (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag nil)
-  (indent-bars-color-by-depth nil)
-  (indent-bars-highlight-current-depth nil)
-  (indent-bars-display-on-blank-lines nil)
-:vc (:url "https://github.com/jdtsmith/indent-bars.git"
-		  :branch "main" :rev :newest))
+  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
+			:branch "main" :rev :newest))
 #+end_src
 
 *** HEX Colors
@@ -3323,15 +3328,15 @@ If not in a project, prompt for the project root."
 
 * Inspiration
 
-  [[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] has a good list of packages and themes to check out.
-
-Other dotfiles repos and blog posts for inspiration:
-
+  Other dotfiles repos and blog posts for inspiration:
+  
+- [[https://github.com/emacs-tw/awesome-emacs][Awesome Emacs]] 
 - [[https://github.com/purcell/emacs.d][Purcell's Reasonable Emacs config]]
 - [[https://github.com/howardabrams/dot-files][Howard Abrams' dotfiles]]
 - [[https://github.com/daedreth/UncleDavesEmacs/blob/master/config.org][UncleDave's Emacs config]]
 - [[https://github.com/dakrone/dakrone-dotfiles][dakrone's dotfiles]]
 - [[https://github.com/jinnovation/dotemacs][jinnovation dotemacs]]
 - [[https://writequit.org/org/][writequit's config]]
+- Any Package of [[https://github.com/minad][Minad]]
 
 And of course [[https://systemcrafters.cc/][System Crafters]] !

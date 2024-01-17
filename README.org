@@ -15,7 +15,7 @@
   - Material Icons Outlined
   - Source Code Pro
 
-* Table Of Contents                                                     :TOC:
+* Table Of Contents :TOC:
 - [[#arch-install-script][Arch Install script]]
   - [[#bootstrap-paru][Bootstrap Paru]]
   - [[#install-packages][Install Packages]]

@@ -53,8 +53,8 @@
   (ef-themes-variable-pitch-ui t)
   (ef-themes-headings
    '((0 variable-pitch light 2.1)
-	 (1 variable-pitch light 1.8)
-	 (t variable-pitch 1.2)
+	 (1 variable-pitch light 1.6)
+	 (t variable-pitch 1.1)
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
@@ -67,9 +67,9 @@
 	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
 	  (custom-set-faces
-	   `(window-divider ((t :background ,bg-main :foreground ,bg-main))) 
-	   `(window-divider-first-pixel ((t :background ,bg-main :foreground ,bg-main)))
-       `(window-divider-last-pixel ((t :background ,bg-main :foreground ,bg-main)))
+	   `(window-divider ((,c :background ,bg-main :foreground ,bg-main))) 
+	   `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
+       `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
 	   `(tab-line-tab ((,c   :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
@@ -81,7 +81,7 @@
 	   `(tab-line-env-2 ((,c  :background ,yellow-faint )))
 	   `(tab-line-env-3 ((,c  :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
-	   `(mode-line ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
 	   `(org-document-title ((,c :height 1.8)))
@@ -89,6 +89,8 @@
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
 	   `(fixed-pitch ((,c :font "Iosevka")))
+	   `(variable-pitch ((,c :font "Iosevka Aile")))
+	   `(org-modern-symbol ((,c :font "Iosevka")))
 	   `(default ((,c :font "Iosevka" :height 115)))
 	   `(unspecified-bg ((,c :inherit 'default))))))
 
@@ -1713,20 +1715,19 @@ point reaches the beginning or end of the buffer, stop there."
 
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 
+(setopt comment-auto-fill-only-comments t)
+(add-hook 'prog-mode-hook #'auto-fill-mode)
+
 (use-package indent-bars
   :defer t
   :hook ((prog-mode conf-mode yaml-mode) . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.2))
   (indent-bars-pattern ".")
-  (indent-bars-width-frac 0.1)
+  (indent-bars-width-frac 0.3)
   (indent-bars-pad-frac 0.1)
-  (indent-bars-zigzag nil)
-  (indent-bars-color-by-depth nil)
-  (indent-bars-highlight-current-depth nil)
-  (indent-bars-display-on-blank-lines nil)
-:vc (:url "https://github.com/jdtsmith/indent-bars.git"
-		  :branch "main" :rev :newest))
+  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
+			:branch "main" :rev :newest))
 
 ;; (use-package rainbow-mode
 ;;   :hook (prog-mode . rainbow-mode))
