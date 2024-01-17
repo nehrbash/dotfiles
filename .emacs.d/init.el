@@ -1441,11 +1441,6 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package org-agenda
   :ensure nil
   :hook (org-agenda-mode . hl-line-mode)
-  :bind
-  (:map org-agenda-mode-map
-		("q" . (lambda ()
-				 (interactive)
-				 (shell-command "hyprctl dispatch togglespecialworkspace adgenda"))))
   :custom
   (org-agenda-prefix-format "%i  %?-2 t%s")
   (org-agenda-tags-column 0)
