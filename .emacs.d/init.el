@@ -1467,8 +1467,7 @@ point reaches the beginning or end of the buffer, stop there."
 	 ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
 	 ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
 	 ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
-	 ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)
-	 ))
+	 ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
@@ -1564,13 +1563,11 @@ point reaches the beginning or end of the buffer, stop there."
    (quote (("NEXT" :inherit warning)
 		   ("PROJECT" :inherit font-lock-string-face))))
   :config
-(defun sn/org-clock-in-if-inprogress ()
-  "Clock in when the task state is changed to INPROGRESS."
-  (when (string= org-state "INPROGRESS")
-    (org-clock-in)))
-
-(add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress)
-)
+  (defun sn/org-clock-in-if-inprogress ()
+	"Clock in when the task state is changed to INPROGRESS."
+	(when (string= org-state "INPROGRESS")
+      (org-clock-in)))
+  (add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress))
 
 (setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
