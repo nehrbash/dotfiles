@@ -33,7 +33,6 @@
 		:hexpand false
 		(revealer
 		  :transition "slideleft"
-
 		  :reveal {task_filter != "work" }
 		  :class "toggle-bg"
 		  (box
@@ -56,8 +55,7 @@
 		  (box
 			:width 90
 			(label
-			  :text "personal"))))
-	  )
+			  :text "personal")))))
     (revealer
 	  :transition "slidedown"
       :reveal {cal_reveal ? "false":"true"}
@@ -66,7 +64,6 @@
 		:orientation "v"
 		:space-evenly "false"
 		:hexpand "false"
-		:halign "left"
 		(for t in {tasks.tasks}
 		  (box
 			;; :class "task-row"
@@ -77,13 +74,10 @@
 			  :class {t.state == "PROJECT" ? "" : "checkbox"}
 			  :onchecked "scripts/tasks -c \"${t.title}\""
 			  :onunchecked "scripts/tasks -o"
-			  :checked {t.state == "INPROGRESS" }
-			  ;; MR already open for this, https://github.com/elkowar/eww/pull/916
-			  )
+			  :checked {t.state == "INPROGRESS" })
 			(button
 			  :class "task-row"
 			  (box
-				;; :class "task-row"
 				:orientation "h"
 				:space-evenly "false"
 				(label

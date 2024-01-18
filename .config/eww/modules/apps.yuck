@@ -71,7 +71,9 @@
 			  :applist "${appList.Apps}"
               :icon "${appList.Icon}"
               :revealid "${appList.ID}"
-              :show {arraylength(appList.Apps) > 1 ? true : false})))))))
+              :show "true" ;; {arraylength(appList.Apps) > 1 ? true : false}
+			  )))))))
+
 (defwidget lbar []
   (box
     :class "sidebar"
@@ -181,44 +183,5 @@
             :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
             :style "background-image: url('${icon}');"))))))
 
-(defwindow leftbar2
-  :monitor 1
-  :geometry (geometry
-              :width "60px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive true
-  (lbar))
 
-(defwindow leftbar2apps
-  :monitor 1
-  :geometry (geometry
-              :width "58px"
-              :x "-60px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive false
-  (lapps))
 
-(defwindow leftbar
-  :monitor 0
-  :geometry (geometry
-              :width "60px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive true
-  (lbar))
-
-(defwindow leftbarapps
-  :monitor 0
-  :geometry (geometry
-              :width "58px"
-              :x "-60px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive false
-  (lapps))

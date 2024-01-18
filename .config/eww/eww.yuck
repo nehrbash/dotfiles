@@ -22,6 +22,7 @@
 (include "./windows/osd.yuck")
 (include "./windows/system-menu.yuck")
 (include "./windows/control-menu.yuck")
+(include "./windows/corners.yuck")
 
 (defwidget notif-toggle []
   (button
@@ -92,59 +93,42 @@
   :exclusive true
   (bar))
 
-(defwindow corner-ul
-  :geometry (geometry :width "30px" :height "30px" :anchor "top left")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-ul"))
-
-(defwindow corner-ur
-  :geometry (geometry :width "30px" :height "30px" :anchor "top right")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-ur"))
-
-(defwindow corner-bl
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom left")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-bl"))
-
-(defwindow corner-br
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
-  :stacking "fg"
-  :focusable false
-  :monitor 0
-  (box :class "corners-br"))
-
-
-(defwindow corner2-ul
-  :geometry (geometry :width "30px" :height "30px" :anchor "top left")
-  :stacking "fg"
-  :focusable false
+(defwindow leftbar2
   :monitor 1
-  (box :class "corners-ul"))
-
-(defwindow corner2-ur
-  :geometry (geometry :width "30px" :height "30px" :anchor "top right")
+  :geometry (geometry
+              :width "60px"
+              :height "97%"
+              :anchor "left bottom")
   :stacking "fg"
-  :focusable false
-  :monitor 1
-  (box :class "corners-ur"))
+  :exclusive true
+  (lbar))
 
-(defwindow corner2-bl
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom left")
-  :stacking "fg"
-  :focusable false
+(defwindow leftbar2apps
   :monitor 1
-  (box :class "corners-bl"))
+  :geometry (geometry
+              :width "58px"
+              :height "100%"
+              :anchor "left center")
+  :stacking "fg"
+  :exclusive false
+  (lapps))
 
-(defwindow corner2-br
-  :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
+(defwindow leftbar
+  :monitor 0
+  :geometry (geometry
+              :width "60px"
+              :height "97%"
+              :anchor "left bottom")
   :stacking "fg"
-  :focusable false
-  :monitor 1
-  (box :class "corners-br"))
+  :exclusive true
+  (lbar))
+
+(defwindow leftbarapps
+  :monitor 0
+  :geometry (geometry
+              :width "58px"
+              :height "100%"
+              :anchor "left center")
+  :stacking "fg"
+  :exclusive false
+  (lapps))

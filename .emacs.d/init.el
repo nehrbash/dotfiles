@@ -809,7 +809,7 @@ point reaches the beginning or end of the buffer, stop there."
   (consult-preview-key '("M-," :debounce 0 any))
   :config
 
-  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defvar consult--source-org
 	(list :name     "Org"
 		  :category 'buffer
