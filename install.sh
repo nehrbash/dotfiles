@@ -10,7 +10,7 @@ else
     echo ".dotfiles directory does not exist. Cloning repo."
     git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
 fi
-cd .dotfiles
+
 stow .
 cd -
 
