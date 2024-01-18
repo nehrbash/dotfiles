@@ -1,7 +1,7 @@
 greetd
 greetd-regreet
 swaync
-nwg-launchers
+nwg-launchers-git
 swww
 waypaper-engine
 light
@@ -9,7 +9,7 @@ brightnessctl
 wget
 nwg-displays
 wlr-randr
-grimblast-git
+grim
 hyprland
 hyprlang
 xdg-desktop-portal-hyprland
@@ -55,10 +55,8 @@ nuspell
 libvoikko
 ripgrep
 isync
-mu
 enchant
 texlive
-latexmk
 bash-language-server
 curl
 shellcheck

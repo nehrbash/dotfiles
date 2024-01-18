@@ -1,10 +1,11 @@
 #! /bin/bash
 set -e
+set -x
 cd ~
 if [ -d ".dotfiles" ]; then
     echo ".dotfiles directory exists. Pulling latest updates."
     cd .dotfiles
-    git pull
+    git pull || true
     git submodule update --init --recursive
 else
 	cd .dotfiles
@@ -22,13 +23,12 @@ if ! command -v paru &> /dev/null; then
     cd -
     rm -r paru
 fi
-echo "Updating packages..."
-paru -Syu
 
 read -p "Do you want to update packages? (yes/no): " choice
 
 if [[ "$choice" == "yes" ]]; then
-    paru --needed -S - < pkglist.txt
+	paru -Syu
+    paru --needed -S - < ~/.dotfiles/pkglist.txt
 else
     echo "Skipping package update."
 fi
@@ -44,16 +44,22 @@ fi
 
 systemctl --user enable swaync.service
 
-go install github.com/nehrbash/hyprshell@latest
-
 read -p "Do you want install/rebuild Eww? (yes/no): " choice
 if [[ "$choice" == "yes" ]]; then
-	mkdir -p ~/src
-	cd ~/src/ || exit
-	git clone https://github.com/nehrbash/eww.git
-	cd eww || exit
-	cargo build --release --no-default-features --features=wayland && cargo build --release --no-default-features --features=wayland
-	cd ~
+    mkdir -p ~/src
+    cd ~/src/ || exit
+    if [ -d "eww" ]; then
+        echo "Eww directory exists. Pulling latest updates."
+        cd eww || exit
+        git pull
+    else
+        echo "Eww directory does not exist. Cloning repo."
+        git clone https://github.com/nehrbash/eww.git
+        cd eww || exit
+    fi
+	go install github.com/nehrbash/hyprshell@latest
+    cargo build --release --no-default-features --features=wayland && cargo build --release --no-default-features --features=wayland
+    cd ~
 else
     echo "Skipping Eww 😲."
 fi
@@ -93,12 +99,20 @@ fi
 
 read -p "Do you want install/rebuild Emacs? (yes/no): " choice
 if [[ "$choice" == "yes" ]]; then
-	mkdir -p ~/src
-	cd ~/src/ || exit
-	git clone https://aur.archlinux.org/emacs-git.git
-	cd emacs-git || exit
-	git apply < ~/.dotfiles/emacs_build.patch && makepkg -si
-	cd ~ || exit
+    mkdir -p ~/src
+    cd ~/src/ || exit
+    if [ -d "emacs-git" ]; then
+        echo "Emacs-git directory exists. Pulling latest updates."
+        cd emacs-git || exit
+        git pull || true
+    else
+        echo "Emacs-git directory does not exist. Cloning repo."
+        git clone https://aur.archlinux.org/emacs-git.git
+        cd emacs-git || exit
+    fi
+	git reset --hard HEAD
+    git apply < ~/.dotfiles/emacs_build.patch && makepkg -si
+    cd ~ || exit
 else
     echo "Skipping Emacs 😞."
 fi

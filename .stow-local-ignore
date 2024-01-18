@@ -5,5 +5,4 @@ misc
 images*
 install.sh
 pkglist.txt
-greetd
-*.patch
+emacs_build.patch
