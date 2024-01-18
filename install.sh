@@ -1,5 +1,12 @@
 #! /bin/bash
 set -e
+
+sudo pacman -S stow git --noconfirm --needed
+git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
+cd .dotfiles
+stow .
+cd -
+
 sudo pacman -S --needed base-devel
 if ! command -v paru &> /dev/null; then
     git clone https://aur.archlinux.org/paru.git
@@ -8,6 +15,8 @@ if ! command -v paru &> /dev/null; then
     cd -
     rm -r paru
 fi
+echo "Updating packages..."
+paru -Syu
 
 read -p "Do you want to update packages? (yes/no): " choice
 
@@ -17,11 +26,30 @@ else
     echo "Skipping package update."
 fi
 
-systemctl enable greetd.service
+read -p "Do you want to install greetd.service? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	cd ~/.dotfiles/ || exit
+	sudo cp -r greetd/ /etc/greetd/ 
+	sudo systemctl enable greetd.service
+else
+    echo "Skipping Spicetify update."
+fi
 
 systemctl --user enable swaync.service
 
 go install github.com/nehrbash/hyprshell@latest
+
+read -p "Do you want install/rebuild Eww? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	mkdir -p ~/src
+	cd ~/src/ || exit
+	git clone https://github.com/nehrbash/eww.git
+	cd eww || exit
+	cargo build --release --no-default-features --features=wayland && cargo build --release --no-default-features --features=wayland
+	cd ~
+else
+    echo "Skipping Eww 😲."
+fi
 
 if [[ "$SHELL" == *"/zsh" ]]; then
     echo "The current shell is already zsh. Skipping shell change."
@@ -56,7 +84,14 @@ else
     echo "Skipping Spicetify update."
 fi
 
-systemctl --user enable dropbox.service
-
-xdg-mime default emacsclient.desktop application/pdf
-xdg-mime default emacsclient.desktop inode/directory
+read -p "Do you want install/rebuild Emacs? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	mkdir -p ~/src
+	cd ~/src/ || exit
+	git clone https://aur.archlinux.org/emacs-git.git
+	cd emacs-git || exit
+	git apply < ~/.dotfiles/emacs_build.patch && makepkg -si
+	cd ~ || exit
+else
+    echo "Skipping Emacs 😞."
+fi

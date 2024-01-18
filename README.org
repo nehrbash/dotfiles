@@ -14,10 +14,11 @@
 
 * Table Of Contents :TOC:
 - [[#arch-install-script][Arch Install script]]
-  - [[#bootstrap-paru][Bootstrap Paru]]
+  - [[#bootstrap][Bootstrap]]
   - [[#install-packages][Install Packages]]
 - [[#keyboard][Keyboard]]
 - [[#login][Login]]
+  - [[#packages][Packages]]
 - [[#wm-hyprland][WM Hyprland]]
   - [[#services][Services]]
   - [[#eww][Eww]]
@@ -25,7 +26,7 @@
 - [[#personal-software][Personal Software]]
   - [[#terminal][Terminal]]
   - [[#firefox][Firefox]]
-  - [[#spicetify][Spicetify]]
+  - [[#specify][Specify]]
   - [[#slack][Slack]]
   - [[#emacs][Emacs]]
 - [[#references][References]]
@@ -33,25 +34,38 @@
 
 * Arch Install script
 
-  1. set up os, install correct graphics driver, internet. pipewire
-  2. clone the repo to ~~/.dotfiles~ and run ~stow .~ to symlink files into place.
-  3. run install script.
+  *Note*: Not really intended to be shared. I don't do clean install often and I set NVIDIA Specific Environment variables.
+  
+  1. set up os, install correct graphics driver, internet. pipewire ect...
+  2. run install script.
 
 #+begin_src sh :tangle no
-sudo pacman -S stow git --noconfirm
-git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
-cd .dotfiles
-stow .
 ./install.sh
 #+end_src
 
-** Bootstrap Paru
+** Bootstrap
+   
+*** Stow & Git
 
-   Paru is an Arch Linux package manager written in Rust. It is a community-driven project aiming to be a feature-rich and user-friendly alternative to the default package manager, Pacman. Paru allows users to install, upgrade, and remove packages from the Arch User Repository (AUR) as well as from the official Arch Linux repositories. It provides additional functionality like dependency resolution, parallel downloads, and automatic conflict resolution.
+	GNU Stow is a software installation manager for Unix-like operating systems which helps manage the installation, removal, and maintenance of software packages. It works by creating symlinks to files within package directories, allowing you to easily enable or disable specific software versions. This helps keep software organized in a clean, centralized manner and prevents conflicts between different versions of the same software.
+
 
 #+begin_src sh :tangle install.sh
 #! /bin/bash
 set -e
+
+sudo pacman -S stow git --noconfirm --needed
+git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
+cd .dotfiles
+stow .
+cd -
+#+end_src
+		
+*** Paru
+	
+	Paru is an Arch Linux package manager written in Rust. It is a community-driven project aiming to be a feature-rich and user-friendly alternative to the default package manager, Pacman. Paru allows users to install, upgrade, and remove packages from the Arch User Repository (AUR) as well as from the official Arch Linux repositories. It provides additional functionality like dependency resolution, parallel downloads, and automatic conflict resolution.
+
+#+begin_src sh :tangle install.sh
 sudo pacman -S --needed base-devel
 if ! command -v paru &> /dev/null; then
     git clone https://aur.archlinux.org/paru.git
@@ -60,6 +74,8 @@ if ! command -v paru &> /dev/null; then
     cd -
     rm -r paru
 fi
+echo "Updating packages..."
+paru -Syu
 #+end_src
 
 ** Install Packages
@@ -87,15 +103,24 @@ fi
 
   I used greetd with Hyprland and regreet. Manually copy =greetd= to =/etc/greetd= make sure the greetd user can read files.
 
-#+begin_src txt :tangle pkglist.txt :padline no
+#+begin_src sh :tangle install.sh
+read -p "Do you want to install greetd.service? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	cd ~/.dotfiles/ || exit
+	sudo cp -r greetd/ /etc/greetd/ 
+	sudo systemctl enable greetd.service
+else
+    echo "Skipping Spicetify update."
+fi
+#+end_src
+  
+** Packages
+
+   #+begin_src txt :tangle pkglist.txt :padline no
 greetd
 greetd-regreet
 #+end_src
 
-#+begin_src sh :tangle install.sh
-systemctl enable greetd.service
-#+end_src
-  
 * WM Hyprland
 
   I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
@@ -103,15 +128,17 @@ systemctl enable greetd.service
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync
 nwg-launchers
-hyprpaper
+swww
+waypaper-engine
 light
 brightnessctl
 wget
 nwg-displays
 wlr-randr
 grimblast-git
-hyprland-git
-xdg-desktop-portal-hyprland-git
+hyprland
+hyprlang
+xdg-desktop-portal-hyprland
 wl-clipboard
 #+end_src
 
@@ -123,27 +150,52 @@ systemctl --user enable swaync.service
 
 ** Eww
 
-  Lisp like graphical widget system. Sorry but I decided to start writting all my scripts as a monolithic go program and embed resources into it. end goal might be to embed almost everyting in it 
+  Shitty Lisp like graphical widget system.
+  
+*** Install hyprshell
 
+	Sorry but I decided to start rewritting all my scripts as a monolithic go program, embed resources into it, and  use dbus clients. 
+
+	
 #+begin_src sh :tangle install.sh
 go install github.com/nehrbash/hyprshell@latest
 #+end_src
+
+*** Install Eww
+
+	Eww is not maintained so we I needed to merge a few PR's. Need to build my fork for system tray and check boxes. Might need to run =rustup update=.
+
+#+begin_src sh :tangle install.sh
+read -p "Do you want install/rebuild Eww? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	mkdir -p ~/src
+	cd ~/src/ || exit
+	git clone https://github.com/nehrbash/eww.git
+	cd eww || exit
+	cargo build --release --no-default-features --features=wayland && cargo build --release --no-default-features --features=wayland
+	cd ~
+else
+    echo "Skipping Eww 😲."
+fi
+#+end_src
+	
 
 *** Packages
 
 	- *libpulse* for pactl but don't want to add  pipewire here 
 	
 #+begin_src txt :tangle pkglist.txt :padline no
-eww-tray-wayland-git
 swayidle
 nwg-look
+jq
 jaq
-gruvbox-dark-gtk
 easyeffects
 pavucontrol
 blueberry
 iwgtk
 playerctl
+go
+rustup
 #+end_src
 
 * Fonts
@@ -173,7 +225,6 @@ firefox-bin
 slack-desktop
 #+end_src
 
-
 ** Terminal
 
    I like a simple zsh prompt. set shell to zsh
@@ -194,6 +245,7 @@ fi
 #+end_src
 
 *** Terminal Packages
+	
 #+begin_src txt :tangle pkglist.txt :padline no
 alacritty
 zsh
@@ -232,10 +284,7 @@ fi
    - Ad blocker
    - password manager
 
-** Spicetify
-
-  I use this (mocha) just follow the well made instructions.
-  https://github.com/catppuccin/spicetify
+** Specify
 
 #+begin_src txt :tangle pkglist.txt :padline no
 spicetify-cli
@@ -267,12 +316,25 @@ fi
 
 ** Emacs
 
-   My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= then modify the =PKGBUILD= for wayland and such then I build it with =makepke -siC=. I keep all my org files under dropbox symlinked to =~/doc=.
+   My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= (GNU Emacs 30.0.50) then modify the =PKGBUILD= for wayland and such then I build it with =makepkg -si=. will probably work mostly fine with version 29.
+   
+   Building takes a sec and and also run =M-x package-upgrade-all= to finish installing stuff.
 
-   Building takes a sec  and you will probably need to restart once or twice and also run =M-x package-upgrade-all= to finish installing stuff.
+#+begin_src sh :tangle install.sh
+read -p "Do you want install/rebuild Emacs? (yes/no): " choice
+if [[ "$choice" == "yes" ]]; then
+	mkdir -p ~/src
+	cd ~/src/ || exit
+	git clone https://aur.archlinux.org/emacs-git.git
+	cd emacs-git || exit
+	git apply < ~/.dotfiles/emacs_build.patch && makepkg -si
+	cd ~ || exit
+else
+    echo "Skipping Emacs 😞."
+fi
+#+end_src
 
 #+begin_src txt :tangle pkglist.txt :padline no
-emacs-pdf-tools-git
 emacs-lsp-booster-git
 aspell
 aspell-en
@@ -283,25 +345,12 @@ ripgrep
 isync
 mu
 enchant
-dropbox
 texlive
 latexmk
 bash-language-server
 curl
 shellcheck
-#+end_src
-
-#+begin_src sh :tangle install.sh
-systemctl --user enable dropbox.service
-#+end_src
-
-*** Setting XDG Defaults to Emacs
-
-https://emacs.stackexchange.com/questions/19686/how-to-use-pdf-tools-pdf-view-mode-in-emacs
-
-#+begin_src sh :tangle install.sh
-xdg-mime default emacsclient.desktop application/pdf
-xdg-mime default emacsclient.desktop inode/directory
+rust-analyzer
 #+end_src
 
 * References
@@ -312,257 +361,9 @@ xdg-mime default emacsclient.desktop inode/directory
 
    All installed packages on my system.
 
-#+begin_src sh :tangle no
+#+begin_src sh :tangle no :results output file :file full-pkg-list.txt
 paru -Qqen
 #+end_src
 
 #+RESULTS:
-| amd-ucode                    |
-| ansible                      |
-| archlinux-keyring            |
-| aspell                       |
-| aspell-en                    |
-| autoconf                     |
-| automake                     |
-| aws-cli                      |
-| baobab                       |
-| base                         |
-| base-devel                   |
-| bash-language-server         |
-| bc                           |
-| bemenu                       |
-| bind                         |
-| binutils                     |
-| bison                        |
-| blueberry                    |
-| blueman                      |
-| bluez-utils                  |
-| brightnessctl                |
-| btrfs-progs                  |
-| cairo-dock                   |
-| ccls                         |
-| cheese                       |
-| cmake                        |
-| cpio                         |
-| dart-sass                    |
-| debugedit                    |
-| direnv                       |
-| discord                      |
-| docker                       |
-| docker-compose               |
-| easyeffects                  |
-| efibootmgr                   |
-| eog                          |
-| epiphany                     |
-| evince                       |
-| eza                          |
-| fakeroot                     |
-| fastfetch                    |
-| file                         |
-| file-roller                  |
-| findutils                    |
-| flex                         |
-| gamescope                    |
-| gawk                         |
-| gcc                          |
-| gettext                      |
-| gimp                         |
-| git                          |
-| glfw-wayland                 |
-| gnome-applets                |
-| gnome-backgrounds            |
-| gnome-bluetooth              |
-| gnome-calculator             |
-| gnome-calendar               |
-| gnome-characters             |
-| gnome-clocks                 |
-| gnome-color-manager          |
-| gnome-contacts               |
-| gnome-disk-utility           |
-| gnome-font-viewer            |
-| gnome-keyring                |
-| gnome-logs                   |
-| gnome-maps                   |
-| gnome-menus                  |
-| gnome-music                  |
-| gnome-nettool                |
-| gnome-photos                 |
-| gnome-remote-desktop         |
-| gnome-shell                  |
-| gnome-software               |
-| gnome-system-monitor         |
-| gnome-user-docs              |
-| gnome-user-share             |
-| gnome-video-effects          |
-| gnome-weather                |
-| go-task                      |
-| greetd                       |
-| greetd-regreet               |
-| grep                         |
-| grilo-plugins                |
-| grim                         |
-| groff                        |
-| gst-plugin-pipewire          |
-| gtk-engine-murrine           |
-| gtk-engines                  |
-| gvfs                         |
-| gvfs-afc                     |
-| gvfs-goa                     |
-| gvfs-google                  |
-| gvfs-gphoto2                 |
-| gvfs-mtp                     |
-| gvfs-nfs                     |
-| gvfs-smb                     |
-| gzip                         |
-| helvum                       |
-| hspell                       |
-| htop                         |
-| hyprland                     |
-| i2c-tools                    |
-| inetutils                    |
-| isync                        |
-| iwd                          |
-| jaq                          |
-| jq                           |
-| libgccjit                    |
-| libpulse                     |
-| libreoffice-fresh            |
-| libsixel                     |
-| libtool                      |
-| libu2f-server                |
-| libva-mesa-driver            |
-| libvoikko                    |
-| libxnvctrl                   |
-| linux                        |
-| linux-firmware               |
-| linux-headers                |
-| lsp-plugins                  |
-| lutris                       |
-| lxappearance                 |
-| m4                           |
-| make                         |
-| man-db                       |
-| nano                         |
-| nautilus                     |
-| net-tools                    |
-| network-manager-applet       |
-| networkmanager               |
-| nfs-utils                    |
-| nmap                         |
-| noto-fonts                   |
-| noto-fonts-cjk               |
-| noto-fonts-extra             |
-| ntfs-3g                      |
-| nuspell                      |
-| nvidia-dkms                  |
-| nvidia-settings              |
-| nvidia-utils                 |
-| oniguruma                    |
-| opensc                       |
-| openssl-1.1                  |
-| orca                         |
-| pacman                       |
-| pacman-contrib               |
-| patch                        |
-| pavucontrol                  |
-| pcsc-tools                   |
-| pipewire                     |
-| pipewire-alsa                |
-| pipewire-jack                |
-| pipewire-pulse               |
-| pkcs11-helper                |
-| pkgconf                      |
-| playerctl                    |
-| plocate                      |
-| polkit-gnome                 |
-| python-pip                   |
-| python-pyqt5-webengine       |
-| python-pyqt6                 |
-| python-pyqt6-sip             |
-| qmk                          |
-| qt5-wayland                  |
-| qt5ct                        |
-| rebuild-detector             |
-| ripgrep                      |
-| rust-analyzer                |
-| rygel                        |
-| sed                          |
-| shellcheck                   |
-| simple-scan                  |
-| slurp                        |
-| smartmontools                |
-| socat                        |
-| softhsm                      |
-| spotify-launcher             |
-| sshfs                        |
-| steam                        |
-| stow                         |
-| strace                       |
-| sudo                         |
-| sushi                        |
-| swayidle                     |
-| swaylock                     |
-| syncthing                    |
-| sysprof                      |
-| terraform                    |
-| texinfo                      |
-| texlive-bibtexextra          |
-| texlive-binextra             |
-| texlive-context              |
-| texlive-fontsextra           |
-| texlive-fontsrecommended     |
-| texlive-fontutils            |
-| texlive-formatsextra         |
-| texlive-games                |
-| texlive-humanities           |
-| texlive-luatex               |
-| texlive-mathscience          |
-| texlive-metapost             |
-| texlive-music                |
-| texlive-plaingeneric         |
-| texlive-pstricks             |
-| texlive-publishers           |
-| texlive-xetex                |
-| the_silver_searcher            |
-| tk                           |
-| tmux                         |
-| torbrowser-launcher          |
-| totem                        |
-| tracker3-miners              |
-| tree-sitter                  |
-| ttf-font-awesome             |
-| ttf-iosevka-nerd             |
-| ttf-linux-libertine          |
-| typescript-language-server   |
-| unrar                        |
-| vlc                          |
-| wf-recorder                  |
-| wget                         |
-| which                        |
-| wine                         |
-| wireguard-tools              |
-| wireless_tools                |
-| wireplumber                  |
-| wl-clipboard                 |
-| wlroots                      |
-| wmctrl                       |
-| wofi                         |
-| wqy-zenhei                   |
-| xdg-desktop-portal-gtk       |
-| xdg-desktop-portal-hyprland  |
-| xdg-user-dirs-gtk            |
-| xdg-utils                    |
-| xf86-video-nouveau           |
-| xorg-server                  |
-| xorg-xinit                   |
-| yelp                         |
-| yubico-c                     |
-| yubico-c-client              |
-| yubikey-manager              |
-| yubikey-personalization      |
-| zram-generator               |
-| zsh                          |
-| zsh-autosuggestions          |
-| zsh-completions              |
-| zsh-history-substring-search |
-| zsh-syntax-highlighting      |
+[[file:full-pkg-list.txt]]

@@ -1,0 +1,46 @@
+From d7a479b4b29e55975e3dbd4a5bbb7124e582487b Mon Sep 17 00:00:00 2001
+From: =?UTF-8?q?Pedro=20A=2E=20L=C3=B3pez-Valencia?=
+ <78099+palopezv@users.noreply.github.com>
+Date: Sat, 14 Oct 2023 13:35:38 -0500
+Subject: [PATCH] * Second part...
+
+---
+ .SRCINFO | 3 ++-
+ PKGBUILD | 1 -
+ 2 files changed, 2 insertions(+), 2 deletions(-)
+
+diff --git a/.SRCINFO b/.SRCINFO
+index 8a9711f..05f10ec 100644
+--- a/.SRCINFO
++++ b/.SRCINFO
+@@ -1,6 +1,6 @@
+ pkgbase = emacs-git
+ 	pkgdesc = GNU Emacs. Development master branch.
+-	pkgver = 30.0.50.166575
++	pkgver = 30.0.50.169253
+ 	pkgrel = 1
+ 	url = http://www.gnu.org/software/emacs/
+ 	install = emacs-git.install
+@@ -13,6 +13,7 @@ pkgbase = emacs-git
+ 	depends = libxml2
+ 	depends = jansson
+ 	depends = harfbuzz
++	depends = libotf
+ 	depends = libgccjit
+ 	depends = libxi
+ 	depends = gtk3
+diff --git a/PKGBUILD b/PKGBUILD
+index c6a7270..0bb59c2 100644
+--- a/PKGBUILD
++++ b/PKGBUILD
+@@ -263,7 +263,6 @@ build() {
+     --mandir=/usr/share/man
+     --with-gameuser=:games
+     --with-modules
+-    --without-libotf
+     --without-m17n-flt
+ # Beware https://debbugs.gnu.org/cgi/bugreport.cgi?bug=25228
+ # dconf and gconf break font settings you set in ~/.emacs.
+-- 
+2.43.0
+

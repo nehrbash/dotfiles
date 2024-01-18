@@ -6,3 +6,4 @@ images*
 install.sh
 pkglist.txt
 greetd
+*.patch
