@@ -79,7 +79,7 @@
   - [[#voice-to-text][Voice to Text]]
   - [[#gpt][GPT]]
   - [[#codeium][Codeium]]
-  - [[#cus][cus]]
+  - [[#customize-dir-local][Customize Dir Local]]
   - [[#web-tabs][Web Tabs]]
   - [[#typing-practice][Typing Practice]]
   - [[#google-this][Google This]]
@@ -95,11 +95,9 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 
 #+begin_src emacs-lisp
 ;;; init.el --- Initialization file for Emacs -*- lexical-binding:t -*-
-;;; Commentary: Emacs Startup File, initialization for Emacs
+;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code: 
 #+end_src
-
-
 
 ** Load All Environment Variables
 
@@ -160,7 +158,6 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 ** Set Custom file
 
    Since we are tangling ~init.el~ we need to save ~custom.el~ separately. Also makes ~init.el~ cleaner.
-
 #+begin_src emacs-lisp
 (setq custom-file "~/.emacs.d/custom.el")
 (load custom-file 'noerror 'nomessage)
@@ -988,16 +985,14 @@ Call a second time to restore the original window configuration."
   '("u" . meow-undo))
 #+end_src
 	 
-
 *** avy
 
 #+begin_src emacs-lisp
 (use-package avy
   :commands avy-goto-char-timer
-  :bind ("C-'" . avy-goto-char-timer))  
+  :bind ("C-'" . avy-goto-char-timer))
 #+end_src
 
-	
 *** Transit
 
  #+begin_src emacs-lisp
@@ -1005,9 +1000,9 @@ Call a second time to restore the original window configuration."
 	 :defer t
 	 :bind
 	 (:map isearch-mode-map
-				 ("C-t" . sn/isearch-menu)
-				 ("C-r" . consult-ripgrep)
-				 ("C-f" . consult-line))
+		   ("C-t" . sn/isearch-menu)
+		   ("M-r" . consult-ripgrep)
+		   ("M-f" . consult-line))
 	 :config
 	 (transient-define-prefix sn/isearch-menu ()
 	   "isearch Menu"
@@ -1088,7 +1083,6 @@ Call a second time to restore the original window configuration."
 		  isearch-occur
 		  :transient nil)]]))
  #+end_src
-
 
 *** File Handler Functions
 **** Handier way to add modes to auto-mode-alist
@@ -1368,7 +1362,9 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 		("M-o" . consult-outline)
 		("C-M-r" . consult-register)
 		("C-M-s" . consult-register-store))
-
+  (:map global-map
+		("M-n" . consult-mark)
+		("M-N" . consult-global-mark))
   ;; Custom M-# bindings for fast register access
   ("M-#" . consult-register-load)
   ;; Other custom bindings
@@ -1376,16 +1372,11 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   ;; M-g bindings (goto-map)
   ("M-g e" . consult-compile-error)
   ("M-g n" . consult-flymake)
-  ;; Alternative: consult-org-heading
-  ("M-g m" . consult-mark)
-  ("M-g k" . consult-global-mark)
   ("M-g i" . consult-imenu)
   ("M-g I" . consult-imenu-multi)
-
   ("M-s f" . consult-find)
   ("M-s L" . consult-locate)
   ("M-s G" . consult-git-grep)
-  ("C-S" . consult-ripgrep)
   ("M-s m" . consult-multi-occur)
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
@@ -1443,8 +1434,8 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 											:as #'buffer-name
 											:include '("Term\\ ")))))
   (defun consult-term ()
-    (interactive)
-    (consult-buffer '(consult--source-vterm)))
+	(interactive)
+	(consult-buffer '(consult--source-vterm)))
   (defvar consult--source-star
 	(list :name     "*Star-Buffers*"
 		  :category 'buffer
@@ -1480,10 +1471,8 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 					   "Term\\ "        ; Term buffers
 					   "^magit"          ; magit buffers
 					   "^type-break.el"
-					   "\#\!*"
-					   )))))
-
-  ;; reorder, mainly to move recent-file down and org
+					   "\#\!*")))))
+  ;; reorder, mainly to move recent-file down and  org
   (setq consult-buffer-sources
 		'(consult--source-hidden-buffer
 		  consult--source-modified-buffer
@@ -3231,6 +3220,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :custom
   (codeium-log-buffer nil)
   :config
+  (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
   (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
@@ -3238,31 +3228,22 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (setq codeium/document/text 'my-codeium/document/text))
 
 #+end_src
-
-** cus
+** Customize Dir Local
 
 #+begin_src emacs-lisp
 (use-package cus-dir
   :defer t
   :vc (:url "https://gitlab.com/mauroaranda/cus-dir.git"
 			:branch "master" :rev :newest)
-  :bind ("C-x p d" . project-customize-dirlocals);; overwrite project-find-dir
-  :config
-  (defun project-customize-dirlocals ()
-	"Customize directory local variables for the current project.
-If not in a project, prompt for the project root."
-	(interactive)
-	(let ((project (project-current t)))
-	  (if project
-		  (let ((default-directory (project-root project)))
-			(customize-dirlocals))))))
+  :bind ("C-x p d" . customize-dirlocals-project))
 #+end_src
 
-** Web Tabs
+** TODO Web Tabs
 
-   Needs better firefox support.
+   - Needs better Firefox support.
+   - How do I make debug banner look normal?
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package ibrowse
   :bind ("<f8>" . ibrowse-tab-select))
 #+end_src
@@ -3273,8 +3254,7 @@ If not in a project, prompt for the project root."
 
 #+begin_src emacs-lisp
 (use-package speed-type
-  :defer t
-  :commands speed-type-top-x)
+  :defer t)
 #+end_src
 
 ** Google This

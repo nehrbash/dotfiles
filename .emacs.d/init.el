@@ -1,5 +1,5 @@
 ;;; init.el --- Initialization file for Emacs -*- lexical-binding:t -*-
-;;; Commentary: Emacs Startup File, initialization for Emacs
+;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
 (defun load-all-environment-variables ()
@@ -521,9 +521,9 @@ Call a second time to restore the original window configuration."
   :defer t
   :bind
   (:map isearch-mode-map
-			  ("C-t" . sn/isearch-menu)
-			  ("C-r" . consult-ripgrep)
-			  ("C-f" . consult-line))
+		("C-t" . sn/isearch-menu)
+		("M-r" . consult-ripgrep)
+		("M-f" . consult-line))
   :config
   (transient-define-prefix sn/isearch-menu ()
 	"isearch Menu"
@@ -771,7 +771,9 @@ point reaches the beginning or end of the buffer, stop there."
 		("M-o" . consult-outline)
 		("C-M-r" . consult-register)
 		("C-M-s" . consult-register-store))
-
+  (:map global-map
+		("M-n" . consult-mark)
+		("M-N" . consult-global-mark))
   ;; Custom M-# bindings for fast register access
   ("M-#" . consult-register-load)
   ;; Other custom bindings
@@ -779,16 +781,11 @@ point reaches the beginning or end of the buffer, stop there."
   ;; M-g bindings (goto-map)
   ("M-g e" . consult-compile-error)
   ("M-g n" . consult-flymake)
-  ;; Alternative: consult-org-heading
-  ("M-g m" . consult-mark)
-  ("M-g k" . consult-global-mark)
   ("M-g i" . consult-imenu)
   ("M-g I" . consult-imenu-multi)
-
   ("M-s f" . consult-find)
   ("M-s L" . consult-locate)
   ("M-s G" . consult-git-grep)
-  ("C-S" . consult-ripgrep)
   ("M-s m" . consult-multi-occur)
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
@@ -846,8 +843,8 @@ point reaches the beginning or end of the buffer, stop there."
 											:as #'buffer-name
 											:include '("Term\\ ")))))
   (defun consult-term ()
-    (interactive)
-    (consult-buffer '(consult--source-vterm)))
+	(interactive)
+	(consult-buffer '(consult--source-vterm)))
   (defvar consult--source-star
 	(list :name     "*Star-Buffers*"
 		  :category 'buffer
@@ -883,10 +880,8 @@ point reaches the beginning or end of the buffer, stop there."
 					   "Term\\ "        ; Term buffers
 					   "^magit"          ; magit buffers
 					   "^type-break.el"
-					   "\#\!*"
-					   )))))
-
-  ;; reorder, mainly to move recent-file down and org
+					   "\#\!*")))))
+  ;; reorder, mainly to move recent-file down and  org
   (setq consult-buffer-sources
 		'(consult--source-hidden-buffer
 		  consult--source-modified-buffer
@@ -1163,7 +1158,7 @@ point reaches the beginning or end of the buffer, stop there."
   (org-auto-align-tags nil)
   (org-edit-src-content-indentation 0)
   (org-edit-timestamp-down-means-later t)
-  (org-ellipsis "…")
+  (org-ellipsis "🢱")
   (org-fast-tag-selection-single-key 'expert)
   (org-hide-emphasis-markers t)
   (org-image-actual-width nil)
@@ -2234,6 +2229,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   :custom
   (codeium-log-buffer nil)
   :config
+  (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
   (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
@@ -2244,23 +2240,10 @@ If the project doesn't exist, return a random face and add a new mapping."
   :defer t
   :vc (:url "https://gitlab.com/mauroaranda/cus-dir.git"
 			:branch "master" :rev :newest)
-  :bind ("C-x p d" . project-customize-dirlocals);; overwrite project-find-dir
-  :config
-  (defun project-customize-dirlocals ()
-	"Customize directory local variables for the current project.
-If not in a project, prompt for the project root."
-	(interactive)
-	(let ((project (project-current t)))
-	  (if project
-		  (let ((default-directory (project-root project)))
-			(customize-dirlocals))))))
-
-(use-package ibrowse
-  :bind ("<f8>" . ibrowse-tab-select))
+  :bind ("C-x p d" . customize-dirlocals-project))
 
 (use-package speed-type
-  :defer t
-  :commands speed-type-top-x)
+  :defer t)
 
 (use-package google-this
   :bind ("M-s w" . google-this))
