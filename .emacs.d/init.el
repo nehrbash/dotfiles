@@ -1158,7 +1158,7 @@ point reaches the beginning or end of the buffer, stop there."
   (org-auto-align-tags nil)
   (org-edit-src-content-indentation 0)
   (org-edit-timestamp-down-means-later t)
-  (org-ellipsis "🢱")
+  (org-ellipsis "…")
   (org-fast-tag-selection-single-key 'expert)
   (org-hide-emphasis-markers t)
   (org-image-actual-width nil)
