@@ -97,8 +97,8 @@
   :monitor 1
   :geometry (geometry
               :width "60px"
-              :height "97%"
-              :anchor "left bottom")
+              :height "100%"
+              :anchor "left center")
   :stacking "fg"
   :exclusive true
   (lbar))
@@ -106,6 +106,7 @@
 (defwindow leftbar2apps
   :monitor 1
   :geometry (geometry
+			  :x "-60px"
               :width "58px"
               :height "100%"
               :anchor "left center")
@@ -117,8 +118,8 @@
   :monitor 0
   :geometry (geometry
               :width "60px"
-              :height "97%"
-              :anchor "left bottom")
+              :height "100%"
+              :anchor "left center")
   :stacking "fg"
   :exclusive true
   (lbar))
@@ -126,6 +127,7 @@
 (defwindow leftbarapps
   :monitor 0
   :geometry (geometry
+			  :x "-60px"
               :width "58px"
               :height "100%"
               :anchor "left center")
