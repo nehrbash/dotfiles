@@ -7,10 +7,10 @@ if [ -d ".dotfiles" ]; then
     git pull
     git submodule update --init --recursive
 else
+	cd .dotfiles
     echo ".dotfiles directory does not exist. Cloning repo."
     git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
 fi
-
 stow .
 cd -
 
