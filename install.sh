@@ -1,8 +1,15 @@
 #! /bin/bash
 set -e
-
-sudo pacman -S stow git --noconfirm --needed
-git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
+cd ~
+if [ -d ".dotfiles" ]; then
+    echo ".dotfiles directory exists. Pulling latest updates."
+    cd .dotfiles
+    git pull
+    git submodule update --init --recursive
+else
+    echo ".dotfiles directory does not exist. Cloning repo."
+    git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
+fi
 cd .dotfiles
 stow .
 cd -

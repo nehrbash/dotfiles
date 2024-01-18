@@ -13,6 +13,7 @@ grimblast-git
 hyprland
 hyprlang
 xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
 wl-clipboard
 swayidle
 nwg-look
@@ -62,3 +63,4 @@ bash-language-server
 curl
 shellcheck
 rust-analyzer
+sshfs

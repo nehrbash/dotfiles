@@ -53,9 +53,16 @@
 #+begin_src sh :tangle install.sh
 #! /bin/bash
 set -e
-
-sudo pacman -S stow git --noconfirm --needed
-git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
+cd ~
+if [ -d ".dotfiles" ]; then
+    echo ".dotfiles directory exists. Pulling latest updates."
+    cd .dotfiles
+    git pull
+    git submodule update --init --recursive
+else
+    echo ".dotfiles directory does not exist. Cloning repo."
+    git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
+fi
 cd .dotfiles
 stow .
 cd -
@@ -123,7 +130,7 @@ greetd-regreet
 
 * WM Hyprland
 
-  I've gone from gnome>i3>kde>xmonad>i3>xmonad>sway>hyprland. I hope to stay here.
+  The best Wayland Window Manager.
 	
 #+begin_src txt :tangle pkglist.txt :padline no
 swaync
@@ -139,6 +146,7 @@ grimblast-git
 hyprland
 hyprlang
 xdg-desktop-portal-hyprland
+xdg-desktop-portal-gtk
 wl-clipboard
 #+end_src
 
@@ -179,7 +187,6 @@ else
 fi
 #+end_src
 	
-
 *** Packages
 
 	- *libpulse* for pactl but don't want to add  pipewire here 
@@ -351,6 +358,7 @@ bash-language-server
 curl
 shellcheck
 rust-analyzer
+sshfs
 #+end_src
 
 * References
