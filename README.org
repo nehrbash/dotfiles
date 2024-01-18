@@ -10,21 +10,18 @@
 - PDF Viewer: pdf-tools (Emacs)
 - Theme: ef-melissa-dark )
 - cursor theme: Dracula
-- Fonts
-  - Google Sans Bold
-  - Material Icons Outlined
-  - Source Code Pro
+
 
 * Table Of Contents :TOC:
 - [[#arch-install-script][Arch Install script]]
   - [[#bootstrap-paru][Bootstrap Paru]]
   - [[#install-packages][Install Packages]]
 - [[#keyboard][Keyboard]]
--  [[#login][Login]]
+- [[#login][Login]]
 - [[#wm-hyprland][WM Hyprland]]
   - [[#services][Services]]
   - [[#eww][Eww]]
-  - [[#fonts][Fonts]]
+- [[#fonts][Fonts]]
 - [[#personal-software][Personal Software]]
   - [[#terminal][Terminal]]
   - [[#firefox][Firefox]]
@@ -40,7 +37,7 @@
   2. clone the repo to ~~/.dotfiles~ and run ~stow .~ to symlink files into place.
   3. run install script.
 
-#+begin_src shell :tangle no
+#+begin_src sh :tangle no
 sudo pacman -S stow git --noconfirm
 git clone https://github.com/snehrbass/dotfiles.git ~/.dotfiles --recurse-submodules
 cd .dotfiles
@@ -86,16 +83,16 @@ fi
   - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
   - [[https://github.com/manna-harbour/miryoku][Layout]]
 
-*  Login
+* Login
 
-  I used greetd with Hyprland and  regreet. Manually copy =greetd= to =/etc/greetd= make sure the greetd user can read files.
+  I used greetd with Hyprland and regreet. Manually copy =greetd= to =/etc/greetd= make sure the greetd user can read files.
 
 #+begin_src txt :tangle pkglist.txt :padline no
 greetd
 greetd-regreet
 #+end_src
 
-#+begin_src shell :tangle install.sh
+#+begin_src sh :tangle install.sh
 systemctl enable greetd.service
 #+end_src
   
@@ -149,15 +146,18 @@ iwgtk
 playerctl
 #+end_src
 
-** Fonts
-   - ttf-google-sans => primary text and UI font 
-   - Weather Icons => eww weather
+* Fonts
+
+  Fonts used across my config 
+   - Iosevka, Iosevka Aile => normal text
+   - Materiial Icons => most Icons 
+   - Weather Icons => included idk where they it came from but it's here. For Center eww.
    - font awesome => just for spotify icon
 
 #+begin_src txt :tangle pkglist.txt :padline no
+ttf-iosevka
+ttf-iosevka-aile
 ttf-material-icons-git
-ttf-google-sans
-ttf-google-fonts-git
 ttf-font-awesome
 #+end_src
 

@@ -22,9 +22,9 @@ pavucontrol
 blueberry
 iwgtk
 playerctl
+ttf-iosevka
+ttf-iosevka-aile
 ttf-material-icons-git
-ttf-google-sans
-ttf-google-fonts-git
 ttf-font-awesome
 vlc
 downgrade
