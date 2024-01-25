@@ -904,19 +904,31 @@ point reaches the beginning or end of the buffer, stop there."
   :bind
   ("C-;" . embark-act)
   ("C-h B" . embark-bindings)
+  (:map smerge-mode-map
+		("C-M-n" . smerge-act-next))
   (:map minibuffer-mode-map
 		("M-e" . sn/edit-search-results))
   (:map embark-region-map
 		("w" . google-this)
 		("g" . gptel))
-  :init
+  :config
   (defun sn/edit-search-results ()
 	"Export results using `embark-export' and activate `wgrep'."
 	(interactive)
 	(progn
 	  (run-at-time 0 nil #'embark-export)
 	  (run-at-time 0 nil #'wgrep-change-to-wgrep-mode)))
-  :config
+  (defun smerge-act-next ()
+  "Go to next smerge diff and call embark-act on smerg target."
+  (interactive)
+  (condition-case nil
+      (progn
+        (smerge-next)
+        (if (bound-and-true-p flymake-mode)
+			;; skip the flymake target.
+            (embark-act 1)
+          (embark-act)))
+    (error (message "No more smerge chunks left."))))
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
 			   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
@@ -1715,7 +1727,7 @@ point reaches the beginning or end of the buffer, stop there."
 											  :unusedvariable t)
 									:hints
 									(:assignVariableTypes t
-:constantValues t
+														  :constantValues t
 														  :rangeVariableTypes t))
 				  :js-ts
                   (:format 
@@ -1735,11 +1747,13 @@ point reaches the beginning or end of the buffer, stop there."
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
 					   #'yasnippet-capf
-					   #'cape-keyword
 					   #'cape-file)
 					  #'codeium-completion-at-point))))
 (use-package consult-eglot
-  :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
+  :after eglot
+  :bind
+  (:map eglot-mode-map
+		("C-c f" . consult-eglot-symbols)))
 
 (use-package eglot-booster
   :after eglot
@@ -1798,14 +1812,25 @@ point reaches the beginning or end of the buffer, stop there."
   (blamer-idle-time 0.6)
   (blamer-min-offset 70))
 
+(use-package forge
+  :ensure nil
+  :after magit
+  :config
+  (add-to-list 'forge-alist
+             '("gitlab.office.analyticsgateway.com"
+               "gitlab.office.analyticsgateway.com/api/v4"
+               "gitlab.office.analyticsgateway.com"
+               forge-gitlab-repository))
+)
+(use-package magit-extras
+  :ensure nil
+  :after magit)
 (use-package magit
-  :defer t
   :commands (magit-status magit-dispatch project-switch-project)
   :config
-  (require 'magit-extras)
-  ;; (require 'forge)
   (fullframe magit-status magit-mode-quit-window)
   :custom
+  ;; (auth-sources '("~/.authinfo.gpg"))
   (magit-diff-refine-hunk t)
   :bind
   ("C-x g" . magit-status)
@@ -2015,8 +2040,8 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
-  (flymake-wrap-around nil)
-  (flymake-no-changes-timeout 0.8)
+  (flymake-wrap-around t)
+  (flymake-no-changes-timeout 3)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config

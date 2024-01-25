@@ -1501,19 +1501,31 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :bind
   ("C-;" . embark-act)
   ("C-h B" . embark-bindings)
+  (:map smerge-mode-map
+		("C-M-n" . smerge-act-next))
   (:map minibuffer-mode-map
 		("M-e" . sn/edit-search-results))
   (:map embark-region-map
 		("w" . google-this)
 		("g" . gptel))
-  :init
+  :config
   (defun sn/edit-search-results ()
 	"Export results using `embark-export' and activate `wgrep'."
 	(interactive)
 	(progn
 	  (run-at-time 0 nil #'embark-export)
 	  (run-at-time 0 nil #'wgrep-change-to-wgrep-mode)))
-  :config
+  (defun smerge-act-next ()
+  "Go to next smerge diff and call embark-act on smerg target."
+  (interactive)
+  (condition-case nil
+      (progn
+        (smerge-next)
+        (if (bound-and-true-p flymake-mode)
+			;; skip the flymake target.
+            (embark-act 1)
+          (embark-act)))
+    (error (message "No more smerge chunks left."))))
   ;; Hide the mode line of the Embark live/completions buffers
   (add-to-list 'display-buffer-alist
 			   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
@@ -2545,7 +2557,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 											  :unusedvariable t)
 									:hints
 									(:assignVariableTypes t
-:constantValues t
+														  :constantValues t
 														  :rangeVariableTypes t))
 				  :js-ts
                   (:format 
@@ -2565,12 +2577,13 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
 					   #'yasnippet-capf
-					   #'cape-keyword
 					   #'cape-file)
 					  #'codeium-completion-at-point))))
 (use-package consult-eglot
-  :bind(:map eglot-mode-map ("C-c f" . consult-eglot-symbols)))
-
+  :after eglot
+  :bind
+  (:map eglot-mode-map
+		("C-c f" . consult-eglot-symbols)))
 #+end_src
 
 **** performance booter
@@ -2650,14 +2663,25 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 -   =project-switch-project= was added so that magit shows up as an action item.
 
 #+begin_src emacs-lisp
+(use-package forge
+  :ensure nil
+  :after magit
+  :config
+  (add-to-list 'forge-alist
+             '("gitlab.office.analyticsgateway.com"
+               "gitlab.office.analyticsgateway.com/api/v4"
+               "gitlab.office.analyticsgateway.com"
+               forge-gitlab-repository))
+)
+(use-package magit-extras
+  :ensure nil
+  :after magit)
 (use-package magit
-  :defer t
   :commands (magit-status magit-dispatch project-switch-project)
   :config
-  (require 'magit-extras)
-  ;; (require 'forge)
   (fullframe magit-status magit-mode-quit-window)
   :custom
+  ;; (auth-sources '("~/.authinfo.gpg"))
   (magit-diff-refine-hunk t)
   :bind
   ("C-x g" . magit-status)
@@ -2917,8 +2941,8 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package flymake
   :hook (prog-mode . flymake-mode)
   :custom
-  (flymake-wrap-around nil)
-  (flymake-no-changes-timeout 0.8)
+  (flymake-wrap-around t)
+  (flymake-no-changes-timeout 3)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config
