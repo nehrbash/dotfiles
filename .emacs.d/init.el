@@ -987,7 +987,7 @@ point reaches the beginning or end of the buffer, stop there."
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 1.3)
   (completion-cycle-threshold 3)
-  (corfu-on-exact-match nil)
+  (corfu-on-exact-match t)
   :config
   ;; (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
   ;; (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
