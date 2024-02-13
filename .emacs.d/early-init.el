@@ -2,6 +2,15 @@
 ;;; Commentary:
 ;;; Code:
 
+(setq package-enable-at-startup nil)
+
+;; Local Variables:
+;; no-byte-compile: t
+;; no-native-compile: t
+;; no-update-autoloads: t
+;; End:
+
+
 (defvar doom--file-name-handler-alist file-name-handler-alist) ;; temp restore later
 (setq file-name-handler-alist nil)
 

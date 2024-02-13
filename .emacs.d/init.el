@@ -2,47 +2,65 @@
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
-(defun load-all-environment-variables ()
-	"Load all environment variables from the user's shell."
-	(let ((shell-env (shell-command-to-string "env")))
-	  (dolist (var (split-string shell-env "\n"))
-		(when (string-match "\\([^=]+\\)=\\(.*\\)" var)
-		  (let ((name (match-string 1 var))
-				(value (match-string 2 var)))
-			(setenv name value))))))
-(load-all-environment-variables)
-
-(eval-when-compile
-  (require 'package)
-  (add-to-list 'package-archives '("melpa" . "https://melpa.org/packages/"))
-  (require 'use-package))
+(defvar elpaca-installer-version 0.6)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (< emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                 ((zerop (call-process "git" nil buffer t "clone"
+                                       (plist-get order :repo) repo)))
+                 ((zerop (call-process "git" nil buffer t "checkout"
+                                       (or (plist-get order :ref) "--"))))
+                 (emacs (concat invocation-directory invocation-name))
+                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                 ((require 'elpaca))
+                 ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (load "./elpaca-autoloads")))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
+;; Install use-package support
+(elpaca elpaca-use-package
+		;; use-package enable :ensure keyword.
+		(elpaca-use-package-mode)
+		(setq use-package-always-ensure t))
+(elpaca-wait)
 (setopt
  warning-minimum-level :emergency
- comp-async-report-warnings-errors nil
  native-comp-jit-compilation t
  byte-compile-docstring-max-column 120
- native-compile-prune-cache t
- package-install-upgrade-built-in t
- package-native-compile t
- package-quickstart t
- use-package-always-ensure t
- use-package-compute-statistics t
- use-package-expand-minimally t)
-(use-package async
-  :init (async-bytecomp-package-mode 1))
+ native-compile-prune-cache t)
 
-(defun sn/finish-install-advice ()
-  "Advice function to run additional tasks after package upgrade."
+(defun sn/finish-install ()
+  (interactive)
   (progn
 	(treesit-auto-install-all)
-	(all-the-icons-install-fonts)
+	(all-the-icons-install-fonts t)
 	(yas-reload-all)
 	(recentf-cleanup)
-	(nerd-icons-install-fonts)))
-(advice-add 'package-upgrade-all :after #'sn/finish-install-advice)
+	(nerd-icons-install-fonts t)))
 
-(setq custom-file "~/.emacs.d/custom.el")
-(load custom-file 'noerror 'nomessage)
+(setq custom-file (expand-file-name "customs.el" user-emacs-directory))
+(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
 
 (use-package ef-themes
   :defer t
@@ -71,14 +89,14 @@
        `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
-	   `(tab-line-tab ((,c   :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
-	   `(tab-line-tab-current ((,c  :background ,fg-alt :foreground "#281d12")))
-	   `(tab-line-tab-inactive ((,c  :background ,fg-dim :foreground "#281d12")))
-	   `(tab-line-highlight ((,c  :background ,bg-active :foreground "#281d12")))
-	   `(tab-line-env-default ((,c  :background ,green-faint )))
-	   `(tab-line-env-1 ((,c  :background ,red-faint )))
-	   `(tab-line-env-2 ((,c  :background ,yellow-faint )))
-	   `(tab-line-env-3 ((,c  :background ,blue-faint )))
+	   `(tab-line-tab ((,c :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
+	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
+	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
+	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
+	   `(tab-line-env-default ((,c :background ,green-faint )))
+	   `(tab-line-env-1 ((,c :background ,red-faint )))
+	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
+	   `(tab-line-env-3 ((,c :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
 	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
@@ -88,11 +106,10 @@
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
 	   `(fixed-pitch ((,c :font "Iosevka")))
-	   `(variable-pitch ((,c :font "Iosevka Aile")))
+	   `(variable-pitch ((,c :font "Iosevka")))
 	   `(org-modern-symbol ((,c :font "Iosevka")))
 	   `(default ((,c :font "Iosevka" :height 115)))
 	   `(unspecified-bg ((,c :inherit 'default))))))
-
   (defun sn/load-my-theme (frame)
 	(select-frame frame)
 	(when (display-graphic-p frame)
@@ -105,27 +122,26 @@
 	(my-ef-themes-mod)))
 
 (use-package doom-modeline
-  :hook (after-init . sn/set-modeline)
-  :defer t
-  :config
-  (defun sn/set-modeline ()
-	(require 'doom-modeline)
-	(line-number-mode -1)
-	(column-number-mode -1)
-	(doom-modeline-def-modeline 'simple-line
-	  '(bar modals buffer-info remote-host)
-	  '(compilation objed-state misc-info persp-name lsp checker process vcs))
-	(doom-modeline-set-modeline 'simple-line 'default))
   :custom
   (doom-modeline-project-detection 'project)
   (doom-modeline-vcs-max-length 30)
-  (doom-modeline-height 32))
+  (doom-modeline-height 32)
+  :config
+  (defun sn/set-modeline ()
+	"Customize doom-modeline."
+	(doom-modeline-def-modeline 'simple-line
+      '(bar modals buffer-info remote-host)
+      '(compilation objed-state misc-info persp-name lsp checker process vcs))
+	(line-number-mode -1)
+	(column-number-mode -1)
+	(doom-modeline-set-modeline 'simple-line 'default))
+  (sn/set-modeline))
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
 
 (use-package pixel-scroll
-  :ensure nil 
+  :ensure nil
   :bind
   ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
   ([remap scroll-down-command] . pixel-scroll-interpolate-up)
@@ -179,7 +195,6 @@
 
 (use-package recentf
   :ensure nil
-  :defer
   :custom
   (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
   (recentf-max-saved-items 50)
@@ -195,6 +210,7 @@
   (recentf-mode 1))
 
 (use-package autorevert
+  :ensure nil
   :custom
   (auto-revert-use-notify nil)
   :init (global-auto-revert-mode 1))
@@ -271,6 +287,7 @@ This is useful when followed by an immediate kill."
 (global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
 
 (use-package display-line-numbers
+  :ensure nil
   :if (fboundp 'display-line-numbers-mode)
   :init
   (setq-default display-line-numbers-width 3)
@@ -340,6 +357,7 @@ This is useful when followed by an immediate kill."
   :hook (prog-mode . show-paren-mode))
 
 (use-package winner
+  :ensure nil
   :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
 		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
 		 ("C-x 1" . sanityinc/toggle-delete-other-windows)
@@ -411,107 +429,110 @@ Call a second time to restore the original window configuration."
 			   (if was-dedicated "no longer " "")
 			   (buffer-name)))))
 
-(use-package avy
-  :bind ("C-:" . avy-goto-char-timer))
-
 (setq confirm-kill-processes nil)
 
 (use-package meow
-  :hook (after-init . meow-global-mode)
-  :demand t
-  :config
-  (setq meow-replace-state-name-list
-		'((normal . "🟢")
-		  (motion . "🟡")
-		  (keypad . "🟣")
-		  (insert . "🟠")
-		  (beacon . "🔴")))
-  (add-to-list 'meow-mode-state-list '(org-mode . insert))
-  (add-to-list 'meow-mode-state-list '(eat-mode . insert))
-  (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
-  (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-  (meow-motion-overwrite-define-key
-   ;; Use e to move up, n to move down.
-   ;; Since special modes usually use n to move down, we only overwrite e here.
-   '("e" . meow-prev)
-   '("<escape>" . ignore))
-  (meow-leader-define-key
-   '("?" . meow-cheatsheet)
-   ;; To execute the originally e in MOTION state, use SPC e.
-   '("e" . "H-e")
-   '("o" . switch-window)
-   '("1" . meow-digit-argument)
-   '("2" . meow-digit-argument)
-   '("3" . meow-digit-argument)
-   '("4" . meow-digit-argument)
-   '("5" . meow-digit-argument)
-   '("6" . meow-digit-argument)
-   '("7" . meow-digit-argument)
-   '("8" . meow-digit-argument)
-   '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument)
-   '("f ." . find-file-at-point))
-  (meow-normal-define-key
-   '("0" . meow-expand-0)
-   '("1" . meow-expand-1)
-   '("2" . meow-expand-2)
-   '("3" . meow-expand-3)
-   '("4" . meow-expand-4)
-   '("5" . meow-expand-5)
-   '("6" . meow-expand-6)
-   '("7" . meow-expand-7)
-   '("8" . meow-expand-8)
-   '("9" . meow-expand-9)
-   '("-" . negative-argument)
-   '(";" . meow-reverse)
-   '("," . meow-inner-of-thing)
-   '("." . meow-bounds-of-thing)
-   '("[" . meow-beginning-of-thing)
-   '("]" . meow-end-of-thing)
-   '("/" . meow-visit)
-   '("a" . meow-append)
-   '("A" . meow-open-below)
-   '("b" . meow-back-word)
-   '("B" . meow-back-symbol)
-   '("c" . meow-change)
-   '("d" . meow-delete)
-   '("e" . meow-prev)
-   '("E" . meow-prev-expand)
-   '("f" . meow-find)
-   '("g" . meow-cancel-selection)
-   '("G" . meow-grab)
-   '("h" . meow-left)
-   '("H" . meow-left-expand)
-   '("i" . meow-right)
-   '("I" . meow-right-expand)
-   '("j" . meow-join)
-   '("k" . meow-kill)
-   '("l" . meow-line)
-   '("L" . meow-goto-line)
-   '("m" . meow-mark-word)
-   '("M" . meow-mark-symbol)
-   '("n" . meow-next)
-   '("N" . meow-next-expand)
-   '("o" . meow-block)
-   '("O" . meow-to-block)
-   '("p" . meow-yank)
-   '("q" . meow-quit)
-   '("r" . meow-replace)
-   '("s" . meow-insert)
-   '("S" . meow-open-above)
-   '("t" . meow-till)
-   '("u" . meow-undo)
-   '("U" . meow-undo-in-selection)
-   '("v" . meow-search)
-   '("w" . meow-next-word)
-   '("W" . meow-next-symbol)
-   '("x" . meow-delete)
-   '("X" . meow-backward-delete)
-   '("y" . meow-save)
-   '("z" . meow-pop-selection)
-   '("'" . repeat)
-   '("<escape>" . ignore)))
+   :demand t
+   :bind
+   (:map meow-normal-state-keymap
+	   ("C-o j" . org-clock-goto)
+	   ("C-o l" . org-clock-in-last)
+	   ("C-o i" . org-clock-in)
+	   ("C-o o" . org-clock-out))
+   :config
+   (meow-global-mode 1)
+   (setq meow-replace-state-name-list
+		 '((normal . "🟢")
+		   (motion . "🟡")
+		   (keypad . "🟣")
+		   (insert . "🟠")
+		   (beacon . "🔴")))
+   (add-to-list 'meow-mode-state-list '(org-mode . insert))
+   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
+   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
+   (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+   (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+   (meow-motion-overwrite-define-key
+	;; Use e to move up, n to move down.
+	;; Since special modes usually use n to move down, we only overwrite e here.
+	'("e" . meow-prev)
+	'("<escape>" . ignore))
+   (meow-leader-define-key
+	'("?" . meow-cheatsheet)
+	;; To execute the originally e in MOTION state, use SPC e.
+	'("e" . "H-e")
+	'("o" . switch-window)
+	'("1" . meow-digit-argument)
+	'("2" . meow-digit-argument)
+	'("3" . meow-digit-argument)
+	'("4" . meow-digit-argument)
+	'("5" . meow-digit-argument)
+	'("6" . meow-digit-argument)
+	'("7" . meow-digit-argument)
+	'("8" . meow-digit-argument)
+	'("9" . meow-digit-argument)
+	'("0" . meow-digit-argument)
+	'("f ." . find-file-at-point))
+   (meow-normal-define-key
+	'("0" . meow-expand-0)
+	'("1" . meow-expand-1)
+	'("2" . meow-expand-2)
+	'("3" . meow-expand-3)
+	'("4" . meow-expand-4)
+	'("5" . meow-expand-5)
+	'("6" . meow-expand-6)
+	'("7" . meow-expand-7)
+	'("8" . meow-expand-8)
+	'("9" . meow-expand-9)
+	'("-" . negative-argument)
+	'(";" . meow-reverse)
+	'("," . meow-inner-of-thing)
+	'("." . meow-bounds-of-thing)
+	'("[" . meow-beginning-of-thing)
+	'("]" . meow-end-of-thing)
+	'("/" . meow-visit)
+	'("a" . meow-append)
+	'("A" . meow-open-below)
+	'("b" . meow-back-word)
+	'("B" . meow-back-symbol)
+	'("c" . meow-change)
+	'("d" . meow-delete)
+	'("e" . meow-prev)
+	'("E" . meow-prev-expand)
+	'("f" . meow-find)
+	'("g" . meow-cancel-selection)
+	'("G" . meow-grab)
+	'("h" . meow-left)
+	'("H" . meow-left-expand)
+	'("i" . meow-right)
+	'("I" . meow-right-expand)
+	'("j" . meow-join)
+	'("k" . meow-kill)
+	'("l" . meow-line)
+	'("L" . meow-goto-line)
+	'("m" . meow-mark-word)
+	'("M" . meow-mark-symbol)
+	'("n" . meow-next)
+	'("N" . meow-next-expand)
+	'("o" . meow-block)
+	'("O" . meow-to-block)
+	'("p" . meow-yank)
+	'("q" . meow-quit)
+	'("r" . meow-replace)
+	'("s" . meow-insert)
+	'("S" . meow-open-above)
+	'("t" . meow-till)
+	'("u" . meow-undo)
+	'("U" . meow-undo-in-selection)
+	'("v" . meow-search)
+	'("w" . meow-next-word)
+	'("W" . meow-next-symbol)
+	'("x" . meow-delete)
+	'("X" . meow-backward-delete)
+	'("y" . meow-save)
+	'("z" . meow-pop-selection)
+	'("'" . repeat)
+	'("<escape>" . ignore)))
 
 (use-package avy
   :commands avy-goto-char-timer
@@ -708,7 +729,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t
   :ensure nil
   :bind (:map minibuffer-local-completion-map
-			  ("<backtab>" . minibuffer-force-complete))
+  			  ("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
@@ -719,7 +740,7 @@ point reaches the beginning or end of the buffer, stop there."
   :hook
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . (lambda ()
-						(cursor-intangible-mode 1)))
+  						(cursor-intangible-mode 1)))
   :config
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode))
@@ -737,14 +758,14 @@ point reaches the beginning or end of the buffer, stop there."
 			   '(consult-ripgrep buffer)))
 (use-package marginalia
   :init (marginalia-mode)
-  :bind (:map minibuffer-local-map
-			  ("M-a" . marginalia-cycle))
+  :bind
+  (:map minibuffer-local-map
+		("M-a" . marginalia-cycle))
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
   :hook (marginalia-mode-hook . all-the-icons-completion-marginalia-setup)
-  :init
-  (all-the-icons-completion-mode))
+  :init (all-the-icons-completion-mode))
 
 (use-package orderless
   :custom
@@ -805,8 +826,7 @@ point reaches the beginning or end of the buffer, stop there."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
-
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defvar consult--source-org
 	(list :name     "Org"
 		  :category 'buffer
@@ -945,11 +965,11 @@ point reaches the beginning or end of the buffer, stop there."
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package project
+  :ensure nil
   :bind-keymap ("C-c p". project-prefix-map))
 
 (use-package protogg
-  :vc (:url "https://github.com/nehrbash/protogg.git"
-			   :branch "main" :rev :newest)
+  :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("C-c x" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
@@ -1005,14 +1025,7 @@ point reaches the beginning or end of the buffer, stop there."
   :after corfu
   :hook (text-mode . (lambda ()
 					   (setq-local corfu-auto nil)
-					   (corfu-candidate-overlay-mode +1)))
-  :vc (corfu-candidate-overlay :url "https://code.bsdgeek.org/adam/corfu-candidate-overlay.git"
-							   :branch "master" :rev :newest))
-
-(use-package corfu-terminal
-  :after corfu
-  :vc (:url "https://codeberg.org/akib/emacs-corfu-terminal.git"
-			:branch "master" :rev :newest))
+					   (corfu-candidate-overlay-mode +1))))
 
 (use-package kind-icon
   :after corfu
@@ -1084,10 +1097,10 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure nil
   :commands (dired dired-jump)
   :hook (dired-mode . (lambda ()
-						(dired-omit-mode 1)
-						(dired-hide-details-mode 1)
-						(toggle-mode-line)
-						(hl-line-mode 1)))
+  					  (dired-omit-mode 1)
+  					  (dired-hide-details-mode 1)
+  					  (toggle-mode-line)
+  					  (hl-line-mode 1)))
   :custom
   ((dired-mouse-drag-files t)
    (dired-omit-files "^\\.\\.?$")
@@ -1098,15 +1111,15 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package dired-single
   :after dired
   :bind (:map dired-mode-map
-			  ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
-			  ("f" . dired-single-buffer)))
+  			("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
+  			("f" . dired-single-buffer)))
 (use-package dired-ranger
   :after dired
   :bind (:map dired-mode-map
-			  ("w" . dired-ranger-copy)
-			  ("m" . dired-ranger-move)
-			  ("H" . dired-omit-mode)
-			  ("y" . dired-ranger-paste)))
+  			("w" . dired-ranger-copy)
+  			("m" . dired-ranger-move)
+  			("H" . dired-omit-mode)
+  			("y" . dired-ranger-paste)))
 (use-package all-the-icons
   :defer t)
 (use-package all-the-icons-dired
@@ -1122,7 +1135,7 @@ point reaches the beginning or end of the buffer, stop there."
   :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (:map dired-mode-map
-			  ("." . dired-hide-dotfiles-mode)))
+  			("." . dired-hide-dotfiles-mode)))
 
 (use-package consult-dir
   :after consult
@@ -1156,16 +1169,30 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package org-contrib
   :defer t) ;; install but don't require unless needed.
 (use-package org
+  :ensure nil
   :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
   (:map org-mode-map
-		( "C-M-<up>" . org-up-element))
+		( "C-M-<up>" . org-up-element)
+		("C-c v" . wr-mode))
   :hook
+  (org-mode . wr-mode)
+  (org-mode . (lambda ()
+				(add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
+						  'run-at-end 'only-in-org-mode)))
   (org-export-before-processing .
 								(lambda (backend)
 								  (require 'ox-extra)))
   :custom
+  (org-todo-keywords
+   (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
+		   (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
+		   (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
+   org-todo-repeat-to-state "NEXT")
+  (org-todo-keyword-faces
+   (quote (("NEXT" :inherit warning)
+		   ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
   (org-auto-align-tags nil)
   (org-edit-src-content-indentation 0)
@@ -1186,45 +1213,49 @@ point reaches the beginning or end of the buffer, stop there."
   (org-startup-with-inline-images t)
   (org-tags-column 0)
   ;; TODO(SN): https://github.com/karthink/org-auctex
-  (org-startup-with-latex-preview nil)
+  (org-startup-with-latex-preview nil);; wait for the async rendering to be merged
   (org-support-shift-select t)
   (org-archive-location "%s_archive::* Archive")
   (org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
   (org-directory "~/doc")
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-agenda-files
-		(cl-remove-if-not #'file-exists-p
-						  '("~/doc/inbox.org"
-							"~/doc/projects.org"
-							"~/doc/gcal.org"
-							"~/doc/repeater.org")))
+   (cl-remove-if-not #'file-exists-p
+					 '("~/doc/inbox.org"
+					   "~/doc/projects.org"
+					   "~/doc/gcal.org"
+					   "~/doc/repeater.org")))
   (org-capture-templates
-		`(("t" "Tasks")
-		  ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
-		   "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
-		  ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
-		   "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
-		  ("p" "New Project")
-		  ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
-		   "* PROJECT %?\n" :clock-keep t)
-		  ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
-		   "* PROJECT %?\n" :clock-keep t :clock-in t)
-		  ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
-		   "* PROJECT %?\n" :clock-keep t)
-		  ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
-		   "* PROJECT %?\n" :clock-keep t :clock-in t)
-		  ("c" "Current task" checkitem (clock))
-		  ("r" "Roam")
-		  ("rt" "Go to today's daily note" entry (function (lambda ()
-															 (org-roam-dailies-goto-today)
-															 (org-capture-finalize))))
-		  ("rf" "Find or create an Org-roam node" entry (function (lambda ()
-																	(org-roam-node-find)
-																	(org-capture-finalize))))
-		  ("rv" "Open Roam UI in browser" entry (function (lambda ()
-															(org-roam-ui-open)
-															(org-capture-finalize))))))
+   `(("t" "Tasks")
+	 ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
+	  "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
+	 ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
+	  "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
+	 ("p" "New Project")
+	 ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+	  "* PROJECT %?\n" :clock-keep t)
+	 ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+	  "* PROJECT %?\n" :clock-keep t :clock-in t)
+	 ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
+	  "* PROJECT %?\n" :clock-keep t)
+	 ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
+	  "* PROJECT %?\n" :clock-keep t :clock-in t)
+	 ("c" "Current task" checkitem (clock))
+	 ("r" "Roam")
+	 ("rt" "Go to today's daily note" entry (function (lambda ()
+														(org-roam-dailies-goto-today)
+														(org-capture-finalize))))
+	 ("rf" "Find or create an Org-roam node" entry (function (lambda ()
+															   (org-roam-node-find)
+															   (org-capture-finalize))))
+	 ("rv" "Open Roam UI in browser" entry (function (lambda ()
+													   (org-roam-ui-open)
+													   (org-capture-finalize))))))
   :config
+  (defun sn/org-babel-tangle-dont-ask ()
+	"Tangle Org file without asking for confirmation."
+	(let ((org-confirm-babel-evaluate nil))
+	  (org-babel-tangle)))
   (org-babel-do-load-languages
    'org-babel-load-languages
    `((dot . t)
@@ -1234,53 +1265,18 @@ point reaches the beginning or end of the buffer, stop there."
 	 (python . t)
 	 (,(if (locate-library "ob-sh") 'sh 'shell) . t)
 	 (sql . t)
-	 (sqlite . t))))
-
-(use-package org
- :config
- (defun sn/org-babel-tangle-dont-ask ()
-   "Tangle Org file without asking for confirmation."
-   (let ((org-confirm-babel-evaluate nil))
-	 (org-babel-tangle)))
- :hook
- (org-mode . (lambda ()
-			   (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
-						 'run-at-end 'only-in-org-mode))))
-
-(defun gtd () (interactive)
-		 (progn
-		   (org-resolve-clocks)
-		   (org-agenda 'nil "g")))
-(defun sn/org-capture-frame ()
-  "Run org-capture in its own frame."
-  (interactive)
-  (require 'cl-lib)
-  (select-frame-by-name "capture")
-  (delete-other-windows)
-  (cl-letf (((symbol-function 'switch-to-buffer-other-window) #'switch-to-buffer))
-    (condition-case err
-        (org-capture)
-      ;; "q" signals (error "Abort") in `org-capture'
-      ;; delete the newly created frame in this scenario.
-      (user-error (when (string= (cadr err) "Abort")
-                    (delete-frame))))))
-(add-hook 'org-capture-mode-hook 'toggle-mode-line)
-
-(use-package org-modern
-  :after org
-  :config
-  (global-org-modern-mode))
-
-(use-package org
-  :bind
-  (:map org-mode-map
-		("C-c v" . wr-mode))
+	 (sqlite . t)))
+  (defun sn/org-clock-in-if-inprogress ()
+	"Clock in when the task state is changed to INPROGRESS."
+	(when (string= org-state "INPROGRESS")
+	  (org-clock-in)))
+  (add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress)
   :init
   (define-minor-mode wr-mode
 	"Set up a buffer for word editing.
-  This enables or modifies a number of settings so that the
-  experience of word processing is a little more like that of a
-  typical word processor."
+   This enables or modifies a number of settings so that the
+   experience of word processing is a little more like that of a
+   typical word processor."
 	:interactive t " Writing" nil
 	(if wr-mode
 		(progn
@@ -1307,13 +1303,40 @@ point reaches the beginning or end of the buffer, stop there."
 	  (kill-local-variable 'electric-pair-mode)
 	  (buffer-face-mode -1)
 	  (visual-line-mode -1)
-	  (variable-pitch-mode -1)))
-  :hook (org-mode . wr-mode))
+	  (variable-pitch-mode -1))))
+
+(use-package ob-mermaid
+  :after org
+  :ensure-system-package (mmdc . "npm install -g @mermaid-js/mermaid-cli")
+  :config
+  (add-to-list 'org-babel-load-languages '(mermaid . t)))
+
+(defun gtd () (interactive)
+		 (progn
+		   (org-resolve-clocks)
+		   (org-agenda 'nil "g")))
+(defun sn/org-capture-frame ()
+  "Run org-capture in its own frame."
+  (interactive)
+  (require 'cl-lib)
+  (select-frame-by-name "capture")
+  (delete-other-windows)
+  (cl-letf (((symbol-function 'switch-to-buffer-other-window) #'switch-to-buffer))
+    (condition-case err
+        (org-capture)
+      ;; "q" signals (error "Abort") in `org-capture'
+      ;; delete the newly created frame in this scenario.
+      (user-error (when (string= (cadr err) "Abort")
+                    (delete-frame))))))
+(add-hook 'org-capture-mode-hook 'toggle-mode-line)
+
+(use-package org-modern
+  :after org
+  :config
+  (global-org-modern-mode))
 
 (use-package org-appear
-  :after org
-  :vc (:url "https://github.com/awth13/org-appear.git"
-				  :branch "master" :rev :newest)
+  :ensure (:host github :repo "awth13/org-appear")
   :hook (org-mode . org-appear-mode))
 
 (use-package org-fragtog
@@ -1321,14 +1344,18 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package org-clock
   :ensure nil  ;; built in
-  :config
+  :hook
+  (org-clock-in . type-break-mode)
+  (org-clock-out . (lambda () (type-break-mode -1)))
+  (org-clock-in . (lambda () (org-todo "INPROGRESS")
+  					(org-save-all-org-buffers)))
+  (org-clock-out . (lambda ()
+  					 (unless (string-equal (org-get-todo-state) "DONE")
+  					   (org-todo "NEXT")
+  					   (setq org-clock-heading "")
+  					   (org-save-all-org-buffers))))
+  :init
   (org-clock-persistence-insinuate)
-  :bind
-  (:map meow-normal-state-keymap
-		("C-o j" . org-clock-goto)
-		("C-o l" . org-clock-in-last)
-		("C-o i" . org-clock-in)
-		("C-o o" . org-clock-out))
   :custom
   (org-clock-in-resume t)
   (org-clock-persist t)
@@ -1349,9 +1376,7 @@ point reaches the beginning or end of the buffer, stop there."
   (org-clock-persist 'history))
 
 (use-package type-break
-  :hook
-  (org-clock-in . type-break-mode)
-  (org-clock-out . (lambda () (type-break-mode -1)))
+  :ensure nil
   :custom
   (org-clock-ask-before-exiting nil)
   (type-break-interval (* 25 60)) ;; 25 mins
@@ -1454,129 +1479,103 @@ point reaches the beginning or end of the buffer, stop there."
   (org-agenda-block-separator ?─)
   (org-agenda-category-icon-alist
    `(
-	 ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
-	 ("music" "~/.dotfiles/icons/music.svg" nil nil :ascent center :mask heuristic)
-	 ("chore" "~/.dotfiles/icons/chore.svg" nil nil :ascent center :mask heuristic)
-	 ("events" "~/.dotfiles/icons/events.svg" nil nil :ascent center :mask heuristic)
-	 ("inbox" "~/.dotfiles/icons/inbox.svg" nil nil :ascent center :mask heuristic)
-	 ("walk" "~/.dotfiles/icons/walk.svg" nil nil :ascent center :mask heuristic)
-	 ("solution" "~/.dotfiles/icons/solution.svg" nil nil :ascent center :mask heuristic)
-	 ("community" "~/.dotfiles/icons/community.svg" nil nil :ascent center :mask heuristic)
-	 ("idea" "~/.dotfiles/icons/idea.svg" nil nil :ascent center :mask heuristic)
-	 ("personal" "~/.dotfiles/icons/man.svg" nil nil :ascent center :mask heuristic)
-	 ("scheduled" "~/.dotfiles/icons/scheduled.svg" nil nil :ascent center :mask heuristic)
-	 ("class" "~/.dotfiles/icons/class.svg" nil nil :ascent center :mask heuristic)
-	 ("plant" "~/.dotfiles/icons/plant.svg" nil nil :ascent center :mask heuristic)
-	 ("check" "~/.dotfiles/icons/check.svg" nil nil :ascent center :mask heuristic)
-	 ("search" "~/.dotfiles/icons/search.svg" nil nil :ascent center :mask heuristic)
-	 ("home" "~/.dotfiles/icons/home.svg" nil nil :ascent center :mask heuristic)
-	 ("book" "~/.dotfiles/icons/book.svg" nil nil :ascent center :mask heuristic)
-	 ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
-	 ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
-	 ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
-	 ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
+   ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
+   ("music" "~/.dotfiles/icons/music.svg" nil nil :ascent center :mask heuristic)
+   ("chore" "~/.dotfiles/icons/chore.svg" nil nil :ascent center :mask heuristic)
+   ("events" "~/.dotfiles/icons/events.svg" nil nil :ascent center :mask heuristic)
+   ("inbox" "~/.dotfiles/icons/inbox.svg" nil nil :ascent center :mask heuristic)
+   ("walk" "~/.dotfiles/icons/walk.svg" nil nil :ascent center :mask heuristic)
+   ("solution" "~/.dotfiles/icons/solution.svg" nil nil :ascent center :mask heuristic)
+   ("community" "~/.dotfiles/icons/community.svg" nil nil :ascent center :mask heuristic)
+   ("idea" "~/.dotfiles/icons/idea.svg" nil nil :ascent center :mask heuristic)
+   ("personal" "~/.dotfiles/icons/man.svg" nil nil :ascent center :mask heuristic)
+   ("scheduled" "~/.dotfiles/icons/scheduled.svg" nil nil :ascent center :mask heuristic)
+   ("class" "~/.dotfiles/icons/class.svg" nil nil :ascent center :mask heuristic)
+   ("plant" "~/.dotfiles/icons/plant.svg" nil nil :ascent center :mask heuristic)
+   ("check" "~/.dotfiles/icons/check.svg" nil nil :ascent center :mask heuristic)
+   ("search" "~/.dotfiles/icons/search.svg" nil nil :ascent center :mask heuristic)
+   ("home" "~/.dotfiles/icons/home.svg" nil nil :ascent center :mask heuristic)
+   ("book" "~/.dotfiles/icons/book.svg" nil nil :ascent center :mask heuristic)
+   ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
+   ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
+   ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
+   ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
   (let ((active-project-match "-inbox/PROJECT"))
-	(setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
-		  org-agenda-compact-blocks t
-		  org-agenda-sticky t
-		  org-agenda-start-on-weekday nil
-		  org-agenda-span 'day
-		  org-agenda-include-diary nil
-		  org-agenda-use-time-grid nil
-		  org-agenda-window-setup 'current-window
-		  org-agenda-sorting-strategy
-		  '((agenda habit-down time-up user-defined-up effort-up category-keep)
-			(todo category-up effort-up)
-			(tags category-up effort-up)
-			(search category-up)))
-	(setq org-agenda-custom-commands
-		  `(("g" "GTD"
-			 ((agenda "" nil)
-			  (tags "inbox"
-					((org-agenda-overriding-header "Inbox")
-					 (org-tags-match-list-sublevels nil)
-					 (org-agenda-skip-function
-					  '(lambda ()
-						 (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
-			  (stuck nil
-					 ((org-agenda-overriding-header "Stuck Projects")
-					  (org-agenda-tags-todo-honor-ignore-options t)
-					  (org-tags-match-list-sublevels t)
-					  (org-agenda-todo-ignore-scheduled 'future)))
-			  (tags-todo "-inbox"
-						 ((org-agenda-overriding-header "Next Actions")
-						  (org-agenda-tags-todo-honor-ignore-options t)
-						  (org-agenda-todo-ignore-scheduled 'future)
-						  (org-agenda-skip-function
-						   '(lambda ()
-							  (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
-								  (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
-						  (org-tags-match-list-sublevels t)
-						  (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
-			  (tags-todo ,active-project-match
-						 ((org-agenda-overriding-header "Projects")
-						  (org-tags-match-list-sublevels t)
-						  (org-agenda-sorting-strategy
-						   '(category-keep))))
-			  (tags-todo "-inbox-repeater"
-						 ((org-agenda-overriding-header "Orphaned Tasks")
-						  (org-agenda-tags-todo-honor-ignore-options t)
-						  (org-agenda-todo-ignore-scheduled 'future)
-						  (org-agenda-skip-function
-						   '(lambda ()
-							  (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-								  (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
-						  (org-tags-match-list-sublevels t)
-						  (org-agenda-sorting-strategy '(category-keep))))
-			  (tags-todo "/WAITING"
-						 ((org-agenda-overriding-header "Waiting")
-						  (org-agenda-tags-todo-honor-ignore-options t)
-						  (org-agenda-todo-ignore-scheduled 'future)
-						  (org-agenda-sorting-strategy
-						   '(category-keep))))
-			  (tags-todo "/DELEGATED"
-						 ((org-agenda-overriding-header "Delegated")
-						  (org-agenda-tags-todo-honor-ignore-options t)
-						  (org-agenda-todo-ignore-scheduled 'future)
-						  (org-agenda-sorting-strategy '(category-keep))))
-			  (tags-todo "-inbox"
-						 ((org-agenda-overriding-header "On Hold")
-						  (org-agenda-skip-function
-						   '(lambda ()
-							  (or (org-agenda-skip-subtree-if 'todo '("WAITING"))
-								  (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
-						  (org-tags-match-list-sublevels nil)
-						  (org-agenda-sorting-strategy '(category-keep))))))))))
+  (setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
+  		org-agenda-compact-blocks t
+  		org-agenda-sticky t
+  		org-agenda-start-on-weekday nil
+  		org-agenda-span 'day
+  		org-agenda-include-diary nil
+  		org-agenda-use-time-grid nil
+  		org-agenda-window-setup 'current-window
+  		org-agenda-sorting-strategy
+  		'((agenda habit-down time-up user-defined-up effort-up category-keep)
+  		  (todo category-up effort-up)
+  		  (tags category-up effort-up)
+  		  (search category-up)))
+  (setq org-agenda-custom-commands
+  		`(("g" "GTD"
+  		   ((agenda "" nil)
+  			(tags "inbox"
+  				  ((org-agenda-overriding-header "Inbox")
+  				   (org-tags-match-list-sublevels nil)
+  				   (org-agenda-skip-function
+  					'(lambda ()
+  					   (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
+  			(stuck nil
+  				   ((org-agenda-overriding-header "Stuck Projects")
+  					(org-agenda-tags-todo-honor-ignore-options t)
+  					(org-tags-match-list-sublevels t)
+  					(org-agenda-todo-ignore-scheduled 'future)))
+  			(tags-todo "-inbox"
+  					   ((org-agenda-overriding-header "Next Actions")
+  						(org-agenda-tags-todo-honor-ignore-options t)
+  						(org-agenda-todo-ignore-scheduled 'future)
+  						(org-agenda-skip-function
+  						 '(lambda ()
+  							(or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
+  								(org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
+  						(org-tags-match-list-sublevels t)
+  						(org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
+  			(tags-todo ,active-project-match
+  					   ((org-agenda-overriding-header "Projects")
+  						(org-tags-match-list-sublevels t)
+  						(org-agenda-sorting-strategy
+  						 '(category-keep))))
+  			(tags-todo "-inbox-repeater"
+  					   ((org-agenda-overriding-header "Orphaned Tasks")
+  						(org-agenda-tags-todo-honor-ignore-options t)
+  						(org-agenda-todo-ignore-scheduled 'future)
+  						(org-agenda-skip-function
+  						 '(lambda ()
+  							(or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+  								(org-agenda-skip-subtree-if 'nottodo '("TODO")))))
+  						(org-tags-match-list-sublevels t)
+  						(org-agenda-sorting-strategy '(category-keep))))
+  			(tags-todo "/WAITING"
+  					   ((org-agenda-overriding-header "Waiting")
+  						(org-agenda-tags-todo-honor-ignore-options t)
+  						(org-agenda-todo-ignore-scheduled 'future)
+  						(org-agenda-sorting-strategy
+  						 '(category-keep))))
+  			(tags-todo "/DELEGATED"
+  					   ((org-agenda-overriding-header "Delegated")
+  						(org-agenda-tags-todo-honor-ignore-options t)
+  						(org-agenda-todo-ignore-scheduled 'future)
+  						(org-agenda-sorting-strategy '(category-keep))))
+  			(tags-todo "-inbox"
+  					   ((org-agenda-overriding-header "On Hold")
+  						(org-agenda-skip-function
+  						 '(lambda ()
+  							(or (org-agenda-skip-subtree-if 'todo '("WAITING"))
+  								(org-agenda-skip-entry-if 'nottodo '("HOLD")))))
+  						(org-tags-match-list-sublevels nil)
+  						(org-agenda-sorting-strategy '(category-keep))))))))))
 
-(use-package org
-  :hook
-  (org-clock-in . (lambda () (org-todo "INPROGRESS")
-					(org-save-all-org-buffers)))
-  (org-clock-out . (lambda ()
-					 (unless (string-equal (org-get-todo-state) "DONE")
-					   (org-todo "NEXT")
-					   (setq org-clock-heading "")
-					   (org-save-all-org-buffers))))
-  :custom
-  (org-todo-keywords
-   (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
-		   (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
-		   (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
-   org-todo-repeat-to-state "NEXT")
-  (org-todo-keyword-faces
-   (quote (("NEXT" :inherit warning)
-		   ("PROJECT" :inherit font-lock-string-face))))
-  :config
-  (defun sn/org-clock-in-if-inprogress ()
-	"Clock in when the task state is changed to INPROGRESS."
-	(when (string= org-state "INPROGRESS")
-      (org-clock-in)))
-  (add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress))
-
-(setq org-refile-use-cache nil)
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
 (setq org-refile-targets '((nil :maxlevel . 5) (org-agenda-files :maxlevel . 5)))
 (with-eval-after-load 'org-agenda
@@ -1627,8 +1626,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package pdf-continuous-scroll-mode
   :after pdf-tools
-  :vc (:url "https://github.com/dalanicolai/pdf-continuous-scroll-mode.el.git"
-			:branch "master" :rev :newest))
+  :ensure (:host github :repo "dalanicolai/pdf-continuous-scroll-mode.el"))
 
 (use-package org-roam
   :defer t
@@ -1660,8 +1658,7 @@ point reaches the beginning or end of the buffer, stop there."
   :after org-roam)
 
 (use-package org-roam-ui
-  :vc (:url "https://github.com/org-roam/org-roam-ui.git"
-			:branch "main" :rev :newest)
+  :ensure (:host github :repo "org-roam/org-roam-ui")
   :after org-roam
   :init
   (set-face-attribute 'default nil :family "Iosevka")
@@ -1678,15 +1675,14 @@ point reaches the beginning or end of the buffer, stop there."
 (add-hook 'prog-mode-hook #'auto-fill-mode)
 
 (use-package indent-bars
+  :ensure (:host github :repo "jdtsmith/indent-bars")
   :defer t
   :hook ((prog-mode conf-mode yaml-mode) . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.2))
   (indent-bars-pattern ".")
   (indent-bars-width-frac 0.3)
-  (indent-bars-pad-frac 0.1)
-  :vc (:url "https://github.com/jdtsmith/indent-bars.git"
-			:branch "main" :rev :newest))
+  (indent-bars-pad-frac 0.1))
 
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
@@ -1701,6 +1697,7 @@ point reaches the beginning or end of the buffer, stop there."
   :config (global-treesit-auto-mode))
 
 (use-package eglot
+  :ensure ( :inherit elpaca-menu-gnu-devel-elpa)
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . sn/setup-eglot)
@@ -1757,8 +1754,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package eglot-booster
   :after eglot
-  :vc (:url "https://github.com/jdtsmith/eglot-booster.git"
-			:branch "main" :rev :newest)
+  :ensure (:host github :repo "jdtsmith/eglot-booster")
   :config	(eglot-booster-mode))
 
 (use-package dape
@@ -1813,31 +1809,28 @@ point reaches the beginning or end of the buffer, stop there."
   (blamer-min-offset 70))
 
 (use-package forge
-  :ensure nil
+  :ensure (:files (:defaults "docs/*"))
   :after magit
   :config
   (add-to-list 'forge-alist
-             '("gitlab.office.analyticsgateway.com"
-               "gitlab.office.analyticsgateway.com/api/v4"
-               "gitlab.office.analyticsgateway.com"
-               forge-gitlab-repository))
-)
-(use-package magit-extras
-  :ensure nil
-  :after magit)
+			   '("gitlab.office.analyticsgateway.com"
+				 "gitlab.office.analyticsgateway.com/api/v4"
+				 "gitlab.office.analyticsgateway.com"
+				 forge-gitlab-repository)))
 (use-package magit
   :commands (magit-status magit-dispatch project-switch-project)
   :config
   (fullframe magit-status magit-mode-quit-window)
+  (require 'magit-extras)
   :custom
   ;; (auth-sources '("~/.authinfo.gpg"))
   (magit-diff-refine-hunk t)
   :bind
   ("C-x g" . magit-status)
   ("C-x M-g" . magit-dispatch))
-(use-package magit-todos
-  :after magit
-  :hook (magit-mode . magit-todos-mode))
+;; (use-package magit-todos
+;;   :ensure (:main nil)
+;;   :hook (magit-mode . magit-todos-mode))
 (use-package git-timemachine
   :defer t
   :bind ("C-c C-g" . git-timemachine)
@@ -1930,6 +1923,7 @@ point reaches the beginning or end of the buffer, stop there."
     (multi-vterm-project)))
 
 (use-package tab-line
+  :ensure nil
   :after vterm
   :hook (vterm-mode . tab-line-mode)
   :custom
@@ -2050,6 +2044,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 		(append elisp-flymake-byte-compile-load-path load-path)))
 
 (use-package go-ts-mode
+  :ensure nil
   :mode "\\.go\\'"
   :ensure-system-package
   ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
@@ -2073,6 +2068,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
 
 (use-package rust-ts-mode
+  :ensure nil
   :mode ("\\.rs\\'" . rust-ts-mode)
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
@@ -2083,65 +2079,16 @@ If the project doesn't exist, return a random face and add a new mapping."
   :ensure nil
   :mode ("\\.sh\\'" . bash-ts-mode))
 (use-package flymake-shellcheck
-   :ensure t
    :commands flymake-shellcheck-load
-   :init
-   (add-hook 'bash-ts-mode-hook 'flymake-shellcheck-load))
+   :hook (bash-ts-mode . flymake-shellcheck-load))
 
 (use-package js-ts-mode
   :ensure nil
   :mode ("\\.js\\'" . js-ts-mode))
 
 (use-package toml-ts-mode
+  :ensure nil
   :hook (toml-ts-mode . goto-address-prog-mode))
-
-(use-package python
-  :mode ("\\.py\\'" . python-mode)
-  :interpreter ("python" . python-mode))
-(use-package conda
-  :after python
-  :commands (conda-env-list conda-env-activate)
-  :config
-  ;; The location of your anaconda home will be guessed from a list of common
-  ;; possibilities, starting with `conda-anaconda-home''s default value (which
-  ;; will consult a ANACONDA_HOME envvar, if it exists).
-  ;;
-  ;; If none of these work for you, `conda-anaconda-home' must be set
-  ;; explicitly. Afterwards, run M-x `conda-env-activate' to switch between
-  ;; environments
-  (or (cl-loop for dir in (list conda-anaconda-home
-								"~/.anaconda"
-								"~/.miniconda"
-								"~/.miniconda3"
-								"~/.miniforge3"
-								"~/anaconda3"
-								"~/miniconda3"
-								"~/miniforge3"
-								"~/opt/miniconda3"
-								"/usr/bin/anaconda3"
-								"/usr/local/anaconda3"
-								"/usr/local/miniconda3"
-								"/usr/local/Caskroom/miniconda/base"
-								"~/.conda")
-			   if (file-directory-p dir)
-			   return (setq conda-anaconda-home (expand-file-name dir)
-							conda-env-home-directory (expand-file-name dir)))
-	  (message "Cannot find Anaconda installation"))
-
-  ;; integration with term/eshell
-  (conda-env-initialize-interactive-shells)
-
-  (add-to-list 'global-mode-string
-			   '(conda-env-current-name (" conda:" conda-env-current-name " "))
-			   'append))
-(use-package jupyter
-  :defer t
-  :config
-  (add-to-list 'org-babel-load-languages '(jupyter . t))
-  (setq code-cells-convert-ipynb-style '(
-										 ("pandoc" "--to" "ipynb" "--from" "org")
-										 ("pandoc" "--to" "org" "--from" "ipynb")
-										 org-mode)))
 
 (use-package csv-mode
   :mode ("\\.[Cc][Ss][Vv]\\'" . python-mode)
@@ -2149,6 +2096,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   (setq csv-separators '("," ";" "|" " " ", ")))
 
 (use-package yaml-ts-mode
+  :ensure nil
   :hook (yaml-ts-mode . goto-address-prog-mode))
 
 (use-package docker
@@ -2203,35 +2151,29 @@ If the project doesn't exist, return a random face and add a new mapping."
   ;; :load-path "/usr/share/emacs/site-lisp/mu4e/"
   :init
   (setq smtpmail-smtp-server "smtp.fastmail.com"
-	  smtpmail-smtp-service 465
-	  smtpmail-stream-type 'ssl)
+  		smtpmail-smtp-service 465
+  		smtpmail-stream-type 'ssl)
   :custom
-	;; This is set to 't' to avoid mail syncing issues when using mbsync
+  ;; This is set to 't' to avoid mail syncing issues when using mbsync
   (mu4e-change-filenames-when-moving t)
-
   ;; Refresh mail using isync every 10 minutes
   (mu4e-update-interval (* 10 60))
   (mu4e-get-mail-command "mbsync -a")
   (mu4e-maildir "~/Mail")
-
   (mu4e-drafts-folder "/[Gmail]/Drafts")
   (mu4e-sent-folder   "/[Gmail]/Sent Mail")
   (mu4e-refile-folder "/[Gmail]/All Mail")
   (mu4e-trash-folder  "/[Gmail]/Trash")
-
   :config
-
-
   (setq mu4e-maildir-shortcuts
-	  '(("/Inbox"             . ?i)
-		("/[Gmail]/Sent Mail" . ?s)
-		("/[Gmail]/Trash"     . ?t)
-		("/[Gmail]/Drafts"    . ?d)
-		("/[Gmail]/All Mail"  . ?a))))
+  		'(("/Inbox"             . ?i)
+  		  ("/[Gmail]/Sent Mail" . ?s)
+  		  ("/[Gmail]/Trash"     . ?t)
+  		  ("/[Gmail]/Drafts"    . ?d)
+  		  ("/[Gmail]/All Mail"  . ?a))))
 
 (use-package whisper
-  :vc (:url "https://github.com/natrys/whisper.el"
-			:branch "master" :rev :newest)
+  :ensure (:host github :repo "natrys/whisper.el")
   :bind ("C-h w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
@@ -2249,8 +2191,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 ;; we recommend using use-package to organize your init.el
 (use-package codeium
   :defer t
-  :vc (:url "https://github.com/Exafunction/codeium.el.git"
-			:branch "main" :rev :newest)
+  :ensure (:host github :repo "Exafunction/codeium.el")
   :custom
   (codeium-log-buffer nil)
   :config
@@ -2263,8 +2204,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 
 (use-package cus-dir
   :defer t
-  :vc (:url "https://gitlab.com/mauroaranda/cus-dir.git"
-			:branch "master" :rev :newest)
+  :ensure (:host gitlab :repo "mauroaranda/cus-dir")
   :bind ("C-x p d" . customize-dirlocals-project))
 
 (use-package speed-type
@@ -2277,6 +2217,5 @@ If the project doesn't exist, return a random face and add a new mapping."
   :defer t)
 
 (use-package gcmh
-  :vc (:url "https://github.com/emacsmirror/gcmh.git"
-			   :branch "master" :rev :newest)
+  :ensure (:host github :repo "emacsmirror/gcmh")
   :hook (after-init . gcmh-mode))

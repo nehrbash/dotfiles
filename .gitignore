@@ -50,3 +50,6 @@
 /.emacs.d/.org-id-locations
 */custom.el
 /.emacs.d/jinx_corrections
+/.emacs.d/forge-database-v11-20240130-1145.sqlite
+/.emacs.d/elpaca/
+/.emacs.d/url/

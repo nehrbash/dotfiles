@@ -2,8 +2,10 @@
 
 rm -rf "$HOME/.emacs.d/etc"
 rm -rf "$HOME/.emacs.d/elpa"
+rm -rf "$HOME/.emacs.d/elpaca"
 rm -rf "$HOME/.emacs.d/straight"
 rm -rf "$HOME/.emacs.d/var"
+rm -rf "$HOME/.emacs.d/customs.el"
 rm -rf "$HOME/.emacs.d/eshell"
 rm -rf "$HOME/.emacs.d/org-roam.db"
 rm -rf "$HOME/.emacs.d/persist"
