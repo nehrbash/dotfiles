@@ -71,7 +71,7 @@
 			  :applist "${appList.Apps}"
               :icon "${appList.Icon}"
               :revealid "${appList.ID}"
-              :show "true" ;; {arraylength(appList.Apps) > 1 ? true : false}
+              :show {arraylength(appList.Apps) > 1 ? true : false}
 			  )))))))
 
 (defwidget lbar []
