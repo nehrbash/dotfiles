@@ -434,107 +434,115 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 
 (use-package meow
-   :demand t
-   :bind
-   (:map meow-normal-state-keymap
-	   ("C-o j" . org-clock-goto)
-	   ("C-o l" . org-clock-in-last)
-	   ("C-o i" . org-clock-in)
-	   ("C-o o" . org-clock-out))
-   :config
-   (meow-global-mode 1)
-   (setq meow-replace-state-name-list
-		 '((normal . "🟢")
-		   (motion . "🟡")
-		   (keypad . "🟣")
-		   (insert . "🟠")
-		   (beacon . "🔴")))
-   (add-to-list 'meow-mode-state-list '(org-mode . insert))
-   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
-   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
-   (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
-   (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-   (meow-motion-overwrite-define-key
-	;; Use e to move up, n to move down.
-	;; Since special modes usually use n to move down, we only overwrite e here.
-	'("e" . meow-prev)
-	'("<escape>" . ignore))
-   (meow-leader-define-key
-	'("?" . meow-cheatsheet)
-	;; To execute the originally e in MOTION state, use SPC e.
-	'("e" . "H-e")
-	'("o" . switch-window)
-	'("1" . meow-digit-argument)
-	'("2" . meow-digit-argument)
-	'("3" . meow-digit-argument)
-	'("4" . meow-digit-argument)
-	'("5" . meow-digit-argument)
-	'("6" . meow-digit-argument)
-	'("7" . meow-digit-argument)
-	'("8" . meow-digit-argument)
-	'("9" . meow-digit-argument)
-	'("0" . meow-digit-argument)
-	'("f ." . find-file-at-point))
-   (meow-normal-define-key
-	'("0" . meow-expand-0)
-	'("1" . meow-expand-1)
-	'("2" . meow-expand-2)
-	'("3" . meow-expand-3)
-	'("4" . meow-expand-4)
-	'("5" . meow-expand-5)
-	'("6" . meow-expand-6)
-	'("7" . meow-expand-7)
-	'("8" . meow-expand-8)
-	'("9" . meow-expand-9)
-	'("-" . negative-argument)
-	'(";" . meow-reverse)
-	'("," . meow-inner-of-thing)
-	'("." . meow-bounds-of-thing)
-	'("[" . meow-beginning-of-thing)
-	'("]" . meow-end-of-thing)
-	'("/" . meow-visit)
-	'("a" . meow-append)
-	'("A" . meow-open-below)
-	'("b" . meow-back-word)
-	'("B" . meow-back-symbol)
-	'("c" . meow-change)
-	'("d" . meow-delete)
-	'("e" . meow-prev)
-	'("E" . meow-prev-expand)
-	'("f" . meow-find)
-	'("g" . meow-cancel-selection)
-	'("G" . meow-grab)
-	'("h" . meow-left)
-	'("H" . meow-left-expand)
-	'("i" . meow-right)
-	'("I" . meow-right-expand)
-	'("j" . meow-join)
-	'("k" . meow-kill)
-	'("l" . meow-line)
-	'("L" . meow-goto-line)
-	'("m" . meow-mark-word)
-	'("M" . meow-mark-symbol)
-	'("n" . meow-next)
-	'("N" . meow-next-expand)
-	'("o" . meow-block)
-	'("O" . meow-to-block)
-	'("p" . meow-yank)
-	'("q" . meow-quit)
-	'("r" . meow-replace)
-	'("s" . meow-insert)
-	'("S" . meow-open-above)
-	'("t" . meow-till)
-	'("u" . meow-undo)
-	'("U" . meow-undo-in-selection)
-	'("v" . meow-search)
-	'("w" . meow-next-word)
-	'("W" . meow-next-symbol)
-	'("x" . meow-delete)
-	'("X" . meow-backward-delete)
-	'("y" . meow-save)
-	'("z" . meow-pop-selection)
-	'("'" . repeat)
-	'("<escape>" . ignore)))
+  :demand t
+  :bind
+  (:map meow-normal-state-keymap
+		("C-o j" . org-clock-goto)
+		("C-o l" . org-clock-in-last)
+		("C-o i" . org-clock-in)
+		("C-o o" . org-clock-out))
+  :config
+  (meow-global-mode 1)
+  (setq meow-replace-state-name-list
+		'((normal . "🟢")
+		  (motion . "🟡")
+		  (keypad . "🟣")
+		  (insert . "🟠")
+		  (beacon . "🔴")))
+  (add-to-list 'meow-mode-state-list '(org-mode . insert))
+  (add-to-list 'meow-mode-state-list '(eat-mode . insert))
+  (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
+  (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+  (meow-motion-overwrite-define-key
+   ;; Use e to move up, n to move down.
+   ;; Since special modes usually use n to move down, we only overwrite e here.
+   '("e" . meow-prev)
+   '("<escape>" . ignore))
+  (meow-leader-define-key
+   '("?" . meow-cheatsheet)
+   ;; To execute the originally e in MOTION state, use SPC e.
+   '("e" . "H-e")
+   '("1" . meow-digit-argument)
+   '("2" . meow-digit-argument)
+   '("3" . meow-digit-argument)
+   '("4" . meow-digit-argument)
+   '("5" . meow-digit-argument)
+   '("6" . meow-digit-argument)
+   '("7" . meow-digit-argument)
+   '("8" . meow-digit-argument)
+   '("9" . meow-digit-argument)
+   '("0" . meow-digit-argument)
+   '("o" . switch-window)
+   '("s r" . consult-ripgrep)
+   '("s l" . consult-line)
+   '("f b" . consult-bookmark)
+   '("f ." . find-file-at-point)
+   '("f h" . consult-recent-file)
+   '("b o" . switch-to-buffer-other-window)
+   '("b b". switch-to-buffer) ;; orig. switch-to-buffer-other-window
+   '("<f4>" . consult-kmacro)
+   )
+  (meow-normal-define-key
+   '("0" . meow-expand-0)
+   '("1" . meow-expand-1)
+   '("2" . meow-expand-2)
+   '("3" . meow-expand-3)
+   '("4" . meow-expand-4)
+   '("5" . meow-expand-5)
+   '("6" . meow-expand-6)
+   '("7" . meow-expand-7)
+   '("8" . meow-expand-8)
+   '("9" . meow-expand-9)
+   '("-" . negative-argument)
+   '(";" . meow-reverse)
+   '("," . meow-inner-of-thing)
+   '("." . meow-bounds-of-thing)
+   '("[" . meow-beginning-of-thing)
+   '("]" . meow-end-of-thing)
+   '("/" . meow-visit)
+   '("a" . meow-append)
+   '("A" . meow-open-below)
+   '("b" . meow-back-word)
+   '("B" . meow-back-symbol)
+   '("c" . meow-change)
+   '("d" . meow-delete)
+   '("e" . meow-prev)
+   '("E" . meow-prev-expand)
+   '("f" . meow-find)
+   '("g" . meow-cancel-selection)
+   '("G" . meow-grab)
+   '("h" . meow-left)
+   '("H" . meow-left-expand)
+   '("i" . meow-right)
+   '("I" . meow-right-expand)
+   '("j" . meow-join)
+   '("k" . meow-kill)
+   '("l" . meow-line)
+   '("L" . meow-goto-line)
+   '("m" . meow-mark-word)
+   '("M" . meow-mark-symbol)
+   '("n" . meow-next)
+   '("N" . meow-next-expand)
+   '("o" . meow-block)
+   '("O" . meow-to-block)
+   '("p" . meow-yank)
+   '("q" . meow-quit)
+   '("r" . meow-replace)
+   '("s" . meow-insert)
+   '("S" . meow-open-above)
+   '("t" . meow-till)
+   '("u" . meow-undo)
+   '("U" . meow-undo-in-selection)
+   '("v" . meow-search)
+   '("w" . meow-next-word)
+   '("W" . meow-next-symbol)
+   '("x" . meow-delete)
+   '("X" . meow-backward-delete)
+   '("y" . meow-save)
+   '("z" . meow-pop-selection)
+   '("'" . repeat)
+   '("<escape>" . ignore)))
 
 (use-package avy
   :commands avy-goto-char-timer
@@ -544,9 +552,7 @@ Call a second time to restore the original window configuration."
   :defer t
   :bind
   (:map isearch-mode-map
-		("C-t" . sn/isearch-menu)
-		("M-r" . consult-ripgrep)
-		("M-f" . consult-line))
+		("C-t" . sn/isearch-menu))
   :config
   (transient-define-prefix sn/isearch-menu ()
 	"isearch Menu"
@@ -727,6 +733,13 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package fullframe)
 
+(use-package desktop
+  :ensure nil
+  :init
+  (desktop-save-mode 1)
+  :custom
+  (desktop-restore-eager 1))
+
 (use-package minibuffer
   :defer t
   :ensure nil
@@ -788,8 +801,6 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t
   :bind
   (:map meow-normal-state-keymap
-		("C-b" . consult-buffer-other-window)
-		("M-b". consult-buffer);; orig. switch-to-buffer-other-window
 		("P" . consult-yank-pop)
 		("M-o" . consult-outline)
 		("C-M-r" . consult-register)
@@ -803,7 +814,6 @@ point reaches the beginning or end of the buffer, stop there."
   ("<help> a" . consult-apropos)            ;; orig. apropos-command
   ;; M-g bindings (goto-map)
   ("M-g e" . consult-compile-error)
-  ("M-g n" . consult-flymake)
   ("M-g i" . consult-imenu)
   ("M-g I" . consult-imenu-multi)
   ("M-s f" . consult-find)
@@ -813,10 +823,6 @@ point reaches the beginning or end of the buffer, stop there."
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
   :init
-  (meow-leader-define-key
-   '("b" . consult-bookmark)
-   '("<f4>" . consult-kmacro)
-   '("h" . consult-recent-file))
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
   (advice-add #'consult-line :before (lambda (&optional initial start)(push-mark-no-activate)) '((name . "add-mark")))
@@ -989,30 +995,29 @@ point reaches the beginning or end of the buffer, stop there."
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
-  :hook ((prog-mode conf-mode yaml-mode)
-		 . (lambda ()
-			 (setq-local corfu-auto t
-						 eldoc-idle-delay 0.1
-						 corfu-auto-delay 0
-						 corfu-auto-prefix 1
-						 completion-styles '(orderless-fast basic)
-						 corfu-popupinfo-delay 0.6)))
-  :bind
-  (:map corfu-map
-		("M-SPC" . corfu-insert-separator)
-		("TAB" . corfu-next)
-		([tab] . corfu-next)
-		("S-TAB" . corfu-previous)
-		([backtab] . corfu-previous))
+  :hook (((prog-mode conf-mode yaml-mode) . sn/corfu-basic))
+  :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
+			  ("TAB" . corfu-next)
+			  ([tab] . corfu-next)
+			  ("S-TAB" . corfu-previous)
+			  ([backtab] . corfu-previous))
   :custom
   (tab-always-indent 'complete)
   (corfu-quit-no-match 'separator)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 1.3)
-  (completion-cycle-threshold 3)
-  (corfu-on-exact-match t)
+  (completion-cycle-threshold 2)
+  (corfu-on-exact-match nil)
   :config
+  (defun sn/corfu-basic ()
+	"Setup completion for programming"
+	(setq-local corfu-auto t
+				eldoc-idle-delay 0.1
+				corfu-auto-delay 0
+				corfu-auto-prefix 1
+				completion-styles '(orderless-fast basic)
+				corfu-popupinfo-delay 0.6))
   ;; TAB cycle if there are only few candidates
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
@@ -1309,7 +1314,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package ob-mermaid
   :after org
-  :ensure-system-package (mmdc . "npm install -g @mermaid-js/mermaid-cli")
+  :ensure-system-package (mmdc . "paru -S --needed --noconfirm mermaid-cli")
   :config
   (add-to-list 'org-babel-load-languages '(mermaid . t)))
 
@@ -2026,6 +2031,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
 
 (use-package flymake
+  :ensure nil
   :hook (prog-mode . flymake-mode)
   :custom
   (flymake-wrap-around t)
@@ -2033,9 +2039,12 @@ If the project doesn't exist, return a random face and add a new mapping."
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'short)
   :config
-  
-  (setq elisp-flymake-byte-compile-load-path
-		(append elisp-flymake-byte-compile-load-path load-path)))
+  (meow-normal-define-key
+   '("C-e p" . flymake-show-project-diagnostics)
+   '("C-e n" . consult-flymake)))
+(use-package flymake-shellcheck
+   :commands flymake-shellcheck-load
+   :hook (bash-ts-mode . flymake-shellcheck-load))
 
 (use-package go-ts-mode
   :ensure nil
@@ -2072,9 +2081,6 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package bash-ts-mode
   :ensure nil
   :mode ("\\.sh\\'" . bash-ts-mode))
-(use-package flymake-shellcheck
-   :commands flymake-shellcheck-load
-   :hook (bash-ts-mode . flymake-shellcheck-load))
 
 (use-package js-ts-mode
   :ensure nil

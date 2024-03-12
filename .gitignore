@@ -54,3 +54,6 @@
 /.emacs.d/elpaca/
 /.emacs.d/url/
 /.emacs.d/speed-type/
+/.emacs.d/*.desktop
+/.emacs.d/customs.el
+*.lock
