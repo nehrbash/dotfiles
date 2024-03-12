@@ -2,12 +2,12 @@
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
-(defvar elpaca-installer-version 0.6)
+(defvar elpaca-installer-version 0.7)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil
+                              :ref nil :depth 1
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -20,8 +20,10 @@
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
         (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (call-process "git" nil buffer t "clone"
-                                       (plist-get order :repo) repo)))
+                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                 ,(plist-get order :repo) ,repo))))
                  ((zerop (call-process "git" nil buffer t "checkout"
                                        (or (plist-get order :ref) "--"))))
                  (emacs (concat invocation-directory invocation-name))
@@ -63,7 +65,7 @@
 (add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
 
 (use-package ef-themes
-  :defer t
+  :demand t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -93,6 +95,7 @@
 	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
+	   `(line-number ((,c :inherit (ef-themes-fixed-pitch shadow default) :background "#281d12")))
 	   `(tab-line-env-default ((,c :background ,green-faint )))
 	   `(tab-line-env-1 ((,c :background ,red-faint )))
 	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
@@ -131,7 +134,7 @@
 	"Customize doom-modeline."
 	(doom-modeline-def-modeline 'simple-line
       '(bar modals buffer-info remote-host)
-      '(compilation objed-state misc-info persp-name lsp checker process vcs))
+      '(compilation objed-state misc-info persp-name lsp process vcs))
 	(line-number-mode -1)
 	(column-number-mode -1)
 	(doom-modeline-set-modeline 'simple-line 'default))
@@ -288,7 +291,6 @@ This is useful when followed by an immediate kill."
 
 (use-package display-line-numbers
   :ensure nil
-  :if (fboundp 'display-line-numbers-mode)
   :init
   (setq-default display-line-numbers-width 3)
   (setq-default display-line-numbers-type 'relative)
@@ -987,19 +989,21 @@ point reaches the beginning or end of the buffer, stop there."
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
-  :defer 1
-  :hook (((prog-mode conf-mode yaml-mode) . (lambda ()
-					   (setq-local corfu-auto t
-								   eldoc-idle-delay 0.1
-								   corfu-auto-delay 0
-								   corfu-auto-prefix 1
-								   completion-styles '(orderless-fast basic)
-								   corfu-popupinfo-delay 0.6))))
-  :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
-			  ("TAB" . corfu-next)
-			  ([tab] . corfu-next)
-			  ("S-TAB" . corfu-previous)
-			  ([backtab] . corfu-previous))
+  :hook ((prog-mode conf-mode yaml-mode)
+		 . (lambda ()
+			 (setq-local corfu-auto t
+						 eldoc-idle-delay 0.1
+						 corfu-auto-delay 0
+						 corfu-auto-prefix 1
+						 completion-styles '(orderless-fast basic)
+						 corfu-popupinfo-delay 0.6)))
+  :bind
+  (:map corfu-map
+		("M-SPC" . corfu-insert-separator)
+		("TAB" . corfu-next)
+		([tab] . corfu-next)
+		("S-TAB" . corfu-previous)
+		([backtab] . corfu-previous))
   :custom
   (tab-always-indent 'complete)
   (corfu-quit-no-match 'separator)
@@ -1009,12 +1013,10 @@ point reaches the beginning or end of the buffer, stop there."
   (completion-cycle-threshold 3)
   (corfu-on-exact-match t)
   :config
-  ;; (add-to-list 'dabbrev-ignored-buffer-modes 'doc-view-mode)
-  ;; (add-to-list 'dabbrev-ignored-buffer-modes 'pdf-view-mode)
   ;; TAB cycle if there are only few candidates
   (defun orderless-fast-dispatch (word index total)
-  (and (= index 0) (= total 1) (length< word 4)
-	   `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
+	(and (= index 0) (= total 1) (length< word 4)
+		 `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
   (orderless-define-completion-style orderless-fast
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
@@ -1022,10 +1024,10 @@ point reaches the beginning or end of the buffer, stop there."
   (corfu-popupinfo-mode))
 
 (use-package corfu-candidate-overlay
-  :after corfu
-  :hook (text-mode . (lambda ()
-					   (setq-local corfu-auto nil)
-					   (corfu-candidate-overlay-mode +1))))
+  :hook (text-mode
+		 . (lambda ()
+			 (setq-local corfu-auto nil)
+			 (corfu-candidate-overlay-mode +1))))
 
 (use-package kind-icon
   :after corfu
@@ -1170,7 +1172,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t) ;; install but don't require unless needed.
 (use-package org
   :ensure nil
-  :bind
+  :bind 
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
   (:map org-mode-map
@@ -1808,37 +1810,29 @@ point reaches the beginning or end of the buffer, stop there."
   (blamer-idle-time 0.6)
   (blamer-min-offset 70))
 
-(use-package forge
-  :ensure (:files (:defaults "docs/*"))
-  :after magit
-  :config
-  (add-to-list 'forge-alist
-			   '("gitlab.office.analyticsgateway.com"
-				 "gitlab.office.analyticsgateway.com/api/v4"
-				 "gitlab.office.analyticsgateway.com"
-				 forge-gitlab-repository)))
 (use-package magit
   :commands (magit-status magit-dispatch project-switch-project)
   :config
   (fullframe magit-status magit-mode-quit-window)
   (require 'magit-extras)
   :custom
-  ;; (auth-sources '("~/.authinfo.gpg"))
   (magit-diff-refine-hunk t)
   :bind
   ("C-x g" . magit-status)
   ("C-x M-g" . magit-dispatch))
-;; (use-package magit-todos
-;;   :ensure (:main nil)
-;;   :hook (magit-mode . magit-todos-mode))
+(use-package hl-todo ;; dependancy for magit-todo
+  :ensure (:tag "v3.6.0"))
+(use-package magit-todos
+  :hook (magit-mode . magit-todos-mode))
 (use-package git-timemachine
   :defer t
   :bind ("C-c C-g" . git-timemachine)
   :custom (git-timemachine-show-minibuffer-details t))
 
 (use-package browse-at-remote
-  :bind (("C-c g g" . browse-at-remote)
-		 ("C-c g k" . browse-at-remote-kill)))
+  :bind
+  ("C-c g g" . browse-at-remote)
+  ("C-c g k" . browse-at-remote-kill))
 
 (use-package multi-vterm
   :after vterm)
@@ -1880,7 +1874,6 @@ point reaches the beginning or end of the buffer, stop there."
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
   :custom
-  (vterm-always-compile-module t)
   (vterm-buffer-name "Term")
   (vterm-buffer-name-string "Term %s")
   (vterm-buffer-maximum-size 800)
@@ -1895,6 +1888,7 @@ point reaches the beginning or end of the buffer, stop there."
                                        (reusable-frames . visible)
                                        (window-height . 0.4)))
   :init
+  (setq-default vterm-always-compile-module t)
   (defun toggle-vterm-buffer ()
     "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
     (interactive)
@@ -2091,7 +2085,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   :hook (toml-ts-mode . goto-address-prog-mode))
 
 (use-package csv-mode
-  :mode ("\\.[Cc][Ss][Vv]\\'" . python-mode)
+  :mode ("\\.[Cc][Ss][Vv]\\'" . csv-mode)
   :config
   (setq csv-separators '("," ";" "|" " " ", ")))
 
@@ -2115,21 +2109,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 
-(defvar devcontainer-setup-done nil
-  "Flag to track whether the devcontainer setup has been performed.")
-
-(defun devcontainer-setup ()
-  "Prompt user to reopen in devcontainer if the current file path doesn't contain '/docker:'."
-  (unless devcontainer-setup-done
-	(if (y-or-n-p "Reopen in devcontainer? (y/n) ")
-		(progn
-		  (setq devcontainer-setup-done t)
-		  (shell-command "devcontainer up --workspace-folder .")
-		  (find-file "/docker:dev-container:/workspace"))
-	  (message "Devcontainer setup canceled."))))
-
-(use-package terraform-mode
-  :mode ("\\.dockerfile\\'" . dockerfile-mode))
+(use-package terraform-mode)
 
 (use-package yuck-mode
   :mode ("\\.yuck\\'" . yuck-mode)
