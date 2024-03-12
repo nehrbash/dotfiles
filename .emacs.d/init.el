@@ -1958,7 +1958,8 @@ point reaches the beginning or end of the buffer, stop there."
 	  symbol-overlay-face-7
 	  symbol-overlay-face-8))
   
-  (defcustom project-face-alist nil
+  (defcustom project-face-alist
+	:type '(string)
 	"Project name mappeded to tab face.")
 
   (defun get-face-for-project (project-name)
@@ -1988,7 +1989,7 @@ If the project doesn't exist, return a random face and add a new mapping."
            (is-docker (string-match-p ":docker:" buffer-path))
            (project (get-project-name buffer-path)))
 	  (cond
-	   (project (get-face-for-project project))
+	   (project '(get-face-for-project project))
 	   (is-ssh 'tab-line-env-1)
 	   (is-docker 'tab-line-env-2)
 	   (t 'tab-line-env-default))))
