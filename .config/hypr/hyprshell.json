@@ -1,11 +1,11 @@
 [
   {
     "Desktop": "emacsclient.desktop",
-    "Class": "emacs",
+    "Class": "Emacs-30.0.50",
     "Icon": "/usr/share/icons/Dracula/scalable/apps/emacs.svg"
   },
   {
-    "Desktop": "firefox-bin.desktop",
+    "Desktop": "firefox.desktop",
     "Class": "Firefox",
     "Icon": "/usr/share/icons/Dracula/scalable/apps/firefox.svg"
   },
