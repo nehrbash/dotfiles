@@ -72,6 +72,7 @@
   - [[#yuck][Yuck]]
   - [[#markdown][Markdown]]
   - [[#all-things-html][All things HTML]]
+  - [[#projects][projects]]
 - [[#fancy-bloat][Fancy Bloat]]
   - [[#mu4e---mail][Mu4e - Mail]]
   - [[#voice-to-text][Voice to Text]]
@@ -3001,6 +3002,28 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 	(web-mode-set-engine "go")))
 #+end_src
 
+** projects
+
+#+begin_src emacs-lisp
+
+(defun sn/start-ag-devcontainer ()
+  "Start work."
+  (interactive)
+  ;; Close all buffers associated with files in ~/src/analytics-hub/
+  (dolist (buffer (buffer-list))
+    (when (and (buffer-file-name buffer)
+               (string-prefix-p (expand-file-name "~/src/analytics-hub/") (buffer-file-name buffer)))
+      (kill-buffer buffer)))
+  ;; Run the command in ~/src/analytics-hub/
+  (let ((default-directory (expand-file-name "~/src/analytics-hub/")))
+    (let ((result (shell-command "devcontainer up --workspace-folder .")))
+      (if (= result 0)
+          (message "Command executed successfully.")
+        (message "Error: Command failed. Container might not be up."))))
+  ;; Open Dired in /docker:dev-container:/workspace/
+  (dired "/docker:dev-container:/workspace/"))
+#+end_src
+   
 * Fancy Bloat
 
 ** Mu4e - Mail

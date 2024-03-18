@@ -2132,6 +2132,23 @@ If the project doesn't exist, return a random face and add a new mapping."
   (defun sn/web-mode-hook()
 	(web-mode-set-engine "go")))
 
+(defun sn/start-ag-devcontainer ()
+  "Start work."
+  (interactive)
+  ;; Close all buffers associated with files in ~/src/analytics-hub/
+  (dolist (buffer (buffer-list))
+    (when (and (buffer-file-name buffer)
+               (string-prefix-p (expand-file-name "~/src/analytics-hub/") (buffer-file-name buffer)))
+      (kill-buffer buffer)))
+  ;; Run the command in ~/src/analytics-hub/
+  (let ((default-directory (expand-file-name "~/src/analytics-hub/")))
+    (let ((result (shell-command "devcontainer up --workspace-folder .")))
+      (if (= result 0)
+          (message "Command executed successfully.")
+        (message "Error: Command failed. Container might not be up."))))
+  ;; Open Dired in /docker:dev-container:/workspace/
+  (dired "/docker:dev-container:/workspace/"))
+
 (use-package mu4e
   :ensure nil
   :commands (mu4e)
