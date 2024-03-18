@@ -1997,6 +1997,10 @@ If the project doesn't exist, return a random face and add a new mapping."
   (setq tab-line-tab-face-functions '(sn/line-tab-face-env))
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 
+(use-package direnv
+ :config
+ (direnv-mode))
+
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil
   "The last buffer in which compilation took place.")
@@ -2034,6 +2038,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package flymake
   :ensure nil
   :hook (prog-mode . flymake-mode)
+  :after meow
   :custom
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 3)

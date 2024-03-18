@@ -2731,6 +2731,15 @@ If the project doesn't exist, return a random face and add a new mapping."
   (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
 #+end_src
 
+*** Direnv
+
+#+begin_src emacs-lisp
+(use-package direnv
+ :config
+ (direnv-mode))
+#+end_src
+
+	
 *** Compile Helpers
 
 #+begin_src emacs-lisp
@@ -2781,6 +2790,7 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package flymake
   :ensure nil
   :hook (prog-mode . flymake-mode)
+  :after meow
   :custom
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 3)
