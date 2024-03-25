@@ -175,6 +175,9 @@
 	  :right-divider-width 30
 	  :scroll-bar-width 8)))
 
+(setq-default fringe-indicator-alist
+              (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
+
 (setq-default
  fill-column 120
  blink-cursor-interval 0.4
@@ -1612,22 +1615,6 @@ point reaches the beginning or end of the buffer, stop there."
 ;; Allow refile to create parent tasks with confirmation
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 
-(use-package org-gcal
-  :defer t
-  :requires json
-  :config
-  (defun load-gcal-credentials ()
-	"Load Google Calendar credentials from a JSON file."
-	(let* ((json-file "~/.gcal-emacs")
-		   (json-data (json-read-file json-file)))
-	  (setq plstore-cache-passphrase-for-symmetric-encryption t)
-	  (setq org-gcal-client-id (cdr (assoc 'client-id json-data)))
-	  (setq org-gcal-client-secret (cdr (assoc 'client-secret json-data)))
-	  (setq org-gcal-fetch-file-alist `((,(cdr (assoc 'mail json-data)) .  "~/doc/gcal.org")))))
-  (load-gcal-credentials)
-  :bind (:map org-agenda-mode-map
-			  ("M-g" . org-gcal-sync)))
-
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
 
@@ -1708,6 +1695,11 @@ point reaches the beginning or end of the buffer, stop there."
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . sn/setup-eglot)
+  (eglot-managed-mode . sn/eglot-eldoc)
+  :preface
+  (defun sn/eglot-eldoc ()
+    (setq eldoc-documentation-strategy
+            'eldoc-documentation-compose-eagerly))
   :bind (:map eglot-mode-map
 			  ("C-h ." . eldoc-doc-buffer)
 			  ("C-c C-c" . project-compile)
@@ -1762,6 +1754,8 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package eglot-booster
   :after eglot
   :ensure (:host github :repo "jdtsmith/eglot-booster")
+  :custom
+  (eglot-booster-no-remote-boost t)
   :config	(eglot-booster-mode))
 
 (use-package dape
@@ -1769,26 +1763,20 @@ point reaches the beginning or end of the buffer, stop there."
   ;; To use window configuration like gud (gdb-mi)
   :init
   (setq dape-buffer-window-arrangement 'gud)
-
   :config
   ;; Info buffers to the right
   (setq dape-buffer-window-arrangement 'right)
-
   ;; To not display info and/or buffers on startup
   (remove-hook 'dape-on-start-hooks 'dape-info)
   (remove-hook 'dape-on-start-hooks 'dape-repl)
-
   ;; To display info and/or repl buffers on stopped
   ;; (add-hook 'dape-on-stopped-hooks 'dape-info)
   ;; (add-hook 'dape-on-stopped-hooks 'dape-repl)
-
   ;; By default dape uses gdb keybinding prefix
   ;; If you do not want to use any prefix, set it to nil.
   ;; (setq dape-key-prefix "\C-x\C-a")
-
   ;; Kill compile buffer on build success
   (add-hook 'dape-compile-compile-hooks 'kill-buffer)
-
   (add-hook 'dape-on-start-hooks
             (defun dape--save-on-start ()
               (save-some-buffers t t))))
@@ -2043,7 +2031,7 @@ If the project doesn't exist, return a random face and add a new mapping."
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 3)
   (flymake-fringe-indicator-position 'right-fringe)
-  (flymake-show-diagnostics-at-end-of-line 'short)
+  ;; (flymake-show-diagnostics-at-end-of-line 'short)
   :config
   (meow-normal-define-key
    '("C-e p" . flymake-show-project-diagnostics)
