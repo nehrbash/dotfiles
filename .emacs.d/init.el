@@ -455,7 +455,7 @@ Call a second time to restore the original window configuration."
   (add-to-list 'meow-mode-state-list '(org-mode . insert))
   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
-  (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+  (add-to-list 'meow-mode-state-list '(global-git-commit-mode . insert))
   (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
   (meow-motion-overwrite-define-key
    ;; Use e to move up, n to move down.
@@ -479,13 +479,13 @@ Call a second time to restore the original window configuration."
    '("o" . switch-window)
    '("s r" . consult-ripgrep)
    '("s l" . consult-line)
+   '("f f" . consult-find)
    '("f b" . consult-bookmark)
    '("f ." . find-file-at-point)
    '("f h" . consult-recent-file)
    '("b o" . switch-to-buffer-other-window)
    '("b b". switch-to-buffer) ;; orig. switch-to-buffer-other-window
-   '("<f4>" . consult-kmacro)
-   )
+   '("<f4>" . consult-kmacro))
   (meow-normal-define-key
    '("0" . meow-expand-0)
    '("1" . meow-expand-1)
@@ -819,7 +819,6 @@ point reaches the beginning or end of the buffer, stop there."
   ("M-g e" . consult-compile-error)
   ("M-g i" . consult-imenu)
   ("M-g I" . consult-imenu-multi)
-  ("M-s f" . consult-find)
   ("M-s L" . consult-locate)
   ("M-s G" . consult-git-grep)
   ("M-s m" . consult-multi-occur)
@@ -1988,6 +1987,17 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package direnv
  :config
  (direnv-mode))
+
+(use-package ligature
+  :config
+  ;; Enable all Iosevka ligatures in programming modes
+  (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
+                                       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
+                                       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
+                                       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
+  ;; Enables ligature checks globally in all buffers. You can also do it
+  ;; per mode with `ligature-mode'.
+  (global-ligature-mode t))
 
 (setq-default compilation-scroll-output t)
 (defvar sanityinc/last-compilation-buffer nil
