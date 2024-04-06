@@ -436,120 +436,9 @@ Call a second time to restore the original window configuration."
 
 (setq confirm-kill-processes nil)
 
-(use-package meow
-  :demand t
-  :bind
-  (:map meow-normal-state-keymap
-		("C-o j" . org-clock-goto)
-		("C-o l" . org-clock-in-last)
-		("C-o i" . org-clock-in)
-		("C-o o" . org-clock-out))
-  :config
-  (meow-global-mode 1)
-  (setq meow-replace-state-name-list
-		'((normal . "🟢")
-		  (motion . "🟡")
-		  (keypad . "🟣")
-		  (insert . "🟠")
-		  (beacon . "🔴")))
-  (add-to-list 'meow-mode-state-list '(org-mode . insert))
-  (add-to-list 'meow-mode-state-list '(eat-mode . insert))
-  (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
-  (add-to-list 'meow-mode-state-list '(global-git-commit-mode . insert))
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-  (meow-motion-overwrite-define-key
-   ;; Use e to move up, n to move down.
-   ;; Since special modes usually use n to move down, we only overwrite e here.
-   '("e" . meow-prev)
-   '("<escape>" . ignore))
-  (meow-leader-define-key
-   '("?" . meow-cheatsheet)
-   ;; To execute the originally e in MOTION state, use SPC e.
-   '("e" . "H-e")
-   '("1" . meow-digit-argument)
-   '("2" . meow-digit-argument)
-   '("3" . meow-digit-argument)
-   '("4" . meow-digit-argument)
-   '("5" . meow-digit-argument)
-   '("6" . meow-digit-argument)
-   '("7" . meow-digit-argument)
-   '("8" . meow-digit-argument)
-   '("9" . meow-digit-argument)
-   '("0" . meow-digit-argument)
-   '("o" . switch-window)
-   '("s r" . consult-ripgrep)
-   '("s l" . consult-line)
-   '("f f" . consult-find)
-   '("f b" . consult-bookmark)
-   '("f ." . find-file-at-point)
-   '("f h" . consult-recent-file)
-   '("b o" . switch-to-buffer-other-window)
-   '("b b". switch-to-buffer) ;; orig. switch-to-buffer-other-window
-   '("<f4>" . consult-kmacro))
-  (meow-normal-define-key
-   '("0" . meow-expand-0)
-   '("1" . meow-expand-1)
-   '("2" . meow-expand-2)
-   '("3" . meow-expand-3)
-   '("4" . meow-expand-4)
-   '("5" . meow-expand-5)
-   '("6" . meow-expand-6)
-   '("7" . meow-expand-7)
-   '("8" . meow-expand-8)
-   '("9" . meow-expand-9)
-   '("-" . negative-argument)
-   '(";" . meow-reverse)
-   '("," . meow-inner-of-thing)
-   '("." . meow-bounds-of-thing)
-   '("[" . meow-beginning-of-thing)
-   '("]" . meow-end-of-thing)
-   '("/" . meow-visit)
-   '("a" . meow-append)
-   '("A" . meow-open-below)
-   '("b" . meow-back-word)
-   '("B" . meow-back-symbol)
-   '("c" . meow-change)
-   '("d" . meow-delete)
-   '("e" . meow-prev)
-   '("E" . meow-prev-expand)
-   '("f" . meow-find)
-   '("g" . meow-cancel-selection)
-   '("G" . meow-grab)
-   '("h" . meow-left)
-   '("H" . meow-left-expand)
-   '("i" . meow-right)
-   '("I" . meow-right-expand)
-   '("j" . meow-join)
-   '("k" . meow-kill)
-   '("l" . meow-line)
-   '("L" . meow-goto-line)
-   '("m" . meow-mark-word)
-   '("M" . meow-mark-symbol)
-   '("n" . meow-next)
-   '("N" . meow-next-expand)
-   '("o" . meow-block)
-   '("O" . meow-to-block)
-   '("p" . meow-yank)
-   '("q" . meow-quit)
-   '("r" . meow-replace)
-   '("s" . meow-insert)
-   '("S" . meow-open-above)
-   '("t" . meow-till)
-   '("u" . meow-undo)
-   '("U" . meow-undo-in-selection)
-   '("v" . meow-search)
-   '("w" . meow-next-word)
-   '("W" . meow-next-symbol)
-   '("x" . meow-delete)
-   '("X" . meow-backward-delete)
-   '("y" . meow-save)
-   '("z" . meow-pop-selection)
-   '("'" . repeat)
-   '("<escape>" . ignore)))
-
 (use-package avy
   :commands avy-goto-char-timer
-  :bind ("C-'" . avy-goto-char-timer))
+  :bind ("C-M-s" . avy-goto-char-timer))
 
 (use-package transient
   :defer t
@@ -718,12 +607,8 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (switch-window-shortcut-style 'alphabet)
   (switch-window-timeout 2)
-  :config
-  (meow-leader-define-key
-	'("o" . switch-window))
-
-  :bind ("C-c o" . switch-window)
-  )
+  :bind
+  ("C-c o" . switch-window))
 
 (use-package windswap
   :config
@@ -769,8 +654,6 @@ point reaches the beginning or end of the buffer, stop there."
   (vertico-mode 1)
   (vertico-multiform-mode 1)
   (add-to-list 'vertico-multiform-commands
-			   '(meow-visit flat))
-  (add-to-list 'vertico-multiform-commands
 			   '(project-switch-project buffer))
   (add-to-list 'vertico-multiform-commands
 			   '(consult-ripgrep buffer)))
@@ -803,27 +686,56 @@ point reaches the beginning or end of the buffer, stop there."
   :after vertico
   :defer t
   :bind
-  (:map meow-normal-state-keymap
-		("P" . consult-yank-pop)
-		("M-o" . consult-outline)
-		("C-M-r" . consult-register)
-		("C-M-s" . consult-register-store))
-  (:map global-map
-		("M-n" . consult-mark)
-		("M-N" . consult-global-mark))
+  ("C-c M-x" . consult-mode-command)
+  ("C-c h" . consult-history)
+  ("C-c k" . consult-kmacro)
+  ("C-c m" . consult-man)
+  ("C-c i" . consult-info)
+  ([remap Info-search] . consult-info)
+  ;; C-x bindings in `ctl-x-map'
+  ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
+  ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
+  ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+  ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
+  ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
+  ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
+  ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
   ;; Custom M-# bindings for fast register access
   ("M-#" . consult-register-load)
+  ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+  ("C-M-#" . consult-register)
   ;; Other custom bindings
-  ("<help> a" . consult-apropos)            ;; orig. apropos-command
-  ;; M-g bindings (goto-map)
+  ("M-y" . consult-yank-pop)                ;; orig. yank-pop
+  ;; M-g bindings in `goto-map'
   ("M-g e" . consult-compile-error)
+  ("M-g g" . consult-goto-line)             ;; orig. goto-line
+  ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
+  ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+  ("M-g m" . consult-mark)
+  ("M-g k" . consult-global-mark)
   ("M-g i" . consult-imenu)
   ("M-g I" . consult-imenu-multi)
-  ("M-s L" . consult-locate)
+  ;; M-s bindings in `search-map'
+  ("M-s d" . consult-find)                  ;; Alternative: consult-fd
+  ("M-s c" . consult-locate)
+  ("M-s g" . consult-grep)
   ("M-s G" . consult-git-grep)
-  ("M-s m" . consult-multi-occur)
+  ("M-s r" . consult-ripgrep)
+  ("M-s l" . consult-line)
+  ("M-s L" . consult-line-multi)
   ("M-s k" . consult-keep-lines)
   ("M-s u" . consult-focus-lines)
+  ;; Isearch integration
+  ("M-s e" . consult-isearch-history)
+  (:map isearch-mode-map
+		("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
+		("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
+		("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
+		("M-s L" . consult-line-multi))            ;; needed by consult-line to detect isearch
+  ;; Minibuffer history
+  (:map minibuffer-local-map
+		("M-s" . consult-history)                 ;; orig. next-matching-history-element
+		("M-r" . consult-history))
   :init
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
@@ -981,7 +893,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
-  :bind (("C-c x" . protogg-compile)
+  :bind (("C-x c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
 		 ("C-c e" . protogg-eshell)
 		 ("M-s d" . protogg-find-dired)
@@ -1099,7 +1011,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package define-word
   :commands (define-word)
-  :bind ("M-^" . define-word-at-point))
+  :bind ("M-s D" . define-word-at-point))
 
 (use-package dired
   :defer t
@@ -1353,6 +1265,16 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package org-clock
   :ensure nil  ;; built in
+  :bind 
+  (("C-o" . org-clock-map))
+  :config
+  (defvar org-clock-map (make-sparse-keymap)
+    "Keymap for org-clock commands.")
+
+  (define-key org-clock-map (kbd "j") 'org-clock-goto)
+  (define-key org-clock-map (kbd "l") 'org-clock-in-last)
+  (define-key org-clock-map (kbd "i") 'org-clock-in)
+  (define-key org-clock-map (kbd "o") 'org-clock-out)
   :hook
   (org-clock-in . type-break-mode)
   (org-clock-out . (lambda () (type-break-mode -1)))
@@ -1703,10 +1625,12 @@ point reaches the beginning or end of the buffer, stop there."
 			  ("C-h ." . eldoc-doc-buffer)
 			  ("C-c C-c" . project-compile)
 			  ("C-c r" . eglot-rename)
-			  ("C-c o" . eglot-code-action-organize-imports))
+			  ("C-c a" . eglot-code-actions)
+			  ("C-c C-o" . eglot-code-action-organize-imports))
   :custom
   (eglot-autoshutdown t)
   (eglot-sync-connect nil)
+  (eglot-events-buffer-config (:size 0 :format full))
   :config
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
@@ -1908,82 +1832,6 @@ point reaches the beginning or end of the buffer, stop there."
 	(toggle-vterm-buffer) ;; I need to fugure out how to call vterm without createing new buffer.
     (multi-vterm-project)))
 
-(use-package tab-line
-  :ensure nil
-  :after vterm
-  :hook (vterm-mode . tab-line-mode)
-  :custom
-  (tab-line-new-button-show nil)
-  (tab-line-close-button-show nil)
-  (tab-line-separator nil)
-  :config
-  (defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
-  	(with-current-buffer buffer
-      (format " %s " (buffer-name buffer))))
-  (setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
-
-  (defface tab-line-env-default
-	'((t :background "green" :foreground "white"))
-	"Face for default tab.")
-  (defface tab-line-env-1
-	'((t :background "red" :foreground "white"))
-	"Face for tabs in project.")
-  (defface tab-line-env-2
-	'((t :background "blue" :foreground "white"))
-	"Face for tabs of ssh connections.")
-  (defface tab-line-env-3
-	'((t :background "purple" :foreground "white"))
-	"Face for tabs in docker container.")
-
-  (defvar available-faces
-	'(symbol-overlay-face-1
-	  symbol-overlay-face-2
-	  symbol-overlay-face-3
-	  symbol-overlay-face-4
-	  symbol-overlay-face-5
-	  symbol-overlay-face-6
-	  symbol-overlay-face-7
-	  symbol-overlay-face-8))
-  
-  (defcustom project-face-alist
-	:type '(string)
-	"Project name mappeded to tab face.")
-
-  (defun get-face-for-project (project-name)
-	"Get the face associated with the given PROJECT-NAME name.
-If the project doesn't exist, return a random face and add a new mapping."
-	(let ((face (cdr (assoc project-name project-face-alist))))
-	  (if face
-          face
-		;; If the project doesn't exist, generate a random face and add a new mapping
-		(let ((random-face (nth (random (length available-faces)) available-faces)))
-          (add-to-list 'project-face-alist (cons project-name random-face))
-          random-face))))
-
-  (defun get-project-name (file-path)
-	"Get the project name from FILE-PATH using project.el."
-	(let ((project (project-current nil (file-name-directory file-path))))
-      (if project
-          (project-name project)
-		nil)))
-
-  (defun sn/line-tab-face-env (tab _tabs face buffer-p _selected-p)
-	"Return FACE for TAB according to if ':ssh:' or ':docker:' or project name of the buffer.
-   For use in `tab-line-tab-face-functions'."
-	(let* ((buffer-path (with-current-buffer (get-buffer tab)
-						  (buffer-file-name)))
-           (is-ssh (string-match-p ":ssh:" buffer-path))
-           (is-docker (string-match-p ":docker:" buffer-path))
-           (project (get-project-name buffer-path)))
-	  (cond
-	   (project '(get-face-for-project project))
-	   (is-ssh 'tab-line-env-1)
-	   (is-docker 'tab-line-env-2)
-	   (t 'tab-line-env-default))))
-
-  (setq tab-line-tab-face-functions '(sn/line-tab-face-env))
-  (setq tab-line-tabs-function 'tab-line-tabs-mode-buffers))
-
 (use-package direnv
  :config
  (direnv-mode))
@@ -2036,16 +1884,14 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package flymake
   :ensure nil
   :hook (prog-mode . flymake-mode)
-  :after meow
   :custom
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 3)
   (flymake-fringe-indicator-position 'right-fringe)
   ;; (flymake-show-diagnostics-at-end-of-line 'short)
-  :config
-  (meow-normal-define-key
-   '("C-e p" . flymake-show-project-diagnostics)
-   '("C-e n" . consult-flymake)))
+  :bind
+  ("M-g f" . consult-flymake)          
+  ("M-g p" . flymake-show-project-diagnostics))
 (use-package flymake-shellcheck
    :commands flymake-shellcheck-load
    :hook (bash-ts-mode . flymake-shellcheck-load))
@@ -2064,15 +1910,16 @@ If the project doesn't exist, return a random face and add a new mapping."
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
   :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
-(use-package go-fill-struct
-  :ensure-system-package (fillstruct . "go install github.com/davidrjenni/reftools/cmd/fillstruct@latest")
-  :bind (:map go-ts-mode-map ("C-c C-f" . go-fill-struct)))
 (use-package go-impl
   :ensure-system-package (impl . "go install github.com/josharian/impl@latest")
   :bind (:map go-ts-mode-map ("C-c C-i" . go-impl)))
 (use-package go-gen-test
   :ensure-system-package (gotests . "go install github.com/cweill/gotests/gotests@latest")
   :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
+(use-package gotest
+  :bind
+  (:map go-ts-mode-map
+		("C-c t t" . go-test-current-test)))
 
 (use-package rust-ts-mode
   :ensure nil

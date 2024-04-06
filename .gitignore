@@ -57,3 +57,5 @@
 /.emacs.d/*.desktop
 /.emacs.d/customs.el
 *.lock
+/.emacs.d/.mc-lists.el
+*.desktop

@@ -12,9 +12,9 @@ fi
 
 off() {
     swayidle -w \
-             timeout 275 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
-             timeout 300 'swaylock-fancy &' \
-             timeout 600 'hyprctl dispatch dpms off' \
+             timeout 3575 'notify-send "Inhibitor" "Screen Off in 15 Sec"'\
+             timeout 3600 'swaylock-fancy &' \
+             timeout 3700 'hyprctl dispatch dpms off' \
              resume 'hyprctl dispatch dpms on' \
              before-sleep 'swaylock-fancy' &
 

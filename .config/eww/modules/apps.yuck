@@ -39,8 +39,8 @@
           :onhoverlost "${EWW_CMD} update app_rev=-1"
           :hexpand false
           :width 44
+		  :orientation "h"
           (box
-            :orientation "h"
             :space-evenly false
             :hexpand false
             :halign "start"
@@ -48,17 +48,13 @@
             (box
               :class "app"
               (box
-                :orientation "h"
                 :valign "center"
                 :height {appList.Focused ? 24 :4}
-                :width 7 ; 4+3 bc apps css
+                :width 7
                 :class {appList.Focused ? "app-active-bar" : "app-dot" }
                 :class {appList.LastFocused == "" ? "app-no-dot" : "app-dot"}))
             (box
               :class "app"
-              :valign "center"
-              :orientation "v"
-              :space-evenly false
               (button
                 :class "app-icon"
                 :height 44
@@ -67,7 +63,7 @@
                 :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
                 :onclick "hyprctl dispatch focuswindow address:${appList.LastFocused}"
                 :style "background-image: url('${appList.Icon}');"))
-            (showapps
+			(showapps
 			  :applist "${appList.Apps}"
               :icon "${appList.Icon}"
               :revealid "${appList.ID}"
@@ -154,15 +150,14 @@
 		(systray
 		  :vexpand "false"
 		  :class "systray"
-		  :pack-direction "up")
-		;; bottom margin/padding not working
+		  :orientation "v")
 		(box :class "systray-bottom"
 		  :orientation "v"
 		  :height 20)))))
 
 (defwidget showapps [applist icon revealid show]
   (revealer
-    :transition "slideright"
+	;; :transition "slideright" why did this break?
     :reveal {"${app_rev}" == "${revealid}"  ? show : false}
     :duration "350ms"
     :class "apps-sidebar"

@@ -20,7 +20,7 @@
 
 * {
   all: unset;
-  transition: 350ms ease;
+  // transition: 350ms ease;
   font-family: Iosevka, Material Icons;
   font-weight: bold;
 }
@@ -78,7 +78,6 @@ tooltip {
 	// padding-top: 15px;
 	border: 2px solid $border;
 	background: $crust;
-
 }
 
 

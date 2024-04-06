@@ -4,8 +4,7 @@
  ;; Your init file should contain only one such instance.
  ;; If there is more than one, they won't work right.
  '(codeium/metadata/api_key "63f7cf48-c3b2-47e4-bd09-1851f67b38d8")
- '(org-fold-catch-invisible-edits 'show-and-error nil nil "Customized with use-package org")
- '(package-selected-packages '(eglot)))
+ '(org-fold-catch-invisible-edits 'show-and-error nil nil "Customized with use-package org"))
 (custom-set-faces
  ;; custom-set-faces was added by Custom.
  ;; If you edit it by hand, you could mess it up, so be careful.
