@@ -43,6 +43,7 @@
 		(vertical-scroll-bars . nil))
 	  default-frame-alist
 	  '(;;(alpha-background . 90)
+		(background-color . "#352718") ;; avoid any flash of white before theme load
 		(font . "Iosevka")
 		(left-fringe . 10)
 		(right-fringe . 10)

@@ -26,6 +26,7 @@
     :class "apps-sidebar"
     :orientation "v"
     :width 48
+	:space-evenly false
     (box
       :orientation "v"
       :vexpand true
@@ -38,7 +39,7 @@
           :onhover "${EWW_CMD} update app_rev=${appList.ID}"
           :onhoverlost "${EWW_CMD} update app_rev=-1"
           :hexpand false
-          :width 44
+          :width 48
 		  :orientation "h"
           (box
             :space-evenly false
@@ -84,7 +85,7 @@
 	  :vexpand true
 	  :valign "center"
 	  :space-evenly false
-		(workspaces))
+	  (workspaces))
 	(box
       :orientation "v"
       :space-evenly false
@@ -104,7 +105,7 @@
           :height 25
           :width 57
           :class "apps-tr"))
-       (apps-tray)
+      (apps-tray)
       (box
 		:space-evenly false
 		:orientation "h"
@@ -157,7 +158,7 @@
 
 (defwidget showapps [applist icon revealid show]
   (revealer
-	;; :transition "slideright" why did this break?
+	:transition "slideright"
     :reveal {"${app_rev}" == "${revealid}"  ? show : false}
     :duration "350ms"
     :class "apps-sidebar"

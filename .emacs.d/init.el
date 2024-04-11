@@ -62,10 +62,12 @@
 	(nerd-icons-install-fonts t)))
 
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda () (load custom-file 'noerror)))
+(add-hook 'elpaca-after-init-hook (lambda ()
+									(progn
+									  (load custom-file 'noerror)
+									  (my-ef-themes-mod))))
 
 (use-package ef-themes
-  :demand t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -82,6 +84,7 @@
   :init
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
+	(interactive)
 	(mapc #'disable-theme custom-enabled-themes)
 	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
@@ -89,9 +92,10 @@
 	   `(window-divider ((,c :background ,bg-main :foreground ,bg-main))) 
 	   `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-	   `(blamer-face ((,c :foreground ,fg-alt :italic t)))
+	   `(blamer-face ((,c :foreground ,fg-alt :italic t))) 
 	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
 	   `(tab-line-tab ((,c :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
+	   `(treemacs-window-background-face ((,c :foreground "#281d12" :background "#281d12")))
 	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
@@ -121,8 +125,7 @@
 		(my-ef-themes-mod)	
 		(remove-hook 'after-make-frame-functions 'sn/load-my-theme nil))))
   (if (daemonp)
-	  (add-hook 'after-make-frame-functions 'sn/load-my-theme)
-	(my-ef-themes-mod)))
+	  (add-hook 'after-make-frame-functions 'sn/load-my-theme)))
 
 (use-package doom-modeline
   :custom
@@ -175,8 +178,37 @@
 	  :right-divider-width 30
 	  :scroll-bar-width 8)))
 
+(use-package olivetti
+  :bind
+  ("C-x \"" . olivetti-mode)
+  :custom
+  (olivetti-style nil))
+
 (setq-default fringe-indicator-alist
               (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
+
+(use-package treemacs
+  :commands (treemacs)
+  :init
+  (global-unset-key (kbd "M-SPC"))
+  :bind
+  ("M-SPC t" . treemacs)
+  :hook
+  (treemacs-mode . (lambda ()
+					 (toggle-mode-line)
+					 (set-window-fringes (selected-window) 0 0)))
+  :custom
+  (treemacs-wrap-around nil)
+  (treemacs-indentation 1)
+  (treemacs-is-never-other-window t)
+  :config
+  (treemacs-follow-mode t)
+  (treemacs-filewatch-mode t)
+  (treemacs-resize-icons 18)
+  (treemacs-git-mode 'deferred))
+(use-package treemacs-magit
+  :after (treemacs magit)
+  :ensure t)
 
 (setq-default
  fill-column 120
@@ -608,7 +640,7 @@ point reaches the beginning or end of the buffer, stop there."
   (switch-window-shortcut-style 'alphabet)
   (switch-window-timeout 2)
   :bind
-  ("C-c o" . switch-window))
+  ("C-x o" . switch-window))
 
 (use-package windswap
   :config
@@ -621,18 +653,11 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package fullframe)
 
-(use-package desktop
-  :ensure nil
-  :init
-  (desktop-save-mode 1)
-  :custom
-  (desktop-restore-eager 1))
-
 (use-package minibuffer
-  :defer t
   :ensure nil
-  :bind (:map minibuffer-local-completion-map
-  			  ("<backtab>" . minibuffer-force-complete))
+  :bind
+  (:map minibuffer-local-completion-map
+  		("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
@@ -695,15 +720,14 @@ point reaches the beginning or end of the buffer, stop there."
   ;; C-x bindings in `ctl-x-map'
   ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
   ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-  ("C-x 4 b" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
+  ("C-x f" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
   ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
   ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
   ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-  ("C-x p b" . consult-project-buffer)      ;; orig. project-switch-to-buffer
   ;; Custom M-# bindings for fast register access
-  ("M-#" . consult-register-load)
+  ("M-\"" . consult-register-load)
   ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
-  ("C-M-#" . consult-register)
+  ("C-M-'" . consult-register)
   ;; Other custom bindings
   ("M-y" . consult-yank-pop)                ;; orig. yank-pop
   ;; M-g bindings in `goto-map'
@@ -917,19 +941,18 @@ point reaches the beginning or end of the buffer, stop there."
 			  ([backtab] . corfu-previous))
   :custom
   (tab-always-indent 'complete)
-  (corfu-quit-no-match 'separator)
+  (corfu-quit-no-match t) ;; 'separator
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
-  (corfu-auto-prefix 1.3)
+  (corfu-auto-prefix 2)
   (completion-cycle-threshold 2)
-  (corfu-on-exact-match nil)
+  (corfu-on-exact-match nil) ;; can't be insert so that snippets don't auto complete
   :config
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local corfu-auto t
 				eldoc-idle-delay 0.1
 				corfu-auto-delay 0
-				corfu-auto-prefix 1
 				completion-styles '(orderless-fast basic)
 				corfu-popupinfo-delay 0.6))
   ;; TAB cycle if there are only few candidates
@@ -937,6 +960,7 @@ point reaches the beginning or end of the buffer, stop there."
 	(and (= index 0) (= total 1) (length< word 4)
 		 `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
   (orderless-define-completion-style orderless-fast
+	"A basic completion suitable for coding."
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
   (global-corfu-mode)
@@ -1060,10 +1084,11 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package consult-dir
   :after consult
-  :bind (("C-x C-d" . consult-dir)
-		 (:map vertico-map
-			   ("C-x C-d" . consult-dir)
-			   ("C-x C-j" . consult-dir-jump-file)))
+  :bind
+  ("C-x C-d" . consult-dir)
+  (:map vertico-map
+		("C-x C-d" . consult-dir)
+		("C-x C-j" . consult-dir-jump-file))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
@@ -1091,7 +1116,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t) ;; install but don't require unless needed.
 (use-package org
   :ensure nil
-  :bind 
+  :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
   (:map org-mode-map
@@ -1130,6 +1155,7 @@ point reaches the beginning or end of the buffer, stop there."
   (org-src-fontify-natively t)
   (org-catch-invisible-edits 'show-and-error)
   (org-src-tab-acts-natively t)
+  (org-src-ask-before-returning-to-edit-buffer nil)
   (org-startup-folded t)
   (org-startup-with-inline-images t)
   (org-tags-column 0)
@@ -1212,6 +1238,7 @@ point reaches the beginning or end of the buffer, stop there."
 		   show-trailing-whitespace nil
 		   line-spacing 0.2
 		   electric-pair-mode nil)
+		  (olivetti-mode 1)
 		  (visual-line-mode 1)
 		  (variable-pitch-mode 1))
 
@@ -1224,6 +1251,7 @@ point reaches the beginning or end of the buffer, stop there."
 	  (kill-local-variable 'electric-pair-mode)
 	  (buffer-face-mode -1)
 	  (visual-line-mode -1)
+	  (olivetti-mode -1)
 	  (variable-pitch-mode -1))))
 
 (use-package ob-mermaid
@@ -1630,7 +1658,7 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (eglot-autoshutdown t)
   (eglot-sync-connect nil)
-  (eglot-events-buffer-config (:size 0 :format full))
+  (eglot-events-buffer-config '(:size 0 :format full))
   :config
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
@@ -1656,12 +1684,10 @@ point reaches the beginning or end of the buffer, stop there."
 										 :tabWidth 1))))
 
   :init
-  (defun eglot-organize-imports () (interactive)
-		 (eglot-code-actions nil nil "source.organizeImports" t))
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
-	(add-hook 'before-save-hook #'eglot-organize-imports nil t)
+	(add-hook 'before-save-hook 'eglot-code-action-organize-imports)
 	(setq-local completion-at-point-functions
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
@@ -1677,9 +1703,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package eglot-booster
   :after eglot
   :ensure (:host github :repo "jdtsmith/eglot-booster")
-  :custom
-  (eglot-booster-no-remote-boost t)
-  :config	(eglot-booster-mode))
+  :config (eglot-booster-mode))
 
 (use-package dape
   :bind ("<F7>" . dape)
@@ -1705,13 +1729,11 @@ point reaches the beginning or end of the buffer, stop there."
               (save-some-buffers t t))))
 
 (use-package git-gutter
-  :defer t
-  :hook (eglot-server-initialized . (lambda (server)
-									  (run-at-time 1 nil
-												   (lambda () (git-gutter-mode)))))
+  :init
+  (global-git-gutter-mode t)
   :custom
   (git-gutter:ask-p nil)
-  (git-gutter:update-interval 2))
+  (git-gutter:update-interval 0.8))
 (use-package git-gutter-fringe
   :after git-gutter
   :config
@@ -1736,10 +1758,6 @@ point reaches the beginning or end of the buffer, stop there."
   :bind
   ("C-x g" . magit-status)
   ("C-x M-g" . magit-dispatch))
-(use-package hl-todo ;; dependancy for magit-todo
-  :ensure (:tag "v3.6.0"))
-(use-package magit-todos
-  :hook (magit-mode . magit-todos-mode))
 (use-package git-timemachine
   :defer t
   :bind ("C-c C-g" . git-timemachine)
@@ -1782,7 +1800,9 @@ point reaches the beginning or end of the buffer, stop there."
                 (interactive)
                 (setq-local vterm-buffer-name-string nil)
                 (rename-buffer (concat "Term " (read-string "Term: ")))))
-   ("C-M-t" . multi-vterm)
+   ("C-M-t" . (lambda ()
+				(interactive)
+				(vterm "~/")))
    ("C-M-p" . vterm-new-tab-projcet)
    ("C-M-f" . tab-line-switch-to-next-tab)
    ("C-M-b" . tab-line-switch-to-prev-tab)
@@ -1838,13 +1858,10 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package ligature
   :config
-  ;; Enable all Iosevka ligatures in programming modes
   (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
                                        "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
                                        "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
                                        ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
-  ;; Enables ligature checks globally in all buffers. You can also do it
-  ;; per mode with `ligature-mode'.
   (global-ligature-mode t))
 
 (setq-default compilation-scroll-output t)
@@ -1977,7 +1994,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package web-mode
   :mode ("\\.html$" .  web-mode)
-  :hook (web-mode . dg/web-mode-hook)
+  :hook (web-mode . sn/web-mode-hook)
   :config
   (defun sn/web-mode-hook()
 	(web-mode-set-engine "go")))
@@ -1997,7 +2014,8 @@ point reaches the beginning or end of the buffer, stop there."
           (message "Command executed successfully.")
         (message "Error: Command failed. Container might not be up."))))
   ;; Open Dired in /docker:dev-container:/workspace/
-  (dired "/docker:dev-container:/workspace/"))
+  (dired "/docker:dev-container:/workspace/")
+  (treemacs))
 
 (use-package mu4e
   :ensure nil

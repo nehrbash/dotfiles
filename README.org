@@ -324,7 +324,7 @@ fi
 
 ** Emacs
 
-   My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= (GNU Emacs 30.0.50) then modify the =PKGBUILD= for wayland and such then I build it with =makepkg -si=. will probably work mostly fine with version 29.
+   My Emacs config can be found in [[file:Emacs.org][Here]]. I clone =emacs-git= (GNU Emacs 30.0.50) then modify the =PKGBUILD= for wayland and such then I build it with =makepkg -sCi=. will probably work mostly fine with version 29.
    
    Building takes a sec and and also run =M-x package-upgrade-all= to finish installing stuff.
 
