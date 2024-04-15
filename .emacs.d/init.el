@@ -130,12 +130,13 @@
   (doom-modeline-project-detection 'project)
   (doom-modeline-vcs-max-length 30)
   (doom-modeline-height 32)
+  (doom-modeline-lsp nil)
   :config
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(doom-modeline-def-modeline 'simple-line
       '(bar modals buffer-info remote-host)
-      '(compilation objed-state misc-info persp-name lsp process vcs))
+      '(compilation objed-state misc-info persp-name process vcs))
 	(line-number-mode -1)
 	(column-number-mode -1)
 	(doom-modeline-set-modeline 'simple-line 'default))
@@ -262,7 +263,6 @@
 				   "remote-shell" "/usr/bin/bash"
 				   "direct-async-process" t
 				   "tramp-direct-async" t)))
-(setq vc-handled-backends '(Git)) ;; I only use git
 
 (use-package savehist
   :ensure nil
@@ -926,7 +926,7 @@ targets."
 (use-package embark-vc
   :after embark)
 (use-package embark-consult
-  :affer embark
+  :after embark
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package project
@@ -1663,6 +1663,7 @@ targets."
   :ensure ( :inherit elpaca-menu-gnu-devel-elpa)
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
+  (eglot-managed-mode . eglot-inlay-hints-mode)
   (eglot-managed-mode . sn/setup-eglot)
   (eglot-managed-mode . sn/eglot-eldoc)
   :preface
@@ -1704,10 +1705,12 @@ targets."
 										 :tabWidth 1))))
 
   :init
+  (defun eglot-organize-imports () (interactive)
+		 (eglot-code-actions nil nil "source.organizeImports" t))
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
-	(add-hook 'before-save-hook 'eglot-code-action-organize-imports)
+	(add-hook 'before-save-hook 'eglot-organize-imports)
 	(setq-local completion-at-point-functions
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
@@ -1719,11 +1722,6 @@ targets."
   :bind
   (:map eglot-mode-map
 		("C-c f" . consult-eglot-symbols)))
-
-(use-package eglot-booster
-  :after eglot
-  :ensure (:host github :repo "jdtsmith/eglot-booster")
-  :config (eglot-booster-mode))
 
 (use-package dape
   :bind ("<F7>" . dape)
@@ -1782,13 +1780,6 @@ targets."
   :defer t
   :bind ("C-c C-g" . git-timemachine)
   :custom (git-timemachine-show-minibuffer-details t))
-(use-package magit-gptcommit
-  :after magit
-  :config
-  (magit-gptcommit-mode 1)
-  (magit-gptcommit-status-buffer-setup)
-  :bind (:map git-commit-mode-map
-              ("C-c C-g" . magit-gptcommit-commit-accept)))
 
 (use-package browse-at-remote
   :bind
@@ -1796,11 +1787,11 @@ targets."
   ("C-c g k" . browse-at-remote-kill))
 
 (use-package multi-vterm
-  :ensure vterm
+  :ensure vterm multi-vterm
   :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
-				  ;; (toggle-mode-line)
+				  (toggle-mode-line)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
