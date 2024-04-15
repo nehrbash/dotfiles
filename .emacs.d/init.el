@@ -79,8 +79,6 @@
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
-  :custom-face
-  (unspecified-bg ((t (:background "#281d12"))))  
   :init
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
@@ -95,7 +93,7 @@
 	   `(blamer-face ((,c :foreground ,fg-alt :italic t))) 
 	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
 	   `(tab-line-tab ((,c :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
-	   `(treemacs-window-background-face ((,c :foreground "#281d12" :background "#281d12")))
+	   `(treemacs-window-background-face ((,c :background "#281d12")))
 	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
@@ -158,7 +156,7 @@
   (pixel-scroll-precision-mode 1))
 
 (use-package page-break-lines
-  :config (global-page-break-lines-mode))
+  :init (global-page-break-lines-mode))
 
 (use-package default-text-scale
 		  :bind (("C-M-=". default-text-scale-increase)
@@ -189,8 +187,6 @@
 
 (use-package treemacs
   :commands (treemacs)
-  :init
-  (global-unset-key (kbd "M-SPC"))
   :bind
   ("M-SPC t" . treemacs)
   :hook
@@ -223,13 +219,16 @@
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
  tooltip-delay .8
- ring-bell-function 'ignore)
+ ring-bell-function 'ignore
+ truncate-lines t)
+(setopt browse-url-browser-function #'browse-url-firefox
+		use-dialog-box nil
+		text-mode-ispell-word-completion nil)
+(kill-ring-deindent-mode t)
 (delete-selection-mode t)
 (global-goto-address-mode t)
 (transient-mark-mode t)
-(setopt browse-url-browser-function #'browse-url-firefox)
-(setopt use-dialog-box nil) ;; disable pop-ups
-(set-default 'truncate-lines t) ;; don't wrap lines globally
+(global-unset-key (kbd "M-SPC")) ;; my second C-c binding
 
 (use-package recentf
   :ensure nil
@@ -725,18 +724,18 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
   ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
   ;; Custom M-# bindings for fast register access
-  ("M-\"" . consult-register-load)
+  ("M-\"" . consult-register)
   ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
   ("C-M-'" . consult-register)
   ;; Other custom bindings
   ("M-y" . consult-yank-pop)                ;; orig. yank-pop
   ;; M-g bindings in `goto-map'
-  ("M-g e" . consult-compile-error)
+  ("M-SPC e" . consult-compile-error)
   ("M-g g" . consult-goto-line)             ;; orig. goto-line
   ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
   ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
-  ("M-g m" . consult-mark)
-  ("M-g k" . consult-global-mark)
+  ("M-SPC m" . consult-mark)
+  ("M-SPC g" . consult-global-mark)
   ("M-g i" . consult-imenu)
   ("M-g I" . consult-imenu-multi)
   ;; M-s bindings in `search-map'
@@ -868,46 +867,66 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package embark
   :bind
-  ("C-;" . embark-act)
+  ("M-SPC SPC" . embark-act)
+  ("C-;" . embark-dwim)
   ("C-h B" . embark-bindings)
-  (:map smerge-mode-map
-		("C-M-n" . smerge-act-next))
   (:map minibuffer-mode-map
 		("M-e" . sn/edit-search-results))
   (:map embark-region-map
 		("w" . google-this)
 		("g" . gptel))
+  :init
+  (setq prefix-help-command #'embark-prefix-help-command)
   :config
+  (defun embark-which-key-indicator ()
+	"An embark indicator that displays keymaps using which-key.
+The which-key help message will show the type and value of the
+current target followed by an ellipsis if there are further
+targets."
+	(lambda (&optional keymap targets prefix)
+      (if (null keymap)
+          (which-key--hide-popup-ignore-command)
+		(which-key--show-keymap
+		 (if (eq (plist-get (car targets) :type) 'embark-become)
+			 "Become"
+           (format "Act on %s '%s'%s"
+                   (plist-get (car targets) :type)
+                   (embark--truncate-target (plist-get (car targets) :target))
+                   (if (cdr targets) "…" "")))
+		 (if prefix
+			 (pcase (lookup-key keymap prefix 'accept-default)
+               ((and (pred keymapp) km) km)
+               (_ (key-binding prefix 'accept-default)))
+           keymap)
+		 nil nil t (lambda (binding)
+					 (not (string-suffix-p "-argument" (cdr binding))))))))
+
+  (setq embark-indicators
+		'(embark-which-key-indicator
+		  embark-highlight-indicator
+		  embark-isearch-highlight-indicator))
+
+  (defun embark-hide-which-key-indicator (fn &rest args)
+	"Hide the which-key indicator immediately when using the completing-read prompter."
+	(which-key--hide-popup-ignore-command)
+	(let ((embark-indicators
+           (remq #'embark-which-key-indicator embark-indicators)))
+      (apply fn args)))
+
+  (advice-add #'embark-completing-read-prompter
+              :around #'embark-hide-which-key-indicator)
+   
   (defun sn/edit-search-results ()
 	"Export results using `embark-export' and activate `wgrep'."
 	(interactive)
 	(progn
 	  (run-at-time 0 nil #'embark-export)
-	  (run-at-time 0 nil #'wgrep-change-to-wgrep-mode)))
-  (defun smerge-act-next ()
-  "Go to next smerge diff and call embark-act on smerg target."
-  (interactive)
-  (condition-case nil
-      (progn
-        (smerge-next)
-        (if (bound-and-true-p flymake-mode)
-			;; skip the flymake target.
-            (embark-act 1)
-          (embark-act)))
-    (error (message "No more smerge chunks left."))))
-  ;; Hide the mode line of the Embark live/completions buffers
-  (add-to-list 'display-buffer-alist
-			   '("\\`\\*Embark Collect \\(Live\\|Completions\\)\\*"
-				 nil
-				 (window-parameters (mode-line-format . none))))
-  (setq embark-action-indicator (lambda (map _target)
-								  (which-key--show-keymap "Embark" map nil nil 'no-paging)
-								  #'which-key--hide-popup-ignore-command)
-		embark-become-indicator embark-action-indicator))
+	  (run-at-time 0 nil #'wgrep-change-to-wgrep-mode))))
 
 (use-package embark-vc
   :after embark)
 (use-package embark-consult
+  :affer embark
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package project
@@ -917,7 +936,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
-  :bind (("C-x c" . protogg-compile)
+  :bind (("M-SPC c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
 		 ("C-c e" . protogg-eshell)
 		 ("M-s d" . protogg-find-dired)
@@ -1762,6 +1781,13 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t
   :bind ("C-c C-g" . git-timemachine)
   :custom (git-timemachine-show-minibuffer-details t))
+(use-package magit-gptcommit
+  :after magit
+  :config
+  (magit-gptcommit-mode 1)
+  (magit-gptcommit-status-buffer-setup)
+  :bind (:map git-commit-mode-map
+              ("C-c C-g" . magit-gptcommit-commit-accept)))
 
 (use-package browse-at-remote
   :bind
@@ -1769,13 +1795,11 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-c g k" . browse-at-remote-kill))
 
 (use-package multi-vterm
-  :after vterm)
-(use-package vterm
-  :defer t
-  :commands toggle-vterm-buffer
+  :ensure vterm
+  :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
-				  (toggle-mode-line)
+				  ;; (toggle-mode-line)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
@@ -1793,64 +1817,144 @@ point reaches the beginning or end of the buffer, stop there."
 				  ;;  :background "#281d12")
 				  ))
   :bind
-  (("M-t" . toggle-vterm-buffer)
+  (("M-t" . multi-vterm-dedicated-toggle)
    :map vterm-mode-map
-   ("M-t" . toggle-vterm-buffer)
+   ("M-t" . multi-vterm-dedicated-toggle)
    ("C-M-r" . (lambda ()
                 (interactive)
                 (setq-local vterm-buffer-name-string nil)
                 (rename-buffer (concat "Term " (read-string "Term: ")))))
-   ("C-M-t" . (lambda ()
-				(interactive)
-				(vterm "~/")))
-   ("C-M-p" . vterm-new-tab-projcet)
+   ("C-M-t" . multi-vterm)
+   ("C-M-p" . multi-vterm-project)
    ("C-M-f" . tab-line-switch-to-next-tab)
    ("C-M-b" . tab-line-switch-to-prev-tab)
    ("C-M-s" . consult-term)
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
   :custom
-  (vterm-buffer-name "Term")
-  (vterm-buffer-name-string "Term %s")
   (vterm-buffer-maximum-size 800)
   (vterm-tramp-shells
    '(("ssh" "/bin/bash")
 	 ("docker" "/bin/bash")
 	 ("sudo" "/bin/bash")))
+  (vterm-always-compile-module t)
   :config
-  (add-to-list 'display-buffer-alist `("^Term *"
-                                       (display-buffer-reuse-window display-buffer-at-bottom)
-                                       (dedicated . false)
-                                       (reusable-frames . visible)
-                                       (window-height . 0.4)))
-  :init
-  (setq-default vterm-always-compile-module t)
-  (defun toggle-vterm-buffer ()
-    "Toggle the visibility of the vterm buffer or switch to it if not currently selected."
-    (interactive)
-    (let ((vterm-buffer (seq-find (lambda (buffer)
-									(string-prefix-p "Term" (buffer-name buffer)))
-								  (buffer-list))))
-      (if vterm-buffer
-          (if (and (eq (current-buffer) vterm-buffer) ;; if in term buffer, hide buffer
-                   (get-buffer-window vterm-buffer))
-              (delete-window (get-buffer-window vterm-buffer))
-            (if (get-buffer-window vterm-buffer) ;; if not seletected focus it.
-                (select-window (get-buffer-window vterm-buffer))
-              (progn ;; show veterm buffer
-                (display-buffer vterm-buffer)
-                (select-window (get-buffer-window vterm-buffer)))))
-		  (vterm "Term")) ;; else make new term
-	  ))
-   (defun vterm-new-tab ()
+  (defun sn/vterm-new-tab ()
 	"Create a new tab for the toggled vterm buffers"
 	(interactive)
-    )
-   (defun vterm-new-tab-projcet ()
-	"Create a new tab for the toggled vterm buffers"
-	(interactive)
-	(toggle-vterm-buffer) ;; I need to fugure out how to call vterm without createing new buffer.
-    (multi-vterm-project)))
+    (let ((default-directory "~/"))
+	  (set-window-dedicated-p multi-vterm-dedicated-window nil)
+	  (let* ((vterm-buffer (multi-vterm-get-buffer)))
+		(setq multi-vterm-buffer-list (nconc multi-vterm-buffer-list (list vterm-buffer)))
+		(set-buffer vterm-buffer)
+		(multi-vterm-internal)
+		(switch-to-buffer vterm-buffer))
+
+	  (setq multi-vterm-dedicated-window (selected-window))
+	  (setq multi-vterm-dedicated-buffer (current-buffer))
+	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
+	  (set-window-dedicated-p multi-vterm-dedicated-window t)))
+  )
+
+(use-package svg-tag-mode :ensure t)
+(use-package tab-line
+  :ensure nil
+  :hook (vterm-mode . tab-line-mode)
+  :custom
+  (tab-line-new-button-show nil)
+  (tab-line-close-button-show 'selected)
+  :config
+  (defface tab-bar-svg-active
+  '((t (:foreground "#a1aeb5")))
+  "Tab bar face for selected tab.")
+
+(defface tab-bar-svg-inactive
+  '((t (:foreground "#a1aeb5")))
+  "Tab bar face for inactive tabs.")
+
+(defun eli/tab-bar-svg-padding (width string)
+  (let* ((style svg-lib-style-default)
+         (margin      (plist-get style :margin))
+         (txt-char-width  (window-font-width nil 'fixed-pitch))
+         (tag-width (- width (* margin txt-char-width)))
+         (padding (- (/ tag-width txt-char-width) (length string))))
+    padding))
+
+(defun eli/tab-bar-tab-name-with-svg (tab i)
+  (let* ((current-p (eq (car tab) 'current-tab))
+         (name (concat (if tab-bar-tab-hints (format "%d " i) "")
+                       (alist-get 'name tab)
+                       (or (and tab-bar-close-button-show
+                                (not (eq tab-bar-close-button-show
+                                         (if current-p 'non-selected 'selected)))
+                                tab-bar-close-button)
+                           "")))
+         (padding (plist-get svg-lib-style-default :padding))
+         (width)
+         (image-scaling-factor 1.0))
+    (when tab-bar-auto-width
+      (setq width (/ (frame-inner-width)
+                     (length (funcall tab-bar-tabs-function))))
+      (when tab-bar-auto-width-min
+        (setq width (max width (if (window-system)
+                                   (nth 0 tab-bar-auto-width-min)
+                                 (nth 1 tab-bar-auto-width-min)))))
+      (when tab-bar-auto-width-max
+        (setq width (min width (if (window-system)
+                                   (nth 0 tab-bar-auto-width-max)
+                                 (nth 1 tab-bar-auto-width-max)))))
+      (setq padding (eli/tab-bar-svg-padding width name)))
+    (propertize
+     name
+     'display
+     (svg-tag-make
+      name
+      :face (if (eq (car tab) 'current-tab) 'tab-bar-svg-active 'tab-bar-svg-inactive)
+      :inverse (eq (car tab) 'current-tab) :margin 0 :radius 6 :padding padding
+      :height 1.1))))
+(setq tab-bar-tab-name-format-function #'eli/tab-bar-tab-name-with-svg)
+(defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
+  "how tabs should look"
+  (let* ((name (buffer-name buffer))
+         (padding (plist-get svg-lib-style-default :padding))
+         (width 200)
+         (image-scaling-factor 1.5))
+    (propertize
+     name
+     'display
+     (svg-tag-make
+      name
+      :face (if (eq (buffer-name) buffer) 'tab-bar-svg-active 'tab-bar-svg-inactive)
+      :inverse (eq (buffer-name) buffer) :margin 0 :radius 6 :padding padding
+      :height 1.1))))
+(setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
+
+(defun sn/tab-group (buffer)
+  "Group buffers by major mode.
+  Returns a single group name as a string for buffers with major modes
+  flymake-project-diagnostics-mode, compilation-mode, and vterm-mode."
+  (with-current-buffer buffer
+    (when (or (derived-mode-p 'flymake-project-diagnostics-mode)
+			  (derived-mode-p 'compilation-mode)
+			  (derived-mode-p 'vterm-mode))
+	  "🦥")))
+(advice-add 'tab-line-select-tab-buffer :around
+            (lambda (orig-fun &rest args)
+              (let ((window (selected-window)))
+                (progn
+				  (set-window-dedicated-p window nil)
+                  (apply orig-fun args)
+				  (setq multi-vterm-dedicated-window (selected-window))
+				  (setq multi-vterm-dedicated-buffer (current-buffer))
+				  (setq multi-vterm-dedicated-buffer-name (buffer-name))
+                  (set-window-dedicated-p (window) t)
+				  ))))
+
+  ;;(setq tab-line-tabs-buffer-group-function #'my-tab-line-buffer-group-by-major-mode)
+  ;; (setq tab-line-tab-face-functions 'sn/line-tab-face-env)
+  (setq tab-line-tabs-function 'tab-line-tabs-buffer-groups)
+  (setq tab-line-tabs-buffer-group-function 'sn/tab-group)
+  )
 
 (use-package direnv
  :config
@@ -1908,7 +2012,7 @@ point reaches the beginning or end of the buffer, stop there."
   ;; (flymake-show-diagnostics-at-end-of-line 'short)
   :bind
   ("M-g f" . consult-flymake)          
-  ("M-g p" . flymake-show-project-diagnostics))
+  ("M-SPC p" . flymake-show-project-diagnostics))
 (use-package flymake-shellcheck
    :commands flymake-shellcheck-load
    :hook (bash-ts-mode . flymake-shellcheck-load))
@@ -2046,7 +2150,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package whisper
   :ensure (:host github :repo "natrys/whisper.el")
-  :bind ("C-h w" . whisper-run)
+  :bind ("M-SPC w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
 		whisper-model "base"
@@ -2087,6 +2191,38 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package devdocs
   :defer t)
+
+(defun ea-write-clipboard ()
+  (let ((file "/tmp/.emacs_everywhere_clipboard"))
+    (if (region-active-p)
+        (write-region (region-beginning) (region-end) file)
+      (write-region (point-min) (point-max) file))
+    (kill-buffer "*Emacs Everywhere*")))
+
+(defun ea-commit ()
+  (interactive)
+  (ea-write-clipboard)
+  (delete-frame))
+
+(defun ea-abort ()
+  (interactive)
+  (remove-hook 'delete-frame-functions 'ea-on-delete t)
+  (kill-buffer "*Emacs Everywhere*")
+  (delete-frame))
+
+(defun ea-on-delete (frame)
+  (kill-buffer "*Emacs Everywhere*"))
+
+(defun emacs-everywhere ()
+  (interactive)
+  (switch-to-buffer "*Emacs Everywhere*")
+  (select-frame-set-input-focus (selected-frame))
+  (add-hook 'delete-frame-functions 'ea-on-delete nil t) ; t for local buffer
+  (org-mode)
+  (gptel-mode)
+  (toggle-mode-line)
+  (local-set-key (kbd "M-SPC SPC") 'ea-commit)
+  (local-set-key (kbd "M-SPC DEL") 'ea-abort))
 
 (use-package gcmh
   :ensure (:host github :repo "emacsmirror/gcmh")
