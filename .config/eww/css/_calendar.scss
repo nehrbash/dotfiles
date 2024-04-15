@@ -1,14 +1,14 @@
-.calendar-win {
-  @include window;
-  background-color: $bg;
-  border: 1px solid $border;
-  color: $fg;
-  padding: .2em;
+
+.calendar_box {
+  @include rounding;
+  margin: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: $crust;
 }
 
 calendar {
-  padding: 5px;
-
+  background-color: $crust;
   :selected {
     color: $mauve;
   }

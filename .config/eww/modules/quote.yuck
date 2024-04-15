@@ -7,11 +7,12 @@
     (box
 	  :orientation "h"
 	  :vexpand "true"
-	  :valign "start"
+	  :valign "center"
       (label
         :class "quote"
         :justify "center"
-        :wrap true
+		:show-truncated "false"
+        :wrap "true"
         :text "${quote.quote}"))
     (box
       :orientation "h"

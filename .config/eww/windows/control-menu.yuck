@@ -13,6 +13,7 @@
     (box
       :orientation "v"
       :space-evenly false
+	  :width "250px"
 	  (pomodoro)
 	  (task-list))))
 

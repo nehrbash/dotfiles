@@ -1,16 +1,7 @@
 (defwidget calendar-win []
   (box
-    :class "ct_box"
+    :class "calendar_box"
     (calendar)))
-
-(defwindow calendar
-  :geometry (geometry
-    :x "0%"
-    :y "0%"
-  	:anchor "top center"
-    :width "0px"
-    :height "0px")
-  (calendar-win))
 
 (defwindow calendar-closer
   :geometry (geometry :width "100%" :height "100%")

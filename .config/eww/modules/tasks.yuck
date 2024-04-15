@@ -17,16 +17,15 @@
 	  :hexpand true
 	  :width 100
 	  (button
-		:halign "start"
 		:class "task-label"
 		:timeout "1s"
 		:onclick "${EWW_CMD} update cal_reveal=${!cal_reveal}"
-		(box
-		  :space-evenly false
-		  (label
-			:text "Agenda [${tasks.num-tasks}/${tasks.num-total}]")))
+		(label
+		  :space-evenly "false"
+		  :width 150
+		  :halign "center"
+		  :text "Agenda [${tasks.num-tasks}/${tasks.num-total}]"))
 	  (box
-		:width 180
 		:class "toggle-bg"
 		:space-evenly "false"
 	    :halign "end"
