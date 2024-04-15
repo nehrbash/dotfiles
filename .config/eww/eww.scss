@@ -1,5 +1,4 @@
 @import 'css/colors_melissa_dark';
-// @import 'css/colors'; // gruvbox dark
 
 @mixin rounding {
   border-radius: 16px;
@@ -7,7 +6,8 @@
 
 @mixin window {
   border: 1px solid $border;
-  box-shadow: 0 2px 3px $shadow;
+  box-shadow: 0px 2px 5px $shadow;
+  margin: 5px;
   @include rounding;
 }
 

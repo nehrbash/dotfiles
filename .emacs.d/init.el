@@ -1159,6 +1159,7 @@ targets."
    (quote (("NEXT" :inherit warning)
 		   ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
+  (org-clock-resolve-expert t)
   (org-auto-align-tags nil)
   (org-edit-src-content-indentation 0)
   (org-edit-timestamp-down-means-later t)

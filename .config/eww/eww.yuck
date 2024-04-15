@@ -24,13 +24,6 @@
 (include "./windows/control-menu.yuck")
 (include "./windows/corners.yuck")
 
-(defwidget notif-toggle []
-  (button
-    :class "module"
-    :onclick "sleep .15; swaync-client -t"
-    :onrightclick "swaync-client -d"
-    {notif.Icon}))
-
 (defwidget left []
   (box
     :space-evenly false
@@ -63,8 +56,7 @@
     :class "clock ${notif.Class}"
     :space-evenly false
     :halign "center"
-    (clock_module)
-    (notif-toggle)))
+    (clock_module)))
 
 (defwidget bar []
   (centerbox

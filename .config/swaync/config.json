@@ -1,6 +1,6 @@
 {
     "positionX": "left",
-    "positionY": "top",
+    "positionY": "bottom",
     "layer": "overlay",
     "timeout": 10,
     "timeout-low": 5,
