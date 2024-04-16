@@ -655,6 +655,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package minibuffer
   :ensure nil
+  :hook (minibuffer-mode . olivetti-mode)
   :bind
   (:map minibuffer-local-completion-map
   		("<backtab>" . minibuffer-force-complete))
@@ -662,7 +663,7 @@ point reaches the beginning or end of the buffer, stop there."
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
   (read-minibuffer-restore-windows nil) ;; don't revert to original layout after cancel.
-  (resize-mini-windows t)
+  (resize-mini-windows nil)
   (minibuffer-prompt-properties
    '(read-only t cursor-intangible t face minibuffer-prompt))
   :hook

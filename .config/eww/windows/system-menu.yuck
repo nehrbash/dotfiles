@@ -4,6 +4,7 @@
     :space-evenly false
     :orientation "v"
     (box
+	  :width 430
       :class "top-row"
       :space-evenly false
       (label
@@ -178,7 +179,7 @@
 
 ;; windows
 (defwindow system-menu
-  :stacking "fg" 
+  :stacking "fg"
   :geometry (geometry
     :y 10
     :x 10

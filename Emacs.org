@@ -84,6 +84,7 @@
   - [[#google-this][Google This]]
   - [[#dev-documentation][Dev Documentation]]
   - [[#emacs-everywhere][Emacs everywhere]]
+  - [[#playing-around-with-frames][Playing around with frames]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -1026,6 +1027,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 #+begin_src emacs-lisp
 (use-package minibuffer
   :ensure nil
+  :hook (minibuffer-mode . olivetti-mode)
   :bind
   (:map minibuffer-local-completion-map
   		("<backtab>" . minibuffer-force-complete))
@@ -1033,7 +1035,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
   (read-minibuffer-restore-windows nil) ;; don't revert to original layout after cancel.
-  (resize-mini-windows t)
+  (resize-mini-windows nil)
   (minibuffer-prompt-properties
    '(read-only t cursor-intangible t face minibuffer-prompt))
   :hook
@@ -3143,6 +3145,32 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (local-set-key (kbd "M-SPC DEL") 'ea-abort))
 #+end_src
 
+** Playing around with frames
+
+#+begin_src emacs-lisp :tangle no
+(defun setup-frames ()
+  "Set up frames for minibuffer and editor."
+  (setq default-minibuffer-frame
+		(make-frame
+		 '((name . "Emacs Minibuffer")
+		   (width . 80)
+		   (height . 1)
+		   (minibuffer . only)
+		   (top . 0) ;; Ensure it's at the top
+		   (left . 0))))
+  (setq new-frame
+		(make-frame
+		 '((name . "Emacs Frame")
+		   (width . 80)
+		   (height . 30)
+		   (minibuffer . nil)
+		   (top . 50) ;; Adjust as needed
+		   (left . 0)))))
+;; Add to window-setup-hook
+(add-hook 'window-setup-hook 'setup-frames)  
+#+end_src
+   
+   
 * Runtime Performance
   Makes garbage collection high while commands run and low when they end.
   

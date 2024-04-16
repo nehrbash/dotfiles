@@ -32,7 +32,6 @@
 @import 'css/calendar';
 @import 'css/music';
 @import 'css/osd';
-@import 'css/sidebar';
 @import 'css/system';
 @import 'css/volume';
 @import 'css/pomodoro';
@@ -80,15 +79,6 @@ tooltip {
 .module {
     @include hoverable;
     padding: 0px 10px;
-}
-
-.date {
-  background: $bg;
-  color: $flamingo;
-
-  label {
-    font-size: 1.2rem;
-  }
 }
 
 .bright-icon { color: $yellow; }
