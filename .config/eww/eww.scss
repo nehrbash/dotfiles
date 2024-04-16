@@ -41,6 +41,7 @@
 @import 'css/mode';
 @import 'css/apps';
 @import 'css/tasks';
+@import 'css/workspaces';
 
 
 .bar, .sidebar {
@@ -67,10 +68,6 @@ tooltip {
   }
 }
 
-.ws {
-	@include hoverable;
-    border-radius: 50%;
-}
 
 .checkbox {
 	border-radius: 6px;
@@ -78,15 +75,6 @@ tooltip {
 	// padding-top: 15px;
 	border: 2px solid $border;
 	background: $crust;
-}
-
-
-.ws-icon {
-    background-position: center;
-    background-size: cover;
-	// make them pop out of circle a little more
-	margin: -5px;
-	padding: 5px;
 }
 
 .module {

@@ -4,16 +4,34 @@
 	(box
 	  :class "module"
 	  :orientation "v"
-	  :spacing 20
+	  :spacing 22
+	  :space-evenly "false"
 	  (for i in workspace
-        (box :class "ws" :style "background-color: ${i.color};"
+        (box
+		  :class "ws"
+		  :style "background-color: ${i.color};"
 		  :orientation "v"
+		  :space-evenly "false"
+		  :vexpand "false"
 		  (button
 			:onclick "hyprctl --batch \"dispatch moveworkspacetomonitor ${i.number} ${monitor.id}; dispatch workspace ${i.number}\""
 			:height 42
 			:vexpand false
 			:width 42
 			:class "ws-icon"
-			:style "background-image: url('${i.icon}');"))))))
+			:style "background-image: url('${i.icon}');")
+		  (box
+			:class "ws-app-box"
+			:orientation "h"
+			:hexpand "false"
+			:halign "end"
+			:space-evenly "false"
+			(box
+			  :height 0
+			  :width 42
+			  (label
+				:class "ws-app-icon"
+				:style "background-image: url('${i.active_client_icon}');"))
+			))))))
 
 

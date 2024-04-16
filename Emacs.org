@@ -259,12 +259,13 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
   (doom-modeline-vcs-max-length 30)
   (doom-modeline-height 32)
   (doom-modeline-lsp nil)
+  (doom-modeline-workspace-name nil)
   :config
+  (doom-modeline-def-modeline 'simple-line
+    '(bar modals buffer-info remote-host)
+    '(compilation objed-state persp-name process vcs))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
-	(doom-modeline-def-modeline 'simple-line
-      '(bar modals buffer-info remote-host)
-      '(compilation objed-state misc-info persp-name process vcs))
 	(line-number-mode -1)
 	(column-number-mode -1)
 	(doom-modeline-set-modeline 'simple-line 'default))
