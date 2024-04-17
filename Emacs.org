@@ -79,12 +79,12 @@
   - [[#gpt][GPT]]
   - [[#codeium][Codeium]]
   - [[#customize-dir-local][Customize Dir Local]]
-  - [[#web-tabs][Web Tabs]]
   - [[#typing-practice][Typing Practice]]
   - [[#google-this][Google This]]
   - [[#dev-documentation][Dev Documentation]]
   - [[#emacs-everywhere][Emacs everywhere]]
   - [[#playing-around-with-frames][Playing around with frames]]
+  - [[#go-taskfile][Go Taskfile]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -1034,7 +1034,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
-  (read-minibuffer-restore-windows nil) ;; don't revert to original layout after cancel.
+  (read-minibuffer-restore-windows t) ;; don't revert to original layout after cancel.
   (resize-mini-windows nil)
   (minibuffer-prompt-properties
    '(read-only t cursor-intangible t face minibuffer-prompt))
@@ -2496,7 +2496,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package multi-vterm
-  :ensure vterm multi-vterm
+  :ensure vterm
   :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
@@ -2550,7 +2550,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 		(set-buffer vterm-buffer)
 		(multi-vterm-internal)
 		(switch-to-buffer vterm-buffer))
-
 	  (setq multi-vterm-dedicated-window (selected-window))
 	  (setq multi-vterm-dedicated-buffer (current-buffer))
 	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
@@ -3067,19 +3066,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package cus-dir
-  :defer t
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
   :bind ("C-x p d" . customize-dirlocals-project))
-#+end_src
-
-** TODO Web Tabs
-
-   - Needs better Firefox support.
-   - How do I make debug banner look normal?
-
-#+begin_src emacs-lisp :tangle no
-(use-package ibrowse
-  :bind ("<f8>" . ibrowse-tab-select))
 #+end_src
 
 ** Typing Practice
@@ -3137,7 +3125,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (interactive)
   (switch-to-buffer "*Emacs Everywhere*")
   (select-frame-set-input-focus (selected-frame))
-  (add-hook 'delete-frame-functions 'ea-on-delete nil t) ; t for local buffer
+  (add-hook 'delete-frame-functions 'ea-on-delete nil t)
   (org-mode)
   (gptel-mode)
   (toggle-mode-line)
@@ -3168,6 +3156,16 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 		   (left . 0)))))
 ;; Add to window-setup-hook
 (add-hook 'window-setup-hook 'setup-frames)  
+#+end_src
+   
+** Go Taskfile
+
+#+begin_src emacs-lisp
+(use-package consult-taskfile
+  :load-path "~/src/consult-taskfile"
+  :bind
+  ("M-SPC x" . consult-task)
+  ("M-SPC c" . taskfile))
 #+end_src
    
    

@@ -662,7 +662,7 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
-  (read-minibuffer-restore-windows nil) ;; don't revert to original layout after cancel.
+  (read-minibuffer-restore-windows t) ;; don't revert to original layout after cancel.
   (resize-mini-windows nil)
   (minibuffer-prompt-properties
    '(read-only t cursor-intangible t face minibuffer-prompt))
@@ -1789,7 +1789,7 @@ targets."
   ("C-c g k" . browse-at-remote-kill))
 
 (use-package multi-vterm
-  :ensure vterm multi-vterm
+  :ensure vterm
   :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
@@ -1843,7 +1843,6 @@ targets."
 		(set-buffer vterm-buffer)
 		(multi-vterm-internal)
 		(switch-to-buffer vterm-buffer))
-
 	  (setq multi-vterm-dedicated-window (selected-window))
 	  (setq multi-vterm-dedicated-buffer (current-buffer))
 	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
@@ -2173,7 +2172,6 @@ targets."
   (setq codeium/document/text 'my-codeium/document/text))
 
 (use-package cus-dir
-  :defer t
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
   :bind ("C-x p d" . customize-dirlocals-project))
 
@@ -2211,12 +2209,18 @@ targets."
   (interactive)
   (switch-to-buffer "*Emacs Everywhere*")
   (select-frame-set-input-focus (selected-frame))
-  (add-hook 'delete-frame-functions 'ea-on-delete nil t) ; t for local buffer
+  (add-hook 'delete-frame-functions 'ea-on-delete nil t)
   (org-mode)
   (gptel-mode)
   (toggle-mode-line)
   (local-set-key (kbd "M-SPC SPC") 'ea-commit)
   (local-set-key (kbd "M-SPC DEL") 'ea-abort))
+
+(use-package consult-taskfile
+  :load-path "~/src/consult-taskfile"
+  :bind
+  ("M-SPC x" . consult-task)
+  ("M-SPC c" . taskfile))
 
 (use-package gcmh
   :ensure (:host github :repo "emacsmirror/gcmh")
