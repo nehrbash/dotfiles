@@ -13,7 +13,7 @@ fi
 off() {
 	hypridle &
     echo $! > "$pid_file"
-    notify-send "Inhibitor" "Deactivated" -i "$HOME/.config/eww/images/notification.png"
+    notify-send "Inhibitor" "Deactivated" -i "$HOME/.config/eww/images/notification.png" -c "System" -a "System Notification"
     eww update inhibitor=$icon
 }
 
@@ -21,7 +21,7 @@ on() {
     pkill -F "$pid_file"
     rm -f "$pid_file"
 
-    notify-send "Inhibitor" "Activated" -i "$HOME/.config/eww/images/notification.png"
+    notify-send "Inhibitor" "Activated" -i "$HOME/.config/eww/images/notification.png" -c "System" -a "System Notification"
     eww update inhibitor=$icon
 }
 

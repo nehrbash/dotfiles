@@ -85,6 +85,7 @@
   - [[#emacs-everywhere][Emacs everywhere]]
   - [[#playing-around-with-frames][Playing around with frames]]
   - [[#go-taskfile][Go Taskfile]]
+  - [[#emetnt-chat-on-matrix][Emetnt chat on Matrix]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -748,7 +749,39 @@ Call a second time to restore the original window configuration."
   :commands avy-goto-char-timer
   :bind ("C-M-s" . avy-goto-char-timer))
 #+end_src
+*** avy multi-cursor
 
+#+begin_src emacs-lisp
+(use-package lasgun
+  :ensure (:host github :repo "aatmunbaxi/lasgun.el")
+  :config
+  (require 'transient)
+  ;; Defines some lasgun actions
+  (define-lasgun-action lasgun-action-upcase-word t upcase-word)
+  (define-lasgun-action lasgun-action-downcase-word t downcase-word)
+  (define-lasgun-action lasgun-action-kill-word nil kill-word)
+
+  (transient-define-prefix lasgun-transient ()
+	"Main transient for lasgun."
+	[["Marks"
+	  ("c" "Char timer" lasgun-mark-char-timer :transient t)
+	  ("w" "Word" lasgun-mark-word-0 :transient t)
+	  ("l" "Begin of line" lasgun-mark-line :transient t)
+	  ("s" "Symbol" lasgun-mark-symbol-1 :transient t)
+	  ("w" "Whitespace end" lasgun-mark-whitespace-end :transient t)
+	  ("x" "Clear lasgun mark ring" lasgun-clear-lasgun-mark-ring :transient t)
+	  ("u" "Undo lasgun mark" lasgun-pop-lasgun-mark :transient t)]
+	 ["Actions"
+	  ("SPC" "Make cursors" lasgun-make-multiple-cursors)
+	  ("." "Embark act all" lasgun-embark-act-all)
+	  ("U" "Upcase" lasgun-action-upcase-word)
+	  ("l" "Downcase" lasgun-action-downcase-word)
+	  ("K" "Kill word" lasgun-action-kill-word)
+	  ("q" "Quit" transient-quit-one)]])
+  (global-set-key (kbd "M-SPC i") 'lasgun-transient))
+#+end_src
+
+	
 *** Transit
 
  #+begin_src emacs-lisp
@@ -1027,7 +1060,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 #+begin_src emacs-lisp
 (use-package minibuffer
   :ensure nil
-  :hook (minibuffer-mode . olivetti-mode)
+  ;; :hook (minibuffer-setup . olivetti-mode) ;; fun but glichy 
   :bind
   (:map minibuffer-local-completion-map
   		("<backtab>" . minibuffer-force-complete))
@@ -3167,7 +3200,44 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   ("M-SPC x" . consult-task)
   ("M-SPC c" . taskfile))
 #+end_src
-   
+      
+** Emetnt chat on Matrix
+
+#+begin_src emacs-lisp
+(use-package ement
+  :ensure t
+  :custom
+  (ement-room-prism 'both)
+  (ement-save-sessions t) ;; Beware, this stores your token to disk in plain text!
+  )
+
+(use-package burly
+  :ensure t)
+
+;; Thanks alphapapa!
+(cl-defun ap/display-buffer-in-side-window (&optional (buffer (current-buffer))
+                                                      &key (side 'right) (slot 0))
+  "Display BUFFER in dedicated side window.
+With universal prefix, use left SIDE instead of right.  With two
+universal prefixes, prompt for side and slot (which allows
+setting up an IDE-like layout)."
+  (interactive (list (current-buffer)
+                     :side (pcase current-prefix-arg
+                             ('nil 'right)
+                             ('(0) left)
+                             (_ (intern (completing-read "Side: " '(left right top bottom) nil t))))
+                     :slot (pcase current-prefix-arg
+                             ('nil 0)
+                             ('(0) 0)
+                             (_ (read-number "Slot: ")))))
+  (let ((display-buffer-mark-dedicated t))
+    (display-buffer buffer
+                    `(display-buffer-in-side-window
+                      (side . ,side)
+                      (slot . ,slot)
+                      (window-parameters
+                       (no-delete-other-windows . t))))))
+#+end_src
    
 * Runtime Performance
   Makes garbage collection high while commands run and low when they end.

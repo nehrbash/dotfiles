@@ -472,6 +472,34 @@ Call a second time to restore the original window configuration."
   :commands avy-goto-char-timer
   :bind ("C-M-s" . avy-goto-char-timer))
 
+(use-package lasgun
+  :ensure (:host github :repo "aatmunbaxi/lasgun.el")
+  :config
+  (require 'transient)
+  ;; Defines some lasgun actions
+  (define-lasgun-action lasgun-action-upcase-word t upcase-word)
+  (define-lasgun-action lasgun-action-downcase-word t downcase-word)
+  (define-lasgun-action lasgun-action-kill-word nil kill-word)
+
+  (transient-define-prefix lasgun-transient ()
+	"Main transient for lasgun."
+	[["Marks"
+	  ("c" "Char timer" lasgun-mark-char-timer :transient t)
+	  ("w" "Word" lasgun-mark-word-0 :transient t)
+	  ("l" "Begin of line" lasgun-mark-line :transient t)
+	  ("s" "Symbol" lasgun-mark-symbol-1 :transient t)
+	  ("w" "Whitespace end" lasgun-mark-whitespace-end :transient t)
+	  ("x" "Clear lasgun mark ring" lasgun-clear-lasgun-mark-ring :transient t)
+	  ("u" "Undo lasgun mark" lasgun-pop-lasgun-mark :transient t)]
+	 ["Actions"
+	  ("SPC" "Make cursors" lasgun-make-multiple-cursors)
+	  ("." "Embark act all" lasgun-embark-act-all)
+	  ("U" "Upcase" lasgun-action-upcase-word)
+	  ("l" "Downcase" lasgun-action-downcase-word)
+	  ("K" "Kill word" lasgun-action-kill-word)
+	  ("q" "Quit" transient-quit-one)]])
+  (global-set-key (kbd "M-SPC i") 'lasgun-transient))
+
 (use-package transient
   :defer t
   :bind
@@ -655,7 +683,7 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package minibuffer
   :ensure nil
-  :hook (minibuffer-mode . olivetti-mode)
+  ;; :hook (minibuffer-setup . olivetti-mode) ;; fun but glichy 
   :bind
   (:map minibuffer-local-completion-map
   		("<backtab>" . minibuffer-force-complete))
@@ -936,7 +964,6 @@ targets."
   :bind-keymap ("C-c p". project-prefix-map))
 
 (use-package protogg
-  :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
@@ -2221,6 +2248,40 @@ targets."
   :bind
   ("M-SPC x" . consult-task)
   ("M-SPC c" . taskfile))
+
+(use-package ement
+  :ensure t
+  :custom
+  (ement-room-prism 'both)
+  (ement-save-sessions t) ;; Beware, this stores your token to disk in plain text!
+  )
+
+(use-package burly
+  :ensure t)
+
+;; Thanks alphapapa!
+(cl-defun ap/display-buffer-in-side-window (&optional (buffer (current-buffer))
+                                                      &key (side 'right) (slot 0))
+  "Display BUFFER in dedicated side window.
+With universal prefix, use left SIDE instead of right.  With two
+universal prefixes, prompt for side and slot (which allows
+setting up an IDE-like layout)."
+  (interactive (list (current-buffer)
+                     :side (pcase current-prefix-arg
+                             ('nil 'right)
+                             ('(0) left)
+                             (_ (intern (completing-read "Side: " '(left right top bottom) nil t))))
+                     :slot (pcase current-prefix-arg
+                             ('nil 0)
+                             ('(0) 0)
+                             (_ (read-number "Slot: ")))))
+  (let ((display-buffer-mark-dedicated t))
+    (display-buffer buffer
+                    `(display-buffer-in-side-window
+                      (side . ,side)
+                      (slot . ,slot)
+                      (window-parameters
+                       (no-delete-other-windows . t))))))
 
 (use-package gcmh
   :ensure (:host github :repo "emacsmirror/gcmh")
