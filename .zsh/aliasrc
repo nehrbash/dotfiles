@@ -3,11 +3,11 @@
 alias pacman-update='sudo pacman-mirrors --geoip'
 
 if type exa > /dev/null; then
-    alias l='exa -lFh --icons'
+    alias l='exa -lh --icons'
     alias ll='exa -l --icons'
     alias ls='exa --icons'
-    alias la='exa -lFha --icons'   #long list,show almost all,show type,human readable
-    alias lr='exa -tRFh --icons'   #sorted by date,recursive,show type,human readable
+    alias la='exa -lha --icons'   #long list,show almost all,show type,human readable
+    alias lr='exa -tRh --icons'   #sorted by date,recursive,show type,human readable
     alias tree='exa --tree'
     alias lt='exa --tree --icons -l'
     alias ldot='exa -ld .* --icons'

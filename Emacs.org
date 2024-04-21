@@ -91,10 +91,6 @@
 
 * Package Manager
 
-Dropped straight.el because vc provides the one feature I was needing. That is source pulling packages.  ~use-package~  and ~vc-use-package~ are now built-in as well.
-
-~use-package~ can be used to add to load path using ~:load-path "~lisp"~
-
 #+begin_src emacs-lisp
 ;;; init.el --- Initialization file for Emacs -*- lexical-binding:t -*-
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
@@ -103,7 +99,7 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 
 ** Load Package Manager
 
-   trying out =elpaca=
+   =elpaca= has been most pleasant experience thus far.
 
 #+begin_src emacs-lisp
 (defvar elpaca-installer-version 0.7)
@@ -149,7 +145,6 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 		;; use-package enable :ensure keyword.
 		(elpaca-use-package-mode)
 		(setq use-package-always-ensure t))
-(elpaca-wait)
 (setopt
  warning-minimum-level :emergency
  native-comp-jit-compilation t
@@ -178,7 +173,8 @@ Dropped straight.el because vc provides the one feature I was needing. That is s
 (add-hook 'elpaca-after-init-hook (lambda ()
 									(progn
 									  (load custom-file 'noerror)
-									  (my-ef-themes-mod))))
+									  (my-ef-themes-mod)
+									  (kill-buffer " elpaca--read-file"))))
 #+end_src   
    
 * UI Look
@@ -1294,6 +1290,48 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 		  consult--source-star)))
 #+end_src
 
+*** consult web
+
+#+begin_src emacs-lisp :tangle no
+  (use-package consult-web
+	:ensure (:host github :repo "armindarvish/consult-web")
+	:after consult
+	:custom
+	(consult-web-show-preview t) ;;; show previews
+	(consult-web-preview-key "C-o") ;;; set the preview key to C-o
+	(consult-web-highlight-matches t) ;;; highlight matches in minibuffer
+	(consult-web-default-count 5) ;;; set default count
+	(consult-web-default-page 0) ;;; set the default page (default is 0 for the first page)
+	(consult-web-dynamic-input-debounce 0.8)
+	(consult-web-dynamic-input-throttle 1.6)
+	(consult-web-dynamic-refresh-delay 0.8)
+	:config
+	;; Add sources and configure them
+	;;; load the example sources provided by default
+	(require 'consult-web-sources)
+
+	;;; set multiple sources for consult-web-multi command. Change these lists as needed for different interactive commands. Keep in mind that each source has to be a key in `consult-web-sources-alist'.
+	(setq consult-web-multi-sources '("Wikipedia" "chatGPT" "Google")) ;; consult-web-multi
+	(setq consult-web-dynamic-sources '("gptel" "StackOverFlow" )) ;; consult-web-dynamic
+	(setq consult-web-scholar-sources '("PubMed")) ;; consult-web-scholar
+	(setq consult-web-omni-sources (list "elfeed" "Wikipedia" "gptel" "YouTube" 'consult-buffer-sources 'consult-notes-all-sources)) ;;consult-web-omni
+	(setq consult-web-dynamic-omni-sources (list "Known Project" "File" "Bookmark" "Buffer" "Reference Roam Nodes" "Zettel Roam Nodes" "Line Multi" "elfeed" "Wikipedia" "gptel" "Youtube")) ;;consult-web-dynamic-omni
+
+	;; Per source customization
+	;;; Pick you favorite autosuggest command.
+	;; (setq consult-web-default-autosuggest-command #'consult-web-dynamic-brave-autosuggest) ;;or any other autosuggest source you define
+
+	;;; Set API KEYs. It is recommended to use a function that returns the string for better security.
+	;; (setq consult-web-google-customsearch-key "YOUR-GOOGLE-API-KEY-OR-FUNCTION")
+	;; (setq consult-web-google-customsearch-cx "YOUR-GOOGLE-CX-NUMBER-OR-FUNCTION")
+	;; (setq consult-web-stackexchange-api-key "YOUR-STACKEXCHANGE-API-KEY-OR-FUNCTION")
+	;; (setq consult-web-pubmed-api-key "YOUR-PUBMED-API-KEY-OR-FUNCTION")
+	;; (setq consult-web-openai-api-key "YOUR-OPENAI-API-KEY-OR-FUNCTION")
+	;;; add more keys as needed here.
+	)
+#+end_src
+
+	
 ** Embark
 
    Do thing with thing at point in minbuffer or regular buffer. read their readme to actually understand.
@@ -1918,82 +1956,82 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
    I like type break more then pomodoro session.
 
 #+begin_src emacs-lisp
-(use-package type-break
-  :ensure nil
-  :custom
-  (org-clock-ask-before-exiting nil)
-  (type-break-interval (* 25 60)) ;; 25 mins
-  (type-break-good-rest-interval (* 5 60)) ;; 5 mins
-  (type-break-good-break-interval (* 5 60)) ;; 5 mins
-  (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
-  (type-break-demo-boring-stats t)
-  (type-break-file-name nil) ;; don't save across sessions file is annoying
-  (type-break-query-mode t)
-  (type-break-warning-repeat nil)
-  ;; This will stop the warnings before it's time to take a break
-  (type-break-time-warning-intervals '())
-  (type-break-keystroke-warning-intervals '())
-  (type-break-query-function 'sn/type-break-query)
-  (type-break-mode-line-message-mode nil)
-  (type-break-demo-functions '(type-break-demo-boring))
-  :init
-  (defun sn/org-mark-current-done ()
-	"Clock out of the current task and mark it as DONE."
-	(interactive)
-	(let ((org-clock-out-switch-to-state "DONE"))
-      (org-clock-out)
-	  (setq org-clock-heading "")
-	  (org-save-all-org-buffers)))
-  (defun sn/type-break-toggle ()
-	(interactive)
-	(if type-break-mode
-		(type-break-mode -1)
-	  (type-break-mode 1)))
-  (defun sn/type-break-query (a &rest b)
-	"Auto say yes and ask to quit type break."
-	(if (>= (type-break-time-difference
-                                 type-break-interval-start
-                                 type-break-time-last-break) 0)
-		(y-or-n-p "Do you want to continue type-break? ")
-	  t))
-  (defun org-clock-in-to-task-by-title (task-title)
-	"Clock into an Org Agenda task by its title within a custom agenda command."
-	(interactive "sEnter the title of the task: ")
-	(save-window-excursion
-	  (org-agenda nil "t")
-	  (with-current-buffer "*Org Agenda(t)*"
-		(goto-char (point-min))
-		(if (search-forward task-title nil t)
-			(progn
-			  (org-agenda-goto)
-			  (org-clock-in))
-		  (message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
-  (defun format-seconds-to-mm-ss (seconds)
-	"Formats time to MM:SS."
-	(let* ((minutes (floor (/ seconds 60)))
-		   (remaining-seconds (- seconds (* minutes 60))))
-	  (format "%02d:%02d" minutes remaining-seconds)))
-  (defun type-break-json-data ()
-	"Prints type break data used in eww bar."
-	(let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
-		   (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
-							 "00:00"))
-		   (percent (if type-break-mode
-						(number-to-string (/ (* 100.0 time-difference)
-											 type-break-interval))
-					  "0"))
-		   (json-data `(:percent ,percent
-								 :time ,formatted-time
-								 :task ,(if (string-empty-p org-clock-heading)
-											"No Active Task"
-										  org-clock-heading)
-								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
-													   "No Active Task"
-													 org-clock-heading)
-												   " " formatted-time)
-								 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
-								 :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
-	  (json-encode json-data))))
+  (use-package type-break
+	:ensure nil
+	:custom
+	(org-clock-ask-before-exiting nil)
+	(type-break-interval (* 25 60)) ;; 25 mins
+	(type-break-good-rest-interval (* 5 60)) ;; 5 mins
+	(type-break-good-break-interval (* 5 60)) ;; 5 mins
+	(type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
+	(type-break-demo-boring-stats t)
+	(type-break-file-name nil) ;; don't save across sessions file is annoying
+	(type-break-query-mode t)
+	(type-break-warning-repeat nil)
+	;; This will stop the warnings before it's time to take a break
+	(type-break-time-warning-intervals '())
+	(type-break-keystroke-warning-intervals '())
+	(type-break-query-function 'sn/type-break-query)
+	(type-break-mode-line-message-mode nil)
+	(type-break-demo-functions '(type-break-demo-boring))
+	:init
+	(defun sn/org-mark-current-done ()
+	  "Clock out of the current task and mark it as DONE."
+	  (interactive)
+	  (let ((org-clock-out-switch-to-state "DONE"))
+		(org-clock-out)
+		(setq org-clock-heading "")
+		(org-save-all-org-buffers)))
+	(defun sn/type-break-toggle ()
+	  (interactive)
+	  (if type-break-mode
+		  (type-break-mode -1)
+		(type-break-mode 1)))
+	(defun sn/type-break-query (a &rest b)
+	  "Auto say yes and ask to quit type break."
+	  (if (>= (type-break-time-difference
+								   type-break-interval-start
+								   type-break-time-last-break) 0)
+		  (y-or-n-p "Do you want to continue type-break? ")
+		t))
+	(defun org-clock-in-to-task-by-title (task-title)
+	  "Clock into an Org Agenda task by its title within a custom agenda command."
+	  (interactive "sEnter the title of the task: ")
+	  (save-window-excursion
+		(org-agenda nil "t")
+		(with-current-buffer "*Org Agenda(t)*"
+		  (goto-char (point-min))
+		  (if (search-forward task-title nil t)
+			  (progn
+				(org-agenda-goto)
+				(org-clock-in))
+			(message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
+	(defun format-seconds-to-mm-ss (seconds)
+	  "Formats time to MM:SS."
+	  (let* ((minutes (floor (/ seconds 60)))
+			 (remaining-seconds (- seconds (* minutes 60))))
+		(format "%02d:%02d" minutes remaining-seconds)))
+	(defun type-break-json-data ()
+	  "Prints type break data used in eww bar."
+	  (let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
+			 (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
+							   "00:00"))
+			 (percent (if type-break-mode
+						  (number-to-string (/ (* 100.0 time-difference)
+											   type-break-interval))
+						"0"))
+			 (json-data `(:percent ,percent
+								   :time ,formatted-time
+								   :task ,(if (string-empty-p org-clock-heading)
+											  "No Active Task"
+											org-clock-heading)
+								   :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
+														 "No Active Task"
+													   org-clock-heading)
+													 " " formatted-time)
+								   :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
+								   :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
+		(json-encode json-data))))
 #+end_src
 
 ** Auto Save PDF Toggle
@@ -2529,8 +2567,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package multi-vterm
-  :ensure vterm
-  :load-path "~/src/multi-vterm"
+  ;; :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)

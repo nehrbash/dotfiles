@@ -45,7 +45,6 @@
 		;; use-package enable :ensure keyword.
 		(elpaca-use-package-mode)
 		(setq use-package-always-ensure t))
-(elpaca-wait)
 (setopt
  warning-minimum-level :emergency
  native-comp-jit-compilation t
@@ -65,7 +64,8 @@
 (add-hook 'elpaca-after-init-hook (lambda ()
 									(progn
 									  (load custom-file 'noerror)
-									  (my-ef-themes-mod))))
+									  (my-ef-themes-mod)
+									  (kill-buffer " elpaca--read-file"))))
 
 (use-package ef-themes
   :custom
@@ -964,6 +964,7 @@ targets."
   :bind-keymap ("C-c p". project-prefix-map))
 
 (use-package protogg
+  :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
@@ -1406,7 +1407,7 @@ targets."
 	"Clock out of the current task and mark it as DONE."
 	(interactive)
 	(let ((org-clock-out-switch-to-state "DONE"))
-      (org-clock-out)
+	  (org-clock-out)
 	  (setq org-clock-heading "")
 	  (org-save-all-org-buffers)))
   (defun sn/type-break-toggle ()
@@ -1417,8 +1418,8 @@ targets."
   (defun sn/type-break-query (a &rest b)
 	"Auto say yes and ask to quit type break."
 	(if (>= (type-break-time-difference
-                                 type-break-interval-start
-                                 type-break-time-last-break) 0)
+								 type-break-interval-start
+								 type-break-time-last-break) 0)
 		(y-or-n-p "Do you want to continue type-break? ")
 	  t))
   (defun org-clock-in-to-task-by-title (task-title)
@@ -1816,8 +1817,7 @@ targets."
   ("C-c g k" . browse-at-remote-kill))
 
 (use-package multi-vterm
-  :ensure vterm
-  :load-path "~/src/multi-vterm"
+  ;; :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
