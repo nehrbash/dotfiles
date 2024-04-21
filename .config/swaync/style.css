@@ -1,16 +1,20 @@
 * {
     font-family: Iosevka, Material Icons Outlined;
     font-size: 12px;
-    color: #ebdbb2;
+    color: #e6d6ac;
+	transition: 350ms slide;
 }
-@define-color border #1d2021;
-@define-color shadow #0d1011;
-@define-color bg #282828;
-@define-color hover #665c54;
-@define-color selected #3c3836;
-@define-color fg-alt #d5c4a1;
-@define-color ac #458588;
 
+@define-color border #1a130c;
+@define-color shadow #352718;
+@define-color bg #281d12;
+@define-color bg-alt #59463f;
+@define-color hover #483426;
+@define-color hover #483426;
+@define-color selected #50331e;
+@define-color fg-alt #d5c4a1;
+@define-color ac #a2c080;
+@define-color wm_border #6fd560;
 .notification-row:focus,
 .notification-row:hover {
     padding-left: 15px;
@@ -28,7 +32,7 @@
 }
 
 .close-button {
-  background: @unfocused_borders;
+  background: @selected;
 }
 
 .close-button:hover {
@@ -114,7 +118,7 @@
 
 .control-center-clear-all {
   text-shadow: none;
-  background: @wm_unfocused_bg;
+  background: @bg_alt;
   border: 2px solid @wm_border;
   box-shadow: none;
   border-radius: 10px;

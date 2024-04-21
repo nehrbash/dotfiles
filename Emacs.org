@@ -86,6 +86,7 @@
   - [[#playing-around-with-frames][Playing around with frames]]
   - [[#go-taskfile][Go Taskfile]]
   - [[#emetnt-chat-on-matrix][Emetnt chat on Matrix]]
+  - [[#app-launcher][App Launcher]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -275,6 +276,7 @@
 #+begin_src emacs-lisp
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
+(setopt after-delete-frame-functions nil)
 #+end_src
 
 *** Scolling
@@ -2393,6 +2395,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 			  ("C-c a" . eglot-code-actions)
 			  ("C-c C-o" . eglot-code-action-organize-imports))
   :custom
+  (eglot-report-progress nil)
   (eglot-autoshutdown t)
   (eglot-sync-connect nil)
   (eglot-events-buffer-config '(:size 0 :format full))
@@ -3250,6 +3253,23 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :ensure t)
 #+end_src
    
+** App Launcher
+
+#+begin_src emacs-lisp :tangle no
+(use-package app-launcher
+  :ensure (:host github :repo "SebastienWae/app-launcher")
+  :bind ("M-SPC M-L" . app-launcher-run-app)
+  :demand t
+  :config
+  (defun sn/app-launcher ()
+	"Lauch app and delete frame."
+	(interactive)
+      (unwind-protect
+          (progn
+			(app-launcher-run-app))
+		(delete-frame frame))))
+#+end_src
+
 * Runtime Performance
   Makes garbage collection high while commands run and low when they end.
   

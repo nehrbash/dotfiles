@@ -38,15 +38,19 @@
 
 ;; Set default font for new frames overwritten by default-frame-alist
 (setq initial-frame-alist
-	  '((left-fringe . 10)
+	  '((background-color . "#352718") ;; avoid any flash of white so we can load theme after later
+		(left-fringe . 10)
+		(width . 700)
+		(height . 400)
 		(right-fringe . 10)
 		(vertical-scroll-bars . nil))
 	  default-frame-alist
 	  '(;;(alpha-background . 90)
-		(background-color . "#352718") ;; avoid any flash of white before theme load
 		(font . "Iosevka")
 		(left-fringe . 10)
 		(right-fringe . 10)
+		(width . 800)
+		(height . 600)
 		(vertical-scroll-bars . nil)))
 
 ;; Disable toolbar, scroll bar, and menu bar

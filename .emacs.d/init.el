@@ -145,6 +145,7 @@
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
+(setopt after-delete-frame-functions nil)
 
 (use-package pixel-scroll
   :ensure nil
@@ -1707,6 +1708,7 @@ targets."
 			  ("C-c a" . eglot-code-actions)
 			  ("C-c C-o" . eglot-code-action-organize-imports))
   :custom
+  (eglot-report-progress nil)
   (eglot-autoshutdown t)
   (eglot-sync-connect nil)
   (eglot-events-buffer-config '(:size 0 :format full))
