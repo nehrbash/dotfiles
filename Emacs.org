@@ -1418,8 +1418,8 @@ targets."
 
    Don't like the congestive overhead of thinking of if I want the project variant.
 
-#+begin_src emacs-lisp
-(use-package protogg
+#+begin_src emacs-lisp :tangel no
+(use-package protogg 
   :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
@@ -2569,8 +2569,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	 because eat does not support tramp
 
 #+begin_src emacs-lisp
+(use-package vterm)
 (use-package multi-vterm
-  ;; :load-path "~/src/multi-vterm"
+  :ensure 
+  :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
