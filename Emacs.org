@@ -2477,7 +2477,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 **** UI
 #+begin_src emacs-lisp
 (use-package git-gutter
-  :init
+  :config
   (global-git-gutter-mode t)
   :custom
   (git-gutter:ask-p nil)

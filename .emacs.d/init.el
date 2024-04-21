@@ -1779,7 +1779,7 @@ targets."
               (save-some-buffers t t))))
 
 (use-package git-gutter
-  :init
+  :config
   (global-git-gutter-mode t)
   :custom
   (git-gutter:ask-p nil)
