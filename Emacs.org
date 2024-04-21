@@ -2568,11 +2568,11 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 	 because eat does not support tramp
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package vterm)
 (use-package multi-vterm
-  :ensure 
-  :load-path "~/src/multi-vterm"
+  ;; :ensure (:host github :repo "nehrbash/multi-vterm") 
+  ;; :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)

@@ -172,7 +172,7 @@
   :config (spacious-padding-mode 1)
   :custom
   (spacious-padding-widths
-       '( :internal-border-width 15
+   '( :internal-border-width 15
 	  :header-line-width 4
 	  :mode-line-width 2
 	  :tab-width 4
@@ -502,89 +502,89 @@ Call a second time to restore the original window configuration."
   (global-set-key (kbd "M-SPC i") 'lasgun-transient))
 
 (use-package transient
-      :defer t
-      :bind
-      (:map isearch-mode-map
+  :defer t
+  :bind
+  (:map isearch-mode-map
 		("C-t" . sn/isearch-menu))
-      :config
-      (transient-define-prefix sn/isearch-menu ()
+  :config
+  (transient-define-prefix sn/isearch-menu ()
 	"isearch Menu"
 	[["Edit Search String"
-	      ("e"
-	       "Edit the search string (recursive)"
-	       isearch-edit-string
-	       :transient nil)
-	      ("w"
-	       "Pull next word or character word from buffer"
-	       isearch-yank-word-or-char
-	       :transient nil)
-	      ("s"
-	       "Pull next symbol or character from buffer"
-	       isearch-yank-symbol-or-char
-	       :transient nil)
-	      ("l"
-	       "Pull rest of line from buffer"
-	       isearch-yank-line
-	       :transient nil)
-	      ("y"
-	       "Pull string from kill ring"
-	       isearch-yank-kill
-	       :transient nil)
-	      ("t"
-	       "Pull thing from buffer"
-	       isearch-forward-thing-at-point
-	       :transient nil)]
-	     ["Replace"
-	      ("q"
-	       "Start ‘query-replace’"
-	       anzu-isearch-query-replace
-	       :if-nil buffer-read-only
-	       :transient nil)
-	      ("x"
-	       "Start ‘query-replace-regexp’"
-	       anzu-isearch-query-replace-regexp
-	       :if-nil buffer-read-only
-	       :transient nil)
-	      ]]
+	  ("e"
+	   "Edit the search string (recursive)"
+	   isearch-edit-string
+	   :transient nil)
+	  ("w"
+	   "Pull next word or character word from buffer"
+	   isearch-yank-word-or-char
+	   :transient nil)
+	  ("s"
+	   "Pull next symbol or character from buffer"
+	   isearch-yank-symbol-or-char
+	   :transient nil)
+	  ("l"
+	   "Pull rest of line from buffer"
+	   isearch-yank-line
+	   :transient nil)
+	  ("y"
+	   "Pull string from kill ring"
+	   isearch-yank-kill
+	   :transient nil)
+	  ("t"
+	   "Pull thing from buffer"
+	   isearch-forward-thing-at-point
+	   :transient nil)]
+	 ["Replace"
+	  ("q"
+	   "Start ‘query-replace’"
+	   anzu-isearch-query-replace
+	   :if-nil buffer-read-only
+	   :transient nil)
+	  ("x"
+	   "Start ‘query-replace-regexp’"
+	   anzu-isearch-query-replace-regexp
+	   :if-nil buffer-read-only
+	   :transient nil)
+	  ]]
 	[["Toggle"
-	      ("X"
-	       "Toggle regexp searching"
-	       isearch-toggle-regexp
-	       :transient nil)
-	      ("S"
-	       "Toggle symbol searching"
-	       isearch-toggle-symbol
-	       :transient nil)
-	      ("W"
-	       "Toggle word searching"
-	       isearch-toggle-word
-	       :transient nil)
-	      ("F"
-	       "Toggle case fold"
-	       isearch-toggle-case-fold
-	       :transient nil)
-	      ("L"
-	       "Toggle lax whitespace"
-	       isearch-toggle-lax-whitespace
-	       :transient nil)]
+	  ("X"
+	   "Toggle regexp searching"
+	   isearch-toggle-regexp
+	   :transient nil)
+	  ("S"
+	   "Toggle symbol searching"
+	   isearch-toggle-symbol
+	   :transient nil)
+	  ("W"
+	   "Toggle word searching"
+	   isearch-toggle-word
+	   :transient nil)
+	  ("F"
+	   "Toggle case fold"
+	   isearch-toggle-case-fold
+	   :transient nil)
+	  ("L"
+	   "Toggle lax whitespace"
+	   isearch-toggle-lax-whitespace
+	   :transient nil)]
 
-	     ["Misc"
-	      ("l"
-	       "Start ‘consult-line’"
-	       consult-line
-	       :transient nil)
-	      ("g"
-	       "Start ‘consult-git-grep’"
-	       consult-git-grep
-	       :transient nil)
-	      ("r"
-	       "Start ‘consult-ripgrep’"
-	       consult-ripgrep
-	       :transient nil)
-	      ("o"
-	       "occur"
-	       isearch-occur
-	       :transient nil)]]))
+	 ["Misc"
+	  ("l"
+	   "Start ‘consult-line’"
+	   consult-line
+	   :transient nil)
+	  ("g"
+	   "Start ‘consult-git-grep’"
+	   consult-git-grep
+	   :transient nil)
+	  ("r"
+	   "Start ‘consult-ripgrep’"
+	   consult-ripgrep
+	   :transient nil)
+	  ("o"
+	   "occur"
+	   isearch-occur
+	   :transient nil)]]))
 
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
@@ -616,15 +616,15 @@ Call a second time to restore the original window configuration."
 
 (defun toggle-mode-line ()
   "toggles the modeline on and off"
-	       (interactive)
-	       (setq mode-line-format
+	   (interactive)
+	   (setq mode-line-format
 			 (if (equal mode-line-format nil)
 				 (default-value 'mode-line-format)))
-	       (redraw-display))
+	   (redraw-display))
 
 (defun push-mark-no-activate ()
   "Pushes `point' to `mark-ring' and does not activate the region
-       Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
+   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
   (interactive)
   (push-mark (point) t nil))
 
@@ -1386,81 +1386,81 @@ targets."
   (org-clock-persist 'history))
 
 (use-package type-break
-      :ensure nil
-      :custom
-      (org-clock-ask-before-exiting nil)
-      (type-break-interval (* 25 60)) ;; 25 mins
-      (type-break-good-rest-interval (* 5 60)) ;; 5 mins
-      (type-break-good-break-interval (* 5 60)) ;; 5 mins
-      (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
-      (type-break-demo-boring-stats t)
-      (type-break-file-name nil) ;; don't save across sessions file is annoying
-      (type-break-query-mode t)
-      (type-break-warning-repeat nil)
-      ;; This will stop the warnings before it's time to take a break
-      (type-break-time-warning-intervals '())
-      (type-break-keystroke-warning-intervals '())
-      (type-break-query-function 'sn/type-break-query)
-      (type-break-mode-line-message-mode nil)
-      (type-break-demo-functions '(type-break-demo-boring))
-      :init
-      (defun sn/org-mark-current-done ()
+  :ensure nil
+  :custom
+  (org-clock-ask-before-exiting nil)
+  (type-break-interval (* 25 60)) ;; 25 mins
+  (type-break-good-rest-interval (* 5 60)) ;; 5 mins
+  (type-break-good-break-interval (* 5 60)) ;; 5 mins
+  (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
+  (type-break-demo-boring-stats t)
+  (type-break-file-name nil) ;; don't save across sessions file is annoying
+  (type-break-query-mode t)
+  (type-break-warning-repeat nil)
+  ;; This will stop the warnings before it's time to take a break
+  (type-break-time-warning-intervals '())
+  (type-break-keystroke-warning-intervals '())
+  (type-break-query-function 'sn/type-break-query)
+  (type-break-mode-line-message-mode nil)
+  (type-break-demo-functions '(type-break-demo-boring))
+  :init
+  (defun sn/org-mark-current-done ()
 	"Clock out of the current task and mark it as DONE."
 	(interactive)
 	(let ((org-clock-out-switch-to-state "DONE"))
-	      (org-clock-out)
-	      (setq org-clock-heading "")
-	      (org-save-all-org-buffers)))
-      (defun sn/type-break-toggle ()
+	  (org-clock-out)
+	  (setq org-clock-heading "")
+	  (org-save-all-org-buffers)))
+  (defun sn/type-break-toggle ()
 	(interactive)
 	(if type-break-mode
 		(type-break-mode -1)
-	      (type-break-mode 1)))
-      (defun sn/type-break-query (a &rest b)
+	  (type-break-mode 1)))
+  (defun sn/type-break-query (a &rest b)
 	"Auto say yes and ask to quit type break."
 	(if (>= (type-break-time-difference
 								 type-break-interval-start
 								 type-break-time-last-break) 0)
 		(y-or-n-p "Do you want to continue type-break? ")
-	      t))
-      (defun org-clock-in-to-task-by-title (task-title)
+	  t))
+  (defun org-clock-in-to-task-by-title (task-title)
 	"Clock into an Org Agenda task by its title within a custom agenda command."
 	(interactive "sEnter the title of the task: ")
 	(save-window-excursion
-	      (org-agenda nil "t")
-	      (with-current-buffer "*Org Agenda(t)*"
+	  (org-agenda nil "t")
+	  (with-current-buffer "*Org Agenda(t)*"
 		(goto-char (point-min))
 		(if (search-forward task-title nil t)
 			(progn
-			      (org-agenda-goto)
-			      (org-clock-in))
-		      (message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
-      (defun format-seconds-to-mm-ss (seconds)
+			  (org-agenda-goto)
+			  (org-clock-in))
+		  (message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
+  (defun format-seconds-to-mm-ss (seconds)
 	"Formats time to MM:SS."
 	(let* ((minutes (floor (/ seconds 60)))
-		       (remaining-seconds (- seconds (* minutes 60))))
-	      (format "%02d:%02d" minutes remaining-seconds)))
-      (defun type-break-json-data ()
+		   (remaining-seconds (- seconds (* minutes 60))))
+	  (format "%02d:%02d" minutes remaining-seconds)))
+  (defun type-break-json-data ()
 	"Prints type break data used in eww bar."
 	(let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
-		       (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
+		   (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
 							 "00:00"))
-		       (percent (if type-break-mode
+		   (percent (if type-break-mode
 						(number-to-string (/ (* 100.0 time-difference)
 											 type-break-interval))
-					      "0"))
-		       (json-data `(:percent ,percent
+					  "0"))
+		   (json-data `(:percent ,percent
 								 :time ,formatted-time
 								 :task ,(if (string-empty-p org-clock-heading)
 											"No Active Task"
-										      org-clock-heading)
+										  org-clock-heading)
 								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
-													       "No Active Task"
+													   "No Active Task"
 													 org-clock-heading)
-												       " " formatted-time)
+												   " " formatted-time)
 								 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
 								 :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
-	      (json-encode json-data))))
+	  (json-encode json-data))))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -1489,32 +1489,32 @@ targets."
   (org-agenda-block-separator ?─)
   (org-agenda-category-icon-alist
    `(
-       ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
-       ("music" "~/.dotfiles/icons/music.svg" nil nil :ascent center :mask heuristic)
-       ("chore" "~/.dotfiles/icons/chore.svg" nil nil :ascent center :mask heuristic)
-       ("events" "~/.dotfiles/icons/events.svg" nil nil :ascent center :mask heuristic)
-       ("inbox" "~/.dotfiles/icons/inbox.svg" nil nil :ascent center :mask heuristic)
-       ("walk" "~/.dotfiles/icons/walk.svg" nil nil :ascent center :mask heuristic)
-       ("solution" "~/.dotfiles/icons/solution.svg" nil nil :ascent center :mask heuristic)
-       ("community" "~/.dotfiles/icons/community.svg" nil nil :ascent center :mask heuristic)
-       ("idea" "~/.dotfiles/icons/idea.svg" nil nil :ascent center :mask heuristic)
-       ("personal" "~/.dotfiles/icons/man.svg" nil nil :ascent center :mask heuristic)
-       ("scheduled" "~/.dotfiles/icons/scheduled.svg" nil nil :ascent center :mask heuristic)
-       ("class" "~/.dotfiles/icons/class.svg" nil nil :ascent center :mask heuristic)
-       ("plant" "~/.dotfiles/icons/plant.svg" nil nil :ascent center :mask heuristic)
-       ("check" "~/.dotfiles/icons/check.svg" nil nil :ascent center :mask heuristic)
-       ("search" "~/.dotfiles/icons/search.svg" nil nil :ascent center :mask heuristic)
-       ("home" "~/.dotfiles/icons/home.svg" nil nil :ascent center :mask heuristic)
-       ("book" "~/.dotfiles/icons/book.svg" nil nil :ascent center :mask heuristic)
-       ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
-       ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
-       ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
-       ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
+   ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
+   ("music" "~/.dotfiles/icons/music.svg" nil nil :ascent center :mask heuristic)
+   ("chore" "~/.dotfiles/icons/chore.svg" nil nil :ascent center :mask heuristic)
+   ("events" "~/.dotfiles/icons/events.svg" nil nil :ascent center :mask heuristic)
+   ("inbox" "~/.dotfiles/icons/inbox.svg" nil nil :ascent center :mask heuristic)
+   ("walk" "~/.dotfiles/icons/walk.svg" nil nil :ascent center :mask heuristic)
+   ("solution" "~/.dotfiles/icons/solution.svg" nil nil :ascent center :mask heuristic)
+   ("community" "~/.dotfiles/icons/community.svg" nil nil :ascent center :mask heuristic)
+   ("idea" "~/.dotfiles/icons/idea.svg" nil nil :ascent center :mask heuristic)
+   ("personal" "~/.dotfiles/icons/man.svg" nil nil :ascent center :mask heuristic)
+   ("scheduled" "~/.dotfiles/icons/scheduled.svg" nil nil :ascent center :mask heuristic)
+   ("class" "~/.dotfiles/icons/class.svg" nil nil :ascent center :mask heuristic)
+   ("plant" "~/.dotfiles/icons/plant.svg" nil nil :ascent center :mask heuristic)
+   ("check" "~/.dotfiles/icons/check.svg" nil nil :ascent center :mask heuristic)
+   ("search" "~/.dotfiles/icons/search.svg" nil nil :ascent center :mask heuristic)
+   ("home" "~/.dotfiles/icons/home.svg" nil nil :ascent center :mask heuristic)
+   ("book" "~/.dotfiles/icons/book.svg" nil nil :ascent center :mask heuristic)
+   ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
+   ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
+   ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
+   ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
   (let ((active-project-match "-inbox/PROJECT"))
-      (setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
+  (setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
   		org-agenda-compact-blocks t
   		org-agenda-sticky t
   		org-agenda-start-on-weekday nil
@@ -1524,25 +1524,25 @@ targets."
   		org-agenda-window-setup 'current-window
   		org-agenda-sorting-strategy
   		'((agenda habit-down time-up user-defined-up effort-up category-keep)
-  		      (todo category-up effort-up)
-  		      (tags category-up effort-up)
-  		      (search category-up)))
-      (setq org-agenda-custom-commands
+  		  (todo category-up effort-up)
+  		  (tags category-up effort-up)
+  		  (search category-up)))
+  (setq org-agenda-custom-commands
   		`(("g" "GTD"
-  		       ((agenda "" nil)
+  		   ((agenda "" nil)
   			(tags "inbox"
-  				      ((org-agenda-overriding-header "Inbox")
-  				       (org-tags-match-list-sublevels nil)
-  				       (org-agenda-skip-function
+  				  ((org-agenda-overriding-header "Inbox")
+  				   (org-tags-match-list-sublevels nil)
+  				   (org-agenda-skip-function
   					'(lambda ()
-  					       (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
+  					   (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
   			(stuck nil
-  				       ((org-agenda-overriding-header "Stuck Projects")
+  				   ((org-agenda-overriding-header "Stuck Projects")
   					(org-agenda-tags-todo-honor-ignore-options t)
   					(org-tags-match-list-sublevels t)
   					(org-agenda-todo-ignore-scheduled 'future)))
   			(tags-todo "-inbox"
-  					       ((org-agenda-overriding-header "Next Actions")
+  					   ((org-agenda-overriding-header "Next Actions")
   						(org-agenda-tags-todo-honor-ignore-options t)
   						(org-agenda-todo-ignore-scheduled 'future)
   						(org-agenda-skip-function
@@ -1552,12 +1552,12 @@ targets."
   						(org-tags-match-list-sublevels t)
   						(org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
   			(tags-todo ,active-project-match
-  					       ((org-agenda-overriding-header "Projects")
+  					   ((org-agenda-overriding-header "Projects")
   						(org-tags-match-list-sublevels t)
   						(org-agenda-sorting-strategy
   						 '(category-keep))))
   			(tags-todo "-inbox-repeater"
-  					       ((org-agenda-overriding-header "Orphaned Tasks")
+  					   ((org-agenda-overriding-header "Orphaned Tasks")
   						(org-agenda-tags-todo-honor-ignore-options t)
   						(org-agenda-todo-ignore-scheduled 'future)
   						(org-agenda-skip-function
@@ -1567,18 +1567,18 @@ targets."
   						(org-tags-match-list-sublevels t)
   						(org-agenda-sorting-strategy '(category-keep))))
   			(tags-todo "/WAITING"
-  					       ((org-agenda-overriding-header "Waiting")
+  					   ((org-agenda-overriding-header "Waiting")
   						(org-agenda-tags-todo-honor-ignore-options t)
   						(org-agenda-todo-ignore-scheduled 'future)
   						(org-agenda-sorting-strategy
   						 '(category-keep))))
   			(tags-todo "/DELEGATED"
-  					       ((org-agenda-overriding-header "Delegated")
+  					   ((org-agenda-overriding-header "Delegated")
   						(org-agenda-tags-todo-honor-ignore-options t)
   						(org-agenda-todo-ignore-scheduled 'future)
   						(org-agenda-sorting-strategy '(category-keep))))
   			(tags-todo "-inbox"
-  					       ((org-agenda-overriding-header "On Hold")
+  					   ((org-agenda-overriding-header "On Hold")
   						(org-agenda-skip-function
   						 '(lambda ()
   							(or (org-agenda-skip-subtree-if 'todo '("WAITING"))
@@ -1817,68 +1817,6 @@ targets."
   :bind
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
-
-(use-package vterm)
-(use-package multi-vterm
-  :ensure 
-  :load-path "~/src/multi-vterm"
-  :hook
-  (vterm-mode . (lambda ()
-				  (toggle-mode-line)
-				  (setq-local left-margin-width 3
-							  right-margin-width 3
-							  cursor-type 'bar)
-				  ;; (face-remap-add-relative
-				  ;;  'term
-				  ;;  :background "#281d12")
-				  ;; (face-remap-add-relative
-				  ;;  'unspecified-fg
-				  ;;  :background "#281d12")
-				  ;; (face-remap-add-relative
-				  ;;  'unspecified-bg
-				  ;;  :background)
-				  ;; (face-remap-add-relative
-				  ;;  'fringe
-				  ;;  :background "#281d12")
-				  ))
-  :bind
-  (("M-t" . multi-vterm-dedicated-toggle)
-   :map vterm-mode-map
-   ("M-t" . multi-vterm-dedicated-toggle)
-   ("C-M-r" . (lambda ()
-                (interactive)
-                (setq-local vterm-buffer-name-string nil)
-                (rename-buffer (concat "Term " (read-string "Term: ")))))
-   ("C-M-t" . multi-vterm)
-   ("C-M-p" . multi-vterm-project)
-   ("C-M-f" . tab-line-switch-to-next-tab)
-   ("C-M-b" . tab-line-switch-to-prev-tab)
-   ("C-M-s" . consult-term)
-   ("M-w" . copy-region-as-kill)
-   ("C-y" . vterm-yank))
-  :custom
-  (vterm-buffer-maximum-size 800)
-  (vterm-tramp-shells
-   '(("ssh" "/bin/bash")
-	 ("docker" "/bin/bash")
-	 ("sudo" "/bin/bash")))
-  (vterm-always-compile-module t)
-  :config
-  (defun sn/vterm-new-tab ()
-	"Create a new tab for the toggled vterm buffers"
-	(interactive)
-    (let ((default-directory "~/"))
-	  (set-window-dedicated-p multi-vterm-dedicated-window nil)
-	  (let* ((vterm-buffer (multi-vterm-get-buffer)))
-		(setq multi-vterm-buffer-list (nconc multi-vterm-buffer-list (list vterm-buffer)))
-		(set-buffer vterm-buffer)
-		(multi-vterm-internal)
-		(switch-to-buffer vterm-buffer))
-	  (setq multi-vterm-dedicated-window (selected-window))
-	  (setq multi-vterm-dedicated-buffer (current-buffer))
-	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
-	  (set-window-dedicated-p multi-vterm-dedicated-window t)))
-  )
 
 (use-package svg-tag-mode :ensure t)
 (use-package tab-line

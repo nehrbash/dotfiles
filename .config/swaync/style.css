@@ -14,7 +14,9 @@
 @define-color selected #50331e;
 @define-color fg-alt #d5c4a1;
 @define-color ac #a2c080;
-@define-color wm_border #6fd560;
+
+
+
 .notification-row:focus,
 .notification-row:hover {
     padding-left: 15px;
@@ -22,9 +24,9 @@
 }
 
 .notification {
-  margin: 6px 12px;
-  box-shadow: 0px 2px 4px 2px @hover;
-  padding: 0;
+	margin: 6px 12px;
+	box-shadow: 0px 2px 4px 2px @hover;
+	padding: 0;
 }
 
 .notification-content {
@@ -32,7 +34,9 @@
 }
 
 .close-button {
-  background: @selected;
+	margin-top: 10px;
+	margin-right: 12px;
+	background: @selected;
 }
 
 .close-button:hover {
@@ -40,61 +44,61 @@
 }
 .notification-default-action,
 .notification-action {
-  margin: 0;
-  box-shadow: none;
-  background: @bg;
-  border: 1px solid @border;
+	margin: 0;
+	box-shadow: none;
+	background: @bg;
+		border: 1px solid @border;
 }
 
 .notification-default-action:hover,
 .notification-action:hover {
-  background: @bg;
-  box-shadow: 0px 2px 4px 2px @hover;
-  border-color: @borders;
+	background: @bg;
+		box-shadow: 0px 2px 4px 2px @hover;
+	border-color: @borders;
 }
 
 .notification-default-action {
-  border-radius: 10px;
+	border-radius: 10px;
 }
 
 .notification-action {
-  border-radius: 0px;
-  border-top: none;
-  border-right: none;
+	border-radius: 0px;
+	border-top: none;
+	border-right: none;
 }
 
 /* add bottom border radius to eliminate clipping */
 .notification-action:first-child {
-  border-bottom-left-radius: 10px;
+	border-bottom-left-radius: 10px;
 }
 .notification-action:last-child {
-  border-bottom-right-radius: 10px;
+	border-bottom-right-radius: 10px;
 }
 
 .image {
 }
 
 .body-image {
-  margin-top: 6px;
-  border-radius: 20px;
+	margin-top: 6px;
+	border-radius: 20px;
 }
 
 .summary {
-  text-shadow: none;
+	text-shadow: none;
 }
 
 .time {
-  color: @fg-alt;
-  text-shadow: none;
-  font-size: 18px;
+	color: @fg-alt;
+	text-shadow: none;
+	font-size: 18px;
 }
 
 .body {
-  text-shadow: none;
+	text-shadow: none;
 }
 
 .widget-title {
-  margin-right: 20px;
+	margin-right: 20px;
 }
 
 .widget-dnd {
@@ -106,50 +110,45 @@
 }
 
 .top-action-title {
-  text-shadow: none;
-  font-size: 16px;
+	text-shadow: none;
+	font-size: 16px;
 }
-
-/* .widget-mpris { */
-/*   margin-top: 40px; */
-/*   margin-left: 10px; */
-/*   margin-right: 10px; */
-/* } */
 
 .control-center-clear-all {
-  text-shadow: none;
-  background: @bg_alt;
-  border: 2px solid @wm_border;
-  box-shadow: none;
-  border-radius: 10px;
+	padding: 5px;
+	text-shadow: none;
+	background: @bg_alt;
+		border: 1px solid @shadow;
+	box-shadow: none;
+	border-radius: 10px;
 }
 .control-center-clear-all:hover {
-  background: @bg-hover;
+	background: @bg-hover;
 }
 
 .control-center-dnd {
-  border-radius: 20px;
-  background: @shadow;
-  border: 1px solid @border;
+	border-radius: 20px;
+	background: @shadow;
+		border: 1px solid @border;
 }
 
 .control-center-dnd:checked {
-  background: @ac;
+	background: @ac;
 }
 .control-center-dnd:checked slider {
-  background: @shadow;
-  border-radius: 20px;
+	background: @shadow;
+		border-radius: 20px;
 }
 
 .control-center-dnd slider {
-  background: @ac;
-  border-radius: 20px;
+	background: @ac;
+		border-radius: 20px;
 }
 
 .control-center {
     background: @bg;
-    padding-top: 16px;
-  border-radius: 16px;
-  border: 1px solid @border;
-  box-shadow: 0 2px 3px @shadow;
+		padding-top: 16px;
+	border-radius: 16px;
+	border: 1px solid @border;
+	box-shadow: 0 2px 3px @shadow;
 }
