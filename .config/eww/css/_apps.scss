@@ -1,10 +1,10 @@
 .app {
     padding: 3px;
     padding-left: 0px;
-    background-color: $maroon;
+    background-color: $yellow-faint;
 }
 .app, .apps {
-     background-color: $maroon;
+    background-color: $yellow-faint;
 }
 
 .apps-sidebar {
@@ -43,7 +43,7 @@
 
 .app-no-dot {
     margin-left: 3px;
-    background-color: $maroon;
+    background-color: $yellow-faint;
     border-radius: 2px;
 }
 
@@ -70,7 +70,7 @@
 }
 
 .apps-br, .apps-tr, .apps-b {
-    background-color: $maroon;
+    background-color: $yellow-faint;
 }
 .apps-tl, .apps-bl {
     background-color: $base;
