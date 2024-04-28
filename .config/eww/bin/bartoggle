@@ -52,9 +52,9 @@ if [ $COUNTER -eq 1 ]; then
         hyprctl reload
     fi
     # hyprctl plugin load /usr/lib/hyprland-plugins/hyprbars.so
-    eww open-many bar leftbar leftbarapps corner-ul corner-ur corner-bl corner-br
+    eww open-many bar leftbar corner-ul corner-ur corner-bl corner-br
 	if [ "$monitors_length" -gt 1 ]; then
-		eww open-many bar2 leftbar2 leftbar2apps corner2-ul corner2-ur corner2-bl corner2-br
+		eww open-many bar2 leftbar2  corner2-ul corner2-ur corner2-bl corner2-br
 	fi
 elif [ $COUNTER -eq 2 ]; then
     hyprctl --batch "keyword animations:enabled 0;\

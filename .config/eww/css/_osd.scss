@@ -3,13 +3,12 @@
   background: $base;
 
   label {
-    color: $text;
     font-size: 2rem;
   }
 }
 
 .osd trough {
-  background-color: $bg1;
+  background-color: $bg-dim;
   margin: 1rem 0 .5rem;
   min-height: 10rem;
   min-width: 3px;

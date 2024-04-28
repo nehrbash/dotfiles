@@ -8,26 +8,41 @@
 
 (defwidget app-launcher []
   (box
-    :class "apps"
-    :orientation "h"
-    :space-evenly false
-    :hexpand false
-    :halign "start"
-    (box
-      :hexpand false
-      :vexpand false
-      :width 48
-      :space-evenly false
-      :spacing 16
-      :class "app-launcher"
-      (button
-        :class "app-launcher"
-		;; being dumb
-		;; :timeout "5s"
-        :onclick "nwggrid &"
-        (label
-          :class "app-launcher icon"
-          :text "")))))
+	:orientation "v"
+	:space-evenly false
+	:valign "center"
+	(box
+	  :space-evenly false
+	  (box
+		:class "app"
+		:width 54
+		:height 54
+		(button
+		  :class "app-launcher"
+		  :onclick "nwggrid -client"
+		  "")))))
+
+(defwidget showapps [applist icon revealid show]
+  (revealer
+	:transition "slidedown"
+	:reveal {"${app_rev}" == "${revealid}"  ? show : false}
+	:duration "350ms"
+	:class "apps-sidebar"
+	(box
+	  :class "apps-list"
+	  :valign "center"
+	  :orientation "v"
+	  :class "app"
+	  :spacing 4
+	  (for a in applist
+		(button
+		  :class {a.Focused ? "app-icon app-focused": "app-icon"}
+		  :height 44
+		  :width 44
+		  :tooltip "${a.Class}: ${a.Title}"
+		  :onclick "hyprctl dispatch focuswindow address:${a.Address}"
+		  :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
+		  :style "background-image: url('${icon}');")))))
 
 (defwidget apps-tray []
   (box
@@ -41,149 +56,115 @@
       :space-evenly false
       :width 48
       :valign "center"
-      (app-launcher)
       (for appList in apps
         (eventbox
           :onhover "${EWW_CMD} update app_rev=${appList.ID}"
           :onhoverlost "${EWW_CMD} update app_rev=-1"
           :hexpand false
           :width 48
-		  :orientation "h"
           (box
+			:orientation "v"
             :space-evenly false
             :hexpand false
             :halign "start"
             :width 48
             (box
-              :class "app"
-              (box
+			  :class "app"
+			  :space-evenly false
+			  (box
                 :valign "center"
                 :height {appList.Focused ? 24 :4}
                 :width 7
                 :class {appList.Focused ? "app-active-bar" : "app-dot" }
-                :class {appList.LastFocused == "" ? "app-no-dot" : "app-dot"}))
-            (box
-              :class "app"
-              (button
-                :class "app-icon"
-                :height 44
-                :width 44
-                :onrightclick "gtk-launch ${appList.Desktop}"
-                :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
-                :onclick "hyprctl dispatch focuswindow address:${appList.LastFocused}"
-                :style "background-image: url('${appList.Icon}');"))
+                :class {appList.LastFocused == "" ? "app-no-dot" : "app-dot"})
+              (box
+				(button
+                  :class "app-icon"
+                  :height 44
+                  :width 44
+                  :onrightclick "gtk-launch ${appList.Desktop}"
+                  :onmiddleclick "hyprctl dispatch closewindow address:${appList.LastFocused}"
+                  :onclick "hyprctl dispatch focuswindow address:${appList.LastFocused}"
+                  :style "background-image: url('${appList.Icon}');")))
 			(showapps
 			  :applist "${appList.Apps}"
-              :icon "${appList.Icon}"
-              :revealid "${appList.ID}"
-              :show {arraylength(appList.Apps) > 1 ? true : false}
-			  )))))))
+			  :icon "${appList.Icon}"
+			  :revealid "${appList.ID}"
+			  :show {arraylength(appList.Apps) > 1 ? true : false}
+			  )
+			))))))
 
 (defwidget lbar []
   (box
     :class "sidebar"
-	:orientation "v"))
-
-(defwidget lapps []
-  (centerbox
 	:orientation "v"
-	(box
-	  :orientation "h"
-	  :hexpand false
-	  :vexpand true
-	  :valign "center"
-	  :space-evenly false
-	  (workspaces))
-	(box
-      :orientation "v"
-      :space-evenly false
-      :valign "center"
-      (box
+	(centerbox
+	  :orientation "v"
+	  (box
+		:hexpand false
+		:vexpand true
+		:valign "center"
 		:space-evenly false
-		:orientation "h"
-		(box
-          :height 25
-          :width 57
-          :class "apps-b"
-          (box :class "apps-tl")))
-      (box
-		:space-evenly false
-		:orientation "h"
-		(box
-          :height 25
-          :width 57
-          :class "apps-tr"))
-      (apps-tray)
-      (box
-		:space-evenly false
-		:orientation "h"
-		(box
-          :height 25
-          :width 57
-          :class "apps-br"))
-      (box
-		:space-evenly false
-		:orientation "h"
-		(box
-          :height 25
-          :width 57
-          :class "apps-b"
-          (box
-			:orientation "h"
-			:height 25
-			:width 57
-			:hexpand false
-			:vexpand false
-			:space-evenly false
-			:class "apps-bl"))))
-	(box
-	  :orientation "h"
-      :vexpand true
-      :space-evenly false
-      :width 48
+		(workspaces))
 	  (box
 		:orientation "v"
 		:space-evenly false
-		:spacing 0
-		(box
-		  :orientation "v"
-		  :vexpand "true")
+		:valign "center"
 		(box
 		  :space-evenly false
-		  :orientation "h"
 		  (box
 			:height 25
-			:width 57
-			:class "systray-b"
-			(box :class "systray-top")))
-		(systray
-		  :vexpand "false"
-		  :class "systray"
-		  :orientation "v")
-		(notif-toggle)))))
-
-(defwidget showapps [applist icon revealid show]
-  (revealer
-	:transition "slideright"
-    :reveal {"${app_rev}" == "${revealid}"  ? show : false}
-    :duration "350ms"
-    :class "apps-sidebar"
-    (box
-      :valign "center"
-      :class "app round-right"
-      :spacing 4
-      (for a in applist
-        (box
-          :orientation "v"
-          :space-evenly false
-          (button
-            :class {a.Focused ? "app-icon app-focused": "app-icon"}
-            :height 44
-            :width 44
-            :tooltip "${a.Class}: ${a.Title}"
-            :onclick "hyprctl dispatch focuswindow address:${a.Address}"
-            :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
-            :style "background-image: url('${icon}');"))))))
-
-
+			:width 54
+			:class "apps-b"
+			(box
+			  :class "apps-tl")))
+		(box
+		  :space-evenly false
+		  (box
+			:height 25
+			:width 54
+			:class "apps-tr"))
+		(app-launcher)
+		(apps-tray)
+		(box
+		  :space-evenly false
+		  (box
+			:height 25
+			:width 54
+			:class "apps-br"))
+		(box
+		  :space-evenly false
+		  (box
+			:height 25
+			:width 54
+			:class "apps-b"
+			(box
+			  :height 25
+			  :width 54
+			  :class "apps-bl"))))
+	  (box
+		:orientation "h"
+		:vexpand true
+		:space-evenly false
+		:width 48
+		(box
+		  :orientation "v"
+		  :space-evenly false
+		  :spacing 0
+		  (box
+			:orientation "v"
+			:vexpand "true")
+		  (box
+			:space-evenly false
+			:orientation "h"
+			(box
+			  :height 25
+			  :width 57
+			  :class "systray-b"
+			  (box :class "systray-top")))
+		  (systray
+			:vexpand "false"
+			:class "systray"
+			:orientation "v")
+		  (notif-toggle))))))
 

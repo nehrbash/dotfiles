@@ -26,6 +26,11 @@
     }
 }
 
+.apps-list {
+	background-color: $bg-alt;
+}
+
+
 .app-focused {
     background-color: $surface0;
 }
@@ -48,9 +53,9 @@
 }
 
 .app-launcher {
-    font-size: 39px;
-    padding: 3px;
     @include hoverable;
+    padding: 5px;
+	margin-right: 5px;
     &:hover {
         background: $surface0;
     }

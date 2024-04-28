@@ -13,7 +13,7 @@
 .membar,
 .cpubar,
 .batbar {
-  background-color: $bg1;
+  background-color: $bg-dim;
 }
 
 .sys-icon {
@@ -31,10 +31,6 @@
 .icon-text {
   font-size: 3rem;
   padding: .7rem;
-}
-
-.sys-text-sub {
-  color: $text;
 }
 
 .profile {
@@ -126,7 +122,6 @@
   @include window;
   background-color: $bg;
   border: 1px solid $border;
-  color: $text;
 }
 
 .separator {

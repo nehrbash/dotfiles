@@ -37,7 +37,11 @@
 }
 
 .spotify-icon {
-	font-family:  fontawesome;
+	color: $bg;
+}
+
+.spotify-label {
+	color: $bg;
 }
 
 .music-button label {
@@ -57,7 +61,7 @@
   }
 
   trough {
-    background-color: $bg1;
+    background-color: $bg-dim;
     border-radius: 24px;
     margin-top: 0;
     min-height: 10px;
@@ -72,6 +76,7 @@
 }
 
 .spotify-left {
+	color: $bg;
     background-color: $green;
 }
 

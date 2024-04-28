@@ -4,7 +4,7 @@
 (include "./modules/bat.yuck")
 (include "./modules/bright.yuck")
 (include "./modules/music.yuck")
-(include "./modules/net.yuck")
+;; (include "./modules/net.yuck")
 (include "./modules/sys.yuck")
 (include "./modules/volume.yuck")
 (include "./modules/workspaces.yuck")
@@ -18,52 +18,41 @@
 (include "./modules/title.yuck")
 
 (include "./windows/calendar.yuck")
-(include "./windows/music.yuck")
 (include "./windows/osd.yuck")
 (include "./windows/system-menu.yuck")
 (include "./windows/control-menu.yuck")
 (include "./windows/corners.yuck")
 
-(defwidget left []
-  (box
-    :space-evenly false
-    :halign "start"
-    (mode)
-    (music-module)
-	(title)))
-
-(defwidget right []
-  (box
-    :space-evenly false
-    :halign "end"
-    (pomo)
-    (volume-module)
-    (bluetooth)
-    (net)
-	(revealer
-      :transition "slideright"
-      :reveal { battery.enabled ? true : false}
-      :duration "350ms"
-      :class "apps-sidebar"
-	  (box
-		:space-evenly false
-		(bright)
-		(bat)))
-    (sys)))
-
-(defwidget center []
-  (box
-    :class "clock ${notif.Class}"
-    :space-evenly false
-    :halign "center"
-    (clock_module)))
-
 (defwidget bar []
   (centerbox
     :class "bar"
-    (left)
-    (center)
-    (right)))
+    (box
+	  :space-evenly false
+	  :halign "start"
+	  (mode)
+	  (music-module)
+	  (title))
+    (box
+	  :class "clock ${notif.Class}"
+	  :space-evenly false
+	  :halign "center"
+	  (clock_module))
+    (box
+	  :space-evenly false
+	  :halign "end"
+	  (pomo)
+	  (volume-module)
+	  (bluetooth)
+	  (revealer
+		:transition "slideright"
+		:reveal { battery.enabled ? true : false}
+		:duration "350ms"
+		:class "apps-sidebar"
+		(box
+		  :space-evenly false
+		  (bright)
+		  (bat)))
+	  (sys))))
 
 (defwindow bar
   :monitor 0
@@ -95,17 +84,6 @@
   :exclusive true
   (lbar))
 
-(defwindow leftbar2apps
-  :monitor 1
-  :geometry (geometry
-			  :x "-60px"
-              :width "58px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive false
-  (lapps))
-
 (defwindow leftbar
   :monitor 0
   :geometry (geometry
@@ -116,13 +94,4 @@
   :exclusive true
   (lbar))
 
-(defwindow leftbarapps
-  :monitor 0
-  :geometry (geometry
-			  :x "-60px"
-              :width "58px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive false
-  (lapps))
+

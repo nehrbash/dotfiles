@@ -1,4 +1,10 @@
 @import 'css/colors_melissa_dark';
+@import 'css/colors';
+
+$fg: $fg-main;
+$bg: $bg-main;
+
+
 
 @mixin rounding {
   border-radius: 16px;
@@ -7,7 +13,7 @@
 @mixin window {
   border: 1px solid $border;
   box-shadow: 0px 2px 5px $shadow;
-  margin: 5px;
+  margin: 10px;
   @include rounding;
 }
 
@@ -20,7 +26,8 @@
 
 * {
   all: unset;
-  // transition: 350ms ease;
+  color: $fg-main;
+  transition: 350ms ease;
   font-family: Iosevka, Material Icons;
   font-weight: bold;
 }
@@ -29,25 +36,11 @@
     font-family: Material Icons;
 }
 
-@import 'css/calendar';
-@import 'css/music';
-@import 'css/osd';
-@import 'css/system';
-@import 'css/volume';
-@import 'css/pomodoro';
-@import 'css/center';
-@import 'css/weather';
-@import 'css/mode';
-@import 'css/apps';
-@import 'css/tasks';
-@import 'css/workspaces';
-
 
 .bar, .sidebar {
   background-color: $bg;
   color: $fg;
   padding-bottom: 5px;
-  // margin: 0px 200px 0px 200px;
   label {
     font-size: 1.2rem;
   }
@@ -57,16 +50,19 @@
     padding-left: 48px;
 }
 
-tooltip {
+tooltip, menu {
   background: $bg;
   border: 1px solid $border;
   border-radius: 8px;
-
   label {
     font-size: 1rem;
   }
 }
 
+menu {
+	padding: 10px;
+	@include window;
+}
 
 .checkbox {
 	border-radius: 6px;
@@ -85,7 +81,7 @@ tooltip {
 .module-bt { font-size: 1.2rem; }
 
 scale trough {
-  background-color: $bg1;
+  background-color: $bg-dim;
   border-radius: 24px;
   margin: 0 1rem;
   min-height: 10px;
@@ -114,3 +110,15 @@ scale trough {
 	color: $surface0;
 }
 
+@import 'css/calendar';
+@import 'css/music';
+@import 'css/osd';
+@import 'css/system';
+@import 'css/volume';
+@import 'css/pomodoro';
+@import 'css/center';
+@import 'css/weather';
+@import 'css/mode';
+@import 'css/apps';
+@import 'css/tasks';
+@import 'css/workspaces';

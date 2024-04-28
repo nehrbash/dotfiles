@@ -160,8 +160,7 @@ systemctl --user enable swaync.service
 
   Shitty Lisp like graphical widget system.
   
-  Sorry but I decided to start rewritting all my scripts as a monolithic go program, embed resources into it, and  use dbus clients. 
-
+  Sorry but I decided to start rewritting all my scripts as a monolithic go program, embed resources into it, and use dbus clients.
 *** Install Eww
 
 	Eww is not maintained so we I needed to merge a few PR's. Need to build my fork for system tray and check boxes. Might need to run =rustup update=.
@@ -206,6 +205,25 @@ go
 rustup
 #+end_src
 
+*** Color palette
+
+	Using my Emacs theme =ef-melissa-dark=. generated with this func.
+
+#+begin_src emacs-lisp :tangle no 
+(defun export-palette-to-scss (palette tgt-file)
+  "Export a color palette to SCSS format."
+  (with-temp-buffer
+	(dolist (pair palette)
+	  (let ((name (car pair))
+			(value (cadr pair)))
+		(when (and (stringp value)  ; Check if value is a string
+				   (string-match-p "^#[0-9A-Fa-f]\\{6\\}$" value))
+		  (insert (format "$%s: %s;\n" name value)))))
+	(write-region (point-min) (point-max) tgt-file)))
+
+(export-palette-to-scss ef-melissa-dark-palette "~/.config/eww/css/_colors.scss")  
+#+end_src
+	
 * Fonts
 
   Fonts used across my config 

@@ -1197,7 +1197,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
-  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defvar consult--source-org
 	(list :name     "Org"
 		  :category 'buffer
@@ -2475,6 +2475,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	hook eglot so that not enabled in most buffers and lower priority (also don't like it in text documents)
 
 **** UI
+	 
 #+begin_src emacs-lisp
 (use-package git-gutter
   :config

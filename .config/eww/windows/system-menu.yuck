@@ -127,16 +127,13 @@
           :vexpand false
           (label
             :text "cpu"
-            :halign "start"
-            :class "sys-text-cpu")
+            :halign "start")
           (label
             :text "${round(EWW_CPU.avg,2)}%"
-            :halign "start"
-            :class "sys-text-sub")
+            :halign "start")
           (label
             :text "${EWW_CPU.cores[0].freq} MHz"
-            :halign "start"
-            :class "sys-text-sub")))
+            :halign "start")))
 
       ; memory
       (box
