@@ -54,7 +54,6 @@
 
 .launch {
     @include hoverable;
-	color: $bg:
     &:hover {
         background: $surface0;
     }
