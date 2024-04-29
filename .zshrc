@@ -43,6 +43,8 @@ zmodload zsh/complist
 compinit
 _comp_options+=(globdots)     # Include hidden files.
 
+bindkey "^[[3~" delete-char
+
 # Load plugins
 source /usr/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
 source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null

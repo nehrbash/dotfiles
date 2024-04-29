@@ -1818,6 +1818,67 @@ targets."
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
+(use-package vterm)
+(use-package multi-vterm
+  :ensure (:host github :repo "nehrbash/multi-vterm") 
+  ;; :load-path "~/src/multi-vterm"
+  :hook
+  (vterm-mode . (lambda ()
+				  (toggle-mode-line)
+				  (setq-local left-margin-width 3
+							  right-margin-width 3
+							  cursor-type 'bar)
+				  ;; (face-remap-add-relative
+				  ;;  'term
+				  ;;  :background "#281d12")
+				  ;; (face-remap-add-relative
+				  ;;  'unspecified-fg
+				  ;;  :background "#281d12")
+				  ;; (face-remap-add-relative
+				  ;;  'unspecified-bg
+				  ;;  :background)
+				  ;; (face-remap-add-relative
+				  ;;  'fringe
+				  ;;  :background "#281d12")
+				  ))
+  :bind
+  (("M-t" . multi-vterm-dedicated-toggle)
+   :map vterm-mode-map
+   ("M-t" . multi-vterm-dedicated-toggle)
+   ("C-M-r" . (lambda ()
+                (interactive)
+                (setq-local vterm-buffer-name-string nil)
+                (rename-buffer (concat "Term " (read-string "Term: ")))))
+   ("C-M-t" . multi-vterm)
+   ("C-M-p" . multi-vterm-project)
+   ("C-M-f" . tab-line-switch-to-next-tab)
+   ("C-M-b" . tab-line-switch-to-prev-tab)
+   ("C-M-s" . consult-term)
+   ("M-w" . copy-region-as-kill)
+   ("C-y" . vterm-yank))
+  :custom
+  (vterm-buffer-maximum-size 800)
+  (vterm-tramp-shells
+   '(("ssh" "/bin/bash")
+	 ("docker" "/bin/bash")
+	 ("sudo" "/bin/bash")))
+  (vterm-always-compile-module t)
+  :config
+  (defun sn/vterm-new-tab ()
+	"Create a new tab for the toggled vterm buffers"
+	(interactive)
+    (let ((default-directory "~/"))
+	  (set-window-dedicated-p multi-vterm-dedicated-window nil)
+	  (let* ((vterm-buffer (multi-vterm-get-buffer)))
+		(setq multi-vterm-buffer-list (nconc multi-vterm-buffer-list (list vterm-buffer)))
+		(set-buffer vterm-buffer)
+		(multi-vterm-internal)
+		(switch-to-buffer vterm-buffer))
+	  (setq multi-vterm-dedicated-window (selected-window))
+	  (setq multi-vterm-dedicated-buffer (current-buffer))
+	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
+	  (set-window-dedicated-p multi-vterm-dedicated-window t))))
+
 (use-package svg-tag-mode :ensure t)
 (use-package tab-line
   :ensure nil
@@ -2063,6 +2124,7 @@ targets."
   :hook (web-mode . sn/web-mode-hook)
   :config
   (defun sn/web-mode-hook()
+	(setq web-mode-markup-indent-offset 2)
 	(web-mode-set-engine "go")))
 
 (defun sn/start-ag-devcontainer ()

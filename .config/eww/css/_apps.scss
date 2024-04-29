@@ -52,10 +52,9 @@
     border-bottom-right-radius: 16px;
 }
 
-.app-launcher {
+.launch {
     @include hoverable;
-    padding: 5px;
-	margin-right: 5px;
+	color: $bg:
     &:hover {
         background: $surface0;
     }

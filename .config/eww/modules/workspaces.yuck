@@ -28,7 +28,7 @@
 			:space-evenly "false"
 			(box
 			  :height 0
-			  :width 42
+			  :width 50
 			  (label
 				:class "ws-app-icon"
 				:style "background-image: url('${i.active_client_icon}');"))

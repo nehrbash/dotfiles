@@ -2569,10 +2569,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 	 because eat does not support tramp
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
 (use-package vterm)
 (use-package multi-vterm
-  ;; :ensure (:host github :repo "nehrbash/multi-vterm") 
+  :ensure (:host github :repo "nehrbash/multi-vterm") 
   ;; :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
@@ -2629,8 +2629,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	  (setq multi-vterm-dedicated-window (selected-window))
 	  (setq multi-vterm-dedicated-buffer (current-buffer))
 	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
-	  (set-window-dedicated-p multi-vterm-dedicated-window t)))
-  )
+	  (set-window-dedicated-p multi-vterm-dedicated-window t))))
 #+end_src
 
 **** Tabs for Terms
@@ -3033,6 +3032,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :hook (web-mode . sn/web-mode-hook)
   :config
   (defun sn/web-mode-hook()
+	(setq web-mode-markup-indent-offset 2)
 	(web-mode-set-engine "go")))
 #+end_src
 

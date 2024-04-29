@@ -16,9 +16,9 @@
 	  (box
 		:class "app"
 		:width 54
-		:height 54
+		:height 20
 		(button
-		  :class "app-launcher"
+		  :class "launch"
 		  :onclick "nwggrid -client"
 		  "")))))
 
@@ -101,7 +101,7 @@
 	(centerbox
 	  :orientation "v"
 	  (box
-		:hexpand false
+		:class "ws-box"
 		:vexpand true
 		:valign "center"
 		:space-evenly false
