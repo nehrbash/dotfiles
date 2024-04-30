@@ -723,7 +723,12 @@ point reaches the beginning or end of the buffer, stop there."
   :hook (marginalia-mode-hook . all-the-icons-completion-marginalia-setup)
   :init (all-the-icons-completion-mode))
 
+(use-package hotfuzz
+  :ensure t
+  :load-path "~/.emacs.d/lib")
+
 (use-package orderless
+  :after hotfuzz
   :custom
   (orderless-matching-styles 'orderless-regexp)
   (orderless-component-separator #'orderless-escapable-split-on-space)
@@ -731,7 +736,7 @@ point reaches the beginning or end of the buffer, stop there."
   (read-buffer-completion-ignore-case t)
   (completion-ignore-case t)
   (completion-category-defaults nil)
-  (completion-styles '(orderless flex))
+  (completion-styles '(orderless hotfuzz))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package wgrep

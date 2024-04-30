@@ -34,6 +34,7 @@
 - [[#mini-buffer--completion-framework][Mini-buffer / Completion Framework]]
   - [[#minbuffer][Minbuffer]]
   - [[#vertico][Vertico]]
+  - [[#fuzzy-match][fuzzy match]]
   - [[#orderless][Orderless]]
   - [[#edit-search-results-directly][Edit Search Results Directly]]
   - [[#consult][Consult]]
@@ -1102,11 +1103,25 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :init (all-the-icons-completion-mode))
 #+end_src
 
+** fuzzy match
+
+   Supposed to be better than built in flex.
+
+#+begin_src emacs-lisp
+(use-package hotfuzz
+  :ensure t
+  :load-path "~/.emacs.d/lib")
+#+end_src
+   
+
+
+   
 ** Orderless
    instead of fuzzy (flex) in emacs terms orderless is a very nice completion framework it's particularly good at finding matches at end of things faster. Copy some stuff from here https://github.com/oantolin/emacs-config/blob/d0ffbd9527e48bd88dc4c9937e4dc80f783d844e/init.el#L375C2-L396C72https://github.com/oantolin/emacs-config/blob/d0ffbd9527e48bd88dc4c9937e4dc80f783d844e/init.el#L375C2-L396C72
 
 #+begin_src emacs-lisp
 (use-package orderless
+  :after hotfuzz
   :custom
   (orderless-matching-styles 'orderless-regexp)
   (orderless-component-separator #'orderless-escapable-split-on-space)
@@ -1114,7 +1129,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (read-buffer-completion-ignore-case t)
   (completion-ignore-case t)
   (completion-category-defaults nil)
-  (completion-styles '(orderless flex))
+  (completion-styles '(orderless hotfuzz))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
