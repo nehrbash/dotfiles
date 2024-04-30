@@ -10,29 +10,36 @@
   (box
 	:orientation "v"
 	:space-evenly false
-	:valign "center"
+	:width 48
 	(box
 	  :space-evenly false
 	  (box
 		:class "app"
-		:width 54
-		:height 20
+		:width 48
+		:height 48
 		(button
 		  :class "launch"
-		  :onclick "nwggrid -client"
-		  "")))))
+		  :onclick "nwggrid -client")))
+	(box
+	  :space-evenly false
+	  (box
+		:width 54
+		:class "apps"
+		(box
+		  :halign "center"
+		  :width 40
+		  :height 10
+		  :class "divider")))))
 
 (defwidget showapps [applist icon revealid show]
   (revealer
 	:transition "slidedown"
 	:reveal {"${app_rev}" == "${revealid}"  ? show : false}
 	:duration "350ms"
-	:class "apps-sidebar"
 	(box
 	  :class "apps-list"
 	  :valign "center"
 	  :orientation "v"
-	  :class "app"
 	  :spacing 4
 	  (for a in applist
 		(button
@@ -91,25 +98,28 @@
 			  :icon "${appList.Icon}"
 			  :revealid "${appList.ID}"
 			  :show {arraylength(appList.Apps) > 1 ? true : false}
-			  )
-			))))))
+			  )))))))
 
 (defwidget lbar []
-  (box
-    :class "sidebar"
+  (centerbox
+	:class "sidebar"
 	:orientation "v"
-	(centerbox
+	(box
+	  :class "ws-box"
+	  :vexpand true
+	  :valign "center"
+	  :space-evenly false
+	  (workspaces))
+	(box) ;; center
+	(box
 	  :orientation "v"
-	  (box
-		:class "ws-box"
-		:vexpand true
-		:valign "center"
-		:space-evenly false
-		(workspaces))
+	  :valign "end"
+	  :vexpand true
+	  :space-evenly false
+	  :width 48
 	  (box
 		:orientation "v"
 		:space-evenly false
-		:valign "center"
 		(box
 		  :space-evenly false
 		  (box
@@ -131,40 +141,21 @@
 		  (box
 			:height 25
 			:width 54
-			:class "apps-br"))
+			:class "systray-b"
+			(box :class "systray-top")))
 		(box
-		  :space-evenly false
-		  (box
-			:height 25
-			:width 54
-			:class "apps-b"
-			(box
-			  :height 25
-			  :width 54
-			  :class "apps-bl"))))
-	  (box
-		:orientation "h"
-		:vexpand true
-		:space-evenly false
-		:width 48
-		(box
-		  :orientation "v"
-		  :space-evenly false
-		  :spacing 0
+		  :hexpand false
+		  :width 48
+		  :orientation "h"
 		  (box
 			:orientation "v"
-			:vexpand "true")
-		  (box
+			:class "systray-tr"
+			:hexpand false
+			:width 48
 			:space-evenly false
-			:orientation "h"
-			(box
-			  :height 25
-			  :width 57
-			  :class "systray-b"
-			  (box :class "systray-top")))
-		  (systray
-			:vexpand "false"
-			:class "systray"
-			:orientation "v")
-		  (notif-toggle))))))
+			(systray
+			  :vexpand "false"
+			  :class "systray"
+			  :orientation "v")
+			(notif-toggle)))))))
 

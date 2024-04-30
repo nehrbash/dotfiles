@@ -7,10 +7,6 @@
     background-color: $yellow-faint;
 }
 
-.apps-sidebar {
-    background-color: transparent;
-}
-
 .app-icon {
     background-repeat: no-repeat;
     background-position: center;
@@ -53,15 +49,31 @@
 }
 
 .launch {
+	background-image: url('images/sloth-head.jpg');
+	background-position: center;
+	background-size: cover;
+	padding-left: 48px;
+	margin-left: 3px;
     @include hoverable;
+	color: $bg;
     &:hover {
         background: $surface0;
+		background-image: url('images/sloth-head.jpg');
+		background-position: center;
+		background-size: cover;
     }
+}
+
+.divider {
+	background: $bg-alt;
+	margin: 3px;
+	border-radius: 3px;
 }
 
 .apps-tr, .systray {
     border-top-right-radius: 25px;
 }
+
 
 .apps-br {
     border-bottom-right-radius: 25px;
@@ -70,13 +82,12 @@
 .apps-br, .apps-tr, .apps-b {
     background-color: $yellow-faint;
 }
-.apps-tl, .apps-bl {
+.apps-tl {
     background-color: $base;
 }
 
 .apps-tl, .systray-top {
     border-bottom-left-radius: 25px;
-
 }
 
 .apps-bl {
@@ -86,25 +97,27 @@ border-top-left-radius: 25px;
 
 .systray, .systray-bottom {
 	background: $surface0;
-	margin-right: 5px;
 }
 
 .systray {
-	padding-top: 25;
+	padding-top: 15;
 }
 
 .systray-b {
 	background: $surface0;
 }
 
-.systray-top {
-	background: $base;
-	min-height: 25px;
+.systray-top, .systray-tr {
+	background: $yellow-faint;
+}
+
+.systray-tr {
+	margin-right: 8px;
+
 }
 
 .systray-bottom {
 	font-size: 1.3rem;
 	padding-top: 5px;
-	padding-bottom: 15px;
-	margin-bottom: 20px;
+	padding-bottom: 25px;
 }

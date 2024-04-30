@@ -247,7 +247,7 @@
   (setq auto-save-file-name-transforms
 		`((".*" ,temporary-file-directory t)))
   :init
-  (recentf-mode 1))
+  (recentf-mode t))
 
 (use-package autorevert
   :ensure nil
