@@ -1,7 +1,7 @@
 .ct_box {
     @include rounding;
     @include window;
-    background-color: $mantle;
+    background-color: $bg-alt;
     margin: 10px;
     padding: 10px;
 }

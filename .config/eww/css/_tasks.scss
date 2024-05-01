@@ -3,11 +3,11 @@
 }
 
 .TODO, .INPROGRESS, .NEXT {
-	color: $peach;
+	color: $yellow-warmer;
 }
 
 .TODO {
-	color: $peach;
+	color: $yellow-warmer;
 }
 
 .DONE {
@@ -25,12 +25,12 @@
 }
 
 .project {
-    color: $teal;
+    color: $green-cooler;
 }
 .task {
 	@include hoverable;
 	&:hover {
-        background: $base;
+        background: $bg;
     }
 	color:  $subtext1;
 
@@ -40,11 +40,11 @@
 	@include hoverable;
 	font-size: 1.2rem;
 	&:hover {
-        background: $base;
+        background: $bg;
     }
 	// margin: 5px;
 
-	color: $sky;
+	color: $cyan;
 	padding-right:  15px;
 	padding-left:  5px;
 }
@@ -52,7 +52,7 @@
 .task-row {
 	@include hoverable;
 	&:hover {
-        background: $base;
+        background: $bg;
     }
 	// margin-top: 5px;
 	// margin-bottom:  5px;
@@ -60,15 +60,15 @@
 
 .toggle-bg {
 	border-radius: 20;
-	background-color: $crust;
+	background-color: $bg-dim;
 	color: $subtext1;
 }
 
 .toggle {
 	@include window;
 	border-radius: 20;
-	background-color: $sky;
-	color: $base;
+	background-color: $cyan;
+	color: $bg;
 }
 
 .filler-sloth {

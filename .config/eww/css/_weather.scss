@@ -2,16 +2,16 @@
     @include rounding;
     margin: 5px;
     padding: 8px;
-    background: linear-gradient(45deg, $mantle 0%, $sapphire 100%);
+    background: linear-gradient(45deg, $bg-alt 0%, $blue-cooler 100%);
 }
 
 .weather-date {
-    color: $crust;
+    color: $bg-dim;
     text-decoration: underline;
 }
 
 .weather-sep {
-    color: $mantle;
+    color: $bg-alt;
     font-weight: bold;
     text-decoration: underline;
 }
@@ -19,7 +19,7 @@
 .title-bar {
     padding: 5px;
     @include rounding;
-   background: linear-gradient(45deg, $sapphire 0%, $blue 25%, $sky 50%, $blue 75%, $teal 100% );
+   background: linear-gradient(45deg, $blue-cooler 0%, $blue 25%, $cyan 50%, $blue 75%, $green-cooler 100% );
 }
 
 .weather-label {
@@ -39,7 +39,7 @@
 
 .active-moon {
    padding: 10px;
-   background: radial-gradient($yellow, $mantle 65%);
+   background: radial-gradient($yellow, $bg-alt 65%);
    border-radius: 50%;
 }
 
@@ -56,7 +56,7 @@
 }
 
 .weather-min {
-    color: $teal;
+    color: $green-cooler;
     padding-right: 5px;
 }
 

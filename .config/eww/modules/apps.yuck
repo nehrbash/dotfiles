@@ -14,7 +14,7 @@
 	(box
 	  :space-evenly false
 	  (box
-		:class "app"
+		:class "app launcher-box"
 		:width 48
 		:height 48
 		(button

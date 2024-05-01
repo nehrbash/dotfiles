@@ -3,5 +3,7 @@
     :class "module-bt module icon"
     :onclick "scripts/cmd-toggle 'blueberry'"
     :tooltip "${bluetooth.text} ${bluetooth.batt_icon}"
-    :style "color: ${bluetooth.color};"
-    {bluetooth.icon}))
+	(label
+	  :style "color: ${bluetooth.color};"
+	  :text {bluetooth.icon}
+	  )))

@@ -1,5 +1,5 @@
 .pomo {
-    background-color: $sky;
+    background-color: $cyan;
     color: $bg;
     padding-left: 15px;
     padding-right: 15px;
@@ -9,7 +9,7 @@
 }
 
 .pomo-left {
-    background-color: $sky;
+    background-color: $cyan;
 }
 
 .pomo-left-in {
@@ -18,7 +18,7 @@
 }
 
 .pomo-right {
-    background-color: $sky;
+    background-color: $cyan;
 }
 
 .pomo-right-in {
@@ -51,7 +51,7 @@
 
 .pomo_task {
     padding-top: 10px;
-    color: $peach;
+    color: $yellow-warmer;
     font-size: 26px;
 }
 
@@ -68,7 +68,7 @@
 .pomo_break_in {
     font-size: 3rem;
     background-color: rgba(0,0,0, 0.5);
-    background: radial-gradient($base 30%, transparent 0%, $crust 0%);
+    background: radial-gradient($bg 30%, transparent 0%, $bg-dim 0%);
 
 
 }

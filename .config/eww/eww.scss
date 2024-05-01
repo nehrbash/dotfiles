@@ -3,6 +3,8 @@
 
 $fg: $fg-main;
 $bg: $bg-main;
+$border: $bg-alt;
+$shadow: $bg-dim;
 
 
 
@@ -69,7 +71,7 @@ menu {
 	margin: 4px;
 	// padding-top: 15px;
 	border: 2px solid $border;
-	background: $crust;
+	background: $bg-dim;
 }
 
 .module {
@@ -78,7 +80,9 @@ menu {
 }
 
 .bright-icon { color: $yellow; }
-.module-bt { font-size: 1.2rem; }
+.module-bt {
+	font-size: 1.2rem;
+}
 
 scale trough {
   background-color: $bg-dim;

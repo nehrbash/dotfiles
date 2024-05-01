@@ -33,7 +33,7 @@
 
 .app-active-bar, .app-dot {
     margin-left: 3px;
-    background-color: $crust;
+    background-color: $bg-dim;
     border-radius: 2px;
 }
 
@@ -46,6 +46,12 @@
 .round-right {
     border-top-right-radius: 16px;
     border-bottom-right-radius: 16px;
+}
+
+.launcher-box {
+	margin-top: -10px;
+	padding-bottom: 10px;
+	border-top-right-radius: 10px;
 }
 
 .launch {
@@ -83,7 +89,7 @@
     background-color: $yellow-faint;
 }
 .apps-tl {
-    background-color: $base;
+    background-color: $bg;
 }
 
 .apps-tl, .systray-top {

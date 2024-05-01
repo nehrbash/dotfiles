@@ -4,11 +4,11 @@
   margin: 5px;
   padding: 15px;
   margin-bottom: 20px;
-  background-color: $crust;
+  background-color: $bg-dim;
 }
 
 calendar {
-  background-color: $crust;
+  background-color: $bg-dim;
   :selected {
     color: $mauve;
   }
@@ -23,7 +23,7 @@ calendar {
   }
 
   .button {
-    color: $sapphire;
+    color: $blue-cooler;
   }
 
   :indeterminate {

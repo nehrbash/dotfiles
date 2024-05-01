@@ -66,7 +66,7 @@ get_cover() {
 
 		IMG="${IMGPATH}"
 	elif [ "$COVER_URL" = "" ]; then
-		IMG=""
+		IMG="images/sloth-head.jpg"
 	else
 		IMG="$COVER_URL"
 	fi

@@ -16,6 +16,7 @@
 	  (label
 		:class "music-artist"
 		:wrap true
+		:limit-width 20
 		:text {music.artist})
 	  (centerbox
 		:halign "center"
@@ -86,6 +87,7 @@
 				:text ""))))
         (label
 		  :class "spotify-label"
+		  :limit-width 80
           :text {music.title})))
     (box
       :class "spotify-left"

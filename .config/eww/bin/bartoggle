@@ -51,7 +51,7 @@ if [ $COUNTER -eq 1 ]; then
     if command -v hyprctl &> /dev/null; then
         hyprctl reload
     fi
-    hyprpm enable hyprbars
+    hyprpm enable hyprbars | true
     eww open-many bar leftbar corner-ul corner-ur corner-bl corner-br
 	if [ "$monitors_length" -gt 1 ]; then
 		eww open-many bar2 leftbar2  corner2-ul corner2-ur corner2-bl corner2-br

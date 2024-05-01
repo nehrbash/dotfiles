@@ -1,5 +1,5 @@
 .membar {
-  color: $peach;
+  color: $yellow-warmer;
 }
 
 .cpubar {
@@ -21,7 +21,7 @@
 }
 
 .iconmem {
-  color: $peach;
+  color: $yellow-warmer;
 }
 
 .iconcpu {
@@ -73,7 +73,7 @@
 .sys-icon-mem,
 .sys-text-mem,
 .sys-mem {
-  color: $peach;
+  color: $yellow-warmer;
 }
 
 .sys-icon-cpu,
@@ -90,7 +90,7 @@
 
 .date {
   background: $bg;
-  color: $flamingo;
+  color: $red-warmer;
 
   label {
 	font-size: 1.2rem;
@@ -178,12 +178,12 @@
 
 .volume-bar highlight {
   @include rounding;
-  background-image: linear-gradient(to right, $teal 30%, $sky 100%);
+  background-image: linear-gradient(to right, $green-cooler 30%, $cyan 100%);
 }
 
 .brightness-slider-box scale highlight {
   @include rounding;
-  background-image: linear-gradient(to right, $yellow 30%, $peach 100%);
+  background-image: linear-gradient(to right, $yellow 30%, $yellow-warmer 100%);
 }
 
 .bottom-row {
