@@ -315,7 +315,6 @@ This is useful when followed by an immediate kill."
   :hook (ibuffer . ibuffer-set-up-preferred-filters))
 
 (setq ad-redefinition-action 'accept)
-
 (defun sanityinc/newline-at-end-of-line ()
   "Move to end of line, enter a newline, and reindent."
   (interactive)
@@ -327,9 +326,10 @@ This is useful when followed by an immediate kill."
 
 (use-package display-line-numbers
   :ensure nil
+  :custom
+  (display-line-numbers-type 'relative)
+  (display-line-numbers-width 3)
   :init
-  (setq-default display-line-numbers-width 3)
-  (setq-default display-line-numbers-type 'relative)
   :hook (prog-mode . display-line-numbers-mode))
 
 (use-package expand-region
@@ -2127,9 +2127,9 @@ targets."
 (use-package web-mode
   :mode ("\\.html$" .  web-mode)
   :hook (web-mode . sn/web-mode-hook)
+  :custom (web-mode-markup-indent-offset 2)
   :config
   (defun sn/web-mode-hook()
-	(setq web-mode-markup-indent-offset 2)
 	(web-mode-set-engine "go")))
 
 (defun sn/start-ag-devcontainer ()
@@ -2259,12 +2259,10 @@ targets."
   ("M-SPC c" . taskfile))
 
 (use-package ement
-  :ensure t
   :custom
   (ement-room-prism 'both)
   (ement-save-sessions t))
-(use-package burly
-  :ensure t)
+(use-package burly)
 
 (use-package gcmh
   :ensure (:host github :repo "emacsmirror/gcmh")
