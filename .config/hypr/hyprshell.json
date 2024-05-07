@@ -1,1 +1,32 @@
-[{"Desktop":"slack.desktop","Class":"Slack","Icon":"/usr/share/icons/Dracula/scalable/apps/slack.svg"},{"Desktop":"discord.desktop","Class":"discord","Icon":"/usr/share/icons/Dracula/scalable/apps/discord.svg"},{"Desktop":"org.gnome.Nautilus.desktop","Class":"org.gnome.Nautilus","Icon":"/usr/share/icons/Dracula/scalable/apps/org.gnome.Nautilus.svg"},{"Desktop":"Alacritty.desktop","Class":"Alacritty","Icon":"/usr/share/icons/Dracula/scalable/apps/Alacritty.svg"},{"Desktop":"firefox.desktop","Class":"Firefox","Icon":"/usr/share/icons/Dracula/scalable/apps/firefox.svg"},{"Desktop":"emacs.desktop","Class":"emacs","Icon":"/usr/share/icons/Dracula/scalable/apps/emacs.svg"}]
+[
+  {
+	"Desktop": "slack.desktop",
+	"Class": "Slack",
+	"Icon": "/usr/share/icons/Dracula/scalable/apps/slack.svg"
+  },
+  {
+	"Desktop": "discord.desktop",
+	"Class": "discord",
+	"Icon": "/usr/share/icons/Dracula/scalable/apps/discord.svg"
+  },
+  {
+	"Desktop": "org.gnome.Nautilus.desktop",
+	"Class": "org.gnome.Nautilus",
+	"Icon": "/usr/share/icons/Dracula/scalable/apps/org.gnome.Nautilus.svg"
+  },
+  {
+	"Desktop": "Alacritty.desktop",
+	"Class": "Alacritty",
+	"Icon": "/usr/share/icons/Dracula/scalable/apps/Alacritty.svg"
+  },
+  {
+	"Desktop": "firefox.desktop",
+	"Class": "Firefox",
+	"Icon": "/usr/share/icons/Dracula/scalable/apps/firefox.svg"
+  },
+  {
+	"Desktop": "emacs.desktop",
+	"Class": "Emacs",
+	"Icon": "/usr/share/icons/Dracula/scalable/apps/emacs.svg"
+  }
+]

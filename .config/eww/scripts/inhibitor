@@ -1,6 +1,6 @@
 #!/bin/bash
 
-pid_file="/tmp/hypr/swayidle.pid"
+pid_file="/tmp/.inhibitor.pid"
 
 # Set the appropriate icon based on the existence of the PID file
 if [ -f "$pid_file" ]

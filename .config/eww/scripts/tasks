@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # this file will store the last used filter
-FILTER_STORE=/tmp/hypr/emacs_lasttag
+FILTER_STORE=/tmp/emacs_lasttag
 
 function update() {
   # Define the tag variable as an optional input argument

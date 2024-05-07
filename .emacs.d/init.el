@@ -104,8 +104,6 @@
 	   `(tab-line-env-3 ((,c :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
 	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
-	   `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
-	   `(mode-line-inactive ((,c  :box (:line-width 3 :color ,bg-active))))
 	   `(org-document-title ((,c :height 1.8)))
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
@@ -1182,9 +1180,6 @@ targets."
   (org-mode . (lambda ()
 				(add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
 						  'run-at-end 'only-in-org-mode)))
-  (org-export-before-processing .
-								(lambda (backend)
-								  (require 'ox-extra)))
   :custom
   (org-todo-keywords
    (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
@@ -1825,8 +1820,8 @@ targets."
 
 (use-package vterm)
 (use-package multi-vterm
-  :ensure (:host github :repo "nehrbash/multi-vterm") 
-  ;; :load-path "~/src/multi-vterm"
+;;  :ensure (:host github :repo "nehrbash/multi-vterm") 
+  :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
