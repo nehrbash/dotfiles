@@ -303,14 +303,18 @@ This is useful when followed by an immediate kill."
 
 (use-package ibuffer-project
   :bind ("C-x C-b" . ibuffer)
-  :custom ((ibuffer-show-empty-filter-groups nil)
-		   (ibuffer-project-use-cache t))
+  :custom
+  (ibuffer-show-empty-filter-groups nil)
+  (ibuffer-project-use-cache t)
   :config
-  (defun ibuffer-set-up-preferred-filters ()
-			   (setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups))
-			   (unless (eq ibuffer-sorting-mode 'project-file-relative)
-				 (ibuffer-do-sort-by-project-file-relative)))
-  :hook (ibuffer . ibuffer-set-up-preferred-filters))
+  (defun sn/ibuffer-preferred-filters ()
+	"hides stare buffers and sorts by project."
+	(setq ibuffer-filter-groups (ibuffer-project-generate-filter-groups))
+	(unless (eq ibuffer-sorting-mode 'project-file-relative)
+	  (ibuffer-do-sort-by-project-file-relative))
+	(setq ibuffer-tmp-hide-regexps '("^\\*.*" "^ .*"))
+	(ibuffer-update t))
+  :hook (ibuffer . sn/ibuffer-preferred-filters))
 
 (setq ad-redefinition-action 'accept)
 (defun sanityinc/newline-at-end-of-line ()
@@ -722,7 +726,7 @@ point reaches the beginning or end of the buffer, stop there."
   :init (all-the-icons-completion-mode))
 
 (use-package hotfuzz
-  :ensure t
+  :ensure t ; require to install and load the lib
   :load-path "~/.emacs.d/lib")
 
 (use-package orderless
@@ -733,6 +737,8 @@ point reaches the beginning or end of the buffer, stop there."
   (read-file-name-completion-ignore-case t)
   (read-buffer-completion-ignore-case t)
   (completion-ignore-case t)
+  (completion-lazy-hilit t)
+  (completion-flex-nospace t)
   (completion-category-defaults nil)
   (completion-styles '(orderless hotfuzz))
   (completion-category-overrides '((file (styles basic partial-completion)))))
@@ -957,8 +963,6 @@ targets."
 	  (run-at-time 0 nil #'embark-export)
 	  (run-at-time 0 nil #'wgrep-change-to-wgrep-mode))))
 
-(use-package embark-vc
-  :after embark)
 (use-package embark-consult
   :after embark
   :hook (embark-collect-mode . consult-preview-at-point-mode))
@@ -1489,102 +1493,102 @@ targets."
   (org-agenda-block-separator ?─)
   (org-agenda-category-icon-alist
    `(
-   ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
-   ("music" "~/.dotfiles/icons/music.svg" nil nil :ascent center :mask heuristic)
-   ("chore" "~/.dotfiles/icons/chore.svg" nil nil :ascent center :mask heuristic)
-   ("events" "~/.dotfiles/icons/events.svg" nil nil :ascent center :mask heuristic)
-   ("inbox" "~/.dotfiles/icons/inbox.svg" nil nil :ascent center :mask heuristic)
-   ("walk" "~/.dotfiles/icons/walk.svg" nil nil :ascent center :mask heuristic)
-   ("solution" "~/.dotfiles/icons/solution.svg" nil nil :ascent center :mask heuristic)
-   ("community" "~/.dotfiles/icons/community.svg" nil nil :ascent center :mask heuristic)
-   ("idea" "~/.dotfiles/icons/idea.svg" nil nil :ascent center :mask heuristic)
-   ("personal" "~/.dotfiles/icons/man.svg" nil nil :ascent center :mask heuristic)
-   ("scheduled" "~/.dotfiles/icons/scheduled.svg" nil nil :ascent center :mask heuristic)
-   ("class" "~/.dotfiles/icons/class.svg" nil nil :ascent center :mask heuristic)
-   ("plant" "~/.dotfiles/icons/plant.svg" nil nil :ascent center :mask heuristic)
-   ("check" "~/.dotfiles/icons/check.svg" nil nil :ascent center :mask heuristic)
-   ("search" "~/.dotfiles/icons/search.svg" nil nil :ascent center :mask heuristic)
-   ("home" "~/.dotfiles/icons/home.svg" nil nil :ascent center :mask heuristic)
-   ("book" "~/.dotfiles/icons/book.svg" nil nil :ascent center :mask heuristic)
-   ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
-   ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
-   ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
-   ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
+	 ("work" "~/.dotfiles/icons/work.svg" nil nil :ascent center :mask heuristic)
+	 ("music" "~/.dotfiles/icons/music.svg" nil nil :ascent center :mask heuristic)
+	 ("chore" "~/.dotfiles/icons/chore.svg" nil nil :ascent center :mask heuristic)
+	 ("events" "~/.dotfiles/icons/events.svg" nil nil :ascent center :mask heuristic)
+	 ("inbox" "~/.dotfiles/icons/inbox.svg" nil nil :ascent center :mask heuristic)
+	 ("walk" "~/.dotfiles/icons/walk.svg" nil nil :ascent center :mask heuristic)
+	 ("solution" "~/.dotfiles/icons/solution.svg" nil nil :ascent center :mask heuristic)
+	 ("community" "~/.dotfiles/icons/community.svg" nil nil :ascent center :mask heuristic)
+	 ("idea" "~/.dotfiles/icons/idea.svg" nil nil :ascent center :mask heuristic)
+	 ("personal" "~/.dotfiles/icons/man.svg" nil nil :ascent center :mask heuristic)
+	 ("scheduled" "~/.dotfiles/icons/scheduled.svg" nil nil :ascent center :mask heuristic)
+	 ("class" "~/.dotfiles/icons/class.svg" nil nil :ascent center :mask heuristic)
+	 ("plant" "~/.dotfiles/icons/plant.svg" nil nil :ascent center :mask heuristic)
+	 ("check" "~/.dotfiles/icons/check.svg" nil nil :ascent center :mask heuristic)
+	 ("search" "~/.dotfiles/icons/search.svg" nil nil :ascent center :mask heuristic)
+	 ("home" "~/.dotfiles/icons/home.svg" nil nil :ascent center :mask heuristic)
+	 ("book" "~/.dotfiles/icons/book.svg" nil nil :ascent center :mask heuristic)
+	 ("cook" "~/.dotfiles/icons/cook.svg" nil nil :ascent center :mask heuristic)
+	 ("buy" "~/.dotfiles/icons/buy.svg" nil nil :ascent center :mask heuristic)
+	 ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
+	 ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
   :config
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
-  (let ((active-project-match "-inbox/PROJECT"))
-  (setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
-  		org-agenda-compact-blocks t
-  		org-agenda-sticky t
-  		org-agenda-start-on-weekday nil
-  		org-agenda-span 'day
-  		org-agenda-include-diary nil
-  		org-agenda-use-time-grid nil
-  		org-agenda-window-setup 'current-window
-  		org-agenda-sorting-strategy
-  		'((agenda habit-down time-up user-defined-up effort-up category-keep)
-  		  (todo category-up effort-up)
-  		  (tags category-up effort-up)
-  		  (search category-up)))
-  (setq org-agenda-custom-commands
-  		`(("g" "GTD"
-  		   ((agenda "" nil)
-  			(tags "inbox"
-  				  ((org-agenda-overriding-header "Inbox")
-  				   (org-tags-match-list-sublevels nil)
-  				   (org-agenda-skip-function
-  					'(lambda ()
-  					   (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
-  			(stuck nil
-  				   ((org-agenda-overriding-header "Stuck Projects")
-  					(org-agenda-tags-todo-honor-ignore-options t)
-  					(org-tags-match-list-sublevels t)
-  					(org-agenda-todo-ignore-scheduled 'future)))
-  			(tags-todo "-inbox"
-  					   ((org-agenda-overriding-header "Next Actions")
-  						(org-agenda-tags-todo-honor-ignore-options t)
-  						(org-agenda-todo-ignore-scheduled 'future)
-  						(org-agenda-skip-function
-  						 '(lambda ()
-  							(or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
-  								(org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
-  						(org-tags-match-list-sublevels t)
-  						(org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
-  			(tags-todo ,active-project-match
-  					   ((org-agenda-overriding-header "Projects")
-  						(org-tags-match-list-sublevels t)
-  						(org-agenda-sorting-strategy
-  						 '(category-keep))))
-  			(tags-todo "-inbox-repeater"
-  					   ((org-agenda-overriding-header "Orphaned Tasks")
-  						(org-agenda-tags-todo-honor-ignore-options t)
-  						(org-agenda-todo-ignore-scheduled 'future)
-  						(org-agenda-skip-function
-  						 '(lambda ()
-  							(or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-  								(org-agenda-skip-subtree-if 'nottodo '("TODO")))))
-  						(org-tags-match-list-sublevels t)
-  						(org-agenda-sorting-strategy '(category-keep))))
-  			(tags-todo "/WAITING"
-  					   ((org-agenda-overriding-header "Waiting")
-  						(org-agenda-tags-todo-honor-ignore-options t)
-  						(org-agenda-todo-ignore-scheduled 'future)
-  						(org-agenda-sorting-strategy
-  						 '(category-keep))))
-  			(tags-todo "/DELEGATED"
-  					   ((org-agenda-overriding-header "Delegated")
-  						(org-agenda-tags-todo-honor-ignore-options t)
-  						(org-agenda-todo-ignore-scheduled 'future)
-  						(org-agenda-sorting-strategy '(category-keep))))
-  			(tags-todo "-inbox"
-  					   ((org-agenda-overriding-header "On Hold")
-  						(org-agenda-skip-function
-  						 '(lambda ()
-  							(or (org-agenda-skip-subtree-if 'todo '("WAITING"))
-  								(org-agenda-skip-entry-if 'nottodo '("HOLD")))))
-  						(org-tags-match-list-sublevels nil)
-  						(org-agenda-sorting-strategy '(category-keep))))))))))
+  (let ((active-project-match "-INBOX/PROJECT"))
+	(setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
+  		  org-agenda-compact-blocks t
+  		  org-agenda-sticky t
+  		  org-agenda-start-on-weekday nil
+  		  org-agenda-span 'day
+  		  org-agenda-include-diary nil
+  		  org-agenda-use-time-grid nil
+  		  org-agenda-window-setup 'current-window
+  		  org-agenda-sorting-strategy
+  		  '((agenda habit-down time-up user-defined-up effort-up category-keep)
+  			(todo category-up effort-up)
+  			(tags category-up effort-up)
+  			(search category-up)))
+	(setq org-agenda-custom-commands
+  		  `(("g" "GTD"
+  			 ((agenda "" nil)
+  			  (tags "INBOX"
+  					((org-agenda-overriding-header "Inbox")
+  					 (org-tags-match-list-sublevels nil)
+  					 (org-agenda-skip-function
+  					  '(lambda ()
+  						 (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
+			  (tags-todo ,active-project-match
+  						 ((org-agenda-overriding-header "Projects")
+  						  (org-tags-match-list-sublevels t)
+  						  (org-agenda-sorting-strategy
+  						   '(category-keep))))
+			  (tags-todo "-INBOX"
+  						 ((org-agenda-overriding-header "Next Actions")
+  						  (org-agenda-tags-todo-honor-ignore-options t)
+  						  (org-agenda-todo-ignore-scheduled 'future)
+  						  (org-agenda-skip-function
+  						   '(lambda ()
+  							  (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
+  								  (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
+  						  (org-tags-match-list-sublevels t)
+  						  (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
+  			  (stuck nil
+  					 ((org-agenda-overriding-header "Stuck Projects")
+  					  (org-agenda-tags-todo-honor-ignore-options t)
+  					  (org-tags-match-list-sublevels t)
+  					  (org-agenda-todo-ignore-scheduled 'future)))
+  			  (tags-todo "-INBOX-repeater"
+  						 ((org-agenda-overriding-header "Orphaned Tasks")
+  						  (org-agenda-tags-todo-honor-ignore-options t)
+  						  (org-agenda-todo-ignore-scheduled 'future)
+  						  (org-agenda-skip-function
+  						   '(lambda ()
+  							  (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+  								  (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
+  						  (org-tags-match-list-sublevels t)
+  						  (org-agenda-sorting-strategy '(category-keep))))
+  			  (tags-todo "/WAITING"
+  						 ((org-agenda-overriding-header "Waiting")
+  						  (org-agenda-tags-todo-honor-ignore-options t)
+  						  (org-agenda-todo-ignore-scheduled 'future)
+  						  (org-agenda-sorting-strategy
+  						   '(category-keep))))
+  			  (tags-todo "/DELEGATED"
+  						 ((org-agenda-overriding-header "Delegated")
+  						  (org-agenda-tags-todo-honor-ignore-options t)
+  						  (org-agenda-todo-ignore-scheduled 'future)
+  						  (org-agenda-sorting-strategy '(category-keep))))
+  			  (tags-todo "-INBOX"
+  						 ((org-agenda-overriding-header "On Hold")
+  						  (org-agenda-skip-function
+  						   '(lambda ()
+  							  (or (org-agenda-skip-subtree-if 'todo '("WAITING"))
+  								  (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
+  						  (org-tags-match-list-sublevels nil)
+  						  (org-agenda-sorting-strategy '(category-keep))))))))))
 
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
 (setq org-refile-targets '((nil :maxlevel . 5) (org-agenda-files :maxlevel . 5)))
@@ -1691,7 +1695,7 @@ targets."
   :config (global-treesit-auto-mode))
 
 (use-package eglot
-  :ensure ( :inherit elpaca-menu-gnu-devel-elpa)
+  :ensure nil
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . eglot-inlay-hints-mode)
@@ -1700,7 +1704,7 @@ targets."
   :preface
   (defun sn/eglot-eldoc ()
     (setq eldoc-documentation-strategy
-            'eldoc-documentation-compose-eagerly))
+          'eldoc-documentation-compose-eagerly))
   :bind (:map eglot-mode-map
 			  ("C-h ." . eldoc-doc-buffer)
 			  ("C-c C-c" . project-compile)
@@ -2040,6 +2044,10 @@ targets."
    :commands flymake-shellcheck-load
    :hook (bash-ts-mode . flymake-shellcheck-load))
 
+(use-package ts-fold
+  :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
+  :init (global-ts-fold-mode))
+
 (use-package go-ts-mode
   :ensure nil
   :mode "\\.go\\'"
@@ -2196,7 +2204,6 @@ targets."
   (codeium-log-buffer nil)
   :config
   (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
 	(buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))

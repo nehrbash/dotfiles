@@ -19,15 +19,13 @@ active() {
 setup() {
 	hyprctl --batch "dispatch exec [workspace special:spot] spotify-launcher; dispatch layoutmsg preselect l"
 	sleep 2
-	alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf &
-	sleep 0.3
-	hyprctl --batch "dispatch resizeactive -60% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r"
-	alacritty -o font.size=6 -e cava -p ~/.config/cava/right.conf &
-	sleep 0.3
-	hyprctl --batch "dispatch resizeactive 45% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d"
-	alacritty -o font.size=18 -e sptlrx &
-	sleep 0.3
-	hyprctl --batch "dispatch resizeactive 0 80%"
+	hyprctl --batch "dispatch exec [workspace special:spot] alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf;"
+	sleep 0.2
+	hyprctl --batch "dispatch resizeactive -60% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r; dispatch exec [workspace special:spot] alacritty -o font.size=6 -e cava -p ~/.config/cava/right.conf;"
+	sleep 0.2
+	hyprctl --batch "dispatch resizeactive 45% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d; dispatch exec [workspace special:spot] alacritty -o font.size=18 -e sptlrx"
+	sleep 0.2
+	hyprctl --batch "dispatch resizeactive 0 50%"
 }
 
 # if not active run setup
