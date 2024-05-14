@@ -132,8 +132,8 @@
   (doom-modeline-workspace-name nil)
   :config
   (doom-modeline-def-modeline 'simple-line
-    '(bar modals buffer-info remote-host)
-    '(compilation objed-state persp-name process vcs))
+    '(eldoc window-number bar buffer-info remote-host)
+    '(compilation debug check objed-state persp-name process vcs))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
@@ -222,30 +222,33 @@
  tooltip-delay .8
  ring-bell-function 'ignore
  truncate-lines t)
-(setopt browse-url-browser-function #'browse-url-firefox
-		use-dialog-box nil
-		text-mode-ispell-word-completion nil)
-(kill-ring-deindent-mode t)
-(delete-selection-mode t)
+(setopt 
+ use-dialog-box nil
+ text-mode-ispell-word-completion nil)
 (global-goto-address-mode t)
-(transient-mark-mode t)
+(with-eval-after-load 'browse-url
+  (setq browse-url-browser-function #'browse-url-firefox))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
 
 (use-package recentf
   :ensure nil
+  :init (recentf-mode t)
   :custom
-  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 50)
+  (recentf-auto-cleanup 'never) 
+  (recentf-max-saved-items 100)
   (recentf-exclude '(".*![^!]*!.*"
 					 "*/ssh:*"
 					 "*/docker:*"
 					 "*/sshfs:*"))
   (backup-directory-alist
-		`((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms
-		`((".*" ,temporary-file-directory t)))
-  :init
-  (recentf-mode t))
+   `((".*" . ,temporary-file-directory)))
+  :config
+  ;; (defun save-recentf ()
+  ;; 	"Save recentf list."
+  ;; 	(interactive)
+  ;; 	(recentf-save-list))
+  ;; (run-at-time 60 60 'save-recentf)
+  )
 
 (use-package autorevert
   :ensure nil
@@ -473,9 +476,47 @@ Call a second time to restore the original window configuration."
 
 (use-package avy
   :commands avy-goto-char-timer
-  :bind ("C-M-s" . avy-goto-char-timer))
+  :bind ("M-j" . avy-goto-char-timer)
+  :config
+  (defun avy-action-copy-whole-line (pt)
+	(save-excursion
+      (goto-char pt)
+      (cl-destructuring-bind (start . end)
+          (bounds-of-thing-at-point 'line)
+		(copy-region-as-kill start end)))
+	(select-window
+	 (cdr
+      (ring-ref avy-ring 0)))
+	t)
 
-(use-package lasgun
+  (defun avy-action-yank-whole-line (pt)
+	(avy-action-copy-whole-line pt)
+	(save-excursion (yank))
+	t)
+  
+  (defun avy-action-teleport-whole-line (pt)
+    (avy-action-kill-whole-line pt)
+    (save-excursion (yank)) t)
+  
+  (defun avy-embark-act (pt)
+	"Use Embark to act on the item at PT."
+	(unwind-protect
+		(save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0)))
+      t))
+  (setf
+   (alist-get ?y avy-dispatch-alist) 'avy-embark-act
+   (alist-get ?y avy-dispatch-alist) 'avy-action-yank
+   (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+   (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+   (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line
+   (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+   (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line))
+
+(use-package lasgun						
   :ensure (:host github :repo "aatmunbaxi/lasgun.el")
   :config
   (require 'transient)
@@ -486,7 +527,7 @@ Call a second time to restore the original window configuration."
 
   (transient-define-prefix lasgun-transient ()
 	"Main transient for lasgun."
-	[["Marks"
+	[["Single Marks"
 	  ("c" "Char timer" lasgun-mark-char-timer :transient t)
 	  ("w" "Word" lasgun-mark-word-0 :transient t)
 	  ("l" "Begin of line" lasgun-mark-line :transient t)
@@ -494,7 +535,7 @@ Call a second time to restore the original window configuration."
 	  ("w" "Whitespace end" lasgun-mark-whitespace-end :transient t)
 	  ("x" "Clear lasgun mark ring" lasgun-clear-lasgun-mark-ring :transient t)
 	  ("u" "Undo lasgun mark" lasgun-pop-lasgun-mark :transient t)]
-	 ["Actions"
+	 ["Single Mark Actions"
 	  ("SPC" "Make cursors" lasgun-make-multiple-cursors)
 	  ("." "Embark act all" lasgun-embark-act-all)
 	  ("U" "Upcase" lasgun-action-upcase-word)
@@ -624,11 +665,13 @@ Call a second time to restore the original window configuration."
 				 (default-value 'mode-line-format)))
 	   (redraw-display))
 
-(defun push-mark-no-activate ()
-  "Pushes `point' to `mark-ring' and does not activate the region
-   Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
-  (interactive)
-  (push-mark (point) t nil))
+(transient-mark-mode t)
+(delete-selection-mode t)
+(kill-ring-deindent-mode t)
+(defun sn/add-mark-before (func &rest args)
+  "Add a mark before calling FUNC with ARGS."
+  (push-mark (point) t nil)
+  (apply func args))
 
 (use-package move-dup
   :bind(("M-<up>" . move-dup-move-lines-up)
@@ -666,12 +709,13 @@ point reaches the beginning or end of the buffer, stop there."
 (global-set-key [remap move-beginning-of-line]
 				'smarter-move-beginning-of-line)
 
-(use-package switch-window
+(use-package ace-window
   :custom
-  (switch-window-shortcut-style 'alphabet)
-  (switch-window-timeout 2)
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-ignore-current t)
   :bind
-  ("C-x o" . switch-window))
+  ("M-o" . ace-window)
+  :init (ace-window-display-mode t))
 
 (use-package windswap
   :config
@@ -706,14 +750,11 @@ point reaches the beginning or end of the buffer, stop there."
   (minibuffer-electric-default-mode))
 
 (use-package vertico
-  :after minibuffer
   :config
   (vertico-mode 1)
   (vertico-multiform-mode 1)
   (add-to-list 'vertico-multiform-commands
-			   '(project-switch-project buffer))
-  (add-to-list 'vertico-multiform-commands
-			   '(consult-ripgrep buffer)))
+			   '(project-switch-project buffer)))
 (use-package marginalia
   :init (marginalia-mode)
   :bind
@@ -725,12 +766,9 @@ point reaches the beginning or end of the buffer, stop there."
   :hook (marginalia-mode-hook . all-the-icons-completion-marginalia-setup)
   :init (all-the-icons-completion-mode))
 
-(use-package hotfuzz
-  :ensure t ; require to install and load the lib
-  :load-path "~/.emacs.d/lib")
+(use-package hotfuzz)
 
 (use-package orderless
-  :after hotfuzz
   :custom
   (orderless-matching-styles 'orderless-regexp)
   (orderless-component-separator #'orderless-escapable-split-on-space)
@@ -802,8 +840,8 @@ point reaches the beginning or end of the buffer, stop there."
   :init
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
-  (advice-add #'consult-line :before (lambda (&optional initial start)(push-mark-no-activate)) '((name . "add-mark")))
-  ;; Use Consult to select xref locations with preview
+  ;; Example of advising consult-line
+  (advice-add #'consult-line :around #'sn/add-mark-before)  ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
   (setq register-preview-delay 0.5
 		register-preview-function #'consult-register-format)
@@ -990,6 +1028,7 @@ targets."
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
 
 (use-package corfu
+  :after orderless
   :hook (((prog-mode conf-mode yaml-mode) . sn/corfu-basic))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
 			  ("TAB" . corfu-next)
@@ -997,22 +1036,13 @@ targets."
 			  ("S-TAB" . corfu-previous)
 			  ([backtab] . corfu-previous))
   :custom
+  (corfu-quit-no-match t)
   (tab-always-indent 'complete)
-  (corfu-quit-no-match t) ;; 'separator
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold 2)
-  (corfu-on-exact-match nil) ;; can't be insert so that snippets don't auto complete
   :config
-  (defun sn/corfu-basic ()
-	"Setup completion for programming"
-	(setq-local corfu-auto t
-				eldoc-idle-delay 0.1
-				corfu-auto-delay 0
-				completion-styles '(orderless-fast basic)
-				corfu-popupinfo-delay 0.6))
-  ;; TAB cycle if there are only few candidates
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
 		 `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
@@ -1020,8 +1050,16 @@ targets."
 	"A basic completion suitable for coding."
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
-  (global-corfu-mode)
-  (corfu-popupinfo-mode))
+  (defun sn/corfu-basic ()
+	"Setup completion for programming"
+	(setq-local corfu-auto t
+				eldoc-idle-delay 0.6
+				corfu-auto-delay 0.1
+				completion-styles '(orderless-fast basic)
+				corfu-popupinfo-delay 0.6))
+  (corfu-popupinfo-mode t)
+  :init
+  (global-corfu-mode t))
 
 (use-package corfu-candidate-overlay
   :hook (text-mode
@@ -1335,9 +1373,8 @@ targets."
 (add-hook 'org-capture-mode-hook 'toggle-mode-line)
 
 (use-package org-modern
-  :after org
-  :config
-  (global-org-modern-mode))
+  :init
+  (global-org-modern-mode t))
 
 (use-package org-appear
   :ensure (:host github :repo "awth13/org-appear")
@@ -1655,18 +1692,6 @@ targets."
   :bind ("C-c n g" . org-roam-node-find)
   :after org-roam)
 
-(use-package org-roam-ui
-  :ensure (:host github :repo "org-roam/org-roam-ui")
-  :after org-roam
-  :init
-  (set-face-attribute 'default nil :family "Iosevka")
-  (set-face-attribute 'variable-pitch nil :family "Iosevka Aile")
-  :config
-  (setq org-roam-ui-sync-theme t
-		org-roam-ui-follow t
-		org-roam-ui-update-on-save t
-		org-roam-ui-open-on-start nil))
-
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 
 (setopt comment-auto-fill-only-comments t)
@@ -1705,12 +1730,15 @@ targets."
   (defun sn/eglot-eldoc ()
     (setq eldoc-documentation-strategy
           'eldoc-documentation-compose-eagerly))
-  :bind (:map eglot-mode-map
-			  ("C-h ." . eldoc-doc-buffer)
-			  ("C-c C-c" . project-compile)
-			  ("C-c r" . eglot-rename)
-			  ("C-c a" . eglot-code-actions)
-			  ("C-c C-o" . eglot-code-action-organize-imports))
+  :bind
+  (:map eglot-mode-map
+		("C-h ." . eldoc-doc-buffer)
+		("C-c r" . eglot-rename)
+		("C-c t" . eglot-find-typeDefinition)
+		("C-c i" . eglot-find-implementation)
+		("C-c a" . eglot-code-actions)
+		("C-c q" . eglot-code-action-quickfix)
+		("C-c o" . eglot-code-action-organize-imports))
   :custom
   (eglot-report-progress nil)
   (eglot-autoshutdown t)
@@ -1720,25 +1748,29 @@ targets."
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
 				'(:gopls
-				  (:usePlaceholders t
-									:staticcheck t
-									:gofumpt t
-									:analyses
-									(:nilness t
-											  :shadow t
-											  :unusedparams t
-											  :unusedwrite t
-											  :unusedvariable t)
-									:hints
-									(:assignVariableTypes t
-														  :constantValues t
-														  :rangeVariableTypes t))
+				  (:usePlaceholders
+				   t
+				   :staticcheck t
+				   :gofumpt t
+				   :analyses
+				   (:nilness
+					t
+					:shadow t
+					:unusedparams t
+					:unusedwrite t
+					:unusedvariable t)
+				   :hints
+				   (:assignVariableTypes
+					t
+					:constantValues t
+					:rangeVariableTypes t))
 				  :js-ts
                   (:format 
-				   (:convertTabsToSpaces t
-										 :indentSize 1
-										 :tabSize 1
-										 :tabWidth 1))))
+				   (:convertTabsToSpaces
+					t
+					:indentSize 1
+					:tabSize 1
+					:tabWidth 1))))
 
   :init
   (defun eglot-organize-imports () (interactive)
@@ -1750,9 +1782,9 @@ targets."
 	(setq-local completion-at-point-functions
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
-					   #'yasnippet-capf
 					   #'cape-file)
-					  #'codeium-completion-at-point))))
+					  ;; #'codeium-completion-at-point
+					  ))))
 (use-package consult-eglot
   :after eglot
   :bind
@@ -1817,6 +1849,13 @@ targets."
   :bind ("C-c C-g" . git-timemachine)
   :custom (git-timemachine-show-minibuffer-details t))
 
+(use-package hl-todo
+  :ensure (hl-todo :depth nil)
+  :init (global-hl-todo-mode t))
+(use-package magit-todos
+  :ensure (:depth nil)
+  :hook (magit-mode . magit-todos-mode))
+
 (use-package browse-at-remote
   :bind
   ("C-c g g" . browse-at-remote)
@@ -1824,7 +1863,7 @@ targets."
 
 (use-package vterm)
 (use-package multi-vterm
-;;  :ensure (:host github :repo "nehrbash/multi-vterm") 
+  ;; :ensure (:host github :repo "nehrbash/multi-vterm") 
   :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
@@ -1832,18 +1871,6 @@ targets."
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
-				  ;; (face-remap-add-relative
-				  ;;  'term
-				  ;;  :background "#281d12")
-				  ;; (face-remap-add-relative
-				  ;;  'unspecified-fg
-				  ;;  :background "#281d12")
-				  ;; (face-remap-add-relative
-				  ;;  'unspecified-bg
-				  ;;  :background)
-				  ;; (face-remap-add-relative
-				  ;;  'fringe
-				  ;;  :background "#281d12")
 				  ))
   :bind
   (("M-t" . multi-vterm-dedicated-toggle)
@@ -2044,20 +2071,14 @@ targets."
    :commands flymake-shellcheck-load
    :hook (bash-ts-mode . flymake-shellcheck-load))
 
-(use-package ts-fold
-  :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
-  :init (global-ts-fold-mode))
-
-(use-package go-ts-mode
-  :ensure nil
-  :mode "\\.go\\'"
+(use-package go-mode
   :ensure-system-package
   ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
    (gofumpt . "go install mvdan.cc/gofumpt@latest")
    (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(subword-mode 1)
-						(setq-local compile-command "go build -v && go test -v -cover && go vet"
+						(setq-local compile-command "task install:remote"
 									go-ts-mode-indent-offset 4))))
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
@@ -2067,10 +2088,11 @@ targets."
   :bind (:map go-ts-mode-map ("C-c C-i" . go-impl)))
 (use-package go-gen-test
   :ensure-system-package (gotests . "go install github.com/cweill/gotests/gotests@latest")
-  :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
+  :bind (:map go-ts-mode-map ("C-c t g" . go-gen-test-dwim)))
 (use-package gotest
   :bind
   (:map go-ts-mode-map
+		("C-c t f" . go-test-current-file)
 		("C-c t t" . go-test-current-test)))
 
 (use-package rust-ts-mode
@@ -2107,14 +2129,12 @@ targets."
   (docker . "paru -S docker")
   (docker-compose . "paru -S docker-compose")
   (devcontainer . "npm install -g @devcontainers/cli")
-  :bind ("C-c d" . docker)
+  :bind ("M-SPC d" . docker)
   :config
   (fullframe docker-images tablist-quit)
   (fullframe docker-volumes tablist-quit)
   (fullframe docker-networks tablist-quit)
   (fullframe docker-containers tablist-quit))
-(use-package dockerfile-mode
-  :mode ("\\.dockerfile\\'" . dockerfile-mode))
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 

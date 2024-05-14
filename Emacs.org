@@ -15,6 +15,7 @@
   - [[#treemacs][Treemacs]]
 - [[#general-settings][General Settings]]
   - [[#track-recent-files][Track Recent Files]]
+  - [[#auto-save][Auto Save]]
   - [[#auto-update-file][Auto update file]]
   - [[#tramp][TRAMP]]
   - [[#save-history][Save History]]
@@ -260,8 +261,8 @@
   (doom-modeline-workspace-name nil)
   :config
   (doom-modeline-def-modeline 'simple-line
-    '(bar modals buffer-info remote-host)
-    '(compilation objed-state persp-name process vcs))
+    '(eldoc window-number bar buffer-info remote-host)
+    '(compilation debug check objed-state persp-name process vcs))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
@@ -399,13 +400,12 @@
  tooltip-delay .8
  ring-bell-function 'ignore
  truncate-lines t)
-(setopt browse-url-browser-function #'browse-url-firefox
-		use-dialog-box nil
-		text-mode-ispell-word-completion nil)
-(kill-ring-deindent-mode t)
-(delete-selection-mode t)
+(setopt 
+ use-dialog-box nil
+ text-mode-ispell-word-completion nil)
 (global-goto-address-mode t)
-(transient-mark-mode t)
+(with-eval-after-load 'browse-url
+  (setq browse-url-browser-function #'browse-url-firefox))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
 #+end_src
 
@@ -416,21 +416,34 @@
 #+begin_src emacs-lisp
 (use-package recentf
   :ensure nil
+  :init (recentf-mode t)
   :custom
-  (recentf-auto-cleanup 'never) ; Disable automatic cleanup at load time
-  (recentf-max-saved-items 50)
+  (recentf-auto-cleanup 'never) 
+  (recentf-max-saved-items 100)
   (recentf-exclude '(".*![^!]*!.*"
 					 "*/ssh:*"
 					 "*/docker:*"
 					 "*/sshfs:*"))
   (backup-directory-alist
-		`((".*" . ,temporary-file-directory)))
-  (setq auto-save-file-name-transforms
-		`((".*" ,temporary-file-directory t)))
-  :init
-  (recentf-mode t))
+   `((".*" . ,temporary-file-directory)))
+  :config
+  ;; (defun save-recentf ()
+  ;; 	"Save recentf list."
+  ;; 	(interactive)
+  ;; 	(recentf-save-list))
+  ;; (run-at-time 60 60 'save-recentf)
+  )
 #+end_src
 
+** TODO Auto Save
+
+#+begin_src emacs-lisp :tangle no
+(setq auto-save-file-name-transforms
+	  `((".*" ,temporary-file-directory t))
+	  auto-save-visited-interval 30)
+(auto-save-visited-mode 1)
+#+end_src
+   
 ** Auto update file
 
    When A file changes on disk update Emacs.
@@ -748,12 +761,52 @@ Call a second time to restore the original window configuration."
 #+begin_src emacs-lisp
 (use-package avy
   :commands avy-goto-char-timer
-  :bind ("C-M-s" . avy-goto-char-timer))
+  :bind ("M-j" . avy-goto-char-timer)
+  :config
+  (defun avy-action-copy-whole-line (pt)
+	(save-excursion
+      (goto-char pt)
+      (cl-destructuring-bind (start . end)
+          (bounds-of-thing-at-point 'line)
+		(copy-region-as-kill start end)))
+	(select-window
+	 (cdr
+      (ring-ref avy-ring 0)))
+	t)
+
+  (defun avy-action-yank-whole-line (pt)
+	(avy-action-copy-whole-line pt)
+	(save-excursion (yank))
+	t)
+  
+  (defun avy-action-teleport-whole-line (pt)
+    (avy-action-kill-whole-line pt)
+    (save-excursion (yank)) t)
+  
+  (defun avy-embark-act (pt)
+	"Use Embark to act on the item at PT."
+	(unwind-protect
+		(save-excursion
+          (goto-char pt)
+          (embark-act))
+      (select-window
+       (cdr (ring-ref avy-ring 0)))
+      t))
+  (setf
+   (alist-get ?y avy-dispatch-alist) 'avy-embark-act
+   (alist-get ?y avy-dispatch-alist) 'avy-action-yank
+   (alist-get ?w avy-dispatch-alist) 'avy-action-copy
+   (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+   (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line
+   (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+   (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line))
 #+end_src
+
+
 *** avy multi-cursor
 
 #+begin_src emacs-lisp
-(use-package lasgun
+(use-package lasgun						
   :ensure (:host github :repo "aatmunbaxi/lasgun.el")
   :config
   (require 'transient)
@@ -764,7 +817,7 @@ Call a second time to restore the original window configuration."
 
   (transient-define-prefix lasgun-transient ()
 	"Main transient for lasgun."
-	[["Marks"
+	[["Single Marks"
 	  ("c" "Char timer" lasgun-mark-char-timer :transient t)
 	  ("w" "Word" lasgun-mark-word-0 :transient t)
 	  ("l" "Begin of line" lasgun-mark-line :transient t)
@@ -772,7 +825,7 @@ Call a second time to restore the original window configuration."
 	  ("w" "Whitespace end" lasgun-mark-whitespace-end :transient t)
 	  ("x" "Clear lasgun mark ring" lasgun-clear-lasgun-mark-ring :transient t)
 	  ("u" "Undo lasgun mark" lasgun-pop-lasgun-mark :transient t)]
-	 ["Actions"
+	 ["Single Mark Actions"
 	  ("SPC" "Make cursors" lasgun-make-multiple-cursors)
 	  ("." "Embark act all" lasgun-embark-act-all)
 	  ("U" "Upcase" lasgun-action-upcase-word)
@@ -782,7 +835,6 @@ Call a second time to restore the original window configuration."
   (global-set-key (kbd "M-SPC i") 'lasgun-transient))
 #+end_src
 
-	
 *** Transit
 
  #+begin_src emacs-lisp
@@ -934,17 +986,19 @@ This Emacs Lisp block defines a function called =add-auto-mode= which allows you
 
  This Emacs Lisp block defines a function called "toggle-mode-line" that toggles the display of the mode line on and off. When called interactively, it checks if the mode line is currently visible by comparing it to nil. If it is visible, it sets the mode-line-format to the default value, effectively hiding the mode line. If it is not visible, it sets the mode-line-format to nil, showing the mode line. Finally, it redraws the display to reflect the changes.
 
-*** Mark without Activate
+*** Marks
 
- used before consult line so it's in the mark stack.
+	advice to add to functions that don't add mark
 
- #+begin_src emacs-lisp
- (defun push-mark-no-activate ()
-   "Pushes `point' to `mark-ring' and does not activate the region
-	Equivalent to \\[set-mark-command] when \\[transient-mark-mode] is disabled"
-   (interactive)
-   (push-mark (point) t nil))
- #+end_src
+#+begin_src emacs-lisp
+(transient-mark-mode t)
+(delete-selection-mode t)
+(kill-ring-deindent-mode t)
+(defun sn/add-mark-before (func &rest args)
+  "Add a mark before calling FUNC with ARGS."
+  (push-mark (point) t nil)
+  (apply func args))
+#+end_src
 
 *** Move & Duplicating Lines
 
@@ -1012,15 +1066,14 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 *** Switch Windows Via Letters
 
 #+begin_src emacs-lisp
-(use-package switch-window
+(use-package ace-window
   :custom
-  (switch-window-shortcut-style 'alphabet)
-  (switch-window-timeout 2)
+  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-ignore-current t)
   :bind
-  ("C-x o" . switch-window))
+  ("M-o" . ace-window)
+  :init (ace-window-display-mode t))
  #+end_src
-
- This config block sets up the Emacs package "switch-window" by configuring its options and binding the key combination "C-x o" to activate it.
 
 *** Swap Windows
 
@@ -1085,14 +1138,11 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 #+begin_src emacs-lisp
 (use-package vertico
-  :after minibuffer
   :config
   (vertico-mode 1)
   (vertico-multiform-mode 1)
   (add-to-list 'vertico-multiform-commands
-			   '(project-switch-project buffer))
-  (add-to-list 'vertico-multiform-commands
-			   '(consult-ripgrep buffer)))
+			   '(project-switch-project buffer)))
 (use-package marginalia
   :init (marginalia-mode)
   :bind
@@ -1110,9 +1160,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
    Supposed to be better than built in flex.
 
 #+begin_src emacs-lisp
-(use-package hotfuzz
-  :ensure t ; require to install and load the lib
-  :load-path "~/.emacs.d/lib")
+(use-package hotfuzz)
 #+end_src
 
 ** Orderless
@@ -1120,7 +1168,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 #+begin_src emacs-lisp
 (use-package orderless
-  :after hotfuzz
   :custom
   (orderless-matching-styles 'orderless-regexp)
   (orderless-component-separator #'orderless-escapable-split-on-space)
@@ -1204,8 +1251,8 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :init
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
-  (advice-add #'consult-line :before (lambda (&optional initial start)(push-mark-no-activate)) '((name . "add-mark")))
-  ;; Use Consult to select xref locations with preview
+  ;; Example of advising consult-line
+  (advice-add #'consult-line :around #'sn/add-mark-before)  ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
   (setq register-preview-delay 0.5
 		register-preview-function #'consult-register-format)
@@ -1457,6 +1504,7 @@ targets."
 
 #+begin_src emacs-lisp
 (use-package corfu
+  :after orderless
   :hook (((prog-mode conf-mode yaml-mode) . sn/corfu-basic))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
 			  ("TAB" . corfu-next)
@@ -1464,22 +1512,13 @@ targets."
 			  ("S-TAB" . corfu-previous)
 			  ([backtab] . corfu-previous))
   :custom
+  (corfu-quit-no-match t)
   (tab-always-indent 'complete)
-  (corfu-quit-no-match t) ;; 'separator
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold 2)
-  (corfu-on-exact-match nil) ;; can't be insert so that snippets don't auto complete
   :config
-  (defun sn/corfu-basic ()
-	"Setup completion for programming"
-	(setq-local corfu-auto t
-				eldoc-idle-delay 0.1
-				corfu-auto-delay 0
-				completion-styles '(orderless-fast basic)
-				corfu-popupinfo-delay 0.6))
-  ;; TAB cycle if there are only few candidates
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
 		 `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
@@ -1487,8 +1526,16 @@ targets."
 	"A basic completion suitable for coding."
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
-  (global-corfu-mode)
-  (corfu-popupinfo-mode))
+  (defun sn/corfu-basic ()
+	"Setup completion for programming"
+	(setq-local corfu-auto t
+				eldoc-idle-delay 0.6
+				corfu-auto-delay 0.1
+				completion-styles '(orderless-fast basic)
+				corfu-popupinfo-delay 0.6))
+  (corfu-popupinfo-mode t)
+  :init
+  (global-corfu-mode t))
 #+end_src
 
 *** Overlay Candidate
@@ -1886,21 +1933,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package org-modern
-  :after org
-  :config
-  (global-org-modern-mode))
+  :init
+  (global-org-modern-mode t))
 #+end_src
 
-**** margins
-
-	 It's broken now but it's just got created check later
-
-#+begin_src emacs-lisp :tangle no
-(use-package org-margin
-  :ensure (:host github :repo "rougier/org-margin")
-  :after org-modern
-  :hook (org-modern-mode . org-margin-mode))
-#+end_src	 
 *** Org Appear
 
  Provides a way to toggle visibility of hidden elements such as emphasis markers, links, etc. by customizing specific variables.
@@ -2319,7 +2355,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 *** Org Roam UI
 
-#+begin_src emacs-lisp
+	Don't really have a need to use yet
+
+#+begin_src emacs-lisp :tangle no
 (use-package org-roam-ui
   :ensure (:host github :repo "org-roam/org-roam-ui")
   :after org-roam
@@ -2401,12 +2439,15 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (defun sn/eglot-eldoc ()
     (setq eldoc-documentation-strategy
           'eldoc-documentation-compose-eagerly))
-  :bind (:map eglot-mode-map
-			  ("C-h ." . eldoc-doc-buffer)
-			  ("C-c C-c" . project-compile)
-			  ("C-c r" . eglot-rename)
-			  ("C-c a" . eglot-code-actions)
-			  ("C-c C-o" . eglot-code-action-organize-imports))
+  :bind
+  (:map eglot-mode-map
+		("C-h ." . eldoc-doc-buffer)
+		("C-c r" . eglot-rename)
+		("C-c t" . eglot-find-typeDefinition)
+		("C-c i" . eglot-find-implementation)
+		("C-c a" . eglot-code-actions)
+		("C-c q" . eglot-code-action-quickfix)
+		("C-c o" . eglot-code-action-organize-imports))
   :custom
   (eglot-report-progress nil)
   (eglot-autoshutdown t)
@@ -2416,25 +2457,29 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
 				'(:gopls
-				  (:usePlaceholders t
-									:staticcheck t
-									:gofumpt t
-									:analyses
-									(:nilness t
-											  :shadow t
-											  :unusedparams t
-											  :unusedwrite t
-											  :unusedvariable t)
-									:hints
-									(:assignVariableTypes t
-														  :constantValues t
-														  :rangeVariableTypes t))
+				  (:usePlaceholders
+				   t
+				   :staticcheck t
+				   :gofumpt t
+				   :analyses
+				   (:nilness
+					t
+					:shadow t
+					:unusedparams t
+					:unusedwrite t
+					:unusedvariable t)
+				   :hints
+				   (:assignVariableTypes
+					t
+					:constantValues t
+					:rangeVariableTypes t))
 				  :js-ts
                   (:format 
-				   (:convertTabsToSpaces t
-										 :indentSize 1
-										 :tabSize 1
-										 :tabWidth 1))))
+				   (:convertTabsToSpaces
+					t
+					:indentSize 1
+					:tabSize 1
+					:tabWidth 1))))
 
   :init
   (defun eglot-organize-imports () (interactive)
@@ -2446,9 +2491,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	(setq-local completion-at-point-functions
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
-					   #'yasnippet-capf
 					   #'cape-file)
-					  #'codeium-completion-at-point))))
+					  ;; #'codeium-completion-at-point
+					  ))))
 (use-package consult-eglot
   :after eglot
   :bind
@@ -2534,10 +2579,14 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 ***** Todos
 
-	  Elpaca not getting dependancy req version. 
+	 hl-todo is problematic for elpaca. 
 
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
+(use-package hl-todo
+  :ensure (hl-todo :depth nil)
+  :init (global-hl-todo-mode t))
 (use-package magit-todos
+  :ensure (:depth nil)
   :hook (magit-mode . magit-todos-mode))  
 #+end_src
 	  
@@ -2595,7 +2644,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package vterm)
 (use-package multi-vterm
-;;  :ensure (:host github :repo "nehrbash/multi-vterm") 
+  ;; :ensure (:host github :repo "nehrbash/multi-vterm") 
   :load-path "~/src/multi-vterm"
   :hook
   (vterm-mode . (lambda ()
@@ -2603,18 +2652,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
-				  ;; (face-remap-add-relative
-				  ;;  'term
-				  ;;  :background "#281d12")
-				  ;; (face-remap-add-relative
-				  ;;  'unspecified-fg
-				  ;;  :background "#281d12")
-				  ;; (face-remap-add-relative
-				  ;;  'unspecified-bg
-				  ;;  :background)
-				  ;; (face-remap-add-relative
-				  ;;  'fringe
-				  ;;  :background "#281d12")
 				  ))
   :bind
   (("M-t" . multi-vterm-dedicated-toggle)
@@ -2860,9 +2897,11 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode))  
 #+end_src
 	  
-*** Folding
+*** TODO Folding
 
-#+begin_src emacs-lisp
+	package is confused about mode, I assume because auto ts remapping.
+
+#+begin_src emacs-lisp :tangle no
 (use-package ts-fold
   :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
   :init (global-ts-fold-mode))  
@@ -2877,16 +2916,14 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   fill struct is now in code actions.
 
 #+begin_src emacs-lisp
-(use-package go-ts-mode
-  :ensure nil
-  :mode "\\.go\\'"
+(use-package go-mode
   :ensure-system-package
   ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
    (gofumpt . "go install mvdan.cc/gofumpt@latest")
    (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(subword-mode 1)
-						(setq-local compile-command "go build -v && go test -v -cover && go vet"
+						(setq-local compile-command "task install:remote"
 									go-ts-mode-indent-offset 4))))
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
@@ -2896,10 +2933,11 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :bind (:map go-ts-mode-map ("C-c C-i" . go-impl)))
 (use-package go-gen-test
   :ensure-system-package (gotests . "go install github.com/cweill/gotests/gotests@latest")
-  :bind (:map go-ts-mode-map ("C-c C-g" . go-gen-test-dwim)))
+  :bind (:map go-ts-mode-map ("C-c t g" . go-gen-test-dwim)))
 (use-package gotest
   :bind
   (:map go-ts-mode-map
+		("C-c t f" . go-test-current-file)
 		("C-c t t" . go-test-current-test)))
 #+end_src
 
@@ -3019,14 +3057,12 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (docker . "paru -S docker")
   (docker-compose . "paru -S docker-compose")
   (devcontainer . "npm install -g @devcontainers/cli")
-  :bind ("C-c d" . docker)
+  :bind ("M-SPC d" . docker)
   :config
   (fullframe docker-images tablist-quit)
   (fullframe docker-volumes tablist-quit)
   (fullframe docker-networks tablist-quit)
   (fullframe docker-containers tablist-quit))
-(use-package dockerfile-mode
-  :mode ("\\.dockerfile\\'" . dockerfile-mode))
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 #+end_src
