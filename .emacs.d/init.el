@@ -64,8 +64,7 @@
 (add-hook 'elpaca-after-init-hook (lambda ()
 									(progn
 									  (load custom-file 'noerror)
-									  (my-ef-themes-mod)
-									  (kill-buffer " elpaca--read-file"))))
+									  (my-ef-themes-mod))))
 
 (use-package ef-themes
   :custom
@@ -132,8 +131,8 @@
   (doom-modeline-workspace-name nil)
   :config
   (doom-modeline-def-modeline 'simple-line
-    '(eldoc window-number bar buffer-info remote-host)
-    '(compilation debug check objed-state persp-name process vcs))
+    '(eldoc vcs bar buffer-info remote-host)
+    '(compilation debug check objed-state persp-name process bar window-number))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
@@ -368,10 +367,6 @@ This is useful when followed by an immediate kill."
 		   (sanityinc/backward-up-sexp (1- arg)))
 		  ((backward-up-list arg)))))
 (global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
-
-(use-package which-key
-  :custom (which-key-idle-delay 1)
-  :config (which-key-mode 1))
 
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
@@ -788,6 +783,9 @@ point reaches the beginning or end of the buffer, stop there."
   :after vertico
   :defer t
   :bind
+  ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
+  ("C-r" . (lambda () (interactive) (consult-ripgrep (thing-at-point 'symbol))))
+  ("M-S" . (lambda () (interactive) (consult-line-multi (thing-at-point 'symbol))))
   ("C-c M-x" . consult-mode-command)
   ("C-c h" . consult-history)
   ("C-c k" . consult-kmacro)
@@ -949,51 +947,18 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-;" . embark-dwim)
   ("C-h B" . embark-bindings)
   (:map minibuffer-mode-map
-		("M-e" . sn/edit-search-results))
+		("M-SPC" . embark-act))
   (:map embark-region-map
 		("w" . google-this)
 		("g" . gptel))
-  :init
-  (setq prefix-help-command #'embark-prefix-help-command)
+  :custom
+  (embark-mixed-indicator-delay 0.6)
+  (prefix-help-command #'embark-prefix-help-command)
+  (embark-indicators ; the default 
+   '(embark-mixed-indicator
+	 embark-highlight-indicator
+	 embark-isearch-highlight-indicator))
   :config
-  (defun embark-which-key-indicator ()
-	"An embark indicator that displays keymaps using which-key.
-The which-key help message will show the type and value of the
-current target followed by an ellipsis if there are further
-targets."
-	(lambda (&optional keymap targets prefix)
-      (if (null keymap)
-          (which-key--hide-popup-ignore-command)
-		(which-key--show-keymap
-		 (if (eq (plist-get (car targets) :type) 'embark-become)
-			 "Become"
-           (format "Act on %s '%s'%s"
-                   (plist-get (car targets) :type)
-                   (embark--truncate-target (plist-get (car targets) :target))
-                   (if (cdr targets) "…" "")))
-		 (if prefix
-			 (pcase (lookup-key keymap prefix 'accept-default)
-               ((and (pred keymapp) km) km)
-               (_ (key-binding prefix 'accept-default)))
-           keymap)
-		 nil nil t (lambda (binding)
-					 (not (string-suffix-p "-argument" (cdr binding))))))))
-
-  (setq embark-indicators
-		'(embark-which-key-indicator
-		  embark-highlight-indicator
-		  embark-isearch-highlight-indicator))
-
-  (defun embark-hide-which-key-indicator (fn &rest args)
-	"Hide the which-key indicator immediately when using the completing-read prompter."
-	(which-key--hide-popup-ignore-command)
-	(let ((embark-indicators
-           (remq #'embark-which-key-indicator embark-indicators)))
-      (apply fn args)))
-
-  (advice-add #'embark-completing-read-prompter
-              :around #'embark-hide-which-key-indicator)
-   
   (defun sn/edit-search-results ()
 	"Export results using `embark-export' and activate `wgrep'."
 	(interactive)
@@ -1755,7 +1720,6 @@ targets."
 				   :analyses
 				   (:nilness
 					t
-					:shadow t
 					:unusedparams t
 					:unusedwrite t
 					:unusedvariable t)
@@ -2022,7 +1986,8 @@ targets."
                                        ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
   (global-ligature-mode t))
 
-(setq-default compilation-scroll-output t)
+(setq-default compilation-scroll-output t
+			  compile-command "task ")
 (defvar sanityinc/last-compilation-buffer nil
   "The last buffer in which compilation took place.")
 
@@ -2078,8 +2043,7 @@ targets."
    (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(subword-mode 1)
-						(setq-local compile-command "task install:remote"
-									go-ts-mode-indent-offset 4))))
+						(setq-local go-ts-mode-indent-offset 4))))
 (use-package go-tag
   :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
   :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
