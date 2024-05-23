@@ -110,8 +110,7 @@
 	   `(fixed-pitch ((,c :font "Iosevka")))
 	   `(variable-pitch ((,c :font "Iosevka")))
 	   `(org-modern-symbol ((,c :font "Iosevka")))
-	   `(default ((,c :font "Iosevka" :height 115)))
-	   `(unspecified-bg ((,c :inherit 'default))))))
+	   `(default ((,c :font "Iosevka" :height 115))))))
   (defun sn/load-my-theme (frame)
 	(select-frame frame)
 	(when (display-graphic-p frame)
@@ -131,8 +130,8 @@
   (doom-modeline-workspace-name nil)
   :config
   (doom-modeline-def-modeline 'simple-line
-    '(eldoc vcs bar buffer-info remote-host)
-    '(compilation debug check objed-state persp-name process bar window-number))
+    '(eldoc window-number vcs bar buffer-info remote-host)
+    '(compilation debug check objed-state persp-name process))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
@@ -177,8 +176,7 @@
 	  :scroll-bar-width 8)))
 
 (use-package olivetti
-  :bind
-  ("C-x \"" . olivetti-mode)
+  :hook (markdown-mode . olivetti-mode)
   :custom
   (olivetti-style nil))
 
@@ -242,12 +240,11 @@
   (backup-directory-alist
    `((".*" . ,temporary-file-directory)))
   :config
-  ;; (defun save-recentf ()
-  ;; 	"Save recentf list."
-  ;; 	(interactive)
-  ;; 	(recentf-save-list))
-  ;; (run-at-time 60 60 'save-recentf)
-  )
+  (defun save-recentf ()
+	"Save recentf list."
+	(interactive)
+	(recentf-save-list))
+  (run-at-time 60 360 'save-recentf))
 
 (use-package autorevert
   :ensure nil
@@ -745,6 +742,11 @@ point reaches the beginning or end of the buffer, stop there."
   (minibuffer-electric-default-mode))
 
 (use-package vertico
+  :demand t
+  :bind
+  (:map vertico-map
+		("M-j" . vertico-quick-insert)
+		("C-q" . vertico-quick-exit))
   :config
   (vertico-mode 1)
   (vertico-multiform-mode 1)
@@ -777,7 +779,9 @@ point reaches the beginning or end of the buffer, stop there."
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package wgrep
-  :commands (wgrep wgrep-change-to-wgrep-mode))
+  :custom
+  (wgrep-auto-save-buffer t)
+  (wgrep-enable-key "r"))
 
 (use-package consult
   :after vertico
@@ -957,17 +961,8 @@ point reaches the beginning or end of the buffer, stop there."
   (embark-indicators ; the default 
    '(embark-mixed-indicator
 	 embark-highlight-indicator
-	 embark-isearch-highlight-indicator))
-  :config
-  (defun sn/edit-search-results ()
-	"Export results using `embark-export' and activate `wgrep'."
-	(interactive)
-	(progn
-	  (run-at-time 0 nil #'embark-export)
-	  (run-at-time 0 nil #'wgrep-change-to-wgrep-mode))))
-
+	 embark-isearch-highlight-indicator)))
 (use-package embark-consult
-  :after embark
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
 (use-package project
@@ -1075,6 +1070,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t) ;; Prefer the name of the snippet instead)
 
 (use-package jinx
+  :after vertico
   :bind
   (:map jinx-overlay-map
 		("C-M-$" . #'jinx-correct-all))
@@ -1675,14 +1671,65 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
 
-(use-package treesit-auto
+(use-package treesit
+  :ensure nil
+  :demand t
+  :mode ("\\.tsx\\'" . tsx-ts-mode)
+  :preface
+  (defun mp-setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+             ;; Note the version numbers. These are the versions that
+             ;; are known to work with Combobulate *and* Emacs.
+             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
+               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
+               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+               (json ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               (markdown "https://github.com/ikatyang/tree-sitter-markdown")
+               (python ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               (rust "https://github.com/tree-sitter/tree-sitter-rust")
+               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional. Combobulate works in both xxxx-ts-modes and
+  ;; non-ts-modes.
+
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js2-mode . js-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (conf-toml-mode . toml-ts-mode)
+             (go-mode . go-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
+  :config
+  (mp-setup-install-grammars)
   :custom
   (treesit-auto-install t)
-  (treesit-font-lock-level 4)
-  (major-mode-remap-alist
-   '((js-mode . js-ts-mode)
-	 (sh-mode . bash-ts-mode)))
-  :config (global-treesit-auto-mode))
+  (treesit-font-lock-level 4))
+
+(use-package combobulate
+  :demand t
+  :ensure (:host github :repo "mickeynp/combobulate" :branch "development")
+  :custom (combobulate-key-prefix "C-c j")
+  :hook (prog-mode . combobulate-mode))
 
 (use-package eglot
   :ensure nil
@@ -1803,14 +1850,28 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (fullframe magit-status magit-mode-quit-window)
   (require 'magit-extras)
+  (require 'transient)
+  (require 'smerge-mode)
+  (transient-define-prefix sn/smerge ()
+	"Rebase Menu"
+	[["Smerge nav/show"
+	  ("n" "Next" smerge-next :transient t)
+	  ("p" "Prev" smerge-prev :transient t)
+	  ("h" "Highlight diff" smerge-refine :transient t)]
+	 ["Quick Resolve"
+	  ("a" "Keep All" smerge-keep-all :transient t)
+	  ("u" "Keep Upper" smerge-keep-upper :transient t)
+	  ("l" "Keep Lower" smerge-keep-lower :transient t)]]
+	[["Resolve"
+	  ("r" "Resolve Intelligently" smerge-resolve :transient t)
+	  ("R" "Auto Resolve All" smerge-resolve-all :transient t)
+	  ("e" "Resolve With Ediff" smerge-ediff)]
+	 ["Actions"
+	  ("q" "Quit" transient-quit-one)
+	  ("s" "Magit Status" magit-status)]])
   :custom
-  (magit-diff-refine-hunk t)
-  :bind
-  ("C-x g" . magit-status)
-  ("C-x M-g" . magit-dispatch))
+  (magit-diff-refine-hunk t))
 (use-package git-timemachine
-  :defer t
-  :bind ("C-c C-g" . git-timemachine)
   :custom (git-timemachine-show-minibuffer-details t))
 
 (use-package hl-todo
@@ -1975,8 +2036,7 @@ point reaches the beginning or end of the buffer, stop there."
   )
 
 (use-package direnv
- :config
- (direnv-mode))
+  :config (direnv-mode))
 
 (use-package ligature
   :config
@@ -1986,12 +2046,17 @@ point reaches the beginning or end of the buffer, stop there."
                                        ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
   (global-ligature-mode t))
 
-(setq-default compilation-scroll-output t
-			  compile-command "task ")
-(defvar sanityinc/last-compilation-buffer nil
-  "The last buffer in which compilation took place.")
+(use-package makefile-runner
+  :ensure (:host github :repo "danamlund/emacs-makefile-runner"))
+(use-package compile
+  :ensure nil
+  :custom
+  (compilation-scroll-output t)
+  (compile-command "task ")
+  :config
+  (defvar sanityinc/last-compilation-buffer nil
+	"The last buffer in which compilation took place.")
 
-(with-eval-after-load 'compile
   (defun sanityinc/save-compilation-buffer (&rest _)
 	"Save the compilation buffer to find it later."
 	(setq sanityinc/last-compilation-buffer next-error-last-buffer))
@@ -2006,20 +2071,35 @@ point reaches the beginning or end of the buffer, stop there."
 		(with-current-buffer sanityinc/last-compilation-buffer
 		  (funcall orig edit-command))
 	  (funcall orig edit-command)))
-  (advice-add 'recompile :around 'sanityinc/find-prev-compilation))
+  (advice-add 'recompile :around 'sanityinc/find-prev-compilation)
+  
+  (defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
+	"Put \"*Shell Command Output*\" buffers into view-mode."
+	(unless (or output-buffer replace)
+	  (with-current-buffer "*Shell Command Output*"
+		(view-mode 1))))
+  (advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
 
-(defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
-  "Put \"*Shell Command Output*\" buffers into view-mode."
-  (unless (or output-buffer replace)
-	(with-current-buffer "*Shell Command Output*"
-	  (view-mode 1))))
-(advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
-
-(with-eval-after-load 'compile
   (defun sanityinc/colourise-compilation-buffer ()
 	(when (eq major-mode 'compilation-mode)
 	  (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer))
+  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer)
+  (require 'transient)
+  (transient-define-prefix sn/project-menu ()
+	"Project Actions"
+	[["Commpile"
+	  ("c" "Compile" protogg-compile)
+	  ("r" "Recompile" recompile)
+	  ("m" "Makefile" makefile-runner)]
+	 ["Git"
+	  ("s" "Status" magit-status)
+	  ("d" "Dispatch" magit-dispatch)
+	  ("R" "Rebase menu" sn/smerge)
+	  ("g" "Time Machine" git-timemachine)]]
+	[["Misc"
+	  ("q" "Quit" transient-quit-one)
+	  ("s" "Switch Project" project-switch-project)]])
+  :bind ("C-x g" . sn/project-menu))
 
 (use-package flymake
   :ensure nil
