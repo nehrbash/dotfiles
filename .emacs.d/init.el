@@ -63,10 +63,11 @@
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
 (add-hook 'elpaca-after-init-hook (lambda ()
 									(progn
-									  (load custom-file 'noerror)
-									  (my-ef-themes-mod))))
+									  (my-ef-themes-mod)
+									  (load custom-file 'noerror))))
 
 (use-package ef-themes
+  :demand t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -78,7 +79,7 @@
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
-  :init
+  :config
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
 	(interactive)
@@ -378,7 +379,7 @@ This is useful when followed by an immediate kill."
 
 (use-package whitespace-cleanup-mode
   :commands (whitespace-cleanup)
-  :hook ((prog-mode text-mode conf-mode) . sanityinc/show-trailing-whitespace)
+  :hook ((prog-mode text-mode conf-mode web-mode sql-mode) . sanityinc/show-trailing-whitespace)
   :config
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
   (defun sanityinc/show-trailing-whitespace ()
@@ -996,7 +997,7 @@ point reaches the beginning or end of the buffer, stop there."
 			  ("S-TAB" . corfu-previous)
 			  ([backtab] . corfu-previous))
   :custom
-  (corfu-quit-no-match t)
+  ;; (corfu-quit-no-match t)
   (tab-always-indent 'complete)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
@@ -1686,14 +1687,15 @@ point reaches the beginning or end of the buffer, stop there."
                (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
                (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               (json ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
+               ;; (json ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
                (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-               (python ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
+               ;; (python ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
                (rust "https://github.com/tree-sitter/tree-sitter-rust")
                (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))))
+               ;; (yaml ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+			   ))
       (add-to-list 'treesit-language-source-alist grammar)
       ;; Only install `grammar' if we don't already have it
       ;; installed. However, if you want to *update* a grammar then
@@ -1782,7 +1784,20 @@ point reaches the beginning or end of the buffer, stop there."
 					:indentSize 1
 					:tabSize 1
 					:tabWidth 1))))
-
+  (defun eglot-rename (newname)
+	"Rename the current symbol to NEWNAME."
+	(interactive
+	 (list (read-from-minibuffer
+			(format "Rename `%s' to: " (or (thing-at-point 'symbol t)
+										   "unknown symbol"))
+			(thing-at-point 'symbol t) nil nil nil
+			(symbol-name (symbol-at-point)))))
+	(eglot-server-capable-or-lose :renameProvider)
+	(eglot--apply-workspace-edit
+	 (eglot--request (eglot--current-server-or-lose)
+					 :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
+											:newName ,newname))
+	 this-command))
   :init
   (defun eglot-organize-imports () (interactive)
 		 (eglot-code-actions nil nil "source.organizeImports" t))
@@ -2098,7 +2113,7 @@ point reaches the beginning or end of the buffer, stop there."
 	  ("g" "Time Machine" git-timemachine)]]
 	[["Misc"
 	  ("q" "Quit" transient-quit-one)
-	  ("s" "Switch Project" project-switch-project)]])
+	  ("p" "Switch Project" project-switch-project)]])
   :bind ("C-x g" . sn/project-menu))
 
 (use-package flymake
@@ -2209,13 +2224,15 @@ point reaches the beginning or end of the buffer, stop there."
       (kill-buffer buffer)))
   ;; Run the command in ~/src/analytics-hub/
   (let ((default-directory (expand-file-name "~/src/analytics-hub/")))
-    (let ((result (shell-command "devcontainer up --workspace-folder .")))
+    (let ((result (call-process-shell-command "devcontainer up --workspace-folder ." nil "  *Start Dev-Container Output*" t)))
       (if (= result 0)
           (message "Command executed successfully.")
         (message "Error: Command failed. Container might not be up."))))
   ;; Open Dired in /docker:dev-container:/workspace/
   (dired "/docker:dev-container:/workspace/")
-  (treemacs))
+  (magit-status)
+  (treemacs)
+  (windmove-right))
 
 (use-package mu4e
   :ensure nil
