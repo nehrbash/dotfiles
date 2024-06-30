@@ -7,21 +7,21 @@
 
 (defwindow corner-ur
   :geometry (geometry :width "30px" :height "30px" :anchor "top right")
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 0
   (box :class "corners-ur"))
 
 (defwindow corner-bl
   :geometry (geometry :width "30px" :height "30px" :anchor "bottom left" )
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 0
   (box :class "corners-bl"))
 
 (defwindow corner-br
   :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 0
   (box :class "corners-br"))
@@ -29,28 +29,28 @@
 
 (defwindow corner2-ul
   :geometry (geometry :width "30px" :height "30px" :anchor "top left" )
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 1
   (box :class "corners-ul"))
 
 (defwindow corner2-ur
   :geometry (geometry :width "30px" :height "30px" :anchor "top right")
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 1
   (box :class "corners-ur"))
 
 (defwindow corner2-bl
   :geometry (geometry :width "30px" :height "30px" :anchor "bottom left" )
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 1
   (box :class "corners-bl"))
 
 (defwindow corner2-br
   :geometry (geometry :width "30px" :height "30px" :anchor "bottom right")
-  :stacking "fg"
+  :stacking "bg"
   :focusable false
   :monitor 1
   (box :class "corners-br"))

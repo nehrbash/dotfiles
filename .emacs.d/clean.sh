@@ -1,5 +1,6 @@
 #!/bin/bash
 
+rm -rf "$HOME/.emacs.d/tramp"
 rm -rf "$HOME/.emacs.d/etc"
 rm -rf "$HOME/.emacs.d/elpa"
 rm -rf "$HOME/.emacs.d/elpaca"
@@ -8,6 +9,7 @@ rm -rf "$HOME/.emacs.d/var"
 rm -rf "$HOME/.emacs.d/customs.el"
 rm -rf "$HOME/.emacs.d/eshell"
 rm -rf "$HOME/.emacs.d/org-roam.db"
+rm -rf "$HOME/.emacs.d/tree-sitter"
 rm -rf "$HOME/.emacs.d/persist"
 rm -rf "$HOME/.emacs.d/forg-database.sqlite"
 rm -rf "$HOME/.emacs.d/eln-cache"

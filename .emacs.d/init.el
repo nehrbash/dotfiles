@@ -51,20 +51,12 @@
  byte-compile-docstring-max-column 120
  native-compile-prune-cache t)
 
-(defun sn/finish-install ()
-  (interactive)
-  (progn
-	(treesit-auto-install-all)
-	(all-the-icons-install-fonts t)
-	(yas-reload-all)
-	(recentf-cleanup)
-	(nerd-icons-install-fonts t)))
-
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
 (add-hook 'elpaca-after-init-hook (lambda ()
 									(progn
 									  (my-ef-themes-mod)
-									  (load custom-file 'noerror))))
+									  (load custom-file 'noerror)
+									  (mapc 'kill-buffer (buffer-list)))))
 
 (use-package ef-themes
   :demand t
@@ -98,12 +90,14 @@
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
 	   `(line-number ((,c :inherit (ef-themes-fixed-pitch shadow default) :background "#281d12")))
+	   `(fringe ((,c :inherit (ef-themes-fixed-pitch shadow default) :background "#281d12")))
 	   `(tab-line-env-default ((,c :background ,green-faint )))
 	   `(tab-line-env-1 ((,c :background ,red-faint )))
 	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
 	   `(tab-line-env-3 ((,c :background ,blue-faint )))
 	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
 	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line-inactive ((,c :font "Iosevka Aile" :box (:line-width 3 :color "#281d12"))))
 	   `(org-document-title ((,c :height 1.8)))
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
@@ -166,15 +160,14 @@
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
 (use-package spacious-padding
-  :config (spacious-padding-mode 1)
   :custom
   (spacious-padding-widths
-   '( :internal-border-width 15
-	  :header-line-width 4
-	  :mode-line-width 2
-	  :tab-width 4
-	  :right-divider-width 30
-	  :scroll-bar-width 8)))
+	'( :internal-border-width 15
+	   :header-line-width 4
+	   :mode-line-width 2
+	   :tab-width 4
+	   :right-divider-width 30
+	   :scroll-bar-width 8)))
 
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
@@ -253,16 +246,21 @@
   (auto-revert-use-notify nil)
   :init (global-auto-revert-mode 1))
 
-(setopt tramp-default-method "ssh"
-		tramp-verbose 0
-		tramp-use-ssh-controlmaster-options nil)
 (with-eval-after-load 'tramp
+  (setopt tramp-default-method "ssh"
+		  tramp-verbose 0
+		  tramp-use-ssh-controlmaster-options nil)
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
-			 (list (regexp-quote "/ssh:ag-nehrbash:")
-				   "remote-shell" "/usr/bin/bash"
-				   "direct-async-process" t
-				   "tramp-direct-async" t)))
+			   (list (regexp-quote "/ssh:ag-nehrbash:")
+					 "remote-shell" "/usr/bin/bash"
+					 "direct-async-process" t
+					 "tramp-direct-async" t))
+  (add-to-list 'tramp-connection-properties
+			   (list (regexp-quote "/docker:")
+					 "remote-shell" "/usr/bin/bash"
+					 "direct-async-process" t
+					 "tramp-direct-async" t)))
 
 (use-package savehist
   :ensure nil
@@ -625,42 +623,42 @@ Call a second time to restore the original window configuration."
 (defun add-auto-mode (mode &rest patterns)
   "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
   (dolist (pattern patterns)
-	(add-to-list 'auto-mode-alist (cons pattern mode))))
+	 (add-to-list 'auto-mode-alist (cons pattern mode))))
 
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
   (interactive)
   (unless (buffer-file-name)
-	(error "No file is currently being edited"))
+	 (error "No file is currently being edited"))
   (when (yes-or-no-p (format "Really delete '%s'?"
-							 (file-name-nondirectory buffer-file-name)))
-	(delete-file (buffer-file-name))
-	(kill-this-buffer)))
+							  (file-name-nondirectory buffer-file-name)))
+	 (delete-file (buffer-file-name))
+	 (kill-this-buffer)))
 
 (defun rename-this-file-and-buffer (new-name)
   "Renames both current buffer and file it's visiting to NEW-NAME."
   (interactive "sNew name: ")
   (let ((name (buffer-name))
-		(filename (buffer-file-name)))
-	(unless filename
-	  (error "Buffer '%s' is not visiting a file!" name))
-	(progn
-	  (when (file-exists-p filename)
-		(rename-file filename new-name 1))
-	  (set-visited-file-name new-name)
-	  (rename-buffer new-name))))
+		 (filename (buffer-file-name)))
+	 (unless filename
+	   (error "Buffer '%s' is not visiting a file!" name))
+	 (progn
+	   (when (file-exists-p filename)
+		 (rename-file filename new-name 1))
+	   (set-visited-file-name new-name)
+	   (rename-buffer new-name))))
 
 (defun toggle-mode-line ()
   "toggles the modeline on and off"
-	   (interactive)
-	   (setq mode-line-format
-			 (if (equal mode-line-format nil)
-				 (default-value 'mode-line-format)))
-	   (redraw-display))
+		(interactive)
+		(setq mode-line-format
+			  (if (equal mode-line-format nil)
+				  (default-value 'mode-line-format)))
+		(redraw-display))
 
 (transient-mark-mode t)
 (delete-selection-mode t)
-(kill-ring-deindent-mode t)
+;; (kill-ring-deindent-mode t) ; emacs 30
 (defun sn/add-mark-before (func &rest args)
   "Add a mark before calling FUNC with ARGS."
   (push-mark (point) t nil)
@@ -668,9 +666,9 @@ Call a second time to restore the original window configuration."
 
 (use-package move-dup
   :bind(("M-<up>" . move-dup-move-lines-up)
-		("M-<down>" . move-dup-move-lines-down)
-		("C-c d" . move-dup-duplicate-down)
-		("C-c u" . move-dup-duplicate-up)))
+		 ("M-<down>" . move-dup-move-lines-down)
+		 ("C-c d" . move-dup-duplicate-down)
+		 ("C-c u" . move-dup-duplicate-up)))
 
 (use-package whole-line-or-region
   :config (whole-line-or-region-global-mode t))
@@ -690,17 +688,17 @@ point reaches the beginning or end of the buffer, stop there."
 
   ;; Move lines first
   (when (/= arg 1)
-	(let ((line-move-visual nil))
-	  (forward-line (1- arg))))
+	 (let ((line-move-visual nil))
+	   (forward-line (1- arg))))
 
   (let ((orig-point (point)))
-	(back-to-indentation)
-	(when (= orig-point (point))
-	  (move-beginning-of-line 1))))
+	 (back-to-indentation)
+	 (when (= orig-point (point))
+	   (move-beginning-of-line 1))))
 
 ;; remap C-a to `smarter-move-beginning-of-line'
 (global-set-key [remap move-beginning-of-line]
-				'smarter-move-beginning-of-line)
+				 'smarter-move-beginning-of-line)
 
 (use-package ace-window
   :custom
@@ -997,8 +995,10 @@ point reaches the beginning or end of the buffer, stop there."
 			  ("S-TAB" . corfu-previous)
 			  ([backtab] . corfu-previous))
   :custom
-  ;; (corfu-quit-no-match t)
+  (tab-first-completion t)
   (tab-always-indent 'complete)
+  (corfu-quit-no-match t)
+  (corfu-on-exact-match 'quit)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
@@ -1014,10 +1014,10 @@ point reaches the beginning or end of the buffer, stop there."
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local corfu-auto t
-				eldoc-idle-delay 0.6
-				corfu-auto-delay 0.1
+				eldoc-idle-delay 0.1
+				corfu-auto-delay 0.0
 				completion-styles '(orderless-fast basic)
-				corfu-popupinfo-delay 0.6))
+				corfu-popupinfo-delay 0.5))
   (corfu-popupinfo-mode t)
   :init
   (global-corfu-mode t))
@@ -1389,81 +1389,81 @@ point reaches the beginning or end of the buffer, stop there."
   (org-clock-persist 'history))
 
 (use-package type-break
-  :ensure nil
-  :custom
-  (org-clock-ask-before-exiting nil)
-  (type-break-interval (* 25 60)) ;; 25 mins
-  (type-break-good-rest-interval (* 5 60)) ;; 5 mins
-  (type-break-good-break-interval (* 5 60)) ;; 5 mins
-  (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
-  (type-break-demo-boring-stats t)
-  (type-break-file-name nil) ;; don't save across sessions file is annoying
-  (type-break-query-mode t)
-  (type-break-warning-repeat nil)
-  ;; This will stop the warnings before it's time to take a break
-  (type-break-time-warning-intervals '())
-  (type-break-keystroke-warning-intervals '())
-  (type-break-query-function 'sn/type-break-query)
-  (type-break-mode-line-message-mode nil)
-  (type-break-demo-functions '(type-break-demo-boring))
-  :init
-  (defun sn/org-mark-current-done ()
-	"Clock out of the current task and mark it as DONE."
-	(interactive)
-	(let ((org-clock-out-switch-to-state "DONE"))
-	  (org-clock-out)
-	  (setq org-clock-heading "")
-	  (org-save-all-org-buffers)))
-  (defun sn/type-break-toggle ()
-	(interactive)
-	(if type-break-mode
-		(type-break-mode -1)
-	  (type-break-mode 1)))
-  (defun sn/type-break-query (a &rest b)
-	"Auto say yes and ask to quit type break."
-	(if (>= (type-break-time-difference
-								 type-break-interval-start
-								 type-break-time-last-break) 0)
-		(y-or-n-p "Do you want to continue type-break? ")
-	  t))
-  (defun org-clock-in-to-task-by-title (task-title)
-	"Clock into an Org Agenda task by its title within a custom agenda command."
-	(interactive "sEnter the title of the task: ")
-	(save-window-excursion
-	  (org-agenda nil "t")
-	  (with-current-buffer "*Org Agenda(t)*"
-		(goto-char (point-min))
-		(if (search-forward task-title nil t)
-			(progn
-			  (org-agenda-goto)
-			  (org-clock-in))
-		  (message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
-  (defun format-seconds-to-mm-ss (seconds)
-	"Formats time to MM:SS."
-	(let* ((minutes (floor (/ seconds 60)))
-		   (remaining-seconds (- seconds (* minutes 60))))
-	  (format "%02d:%02d" minutes remaining-seconds)))
-  (defun type-break-json-data ()
-	"Prints type break data used in eww bar."
-	(let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
-		   (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
-							 "00:00"))
-		   (percent (if type-break-mode
-						(number-to-string (/ (* 100.0 time-difference)
-											 type-break-interval))
-					  "0"))
-		   (json-data `(:percent ,percent
-								 :time ,formatted-time
-								 :task ,(if (string-empty-p org-clock-heading)
-											"No Active Task"
-										  org-clock-heading)
-								 :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
-													   "No Active Task"
-													 org-clock-heading)
-												   " " formatted-time)
-								 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
-								 :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
-	  (json-encode json-data))))
+	:ensure nil
+	:custom
+	(org-clock-ask-before-exiting nil)
+	(type-break-interval (* 25 60)) ;; 25 mins
+	(type-break-good-rest-interval (* 5 60)) ;; 5 mins
+	(type-break-good-break-interval (* 5 60)) ;; 5 mins
+	(type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
+	(type-break-demo-boring-stats t)
+	(type-break-file-name nil) ;; don't save across sessions file is annoying
+	(type-break-query-mode t)
+	(type-break-warning-repeat nil)
+	;; This will stop the warnings before it's time to take a break
+	(type-break-time-warning-intervals '())
+	(type-break-keystroke-warning-intervals '())
+	(type-break-query-function 'sn/type-break-query)
+	(type-break-mode-line-message-mode nil)
+	(type-break-demo-functions '(type-break-demo-boring))
+	:init
+	(defun sn/org-mark-current-done ()
+	  "Clock out of the current task and mark it as DONE."
+	  (interactive)
+	  (let ((org-clock-out-switch-to-state "DONE"))
+		(org-clock-out)
+		(setq org-clock-heading "")
+		(org-save-all-org-buffers)))
+	(defun sn/type-break-toggle ()
+	  (interactive)
+	  (if type-break-mode
+		  (type-break-mode -1)
+		(type-break-mode 1)))
+	(defun sn/type-break-query (a &rest b)
+	  "Auto say yes and ask to quit type break."
+	  (if (>= (type-break-time-difference
+								   type-break-interval-start
+								   type-break-time-last-break) 0)
+		  (y-or-n-p "Do you want to continue type-break? ")
+		t))
+	(defun org-clock-in-to-task-by-title (task-title)
+	  "Clock into an Org Agenda task by its title within a custom agenda command."
+	  (interactive "sEnter the title of the task: ")
+	  (save-window-excursion
+		(org-agenda nil "t")
+		(with-current-buffer "*Org Agenda(t)*"
+		  (goto-char (point-min))
+		  (if (search-forward task-title nil t)
+			  (progn
+				(org-agenda-goto)
+				(org-clock-in))
+			(message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
+	(defun format-seconds-to-mm-ss (seconds)
+	  "Formats time to MM:SS."
+	  (let* ((minutes (floor (/ seconds 60)))
+			 (remaining-seconds (- seconds (* minutes 60))))
+		(format "%02d:%02d" minutes remaining-seconds)))
+	(defun type-break-json-data ()
+	  "Prints type break data used in eww bar."
+	  (let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
+			 (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
+							   "00:00"))
+			 (percent (if type-break-mode
+						  (number-to-string (/ (* 100.0 time-difference)
+											   type-break-interval))
+						"0"))
+			 (json-data `(:percent ,percent
+								   :time ,formatted-time
+								   :task ,(if (string-empty-p org-clock-heading)
+											  "No Active Task"
+											org-clock-heading)
+								   :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
+														 "No Active Task"
+													   org-clock-heading)
+													 " " formatted-time)
+								   :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
+								   :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
+		(json-encode json-data))))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -1683,18 +1683,19 @@ point reaches the beginning or end of the buffer, stop there."
     (dolist (grammar
              ;; Note the version numbers. These are the versions that
              ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css" "v0.20.0"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go" "v0.20.0"))
-               (html . ("https://github.com/tree-sitter/tree-sitter-html" "v0.20.1"))
+             '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
+               (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+			   (gomod . ("https://github.com/camdencheek/tree-sitter-go-mod"))
+               (html . ("https://github.com/tree-sitter/tree-sitter-html"))
                (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               ;; (json ("https://github.com/tree-sitter/tree-sitter-json" "v0.20.2"))
-               (markdown "https://github.com/ikatyang/tree-sitter-markdown")
-               ;; (python ("https://github.com/tree-sitter/tree-sitter-python" "v0.20.4"))
-               (rust "https://github.com/tree-sitter/tree-sitter-rust")
-               (toml . ("https://github.com/tree-sitter/tree-sitter-toml" "v0.5.1"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+               (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
+               (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
                (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
                (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               ;; (yaml ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
 			   ))
       (add-to-list 'treesit-language-source-alist grammar)
       ;; Only install `grammar' if we don't already have it
@@ -1717,6 +1718,7 @@ point reaches the beginning or end of the buffer, stop there."
              (bash-mode . bash-ts-mode)
              (conf-toml-mode . toml-ts-mode)
              (go-mode . go-ts-mode)
+			 (go-mod-mode . go-mod-ts-mode)
              (css-mode . css-ts-mode)
              (json-mode . json-ts-mode)
              (js-json-mode . json-ts-mode)))
@@ -1816,29 +1818,6 @@ point reaches the beginning or end of the buffer, stop there."
   :bind
   (:map eglot-mode-map
 		("C-c f" . consult-eglot-symbols)))
-
-(use-package dape
-  :bind ("<F7>" . dape)
-  ;; To use window configuration like gud (gdb-mi)
-  :init
-  (setq dape-buffer-window-arrangement 'gud)
-  :config
-  ;; Info buffers to the right
-  (setq dape-buffer-window-arrangement 'right)
-  ;; To not display info and/or buffers on startup
-  (remove-hook 'dape-on-start-hooks 'dape-info)
-  (remove-hook 'dape-on-start-hooks 'dape-repl)
-  ;; To display info and/or repl buffers on stopped
-  ;; (add-hook 'dape-on-stopped-hooks 'dape-info)
-  ;; (add-hook 'dape-on-stopped-hooks 'dape-repl)
-  ;; By default dape uses gdb keybinding prefix
-  ;; If you do not want to use any prefix, set it to nil.
-  ;; (setq dape-key-prefix "\C-x\C-a")
-  ;; Kill compile buffer on build success
-  (add-hook 'dape-compile-compile-hooks 'kill-buffer)
-  (add-hook 'dape-on-start-hooks
-            (defun dape--save-on-start ()
-              (save-some-buffers t t))))
 
 (use-package git-gutter
   :config
@@ -2124,6 +2103,14 @@ point reaches the beginning or end of the buffer, stop there."
   (flymake-no-changes-timeout 3)
   (flymake-fringe-indicator-position 'right-fringe)
   ;; (flymake-show-diagnostics-at-end-of-line 'short)
+  :config
+  (add-to-list 'display-buffer-alist
+             '("\\*Flymake diagnostics.*\\*"
+               (display-buffer-reuse-window
+                display-buffer-in-side-window)
+               (side . bottom)
+               (slot . 0)
+               (window-height . 0.3)))
   :bind
   ("M-g f" . consult-flymake)          
   ("M-SPC p" . flymake-show-project-diagnostics))
@@ -2196,6 +2183,13 @@ point reaches the beginning or end of the buffer, stop there."
   (fullframe docker-containers tablist-quit))
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
+
+(use-package sqlformat
+  :ensure-system-package (pgformatter . "paru -S --needed --noconfirm pgformatter")
+  :hook (sql-mode . sqlformat-on-save-mode)
+  :custom
+  (sqlformat-command 'pgformatter)
+  (setq sqlformat-args '("-s2" "-g")))
 
 (use-package terraform-mode)
 

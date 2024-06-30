@@ -1,4 +1,4 @@
-#+TITLE:My Setup
+a#+TITLE:My Setup
 - [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][Wallpaper]]
 - [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
 - [[https://github.com/hyprwm/Hyprland][Hyprland]]
