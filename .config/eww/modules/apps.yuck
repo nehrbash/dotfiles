@@ -33,6 +33,7 @@
 
 (defwidget showapps [applist icon revealid show]
   (revealer
+	:class {a.Focused ? "app-icon app-focused": "app-icon"}
 	:transition "slidedown"
 	:reveal {"${app_rev}" == "${revealid}"  ? show : false}
 	:duration "350ms"
@@ -40,16 +41,20 @@
 	  :class "apps-list"
 	  :valign "center"
 	  :orientation "v"
-	  :spacing 4
 	  (for a in applist
-		(button
-		  :class {a.Focused ? "app-icon app-focused": "app-icon"}
-		  :height 44
-		  :width 44
-		  :tooltip "${a.Class}: ${a.Title}"
-		  :onclick "hyprctl dispatch focuswindow address:${a.Address}"
-		  :onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
-		  :style "background-image: url('${icon}');")))))
+		(box
+		  :orientation "h"
+		  :space-evenly "false"
+		  (box
+			:width 7)
+		  (button
+			:class {a.Focused ? "app-icon app-focused": "app-icon"}
+			:height 44
+			:width 44
+			:tooltip "${a.Class}: ${a.Title}"
+			:onclick "hyprctl dispatch focuswindow address:${a.Address}"
+			:onmiddleclick "hyprctl dispatch closewindow address:${a.Address}"
+			:style "background-image: url('${icon}');"))))))
 
 (defwidget apps-tray []
   (box

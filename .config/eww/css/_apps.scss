@@ -11,7 +11,7 @@
     background-repeat: no-repeat;
     background-position: center;
     background-size: 38px;
-    border-radius: 30%;
+	@include hoverable;
     &:hover {
         background-repeat: no-repeat;
         background: $overlay1;
@@ -23,18 +23,20 @@
 }
 
 .apps-list {
-	background-color: $bg-alt;
+	padding-top: 6px;
+	padding-bottom: 6px;
+	background-color: $overlay2;
 }
 
 
 .app-focused {
-    background-color: $surface0;
+    background-color: $overlay1;
 }
 
 .app-active-bar, .app-dot {
     margin-left: 3px;
     background-color: $bg-dim;
-    border-radius: 2px;
+    border-radius: 3px;
 }
 
 .app-no-dot {

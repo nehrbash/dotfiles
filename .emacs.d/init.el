@@ -56,7 +56,10 @@
 									(progn
 									  (my-ef-themes-mod)
 									  (load custom-file 'noerror)
-									  (mapc 'kill-buffer (buffer-list)))))
+									  (let ((buffer (get-buffer " elpaca--read-file")))
+										(when buffer
+										  (kill-buffer buffer)))
+									  )))
 
 (use-package ef-themes
   :demand t
@@ -228,9 +231,10 @@
   (recentf-auto-cleanup 'never) 
   (recentf-max-saved-items 100)
   (recentf-exclude '(".*![^!]*!.*"
-					 "*/ssh:*"
-					 "*/docker:*"
-					 "*/sshfs:*"))
+					 ".*/ssh:*"
+					 ".*/docker:*"
+					 ".*/sshfs:*"
+					 "=~/.emacs\.d/.*"))
   (backup-directory-alist
    `((".*" . ,temporary-file-directory)))
   :config
@@ -249,7 +253,10 @@
 (with-eval-after-load 'tramp
   (setopt tramp-default-method "ssh"
 		  tramp-verbose 0
+		  tramp-use-connection-share nil
 		  tramp-use-ssh-controlmaster-options nil)
+  (add-to-list 'backup-directory-alist
+             (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
 			   (list (regexp-quote "/ssh:ag-nehrbash:")
@@ -467,6 +474,7 @@ Call a second time to restore the original window configuration."
 
 (use-package avy
   :commands avy-goto-char-timer
+  :custom (avy-timeout-seconds 0.3)
   :bind ("M-j" . avy-goto-char-timer)
   :config
   (defun avy-action-copy-whole-line (pt)
@@ -476,19 +484,15 @@ Call a second time to restore the original window configuration."
           (bounds-of-thing-at-point 'line)
 		(copy-region-as-kill start end)))
 	(select-window
-	 (cdr
-      (ring-ref avy-ring 0)))
-	t)
-
+	 (cdr (ring-ref avy-ring 0))) t)
   (defun avy-action-yank-whole-line (pt)
+	"Quick copy line."
 	(avy-action-copy-whole-line pt)
-	(save-excursion (yank))
-	t)
-  
+	(save-excursion (yank)) t)
   (defun avy-action-teleport-whole-line (pt)
+	"Quick copy line to current point."
     (avy-action-kill-whole-line pt)
     (save-excursion (yank)) t)
-  
   (defun avy-embark-act (pt)
 	"Use Embark to act on the item at PT."
 	(unwind-protect
@@ -496,8 +500,7 @@ Call a second time to restore the original window configuration."
           (goto-char pt)
           (embark-act))
       (select-window
-       (cdr (ring-ref avy-ring 0)))
-      t))
+       (cdr (ring-ref avy-ring 0))) t))
   (setf
    (alist-get ?y avy-dispatch-alist) 'avy-embark-act
    (alist-get ?y avy-dispatch-alist) 'avy-action-yank
@@ -787,7 +790,7 @@ point reaches the beginning or end of the buffer, stop there."
   :defer t
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
-  ("C-r" . (lambda () (interactive) (consult-ripgrep (thing-at-point 'symbol))))
+  ("C-r" . (lambda () (interactive) (consult-ripgrep nil (thing-at-point 'symbol))))
   ("M-S" . (lambda () (interactive) (consult-line-multi (thing-at-point 'symbol))))
   ("C-c M-x" . consult-mode-command)
   ("C-c h" . consult-history)
@@ -995,14 +998,16 @@ point reaches the beginning or end of the buffer, stop there."
 			  ("S-TAB" . corfu-previous)
 			  ([backtab] . corfu-previous))
   :custom
+  (corfu-cycle t)
+  (corfu-preselect 'prompt) ;; Always preselect the prompt
+  ;; default/writting settings, see sn/corfu-basic for coding completion
   (tab-first-completion t)
   (tab-always-indent 'complete)
-  (corfu-quit-no-match t)
-  (corfu-on-exact-match 'quit)
+  ;; (corfu-on-exact-match 'quit)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
-  (completion-cycle-threshold 2)
+  (completion-cycle-threshold nil)
   :config
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
@@ -1014,11 +1019,22 @@ point reaches the beginning or end of the buffer, stop there."
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local corfu-auto t
+				corfu-auto-delay 0.1
 				eldoc-idle-delay 0.1
-				corfu-auto-delay 0.0
+				corfu-quit-no-match 'separator
 				completion-styles '(orderless-fast basic)
 				corfu-popupinfo-delay 0.5))
   (corfu-popupinfo-mode t)
+  (defun corfu-move-to-minibuffer ()
+	"For long canadate lists view in minibuffer"
+	(interactive)
+	(pcase completion-in-region--data
+      (`(,beg ,end ,table ,pred ,extras)
+       (let ((completion-extra-properties extras)
+			 completion-cycle-threshold completion-cycling)
+		 (consult-completion-in-region beg end table pred)))))
+  (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
+  (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer)
   :init
   (global-corfu-mode t))
 
@@ -1036,20 +1052,27 @@ point reaches the beginning or end of the buffer, stop there."
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
-  :bind (("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
-		 ("C-c / t" . complete-tag)        ;; etags
-		 ("C-c / d" . cape-dabbrev)        ;; or dabbrev-completion
-		 ("C-c / h" . cape-history)
-		 ("C-c / f" . cape-file)
-		 ("C-c / k" . cape-keyword)
-		 ("C-c / s" . cape-elisp-symbol)
-		 ("C-c / e" . cape-elisp-block)
-		 ("C-c / a" . cape-abbrev)
-		 ("C-c / l" . cape-line)
-		 ("C-c / z" . cape-codeium))
+  :bind
+  ("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
+  ("C-c /" . sn/cape)
   :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
+  :config
+  (transient-define-prefix sn/cape ()
+	"explicit Completion type"
+	[[
+	  ("t" "Tags" complete-tag)
+	  ("d" "Dabbrev" cape-dabbrev)
+	  ("k" "Keyword" cape-keyword)
+	  ("l" "Line" cape-line)]
+	 [
+	  ("f" "File" cape-file)
+	  ("h" "History" cape-history)
+	  ("a" "Abbrev" cape-abbrev)
+	  ("q" "Quit" transient-quit-one)]
+	 [
+	  ("s" "Elisp Symbol" cape-elisp-symbol)
+	  ("e" "Elisp Block" cape-elisp-block)]])
   :init
-  (defalias 'cape-codeium (cape-capf-interactive #'codeium-completion-at-point))
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
   (add-to-list 'completion-at-point-functions #'cape-file)
@@ -1761,7 +1784,6 @@ point reaches the beginning or end of the buffer, stop there."
   (eglot-sync-connect nil)
   (eglot-events-buffer-config '(:size 0 :format full))
   :config
-  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (setq-default eglot-workspace-configuration
 				'(:gopls
 				  (:usePlaceholders
@@ -1800,6 +1822,7 @@ point reaches the beginning or end of the buffer, stop there."
 					 :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
 											:newName ,newname))
 	 this-command))
+  (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   :init
   (defun eglot-organize-imports () (interactive)
 		 (eglot-code-actions nil nil "source.organizeImports" t))
@@ -1810,8 +1833,9 @@ point reaches the beginning or end of the buffer, stop there."
 	(setq-local completion-at-point-functions
 				(list (cape-capf-super
 					   #'eglot-completion-at-point
+					   #'cape-dabbrev
 					   #'cape-file)
-					  ;; #'codeium-completion-at-point
+					  #'codeium-completion-at-point
 					  ))))
 (use-package consult-eglot
   :after eglot
@@ -2185,7 +2209,7 @@ point reaches the beginning or end of the buffer, stop there."
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 
 (use-package sqlformat
-  :ensure-system-package (pgformatter . "paru -S --needed --noconfirm pgformatter")
+  :ensure-system-package (pgformatter)
   :hook (sql-mode . sqlformat-on-save-mode)
   :custom
   (sqlformat-command 'pgformatter)
@@ -2271,18 +2295,17 @@ point reaches the beginning or end of the buffer, stop there."
   (gptel-model "gpt-4")
   (gptel-default-mode 'org-mode))
 
-;; we recommend using use-package to organize your init.el
 (use-package codeium
   :defer t
   :ensure (:host github :repo "Exafunction/codeium.el")
   :custom
   (codeium-log-buffer nil)
   :config
-  (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
   (defun my-codeium/document/text ()
 	"limiting the string sent to codeium for better performance."
 	(buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-  (setq codeium/document/text 'my-codeium/document/text))
+  (setq codeium/document/text 'my-codeium/document/text)
+  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
 
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
@@ -2340,7 +2363,3 @@ point reaches the beginning or end of the buffer, stop there."
   (ement-room-prism 'both)
   (ement-save-sessions t))
 (use-package burly)
-
-(use-package gcmh
-  :ensure (:host github :repo "emacsmirror/gcmh")
-  :hook (after-init . gcmh-mode))
