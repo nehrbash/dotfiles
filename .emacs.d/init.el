@@ -1835,7 +1835,7 @@ point reaches the beginning or end of the buffer, stop there."
 					   #'eglot-completion-at-point
 					   #'cape-dabbrev
 					   #'cape-file)
-					  #'codeium-completion-at-point
+					  ;; #'codeium-completion-at-point
 					  ))))
 (use-package consult-eglot
   :after eglot
@@ -2250,7 +2250,9 @@ point reaches the beginning or end of the buffer, stop there."
   (dired "/docker:dev-container:/workspace/")
   (magit-status)
   (treemacs)
-  (windmove-right))
+  (windmove-right)
+  (add-to-list 'directory-abbrev-alist
+             '("^/workspace/\\(.*\\)" . "/docker:dev-container:/workspace/\\1")))
 
 (use-package mu4e
   :ensure nil
@@ -2294,18 +2296,6 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (gptel-model "gpt-4")
   (gptel-default-mode 'org-mode))
-
-(use-package codeium
-  :defer t
-  :ensure (:host github :repo "Exafunction/codeium.el")
-  :custom
-  (codeium-log-buffer nil)
-  :config
-  (defun my-codeium/document/text ()
-	"limiting the string sent to codeium for better performance."
-	(buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-  (setq codeium/document/text 'my-codeium/document/text)
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
 
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")

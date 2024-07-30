@@ -2556,7 +2556,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 					   #'eglot-completion-at-point
 					   #'cape-dabbrev
 					   #'cape-file)
-					  #'codeium-completion-at-point
+					  ;; #'codeium-completion-at-point
 					  ))))
 (use-package consult-eglot
   :after eglot
@@ -3243,7 +3243,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (dired "/docker:dev-container:/workspace/")
   (magit-status)
   (treemacs)
-  (windmove-right))
+  (windmove-right)
+  (add-to-list 'directory-abbrev-alist
+             '("^/workspace/\\(.*\\)" . "/docker:dev-container:/workspace/\\1")))
 #+end_src
    
 * Fancy Bloat
@@ -3309,9 +3311,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 ** Codeium
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package codeium
-  :defer t
   :ensure (:host github :repo "Exafunction/codeium.el")
   :custom
   (codeium-log-buffer nil)
@@ -3320,7 +3321,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 	"limiting the string sent to codeium for better performance."
 	(buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
   (setq codeium/document/text 'my-codeium/document/text)
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
+  ;; (add-to-list 'completion-at-point-functions #'codeium-completion-at-point)
+  )
 #+end_src
 
 ** Customize Dir Local

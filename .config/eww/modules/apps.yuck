@@ -33,7 +33,6 @@
 
 (defwidget showapps [applist icon revealid show]
   (revealer
-	:class {a.Focused ? "app-icon app-focused": "app-icon"}
 	:transition "slidedown"
 	:reveal {"${app_rev}" == "${revealid}"  ? show : false}
 	:duration "350ms"
