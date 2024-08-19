@@ -21,6 +21,11 @@ killem () {
     pkill emacs
 }
 
+cleanem () {
+    find . -type f -name "*~" -exec rm -f {} \;
+	find . -type f -name ".#*" -exec rm -f {} \;
+}
+
 
 # for emacs vterm
 vterm_printf(){

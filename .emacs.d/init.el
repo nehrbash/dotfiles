@@ -1003,11 +1003,11 @@ point reaches the beginning or end of the buffer, stop there."
   ;; default/writting settings, see sn/corfu-basic for coding completion
   (tab-first-completion t)
   (tab-always-indent 'complete)
-  ;; (corfu-on-exact-match 'quit)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold nil)
+  (text-mode-ispell-word-completion nil)
   :config
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
@@ -1019,11 +1019,11 @@ point reaches the beginning or end of the buffer, stop there."
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local corfu-auto t
-				corfu-auto-delay 0.1
-				eldoc-idle-delay 0.1
+				corfu-auto-delay 0.0
+				eldoc-idle-delay 0.4
 				corfu-quit-no-match 'separator
 				completion-styles '(orderless-fast basic)
-				corfu-popupinfo-delay 0.5))
+				corfu-popupinfo-delay 0.4))
   (corfu-popupinfo-mode t)
   (defun corfu-move-to-minibuffer ()
 	"For long canadate lists view in minibuffer"
@@ -1080,9 +1080,8 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package yasnippet
   :hook ((text-mode
-	prog-mode
-	conf-mode
-	snippet-mode) . yas-minor-mode-on)
+		  prog-mode
+		  conf-mode) . yas-minor-mode-on)
   :bind ("C-c s" . yas-insert-snippet)
   :custom
   (yas-verbosity 1)
@@ -1091,7 +1090,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package yasnippet-snippets
   :after yasnippet)
 (use-package yasnippet-capf
-  :defer t) ;; Prefer the name of the snippet instead)
+  :after yasnippet)
 
 (use-package jinx
   :after vertico
@@ -1831,12 +1830,13 @@ point reaches the beginning or end of the buffer, stop there."
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
 	(add-hook 'before-save-hook 'eglot-organize-imports)
 	(setq-local completion-at-point-functions
-				(list (cape-capf-super
-					   #'eglot-completion-at-point
+				(list
+				 #'eglot-completion-at-point
+				 #'codeium-completion-at-point
+				 (cape-capf-super
 					   #'cape-dabbrev
-					   #'cape-file)
-					  ;; #'codeium-completion-at-point
-					  ))))
+					   #'cape-file
+					   #'cape-dict)))))
 (use-package consult-eglot
   :after eglot
   :bind
@@ -2074,7 +2074,6 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (defvar sanityinc/last-compilation-buffer nil
 	"The last buffer in which compilation took place.")
-
   (defun sanityinc/save-compilation-buffer (&rest _)
 	"Save the compilation buffer to find it later."
 	(setq sanityinc/last-compilation-buffer next-error-last-buffer))
@@ -2296,6 +2295,13 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (gptel-model "gpt-4")
   (gptel-default-mode 'org-mode))
+
+(use-package codeium
+  :ensure (:host github :repo "Exafunction/codeium.el")
+  :custom
+  (codeium-log-buffer nil)
+  :config
+  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
 
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
