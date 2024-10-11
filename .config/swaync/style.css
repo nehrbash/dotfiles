@@ -40,7 +40,7 @@
 }
 
 .close-button:hover {
-    background: @theme_selected_bg_color;
+    background: @hover;
 }
 .notification-default-action,
 .notification-action {
