@@ -6,3 +6,6 @@ images*
 install.sh
 pkglist.txt
 emacs_build.patch
+full-pkg-list.txt
+greetd
+ltximg

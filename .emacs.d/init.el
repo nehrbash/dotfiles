@@ -43,26 +43,26 @@
 ;; Install use-package support
 (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
-		(elpaca-use-package-mode)
-		(setq use-package-always-ensure t))
+		(elpaca-use-package-mode))
 (setopt
+ use-package-always-ensure t
  warning-minimum-level :emergency
  native-comp-jit-compilation t
  byte-compile-docstring-max-column 120
  native-compile-prune-cache t)
 
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda ()
-									(progn
-									  (my-ef-themes-mod)
-									  (load custom-file 'noerror)
-									  (let ((buffer (get-buffer " elpaca--read-file")))
-										(when buffer
-										  (kill-buffer buffer)))
-									  )))
+(defun sn/elpacha-hook ()
+  "Settup after elpaca finishes"
+  (progn
+	(my-ef-themes-mod)
+	(load custom-file 'noerror)
+	(let ((buffer (get-buffer " elpaca--read-file")))
+	  (when buffer
+		(kill-buffer buffer)))))
+(add-hook 'elpaca-after-init-hook 'sn/elpacha-hook)
 
 (use-package ef-themes
-  :demand t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -180,27 +180,6 @@
 (setq-default fringe-indicator-alist
               (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 
-(use-package treemacs
-  :commands (treemacs)
-  :bind
-  ("M-SPC t" . treemacs)
-  :hook
-  (treemacs-mode . (lambda ()
-					 (toggle-mode-line)
-					 (set-window-fringes (selected-window) 0 0)))
-  :custom
-  (treemacs-wrap-around nil)
-  (treemacs-indentation 1)
-  (treemacs-is-never-other-window t)
-  :config
-  (treemacs-follow-mode t)
-  (treemacs-filewatch-mode t)
-  (treemacs-resize-icons 18)
-  (treemacs-git-mode 'deferred))
-(use-package treemacs-magit
-  :after (treemacs magit)
-  :ensure t)
-
 (setq-default
  fill-column 120
  blink-cursor-interval 0.4
@@ -231,9 +210,8 @@
   (recentf-auto-cleanup 'never) 
   (recentf-max-saved-items 100)
   (recentf-exclude '(".*![^!]*!.*"
-					 ".*/ssh:*"
-					 ".*/docker:*"
-					 ".*/sshfs:*"
+					 ".*/.cache*"
+					 "/tmp/*"
 					 "=~/.emacs\.d/.*"))
   (backup-directory-alist
    `((".*" . ,temporary-file-directory)))
@@ -250,11 +228,14 @@
   (auto-revert-use-notify nil)
   :init (global-auto-revert-mode 1))
 
-(with-eval-after-load 'tramp
-  (setopt tramp-default-method "ssh"
-		  tramp-verbose 0
-		  tramp-use-connection-share nil
-		  tramp-use-ssh-controlmaster-options nil)
+(use-package tramp
+  :ensure nil
+  :custom
+  (tramp-default-method "ssh")
+  (tramp-verbose 0)
+  (tramp-use-connection-share nil)
+  (tramp-use-ssh-controlmaster-options nil)
+  :config
   (add-to-list 'backup-directory-alist
              (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -331,13 +312,13 @@ This is useful when followed by an immediate kill."
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
 
-(use-package display-line-numbers
-  :ensure nil
-  :custom
-  (display-line-numbers-type 'relative)
-  (display-line-numbers-width 3)
-  :init
-  :hook (prog-mode . display-line-numbers-mode))
+;; (use-package display-line-numbers
+;;   :ensure nil
+;;   :custom
+;;   (display-line-numbers-type 'relative)
+;;   (display-line-numbers-width 3)
+;;   :init
+;;   :hook (prog-mode . display-line-numbers-mode))
 
 (use-package expand-region
   :bind (("M-C e" . er/expand-region)
@@ -539,7 +520,6 @@ Call a second time to restore the original window configuration."
   (global-set-key (kbd "M-SPC i") 'lasgun-transient))
 
 (use-package transient
-  :defer t
   :bind
   (:map isearch-mode-map
 		("C-t" . sn/isearch-menu))
@@ -653,11 +633,11 @@ Call a second time to restore the original window configuration."
 
 (defun toggle-mode-line ()
   "toggles the modeline on and off"
-		(interactive)
-		(setq mode-line-format
-			  (if (equal mode-line-format nil)
-				  (default-value 'mode-line-format)))
-		(redraw-display))
+  (interactive)
+  (setq mode-line-format
+ 		(if (equal mode-line-format nil)
+ 			(default-value 'mode-line-format)))
+  (redraw-display))
 
 (transient-mark-mode t)
 (delete-selection-mode t)
@@ -705,11 +685,9 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package ace-window
   :custom
-  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-keys '(?a ?r ?s ?d ?t ?n ?e ?i ?o))
   (aw-ignore-current t)
-  :bind
-  ("M-o" . ace-window)
-  :init (ace-window-display-mode t))
+  :bind ("M-o" . ace-window))
 
 (use-package windswap
   :config
@@ -721,6 +699,14 @@ point reaches the beginning or end of the buffer, stop there."
   :commands (sudo-edit))
 
 (use-package fullframe)
+
+(defun revert-all-buffers-no-confirm ()
+  "Revert all buffers without confirmation."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and (buffer-file-name) (buffer-modified-p))
+        (revert-buffer t t t)))))
 
 (use-package minibuffer
   :ensure nil
@@ -744,14 +730,14 @@ point reaches the beginning or end of the buffer, stop there."
   (minibuffer-electric-default-mode))
 
 (use-package vertico
-  :demand t
   :bind
   (:map vertico-map
 		("M-j" . vertico-quick-insert)
 		("C-q" . vertico-quick-exit))
-  :config
+  :init
   (vertico-mode 1)
   (vertico-multiform-mode 1)
+  :config
   (add-to-list 'vertico-multiform-commands
 			   '(project-switch-project buffer)))
 (use-package marginalia
@@ -1007,7 +993,9 @@ point reaches the beginning or end of the buffer, stop there."
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold nil)
-  (text-mode-ispell-word-completion nil)
+  :init
+  (global-corfu-mode t)
+  (global-completion-preview-mode t)
   :config
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
@@ -1035,14 +1023,7 @@ point reaches the beginning or end of the buffer, stop there."
 		 (consult-completion-in-region beg end table pred)))))
   (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
   (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer)
-  :init
-  (global-corfu-mode t))
-
-(use-package corfu-candidate-overlay
-  :hook (text-mode
-		 . (lambda ()
-			 (setq-local corfu-auto nil)
-			 (corfu-candidate-overlay-mode +1))))
+  (read-extended-command-predicate #'command-completion-default-include-p))
 
 (use-package kind-icon
   :after corfu
@@ -1057,11 +1038,14 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-c /" . sn/cape)
   :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :config
+  (defun cape-tabnine ()
+	(interactive)
+	(cape-capf-interactive #'tabnine-completion-at-point))
   (transient-define-prefix sn/cape ()
 	"explicit Completion type"
 	[[
-	  ("t" "Tags" complete-tag)
 	  ("d" "Dabbrev" cape-dabbrev)
+	  ("s" "Spelling" cape-dict)
 	  ("k" "Keyword" cape-keyword)
 	  ("l" "Line" cape-line)]
 	 [
@@ -1070,8 +1054,11 @@ point reaches the beginning or end of the buffer, stop there."
 	  ("a" "Abbrev" cape-abbrev)
 	  ("q" "Quit" transient-quit-one)]
 	 [
-	  ("s" "Elisp Symbol" cape-elisp-symbol)
-	  ("e" "Elisp Block" cape-elisp-block)]])
+	  ("e" "Elisp Symbol" cape-elisp-symbol)
+	  ("E" "Elisp Block" cape-elisp-block)
+	  ("t" "Tags" complete-tag)
+	  ("c" "tabnine" cape-tabnine)
+	  ]])
   :init
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -1098,7 +1085,7 @@ point reaches the beginning or end of the buffer, stop there."
   (:map jinx-overlay-map
 		("C-M-$" . #'jinx-correct-all))
   :init
-  (global-jinx-mode)
+  (global-jinx-mode t)
   :config
   (add-to-list 'vertico-multiform-categories
 			   '(jinx grid (vertico-grid-annotate . 30)))
@@ -1133,6 +1120,7 @@ point reaches the beginning or end of the buffer, stop there."
    (dired-recursive-deletes 'top)
    (dired-dwim-target t)))
 (use-package dired-single
+  :ensure (:host github :repo "emacsattic/dired-single")
   :after dired
   :bind (:map dired-mode-map
   			("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
@@ -1821,22 +1809,40 @@ point reaches the beginning or end of the buffer, stop there."
 					 :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
 											:newName ,newname))
 	 this-command))
+  
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  :init
-  (defun eglot-organize-imports () (interactive)
-		 (eglot-code-actions nil nil "source.organizeImports" t))
+  (defun eglot-organize-imports ()
+	(interactive)
+	(eglot-code-actions nil nil "source.organizeImports" t))
+  (defun sn/cape-in-string ()
+	(cape-wrap-inside-string
+	 (cape-capf-super #'cape-file
+					  #'cape-dabbrev
+					  #'cape-dict)))
+  (defun sn/cape-in-comment ()
+	(cape-wrap-inside-comment
+	 (cape-capf-super #'cape-file
+					  #'cape-dabbrev
+					  #'cape-dict)))
+
+  (defun sn/cape-in-code ()
+	(cape-wrap-inside-code
+	 (cape-capf-super 
+	  #'eglot-completion-at-point
+	  #'yasnippet-capf
+	  #'cape-dabbrev)))
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
 	(add-hook 'before-save-hook 'eglot-organize-imports)
-	(setq-local completion-at-point-functions
-				(list
-				 #'eglot-completion-at-point
-				 #'codeium-completion-at-point
-				 (cape-capf-super
-					   #'cape-dabbrev
-					   #'cape-file
-					   #'cape-dict)))))
+	(setq-local
+	 cape-dabbrev-min-length 3
+	 completion-at-point-functions (list
+									#'sn/cape-in-code
+									#'sn/cape-in-string
+									#'sn/cape-in-comment
+									#'tabnine-completion-at-point))))
+
 (use-package consult-eglot
   :after eglot
   :bind
@@ -1896,25 +1902,35 @@ point reaches the beginning or end of the buffer, stop there."
   :ensure (hl-todo :depth nil)
   :init (global-hl-todo-mode t))
 (use-package magit-todos
-  :ensure (:depth nil)
-  :hook (magit-mode . magit-todos-mode))
+  :after magit
+  :config (magit-todos-mode 1))
 
 (use-package browse-at-remote
   :bind
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
-(use-package vterm)
+(use-package svg-tag-mode :ensure t)
 (use-package multi-vterm
-  ;; :ensure (:host github :repo "nehrbash/multi-vterm") 
-  :load-path "~/src/multi-vterm"
+  :ensure (:host github :repo "nehrbash/multi-vterm")
+  :hook (vterm-mode . tab-line-mode)
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
-				  ))
+				  (face-remap-add-relative
+				   'default
+				   :family "Iosevka"
+				   :background "#281d12")
+				  (face-remap-set-base
+				   'default
+				   :family "Iosevka"
+				   :background "#281d12")
+				  (face-remap-add-relative
+				   'fringe
+				   :background "#281d12")))
   :bind
   (("M-t" . multi-vterm-dedicated-toggle)
    :map vterm-mode-map
@@ -1938,6 +1954,22 @@ point reaches the beginning or end of the buffer, stop there."
 	 ("sudo" "/bin/bash")))
   (vterm-always-compile-module t)
   :config
+  (defun old-version-of-vterm--get-color (index &rest args)
+	"This is the old version before it was broken by commit
+https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+	(cond
+     ((and (>= index 0) (< index 16))
+      (face-foreground
+       (elt vterm-color-palette index)
+       nil 'default))
+     ((= index -11)
+      (face-foreground 'vterm-color-underline nil 'default))
+     ((= index -12)
+      (face-background 'vterm-color-inverse-video nil 'default))
+     (t
+      nil)))
+  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
   (defun sn/vterm-new-tab ()
 	"Create a new tab for the toggled vterm buffers"
 	(interactive)
@@ -1952,106 +1984,6 @@ point reaches the beginning or end of the buffer, stop there."
 	  (setq multi-vterm-dedicated-buffer (current-buffer))
 	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
 	  (set-window-dedicated-p multi-vterm-dedicated-window t))))
-
-(use-package svg-tag-mode :ensure t)
-(use-package tab-line
-  :ensure nil
-  :hook (vterm-mode . tab-line-mode)
-  :custom
-  (tab-line-new-button-show nil)
-  (tab-line-close-button-show 'selected)
-  :config
-  (defface tab-bar-svg-active
-  '((t (:foreground "#a1aeb5")))
-  "Tab bar face for selected tab.")
-
-(defface tab-bar-svg-inactive
-  '((t (:foreground "#a1aeb5")))
-  "Tab bar face for inactive tabs.")
-
-(defun eli/tab-bar-svg-padding (width string)
-  (let* ((style svg-lib-style-default)
-         (margin      (plist-get style :margin))
-         (txt-char-width  (window-font-width nil 'fixed-pitch))
-         (tag-width (- width (* margin txt-char-width)))
-         (padding (- (/ tag-width txt-char-width) (length string))))
-    padding))
-
-(defun eli/tab-bar-tab-name-with-svg (tab i)
-  (let* ((current-p (eq (car tab) 'current-tab))
-         (name (concat (if tab-bar-tab-hints (format "%d " i) "")
-                       (alist-get 'name tab)
-                       (or (and tab-bar-close-button-show
-                                (not (eq tab-bar-close-button-show
-                                         (if current-p 'non-selected 'selected)))
-                                tab-bar-close-button)
-                           "")))
-         (padding (plist-get svg-lib-style-default :padding))
-         (width)
-         (image-scaling-factor 1.0))
-    (when tab-bar-auto-width
-      (setq width (/ (frame-inner-width)
-                     (length (funcall tab-bar-tabs-function))))
-      (when tab-bar-auto-width-min
-        (setq width (max width (if (window-system)
-                                   (nth 0 tab-bar-auto-width-min)
-                                 (nth 1 tab-bar-auto-width-min)))))
-      (when tab-bar-auto-width-max
-        (setq width (min width (if (window-system)
-                                   (nth 0 tab-bar-auto-width-max)
-                                 (nth 1 tab-bar-auto-width-max)))))
-      (setq padding (eli/tab-bar-svg-padding width name)))
-    (propertize
-     name
-     'display
-     (svg-tag-make
-      name
-      :face (if (eq (car tab) 'current-tab) 'tab-bar-svg-active 'tab-bar-svg-inactive)
-      :inverse (eq (car tab) 'current-tab) :margin 0 :radius 6 :padding padding
-      :height 1.1))))
-(setq tab-bar-tab-name-format-function #'eli/tab-bar-tab-name-with-svg)
-(defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
-  "how tabs should look"
-  (let* ((name (buffer-name buffer))
-         (padding (plist-get svg-lib-style-default :padding))
-         (width 200)
-         (image-scaling-factor 1.5))
-    (propertize
-     name
-     'display
-     (svg-tag-make
-      name
-      :face (if (eq (buffer-name) buffer) 'tab-bar-svg-active 'tab-bar-svg-inactive)
-      :inverse (eq (buffer-name) buffer) :margin 0 :radius 6 :padding padding
-      :height 1.1))))
-(setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
-
-(defun sn/tab-group (buffer)
-  "Group buffers by major mode.
-  Returns a single group name as a string for buffers with major modes
-  flymake-project-diagnostics-mode, compilation-mode, and vterm-mode."
-  (with-current-buffer buffer
-    (when (or (derived-mode-p 'flymake-project-diagnostics-mode)
-			  (derived-mode-p 'compilation-mode)
-			  (derived-mode-p 'vterm-mode))
-	  "🦥")))
-(advice-add 'tab-line-select-tab-buffer :around
-            (lambda (orig-fun &rest args)
-              (let ((window (selected-window)))
-                (progn
-				  (set-window-dedicated-p window nil)
-                  (apply orig-fun args)
-				  (setq multi-vterm-dedicated-window (selected-window))
-				  (setq multi-vterm-dedicated-buffer (current-buffer))
-				  (setq multi-vterm-dedicated-buffer-name (buffer-name))
-                  (set-window-dedicated-p (window) t)
-				  ))))
-
-  ;;(setq tab-line-tabs-buffer-group-function #'my-tab-line-buffer-group-by-major-mode)
-  ;; (setq tab-line-tab-face-functions 'sn/line-tab-face-env)
-  (setq tab-line-tabs-function 'tab-line-tabs-buffer-groups)
-  (setq tab-line-tabs-buffer-group-function 'sn/tab-group)
-  )
 
 (use-package direnv
   :config (direnv-mode))
@@ -2141,6 +2073,10 @@ point reaches the beginning or end of the buffer, stop there."
    :commands flymake-shellcheck-load
    :hook (bash-ts-mode . flymake-shellcheck-load))
 
+(use-package ts-fold
+  :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
+  :init (global-ts-fold-mode t))
+
 (use-package go-mode
   :ensure-system-package
   ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
@@ -2171,6 +2107,18 @@ point reaches the beginning or end of the buffer, stop there."
 						  (setq-local compile-command "cargo run")))
   :config
   (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
+(use-package cargo-jump-xref
+  :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
+  :hook (rust-ts-mode . (lambda ()
+						  (add-to-list 'xref-backend-functions #'cargo-jump-xref-backend))))
+
+(use-package geiser
+  :config
+  (setq geiser-default-implementation 'guile)
+  (setq geiser-active-implementations '(guile))
+  (setq geiser-implementations-alist '(((regexp "\\.scm$") guile))))
+(use-package geiser-guile
+  :after geiser)
 
 (use-package bash-ts-mode
   :ensure nil
@@ -2223,13 +2171,27 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
 
+;; (use-package web-mode
+;;   :mode ("\\.html$" .  web-mode)
+;;   :hook (web-mode . sn/web-mode-hook)
+;;   :custom (web-mode-markup-indent-offset 2)
+;;   :config
+;;   (defun sn/web-mode-hook()
+;; 	(web-mode-set-engine "go")))
 (use-package web-mode
-  :mode ("\\.html$" .  web-mode)
-  :hook (web-mode . sn/web-mode-hook)
-  :custom (web-mode-markup-indent-offset 2)
-  :config
-  (defun sn/web-mode-hook()
-	(web-mode-set-engine "go")))
+  :ensure t
+  :mode (("\\.html?\\'" . web-mode)
+		 ("\\.css\\'" . web-mode)
+		 ("\\.jsx?\\'" . web-mode)
+		 ("\\.tsx?\\'" . web-mode)
+		 ("\\.json\\'" . web-mode))
+  :custom
+  (let 
+  (web-mode-markup-indent-offset 7)
+  (web-mode-code-indent-offset 7)
+  (web-mode-css-indent-offset 7)
+  (web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+  :hook (web-mode . display-line-numbers-mode))
 
 (defun sn/start-ag-devcontainer ()
   "Start work."
@@ -2247,11 +2209,7 @@ point reaches the beginning or end of the buffer, stop there."
         (message "Error: Command failed. Container might not be up."))))
   ;; Open Dired in /docker:dev-container:/workspace/
   (dired "/docker:dev-container:/workspace/")
-  (magit-status)
-  (treemacs)
-  (windmove-right)
-  (add-to-list 'directory-abbrev-alist
-             '("^/workspace/\\(.*\\)" . "/docker:dev-container:/workspace/\\1")))
+  (magit-status))
 
 (use-package mu4e
   :ensure nil
@@ -2291,17 +2249,24 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package gptel
   :bind (("<f5>" . gptel)
-		 ("C-<f5>" . gptel-menu))
+			  ("C-<f5>" . gptel-menu))
   :custom
   (gptel-model "gpt-4")
   (gptel-default-mode 'org-mode))
 
-(use-package codeium
-  :ensure (:host github :repo "Exafunction/codeium.el")
-  :custom
-  (codeium-log-buffer nil)
+(use-package tabnine
+  :bind
+  (:map prog-mode-map
+		("M-SPC t d" . tabnine-chat-document-code)
+		("M-SPC t g" . tabnine-chat-generate-test-for-code)
+		("M-SPC t e" . tabnine-chat-explain-code)
+		("M-SPC t f" . tabnine-chat-fix-code)))
+(use-package tabnine-capf
+  :after cape
+  :ensure (:host github :repo "50ways2sayhard/tabnine-capf")
+  :hook (kill-emacs . tabnine-capf-kill-process)
   :config
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
+  (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point)))
 
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
@@ -2345,8 +2310,8 @@ point reaches the beginning or end of the buffer, stop there."
   (org-mode)
   (gptel-mode)
   (toggle-mode-line)
-  (local-set-key (kbd "M-SPC SPC") 'ea-commit)
-  (local-set-key (kbd "M-SPC DEL") 'ea-abort))
+  (local-set-key (kbd "M-RET") 'ea-commit)
+  (local-set-key (kbd "M-DEL") 'ea-abort))
 
 (use-package consult-taskfile
   :load-path "~/src/consult-taskfile"
@@ -2359,3 +2324,15 @@ point reaches the beginning or end of the buffer, stop there."
   (ement-room-prism 'both)
   (ement-save-sessions t))
 (use-package burly)
+
+(use-package zalgo-mode
+  ;; :load-path "~/src/zalgo-mode"
+  :ensure (:host github :repo "nehrbash/zalgo-mode")
+  :bind
+  ("C-c z z" . zalgo-mode) ;; minor mode for typeing zalgo
+  ("C-c z r" . zalgo-transform-region)
+  ("C-c z w" . zalgo-transform-word)
+:custom
+(zalgo-max-up 5)
+(zalgo-max-mid 3)
+(zalgo-max-down 5))

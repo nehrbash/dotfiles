@@ -369,7 +369,7 @@ fi
 #+end_src
 
 #+begin_src txt :tangle pkglist.txt :padline no
-emacs-lsp-booster-git
+words
 aspell
 aspell-en
 hspell

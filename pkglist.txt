@@ -47,7 +47,7 @@ spicetify-themes-git
 spotify-launcher
 sptlrx-bin
 cava
-emacs-lsp-booster-git
+words
 aspell
 aspell-en
 hspell

@@ -6,7 +6,13 @@ $bg: $bg-main;
 $border: $bg-alt;
 $shadow: $bg-dim;
 
-
+* {
+  all: unset;
+  color: $fg-main;
+  transition: 350ms ease;
+  font-family: Iosevka, Material Icons;
+  font-weight: bold;
+}
 
 @mixin rounding {
   border-radius: 16px;
@@ -26,18 +32,9 @@ $shadow: $bg-dim;
     }
 }
 
-* {
-  all: unset;
-  color: $fg-main;
-  transition: 350ms ease;
-  font-family: Iosevka, Material Icons;
-  font-weight: bold;
-}
-
 .icon {
     font-family: Material Icons;
 }
-
 
 .bar, .sidebar {
   background-color: $bg;
@@ -69,7 +66,6 @@ menu {
 .checkbox {
 	border-radius: 6px;
 	margin: 4px;
-	// padding-top: 15px;
 	border: 2px solid $border;
 	background: $bg-dim;
 }
@@ -92,17 +88,24 @@ scale trough {
   min-width: 70px;
 }
 
+@mixin corners($direction) {
+  background: radial-gradient(at $direction, transparent 70%, $bg 0%);
+}
+
 .corners-ul {
-    background: radial-gradient(at bottom right, transparent 70%, $bg 0%);
+  @include corners(bottom right);
 }
+
 .corners-ur {
-    background: radial-gradient(at bottom left, transparent 70%, $bg 0%);
+  @include corners(bottom left);
 }
+
 .corners-bl {
-    background: radial-gradient(at top right, transparent 70%, $bg 0%);
+  @include corners(top right);
 }
+
 .corners-br {
-    background: radial-gradient(at top left, transparent 70%, $bg 0%);
+  @include corners(top left);
 }
 
 .mr-15 {
@@ -110,7 +113,6 @@ scale trough {
 }
 
 .title {
-	margin-left: 5px;
 	color: $surface0;
 }
 

@@ -4,7 +4,6 @@
 (include "./modules/bat.yuck")
 (include "./modules/bright.yuck")
 (include "./modules/music.yuck")
-;; (include "./modules/net.yuck")
 (include "./modules/sys.yuck")
 (include "./modules/volume.yuck")
 (include "./modules/workspaces.yuck")
@@ -56,42 +55,50 @@
 
 (defwindow bar
   :monitor 0
-  :geometry (geometry
-              :width "100%"
-              :height "48px"
-              :anchor "top center")
+  :geometry
+  (geometry
+    :width "100%"
+    :height "48px"
+    :anchor "top center")
   :stacking "fg"
   :exclusive true
   (bar))
-
-(defwindow bar2
-  :monitor 1
-  :geometry (geometry
-              :width "100%"
-              :height "48px"
-              :anchor "top center")
-  :stacking "fg"
-  :exclusive true
-  (bar))
-
-(defwindow leftbar2
-  :monitor 1
-  :geometry (geometry
-              :width "60px"
-              :height "100%"
-              :anchor "left center")
-  :stacking "fg"
-  :exclusive true
-  (lbar))
 
 (defwindow leftbar
   :monitor 0
-  :geometry (geometry
-              :width "60px"
-              :height "100%"
-              :anchor "left center")
+  :geometry
+  (geometry
+    :width "60px"
+    :height "100%"
+    :anchor "left center")
   :stacking "fg"
   :exclusive true
   (lbar))
+
+
+(defwindow bar2
+  :monitor 1
+  :geometry
+  (geometry
+    :width "100%"
+    :height "48px"
+    :anchor "top center")
+  :stacking "fg"
+  :exclusive true
+  (bar))
+
+
+
+(defwindow leftbar2
+  :monitor 1
+  :geometry
+  (geometry
+    :width "60px"
+    :height "100%"
+    :anchor "left center")
+  :stacking "fg"
+  :exclusive true
+  (lbar))
+
 
 

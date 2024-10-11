@@ -1,5 +1,5 @@
-#+TITLE:Emacs Configuration
 #+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
+#+TITLE:Emacs Configuration
 * Table of Contents :TOC:
   :PROPERTIES:
   :VISIBILITY: all
@@ -63,6 +63,7 @@
   - [[#general-1][General]]
   - [[#go][Go]]
   - [[#rust][Rust]]
+  - [[#guile][Guile]]
   - [[#shell][Shell]]
   - [[#java-script][Java Script]]
   - [[#toml][TOML]]
@@ -79,17 +80,17 @@
 - [[#fancy-bloat][Fancy Bloat]]
   - [[#mu4e---mail][Mu4e - Mail]]
   - [[#voice-to-text][Voice to Text]]
-  - [[#gpt][GPT]]
-  - [[#codeium][Codeium]]
+  - [[#ai][AI]]
   - [[#customize-dir-local][Customize Dir Local]]
   - [[#typing-practice][Typing Practice]]
   - [[#google-this][Google This]]
   - [[#dev-documentation][Dev Documentation]]
-  - [[#emacs-everywhere][Emacs everywhere]]
+  - [[#emacs-everywhere][Emacs Everywhere]]
   - [[#playing-around-with-frames][Playing around with frames]]
   - [[#go-taskfile][Go Taskfile]]
   - [[#emetnt-chat-on-matrix][Emetnt chat on Matrix]]
   - [[#app-launcher][App Launcher]]
+  - [[#zalgo-text][Zalgo Text]]
 - [[#runtime-performance][Runtime Performance]]
 - [[#inspiration][Inspiration]]
 
@@ -147,9 +148,9 @@
 ;; Install use-package support
 (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
-		(elpaca-use-package-mode)
-		(setq use-package-always-ensure t))
+		(elpaca-use-package-mode))
 (setopt
+ use-package-always-ensure t
  warning-minimum-level :emergency
  native-comp-jit-compilation t
  byte-compile-docstring-max-column 120
@@ -158,14 +159,13 @@
 
 ** Run install commands after upgrade all
 
+   I've decided to just call these manually instaed of putting them in an install hook. 
+
 #+begin_src emacs-lisp :tangle no
-(defun sn/finish-install ()
-  (interactive)
-  (progn
-	(all-the-icons-install-fonts t)
-	(yas-reload-all)
-	(recentf-cleanup)
-	(nerd-icons-install-fonts t)))
+(all-the-icons-install-fonts)
+(yas-reload-all)
+(recentf-cleanup)
+(nerd-icons-install-fonts)
 #+end_src
    
 ** Set Custom file
@@ -173,14 +173,15 @@
    Since we are tangling ~init.el~ we need to save ~custom.el~ separately. Also makes ~init.el~ cleaner.
 #+begin_src emacs-lisp
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
-(add-hook 'elpaca-after-init-hook (lambda ()
-									(progn
-									  (my-ef-themes-mod)
-									  (load custom-file 'noerror)
-									  (let ((buffer (get-buffer " elpaca--read-file")))
-										(when buffer
-										  (kill-buffer buffer)))
-									  )))
+(defun sn/elpacha-hook ()
+  "Settup after elpaca finishes"
+  (progn
+	(my-ef-themes-mod)
+	(load custom-file 'noerror)
+	(let ((buffer (get-buffer " elpaca--read-file")))
+	  (when buffer
+		(kill-buffer buffer)))))
+(add-hook 'elpaca-after-init-hook 'sn/elpacha-hook)
 #+end_src   
    
 * UI Look
@@ -196,7 +197,6 @@
 
 #+begin_src emacs-lisp
 (use-package ef-themes
-  :demand t
   :custom
   (custom-safe-themes t)
   (ef-themes-mixed-fonts t)
@@ -362,7 +362,7 @@
 	
 ** Treemacs
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package treemacs
   :commands (treemacs)
   :bind
@@ -426,9 +426,8 @@
   (recentf-auto-cleanup 'never) 
   (recentf-max-saved-items 100)
   (recentf-exclude '(".*![^!]*!.*"
-					 ".*/ssh:*"
-					 ".*/docker:*"
-					 ".*/sshfs:*"
+					 ".*/.cache*"
+					 "/tmp/*"
 					 "=~/.emacs\.d/.*"))
   (backup-directory-alist
    `((".*" . ,temporary-file-directory)))
@@ -465,11 +464,14 @@
    Setting Controlmaster to nil sets precedence to my ssh config.
 
 #+begin_src emacs-lisp
-(with-eval-after-load 'tramp
-  (setopt tramp-default-method "ssh"
-		  tramp-verbose 0
-		  tramp-use-connection-share nil
-		  tramp-use-ssh-controlmaster-options nil)
+(use-package tramp
+  :ensure nil
+  :custom
+  (tramp-default-method "ssh")
+  (tramp-verbose 0)
+  (tramp-use-connection-share nil)
+  (tramp-use-ssh-controlmaster-options nil)
+  :config
   (add-to-list 'backup-directory-alist
              (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -572,13 +574,13 @@ This is useful when followed by an immediate kill."
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
 
-(use-package display-line-numbers
-  :ensure nil
-  :custom
-  (display-line-numbers-type 'relative)
-  (display-line-numbers-width 3)
-  :init
-  :hook (prog-mode . display-line-numbers-mode))
+;; (use-package display-line-numbers
+;;   :ensure nil
+;;   :custom
+;;   (display-line-numbers-type 'relative)
+;;   (display-line-numbers-width 3)
+;;   :init
+;;   :hook (prog-mode . display-line-numbers-mode))
 #+end_src
 
 ** Expand Region
@@ -761,7 +763,8 @@ Call a second time to restore the original window configuration."
 ** Editing Utilities
 
    General editing configurations.
-
+   
+*** Avy
 #+begin_src emacs-lisp
 (use-package avy
   :commands avy-goto-char-timer
@@ -802,8 +805,7 @@ Call a second time to restore the original window configuration."
    (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line))
 #+end_src
 
-
-*** avy multi-cursor
+***** avy multi-cursor
 
 #+begin_src emacs-lisp
 (use-package lasgun						
@@ -839,7 +841,6 @@ Call a second time to restore the original window configuration."
 
 #+begin_src emacs-lisp
 (use-package transient
-  :defer t
   :bind
   (:map isearch-mode-map
 		("C-t" . sn/isearch-menu))
@@ -973,14 +974,14 @@ This Emacs Lisp block defines a function called =add-auto-mode= which allows you
 
 **** Toggle Mode Line
 
- #+begin_src emacs-lisp
- (defun toggle-mode-line ()
-   "toggles the modeline on and off"
-		(interactive)
-		(setq mode-line-format
-			  (if (equal mode-line-format nil)
-				  (default-value 'mode-line-format)))
-		(redraw-display))
+#+begin_src emacs-lisp
+(defun toggle-mode-line ()
+  "toggles the modeline on and off"
+  (interactive)
+  (setq mode-line-format
+ 		(if (equal mode-line-format nil)
+ 			(default-value 'mode-line-format)))
+  (redraw-display))
  #+end_src
 
 
@@ -1068,11 +1069,9 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 #+begin_src emacs-lisp
 (use-package ace-window
   :custom
-  (aw-keys '(?a ?s ?d ?f ?g ?h ?j ?k ?l))
+  (aw-keys '(?a ?r ?s ?d ?t ?n ?e ?i ?o))
   (aw-ignore-current t)
-  :bind
-  ("M-o" . ace-window)
-  :init (ace-window-display-mode t))
+  :bind ("M-o" . ace-window))
  #+end_src
 
 *** Swap Windows
@@ -1100,10 +1099,23 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
  #+end_src
 
 *** Place Buffer As Fullframe
-	
- #+begin_src emacs-lisp
- (use-package fullframe)
- #+end_src
+    
+#+begin_src emacs-lisp
+(use-package fullframe)
+#+end_src
+
+*** revert all unsaved buffers
+
+#+begin_src emacs-lisp
+(defun revert-all-buffers-no-confirm ()
+  "Revert all buffers without confirmation."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (with-current-buffer buf
+      (when (and (buffer-file-name) (buffer-modified-p))
+        (revert-buffer t t t)))))
+#+end_src
+
 
 * Mini-buffer / Completion Framework
 
@@ -1138,14 +1150,14 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 #+begin_src emacs-lisp
 (use-package vertico
-  :demand t
   :bind
   (:map vertico-map
 		("M-j" . vertico-quick-insert)
 		("C-q" . vertico-quick-exit))
-  :config
+  :init
   (vertico-mode 1)
   (vertico-multiform-mode 1)
+  :config
   (add-to-list 'vertico-multiform-commands
 			   '(project-switch-project buffer)))
 (use-package marginalia
@@ -1159,6 +1171,25 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :hook (marginalia-mode-hook . all-the-icons-completion-marginalia-setup)
   :init (all-the-icons-completion-mode))
 #+end_src
+
+*** postframe candidate menu
+
+    Don't like this but will keep it around if I do want to start using it.
+
+#+begin_src emacs-lisp :tangle no
+(use-package vertico-posframe
+  :after vertico
+  :init (vertico-posframe-mode 1)
+  :custom
+  (vertico-multiform-commands
+   '((consult-line
+      posframe
+      (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
+      (vertico-posframe-border-width . 10)
+      (vertico-posframe-fallback-mode . vertico-buffer-mode))
+     (t posframe))))
+#+end_src
+    
 
 ** fuzzy match
 
@@ -1468,7 +1499,8 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 ** Corfu
 
-   Corfu is responsible for displaying the completion list. I use overlay for text buffers and dropdown list for programming. Testing this-command
+   Corfu is responsible for displaying the completion list. I use overlay for text buffers and dropdown list for programming. 
+To show candidate overlays it is no longer mandatory to utilize  'corfu-candidate-overlay', instead the build-in preview mode will work just fine.
 
 #+begin_src emacs-lisp
 (use-package corfu
@@ -1489,7 +1521,9 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (corfu-popupinfo-delay 0.2)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold nil)
-  (text-mode-ispell-word-completion nil)
+  :init
+  (global-corfu-mode t)
+  (global-completion-preview-mode t)
   :config
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
@@ -1517,18 +1551,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 		 (consult-completion-in-region beg end table pred)))))
   (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
   (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer)
-  :init
-  (global-corfu-mode t))
-#+end_src
-
-*** Overlay Candidate
-
-#+begin_src emacs-lisp
-(use-package corfu-candidate-overlay
-  :hook (text-mode
-		 . (lambda ()
-			 (setq-local corfu-auto nil)
-			 (corfu-candidate-overlay-mode +1))))
+  (read-extended-command-predicate #'command-completion-default-include-p))
 #+end_src
 
 *** More terminal support
@@ -1563,11 +1586,14 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   ("C-c /" . sn/cape)
   :custom (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   :config
+  (defun cape-tabnine ()
+	(interactive)
+	(cape-capf-interactive #'tabnine-completion-at-point))
   (transient-define-prefix sn/cape ()
 	"explicit Completion type"
 	[[
-	  ("t" "Tags" complete-tag)
 	  ("d" "Dabbrev" cape-dabbrev)
+	  ("s" "Spelling" cape-dict)
 	  ("k" "Keyword" cape-keyword)
 	  ("l" "Line" cape-line)]
 	 [
@@ -1576,8 +1602,11 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 	  ("a" "Abbrev" cape-abbrev)
 	  ("q" "Quit" transient-quit-one)]
 	 [
-	  ("s" "Elisp Symbol" cape-elisp-symbol)
-	  ("e" "Elisp Block" cape-elisp-block)]])
+	  ("e" "Elisp Symbol" cape-elisp-symbol)
+	  ("E" "Elisp Block" cape-elisp-block)
+	  ("t" "Tags" complete-tag)
+	  ("c" "tabnine" cape-tabnine)
+	  ]])
   :init
   (add-to-list 'completion-at-point-functions #'cape-dict)
   (add-to-list 'completion-at-point-functions #'cape-dabbrev)
@@ -1619,7 +1648,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (:map jinx-overlay-map
 		("C-M-$" . #'jinx-correct-all))
   :init
-  (global-jinx-mode)
+  (global-jinx-mode t)
   :config
   (add-to-list 'vertico-multiform-categories
 			   '(jinx grid (vertico-grid-annotate . 30)))
@@ -1666,6 +1695,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
    (dired-recursive-deletes 'top)
    (dired-dwim-target t)))
 (use-package dired-single
+  :ensure (:host github :repo "emacsattic/dired-single")
   :after dired
   :bind (:map dired-mode-map
   			("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
@@ -2375,7 +2405,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	
 *** Indent bars
 
-	Very faint indicator 
+    Very faint indicator, tree-sitter based.
 	
 #+begin_src emacs-lisp
 (use-package indent-bars
@@ -2540,22 +2570,40 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 					 :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
 											:newName ,newname))
 	 this-command))
+  
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
-  :init
-  (defun eglot-organize-imports () (interactive)
-		 (eglot-code-actions nil nil "source.organizeImports" t))
+  (defun eglot-organize-imports ()
+	(interactive)
+	(eglot-code-actions nil nil "source.organizeImports" t))
+  (defun sn/cape-in-string ()
+	(cape-wrap-inside-string
+	 (cape-capf-super #'cape-file
+					  #'cape-dabbrev
+					  #'cape-dict)))
+  (defun sn/cape-in-comment ()
+	(cape-wrap-inside-comment
+	 (cape-capf-super #'cape-file
+					  #'cape-dabbrev
+					  #'cape-dict)))
+
+  (defun sn/cape-in-code ()
+	(cape-wrap-inside-code
+	 (cape-capf-super 
+	  #'eglot-completion-at-point
+	  #'yasnippet-capf
+	  #'cape-dabbrev)))
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
 	(add-hook 'before-save-hook 'eglot-organize-imports)
-	(setq-local completion-at-point-functions
-				(list
-				 #'eglot-completion-at-point
-				 #'codeium-completion-at-point
-				 (cape-capf-super
-					   #'cape-dabbrev
-					   #'cape-file
-					   #'cape-dict)))))
+	(setq-local
+	 cape-dabbrev-min-length 3
+	 completion-at-point-functions (list
+									#'sn/cape-in-code
+									#'sn/cape-in-string
+									#'sn/cape-in-comment
+									#'tabnine-completion-at-point))))
+
 (use-package consult-eglot
   :after eglot
   :bind
@@ -2655,15 +2703,16 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 ***** Todos
 
-	 hl-todo is problematic for elpaca. 
+      hl-todo is problematic for elpaca. 
 
 #+begin_src emacs-lisp
 (use-package hl-todo
   :ensure (hl-todo :depth nil)
   :init (global-hl-todo-mode t))
 (use-package magit-todos
-  :ensure (:depth nil)
-  :hook (magit-mode . magit-todos-mode))  
+  :after magit
+  :config (magit-todos-mode 1))
+
 #+end_src
 	  
 ***** Forge
@@ -2717,20 +2766,30 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 **** Vterm
 
-	 because eat does not support tramp
+	 vterm was chosen over eat because eat does not support tramp very well
 
 #+begin_src emacs-lisp
-(use-package vterm)
+(use-package svg-tag-mode :ensure t)
 (use-package multi-vterm
-  ;; :ensure (:host github :repo "nehrbash/multi-vterm") 
-  :load-path "~/src/multi-vterm"
+  :ensure (:host github :repo "nehrbash/multi-vterm")
+  :hook (vterm-mode . tab-line-mode)
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
-				  ))
+				  (face-remap-add-relative
+				   'default
+				   :family "Iosevka"
+				   :background "#281d12")
+				  (face-remap-set-base
+				   'default
+				   :family "Iosevka"
+				   :background "#281d12")
+				  (face-remap-add-relative
+				   'fringe
+				   :background "#281d12")))
   :bind
   (("M-t" . multi-vterm-dedicated-toggle)
    :map vterm-mode-map
@@ -2754,6 +2813,22 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	 ("sudo" "/bin/bash")))
   (vterm-always-compile-module t)
   :config
+  (defun old-version-of-vterm--get-color (index &rest args)
+	"This is the old version before it was broken by commit
+https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+	(cond
+     ((and (>= index 0) (< index 16))
+      (face-foreground
+       (elt vterm-color-palette index)
+       nil 'default))
+     ((= index -11)
+      (face-foreground 'vterm-color-underline nil 'default))
+     ((= index -12)
+      (face-background 'vterm-color-inverse-video nil 'default))
+     (t
+      nil)))
+  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
   (defun sn/vterm-new-tab ()
 	"Create a new tab for the toggled vterm buffers"
 	(interactive)
@@ -2768,110 +2843,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	  (setq multi-vterm-dedicated-buffer (current-buffer))
 	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
 	  (set-window-dedicated-p multi-vterm-dedicated-window t))))
-#+end_src
-
-**** Tabs for Terms
-
-#+begin_src emacs-lisp
-(use-package svg-tag-mode :ensure t)
-(use-package tab-line
-  :ensure nil
-  :hook (vterm-mode . tab-line-mode)
-  :custom
-  (tab-line-new-button-show nil)
-  (tab-line-close-button-show 'selected)
-  :config
-  (defface tab-bar-svg-active
-  '((t (:foreground "#a1aeb5")))
-  "Tab bar face for selected tab.")
-
-(defface tab-bar-svg-inactive
-  '((t (:foreground "#a1aeb5")))
-  "Tab bar face for inactive tabs.")
-
-(defun eli/tab-bar-svg-padding (width string)
-  (let* ((style svg-lib-style-default)
-         (margin      (plist-get style :margin))
-         (txt-char-width  (window-font-width nil 'fixed-pitch))
-         (tag-width (- width (* margin txt-char-width)))
-         (padding (- (/ tag-width txt-char-width) (length string))))
-    padding))
-
-(defun eli/tab-bar-tab-name-with-svg (tab i)
-  (let* ((current-p (eq (car tab) 'current-tab))
-         (name (concat (if tab-bar-tab-hints (format "%d " i) "")
-                       (alist-get 'name tab)
-                       (or (and tab-bar-close-button-show
-                                (not (eq tab-bar-close-button-show
-                                         (if current-p 'non-selected 'selected)))
-                                tab-bar-close-button)
-                           "")))
-         (padding (plist-get svg-lib-style-default :padding))
-         (width)
-         (image-scaling-factor 1.0))
-    (when tab-bar-auto-width
-      (setq width (/ (frame-inner-width)
-                     (length (funcall tab-bar-tabs-function))))
-      (when tab-bar-auto-width-min
-        (setq width (max width (if (window-system)
-                                   (nth 0 tab-bar-auto-width-min)
-                                 (nth 1 tab-bar-auto-width-min)))))
-      (when tab-bar-auto-width-max
-        (setq width (min width (if (window-system)
-                                   (nth 0 tab-bar-auto-width-max)
-                                 (nth 1 tab-bar-auto-width-max)))))
-      (setq padding (eli/tab-bar-svg-padding width name)))
-    (propertize
-     name
-     'display
-     (svg-tag-make
-      name
-      :face (if (eq (car tab) 'current-tab) 'tab-bar-svg-active 'tab-bar-svg-inactive)
-      :inverse (eq (car tab) 'current-tab) :margin 0 :radius 6 :padding padding
-      :height 1.1))))
-(setq tab-bar-tab-name-format-function #'eli/tab-bar-tab-name-with-svg)
-(defun sn/tab-line-tab-name-buffer (buffer &optional _buffers)
-  "how tabs should look"
-  (let* ((name (buffer-name buffer))
-         (padding (plist-get svg-lib-style-default :padding))
-         (width 200)
-         (image-scaling-factor 1.5))
-    (propertize
-     name
-     'display
-     (svg-tag-make
-      name
-      :face (if (eq (buffer-name) buffer) 'tab-bar-svg-active 'tab-bar-svg-inactive)
-      :inverse (eq (buffer-name) buffer) :margin 0 :radius 6 :padding padding
-      :height 1.1))))
-(setq tab-line-tab-name-function #'sn/tab-line-tab-name-buffer)
-
-(defun sn/tab-group (buffer)
-  "Group buffers by major mode.
-  Returns a single group name as a string for buffers with major modes
-  flymake-project-diagnostics-mode, compilation-mode, and vterm-mode."
-  (with-current-buffer buffer
-    (when (or (derived-mode-p 'flymake-project-diagnostics-mode)
-			  (derived-mode-p 'compilation-mode)
-			  (derived-mode-p 'vterm-mode))
-	  "🦥")))
-(advice-add 'tab-line-select-tab-buffer :around
-            (lambda (orig-fun &rest args)
-              (let ((window (selected-window)))
-                (progn
-				  (set-window-dedicated-p window nil)
-                  (apply orig-fun args)
-				  (setq multi-vterm-dedicated-window (selected-window))
-				  (setq multi-vterm-dedicated-buffer (current-buffer))
-				  (setq multi-vterm-dedicated-buffer-name (buffer-name))
-                  (set-window-dedicated-p (window) t)
-				  ))))
-
-  ;;(setq tab-line-tabs-buffer-group-function #'my-tab-line-buffer-group-by-major-mode)
-  ;; (setq tab-line-tab-face-functions 'sn/line-tab-face-env)
-  (setq tab-line-tabs-function 'tab-line-tabs-buffer-groups)
-  (setq tab-line-tabs-buffer-group-function 'sn/tab-group)
-  )
 #+end_src
 
 *** Direnv
@@ -3002,11 +2973,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode))  
 #+end_src
 	  
-*** TODO Folding
+*** Folding
 
-	package is confused about mode, I assume because auto ts remapping.
-
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
 (use-package ts-fold
   :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
   :init (global-ts-fold-mode t))  
@@ -3056,6 +3025,22 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 						  (setq-local compile-command "cargo run")))
   :config
   (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
+(use-package cargo-jump-xref
+  :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
+  :hook (rust-ts-mode . (lambda ()
+						  (add-to-list 'xref-backend-functions #'cargo-jump-xref-backend))))
+#+end_src
+
+** Guile
+
+#+begin_src emacs-lisp
+(use-package geiser
+  :config
+  (setq geiser-default-implementation 'guile)
+  (setq geiser-active-implementations '(guile))
+  (setq geiser-implementations-alist '(((regexp "\\.scm$") guile))))
+(use-package geiser-guile
+  :after geiser)
 #+end_src
 
 ** Shell
@@ -3181,7 +3166,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (setq sqlformat-args '("-s2" "-g")))
 #+end_src
    
-
 ** Terraform
 
 #+begin_src emacs-lisp
@@ -3210,13 +3194,27 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
    Only use go templates so this works for me. if I work with more complex projects I may need to refactor to set on a per-project case.
    
 #+begin_src emacs-lisp
+;; (use-package web-mode
+;;   :mode ("\\.html$" .  web-mode)
+;;   :hook (web-mode . sn/web-mode-hook)
+;;   :custom (web-mode-markup-indent-offset 2)
+;;   :config
+;;   (defun sn/web-mode-hook()
+;; 	(web-mode-set-engine "go")))
 (use-package web-mode
-  :mode ("\\.html$" .  web-mode)
-  :hook (web-mode . sn/web-mode-hook)
-  :custom (web-mode-markup-indent-offset 2)
-  :config
-  (defun sn/web-mode-hook()
-	(web-mode-set-engine "go")))
+  :ensure t
+  :mode (("\\.html?\\'" . web-mode)
+		 ("\\.css\\'" . web-mode)
+		 ("\\.jsx?\\'" . web-mode)
+		 ("\\.tsx?\\'" . web-mode)
+		 ("\\.json\\'" . web-mode))
+  :custom
+  (let 
+  (web-mode-markup-indent-offset 7)
+  (web-mode-code-indent-offset 7)
+  (web-mode-css-indent-offset 7)
+  (web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
+  :hook (web-mode . display-line-numbers-mode))
 #+end_src
 
 ** projects
@@ -3238,11 +3236,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
         (message "Error: Command failed. Container might not be up."))))
   ;; Open Dired in /docker:dev-container:/workspace/
   (dired "/docker:dev-container:/workspace/")
-  (magit-status)
-  (treemacs)
-  (windmove-right)
-  (add-to-list 'directory-abbrev-alist
-             '("^/workspace/\\(.*\\)" . "/docker:dev-container:/workspace/\\1")))
+  (magit-status))
 #+end_src
    
 * Fancy Bloat
@@ -3293,29 +3287,52 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 		whisper-translate nil))
 #+end_src
 
-** GPT
+** AI
 
-   This section contains an Emacs Lisp function that reads a text file containing an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
+*** GPT
+
+    This section contains an Emacs Lisp function that reads a text file containing an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
+
+ #+begin_src emacs-lisp
+ (use-package gptel
+   :bind (("<f5>" . gptel)
+			  ("C-<f5>" . gptel-menu))
+   :custom
+   (gptel-model "gpt-4")
+   (gptel-default-mode 'org-mode))
+ #+end_src
+
+*** Codeium
+
+ #+begin_src emacs-lisp :tangle no
+ (use-package codeium
+   :ensure (:host github :repo "Exafunction/codeium.el")
+   :custom
+   (codeium-log-buffer nil)
+   :config 
+   (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
+ #+end_src
+
+*** Tabnine
+
+    Alternative to codeium, supposed to be really fast.
 
 #+begin_src emacs-lisp
-(use-package gptel
-  :bind (("<f5>" . gptel)
-		 ("C-<f5>" . gptel-menu))
-  :custom
-  (gptel-model "gpt-4")
-  (gptel-default-mode 'org-mode))
-#+end_src
-
-** Codeium
-
-#+begin_src emacs-lisp
-(use-package codeium
-  :ensure (:host github :repo "Exafunction/codeium.el")
-  :custom
-  (codeium-log-buffer nil)
+(use-package tabnine
+  :bind
+  (:map prog-mode-map
+		("M-SPC t d" . tabnine-chat-document-code)
+		("M-SPC t g" . tabnine-chat-generate-test-for-code)
+		("M-SPC t e" . tabnine-chat-explain-code)
+		("M-SPC t f" . tabnine-chat-fix-code)))
+(use-package tabnine-capf
+  :after cape
+  :ensure (:host github :repo "50ways2sayhard/tabnine-capf")
+  :hook (kill-emacs . tabnine-capf-kill-process)
   :config
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
+  (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point)))  
 #+end_src
+    
 
 ** Customize Dir Local
 
@@ -3350,7 +3367,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :defer t)
 #+end_src
 
-** Emacs everywhere
+** Emacs Everywhere
 
    =~/.local/bin/emace_everywhere= is bound to key ~$Mod n~ . modified version of https://github.com/psibi/emacs-everywhere
 
@@ -3384,8 +3401,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (org-mode)
   (gptel-mode)
   (toggle-mode-line)
-  (local-set-key (kbd "M-SPC SPC") 'ea-commit)
-  (local-set-key (kbd "M-SPC DEL") 'ea-abort))
+  (local-set-key (kbd "M-RET") 'ea-commit)
+  (local-set-key (kbd "M-DEL") 'ea-abort))
 #+end_src
 
 ** Playing around with frames
@@ -3449,6 +3466,23 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 			(app-launcher-run-app))
 		(delete-frame frame))))
 #+end_src
+
+** Zalgo Text
+
+#+begin_src emacs-lisp
+(use-package zalgo-mode
+  ;; :load-path "~/src/zalgo-mode"
+  :ensure (:host github :repo "nehrbash/zalgo-mode")
+  :bind
+  ("C-c z z" . zalgo-mode) ;; minor mode for typeing zalgo
+  ("C-c z r" . zalgo-transform-region)
+  ("C-c z w" . zalgo-transform-word)
+:custom
+(zalgo-max-up 5)
+(zalgo-max-mid 3)
+(zalgo-max-down 5))
+#+end_src
+   
 
 * Runtime Performance
   Makes garbage collection high while commands run and low when they end.
