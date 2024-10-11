@@ -15,8 +15,6 @@
 @define-color fg-alt #d5c4a1;
 @define-color ac #a2c080;
 
-
-
 .notification-row:focus,
 .notification-row:hover {
     padding-left: 15px;

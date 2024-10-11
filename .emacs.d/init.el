@@ -55,6 +55,7 @@
 (defun sn/elpacha-hook ()
   "Settup after elpaca finishes"
   (progn
+	(spacious-padding-mode 1)
 	(my-ef-themes-mod)
 	(load custom-file 'noerror)
 	(let ((buffer (get-buffer " elpaca--read-file")))
@@ -93,7 +94,6 @@
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
 	   `(line-number ((,c :inherit (ef-themes-fixed-pitch shadow default) :background "#281d12")))
-	   `(fringe ((,c :inherit (ef-themes-fixed-pitch shadow default) :background "#281d12")))
 	   `(tab-line-env-default ((,c :background ,green-faint )))
 	   `(tab-line-env-1 ((,c :background ,red-faint )))
 	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
@@ -312,13 +312,16 @@ This is useful when followed by an immediate kill."
 (global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
 
-;; (use-package display-line-numbers
-;;   :ensure nil
-;;   :custom
-;;   (display-line-numbers-type 'relative)
-;;   (display-line-numbers-width 3)
-;;   :init
-;;   :hook (prog-mode . display-line-numbers-mode))
+(use-package display-line-numbers
+  :ensure nil
+  :custom
+  (display-line-numbers-type 'relative)
+  (display-line-numbers-width 3)
+  :hook ((prog-mode web-mode conf-mode yaml-mode) . display-line-numbers-mode)
+  (display-line-numbers-mode . (lambda ()
+								 (face-remap-add-relative
+								  'fringe :background "#281d12")))
+  )
 
 (use-package expand-region
   :bind (("M-C e" . er/expand-region)
@@ -839,6 +842,38 @@ point reaches the beginning or end of the buffer, stop there."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
+  (defvar consult--source-vc-modified-file
+	`(:name     "VC Modified File"
+				:narrow   ?g
+				:category file
+				:face     consult-file
+				:history  file-name-history
+				:state    ,#'consult--file-state
+				:new
+				,(lambda (file)
+				   (consult--file-action
+					(expand-file-name file (vc-root-dir))))
+				:enabled
+				,(lambda ()
+				   (vc-root-dir))
+				:items
+				,(lambda ()
+				   (when-let (root (vc-root-dir))
+					 (let ((len (length root))
+						   (ht (consult--buffer-file-hash))
+						   items)
+					   (dolist (file (vc-modified-files) (nreverse items))
+						 (unless (eq (aref file 0) ?/)
+						   (let (file-name-handler-alist) ;; No Tramp slowdown please.
+							 (setq file (expand-file-name file))))
+						 (when (and (not (gethash file ht)) (string-prefix-p root file))
+						   (let ((part (substring file len)))
+							 (when (equal part "") (setq part "./"))
+							 (put-text-property 0 1 'multi-category `(file . ,file) part)
+							 (push part items))))))))
+	"VC modified file candidate source for `consult-buffer'.")
+
+  
   (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defvar consult--source-org
 	(list :name     "Org"
@@ -929,6 +964,7 @@ point reaches the beginning or end of the buffer, stop there."
 		  consult--source-star))
   (setq consult-project-buffer-sources
 		'(consult--source-project-buffer
+		  consult--source-vc-modified-file
 		  consult--source-vterm
 		  consult--source-project-recent-file
 		  consult--source-star)))
@@ -1022,8 +1058,7 @@ point reaches the beginning or end of the buffer, stop there."
 			 completion-cycle-threshold completion-cycling)
 		 (consult-completion-in-region beg end table pred)))))
   (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
-  (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer)
-  (read-extended-command-predicate #'command-completion-default-include-p))
+  (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
 
 (use-package kind-icon
   :after corfu
@@ -2107,10 +2142,10 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
 						  (setq-local compile-command "cargo run")))
   :config
   (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
-(use-package cargo-jump-xref
-  :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
-  :hook (rust-ts-mode . (lambda ()
-						  (add-to-list 'xref-backend-functions #'cargo-jump-xref-backend))))
+;; (use-package cargo-jump-xref
+;;   :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
+;;   :config
+;;   (add-to-list 'xref-backend-functions #'cargo-jump-xref-backend))
 
 (use-package geiser
   :config
@@ -2190,8 +2225,7 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (web-mode-markup-indent-offset 7)
   (web-mode-code-indent-offset 7)
   (web-mode-css-indent-offset 7)
-  (web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'"))))
-  :hook (web-mode . display-line-numbers-mode))
+  (web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'")))))
 
 (defun sn/start-ag-devcontainer ()
   "Start work."

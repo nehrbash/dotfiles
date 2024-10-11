@@ -79,14 +79,12 @@ sanitize() {
 }
 
 prevCover=''
-# initalize
-echo "{\"artist\":\"\",\"title\":\"No Media\",\"status\":\"\",\"position\":\"0.0\",\"position_time\":\"00:30\",\"length\":\"01:00\",\"cover\":\"~/.cache/eww_covers/cover_art.png\",\"color1\":\"#706159\",\"color2\":\"#D3CEC2\"}"
 playerctl --player=spotify -F metadata -f '{{title}}\{{artist}}\{{status}}\{{position}}\{{mpris:length}}\{{mpris:artUrl}}' 2>/dev/null | while IFS="$(printf '\')" read -r title artist status position len cover; do
 	if [[ "$cover" != "$prevCover" ]]; then
 		COVER=$(get_cover "$cover")
 
 		if [ "$COVER" != "" ]; then
-			cols=$(convert "$COVER" -colors 2 -format "%c" histogram:info: | awk '{print $3}')
+			cols=$(magick "$COVER" -colors 2 -format "%c" histogram:info: | awk '{print $3}')
 			color1=$(echo "$cols" | head -1)
 			color2=$(echo "$cols" | tail -1)
 		else
@@ -95,7 +93,7 @@ playerctl --player=spotify -F metadata -f '{{title}}\{{artist}}\{{status}}\{{pos
 		fi
 	fi
 
-	jaq --null-input -r -c \
+	jq --null-input -r -c -S \
 		--arg artist "$(sanitize "$artist")" \
 		--arg title "$(sanitize "$title")" \
 		--arg status "$(get_status "$status")" \
@@ -105,7 +103,6 @@ playerctl --player=spotify -F metadata -f '{{title}}\{{artist}}\{{status}}\{{pos
 		--arg cover "$COVER" \
 		--arg color1 "$color1" \
 		--arg color2 "$color2" \
-		'{"artist": $artist, "title": $title, "status": $status, "position": $pos, "position_time": $pos_time, "length": $length, "cover": $cover, "color1": $color1, "color2": $color2}'
-
+		'{ "artist": $artist, "title": $title, "status": $status, "position": $pos, "position_time": $pos_time, "length": $length, "cover": $cover, "color1": $color1, "color2": $color2 }'
 	prevCover=$cover
 done
