@@ -42,7 +42,7 @@
 		(width . 700)
 		(height . 400)
 		(right-fringe . 10)
-		(vertical-scroll-bars . nil))
+		)
 	  default-frame-alist
 	  '(;;(alpha-background . 90)
 		(font . "Iosevka")
@@ -50,7 +50,7 @@
 		(right-fringe . 10)
 		(width . 800)
 		(height . 600)
-		(vertical-scroll-bars . nil)))
+		))
 
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)

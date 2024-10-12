@@ -98,10 +98,10 @@
 	   `(tab-line-env-1 ((,c :background ,red-faint )))
 	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
 	   `(tab-line-env-3 ((,c :background ,blue-faint )))
-	   `(scroll-bar ((,c :foreground ,bg-alt :background ,bg-dim)))
+	   `(scroll-bar ((,c :foreground ,bg-alt :background "#281d12")))
 	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
 	   `(mode-line-inactive ((,c :font "Iosevka Aile" :box (:line-width 3 :color "#281d12"))))
-	   `(org-document-title ((,c :height 1.8)))
+	   `(org-document-title ((,c :height 1.4)))
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
@@ -320,8 +320,7 @@ This is useful when followed by an immediate kill."
   :hook ((prog-mode web-mode conf-mode yaml-mode) . display-line-numbers-mode)
   (display-line-numbers-mode . (lambda ()
 								 (face-remap-add-relative
-								  'fringe :background "#281d12")))
-  )
+								  'fringe :background "#281d12"))))
 
 (use-package expand-region
   :bind (("M-C e" . er/expand-region)
@@ -1933,25 +1932,18 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package git-timemachine
   :custom (git-timemachine-show-minibuffer-details t))
 
-(use-package hl-todo
-  :ensure (hl-todo :depth nil)
-  :init (global-hl-todo-mode t))
-(use-package magit-todos
-  :after magit
-  :config (magit-todos-mode 1))
-
 (use-package browse-at-remote
   :bind
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
 (use-package svg-tag-mode :ensure t)
-(use-package multi-vterm
-  :ensure (:host github :repo "nehrbash/multi-vterm")
-  :hook (vterm-mode . tab-line-mode)
+(use-package vterm
   :hook
   (vterm-mode . (lambda ()
 				  (toggle-mode-line)
+				  (set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
+				  (buffer-face-mode t)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
 							  cursor-type 'bar)
@@ -1965,7 +1957,10 @@ point reaches the beginning or end of the buffer, stop there."
 				   :background "#281d12")
 				  (face-remap-add-relative
 				   'fringe
-				   :background "#281d12")))
+				   :background "#281d12"))))
+(use-package vterm-tabs
+  ;; :ensure (:host github :repo "nehrbash/multi-vterm")
+  :load-path "~/src/vterm-tabs"
   :bind
   (("M-t" . multi-vterm-dedicated-toggle)
    :map vterm-mode-map
@@ -1989,36 +1984,7 @@ point reaches the beginning or end of the buffer, stop there."
 	 ("sudo" "/bin/bash")))
   (vterm-always-compile-module t)
   :config
-  (defun old-version-of-vterm--get-color (index &rest args)
-	"This is the old version before it was broken by commit
-https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-	(cond
-     ((and (>= index 0) (< index 16))
-      (face-foreground
-       (elt vterm-color-palette index)
-       nil 'default))
-     ((= index -11)
-      (face-foreground 'vterm-color-underline nil 'default))
-     ((= index -12)
-      (face-background 'vterm-color-inverse-video nil 'default))
-     (t
-      nil)))
-  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
-  (defun sn/vterm-new-tab ()
-	"Create a new tab for the toggled vterm buffers"
-	(interactive)
-    (let ((default-directory "~/"))
-	  (set-window-dedicated-p multi-vterm-dedicated-window nil)
-	  (let* ((vterm-buffer (multi-vterm-get-buffer)))
-		(setq multi-vterm-buffer-list (nconc multi-vterm-buffer-list (list vterm-buffer)))
-		(set-buffer vterm-buffer)
-		(multi-vterm-internal)
-		(switch-to-buffer vterm-buffer))
-	  (setq multi-vterm-dedicated-window (selected-window))
-	  (setq multi-vterm-dedicated-buffer (current-buffer))
-	  (setq multi-vterm-dedicated-buffer-name (buffer-name))
-	  (set-window-dedicated-p multi-vterm-dedicated-window t))))
+  (vterm-tabs-mode 1))
 
 (use-package direnv
   :config (direnv-mode))
