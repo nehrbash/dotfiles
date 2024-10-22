@@ -83,6 +83,9 @@
 	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
 	  (custom-set-faces
+	   `(default ((,c :font "Iosevka" :height 115)))
+	   `(fixed-pitch ((,c :font "Iosevka")))
+	   `(variable-pitch ((,c :font "Iosevka")))
 	   `(window-divider ((,c :background ,bg-main :foreground ,bg-main))) 
 	   `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
@@ -93,7 +96,7 @@
 	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
-	   `(line-number ((,c :inherit (ef-themes-fixed-pitch shadow default) :background "#281d12")))
+	   `(line-number ((,c :inherit ,default :background "#281d12")))
 	   `(tab-line-env-default ((,c :background ,green-faint )))
 	   `(tab-line-env-1 ((,c :background ,red-faint )))
 	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
@@ -105,10 +108,7 @@
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
-	   `(fixed-pitch ((,c :font "Iosevka")))
-	   `(variable-pitch ((,c :font "Iosevka")))
-	   `(org-modern-symbol ((,c :font "Iosevka")))
-	   `(default ((,c :font "Iosevka" :height 115))))))
+	   `(org-modern-symbol ((,c :font "Iosevka"))))))
   (defun sn/load-my-theme (frame)
 	(select-frame frame)
 	(when (display-graphic-p frame)
@@ -149,7 +149,64 @@
   :custom
   (pixel-scroll-precision-interpolate-page t)
   (pixel-scroll-precision-use-momentum t)
+  (pixel-scroll-precision-large-scroll-height 10) ;; default 40
+  
   :init
+  (defun kb/pixel-recenter (&optional arg redisplay)
+	"Similar to `recenter' but with pixel scrolling.
+ARG and REDISPLAY are identical to the original function."
+	;; See the links in line 6676 in window.c for
+	(when-let* ((current-pixel (pixel-posn-y-at-point))
+				(target-pixel (if (numberp arg)
+                                  (* (line-pixel-height) arg)
+								(* 0.5 (window-body-height nil t))))
+				(distance-in-pixels 0)
+				(pixel-scroll-precision-interpolation-total-time
+				 (/ pixel-scroll-precision-interpolation-total-time 2.0)))
+      (setq target-pixel
+			(if (<= 0 target-pixel)
+				target-pixel
+              (- (window-body-height nil t) (abs target-pixel))))
+      (setq distance-in-pixels (- target-pixel current-pixel))
+      (condition-case err
+          (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
+		(error (message "[kb/pixel-recenter] %s" (error-message-string err))))
+      (when redisplay (redisplay t))))
+
+  (defun kb/pixel-scroll-up (&optional arg)
+	 "(Nearly) drop-in replacement for `scroll-up'."
+	 (cond
+	  ((eq this-command 'scroll-up-line)
+       (funcall (ad-get-orig-definition 'scroll-up) (or arg 1)))
+	  (t
+       (unless (eobp) ; Jittery window if trying to go down when already at bottom
+		 (pixel-scroll-precision-interpolate
+		  (- (* (line-pixel-height)
+				(or arg (- (window-text-height) next-screen-context-lines))))
+		  nil 1)))))
+
+  (defun kb/pixel-scroll-down (&optional arg)
+		 "(Nearly) drop-in replacement for `scroll-down'."
+		 (cond
+		  ((eq this-command 'scroll-down-line)
+		   (funcall (ad-get-orig-definition 'scroll-down) (or arg 1)))
+		  (t
+		   (pixel-scroll-precision-interpolate
+			(* (line-pixel-height)
+			   (or arg (- (window-text-height) next-screen-context-lines)))
+			nil 1))))
+
+  (add-hook 'pixel-scroll-precision-mode-hook
+			   (lambda ()
+				 (cond
+				  (pixel-scroll-precision-mode
+				   (advice-add 'scroll-up :override 'kb/pixel-scroll-up)
+				   (advice-add 'scroll-down :override 'kb/pixel-scroll-down)
+				   (advice-add 'recenter :override 'kb/pixel-recenter))
+				  (t
+				   (advice-remove 'scroll-up 'kb/pixel-scroll-up)
+				   (advice-remove 'scroll-down 'kb/pixel-scroll-down)
+				   (advice-remove 'recenter 'kb/pixel-recenter)))))
   (pixel-scroll-precision-mode 1))
 
 (use-package page-break-lines
@@ -161,6 +218,10 @@
 
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
+
+(use-package display-fill-column-indicator
+  :ensure nil
+  :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
 (use-package spacious-padding
   :custom
@@ -181,7 +242,7 @@
               (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 
 (setq-default
- fill-column 120
+ fill-column 80
  blink-cursor-interval 0.4
  buffers-menu-max-size 30
  case-fold-search t
@@ -209,13 +270,15 @@
   :custom
   (recentf-auto-cleanup 'never) 
   (recentf-max-saved-items 100)
-  (recentf-exclude '(".*![^!]*!.*"
-					 ".*/.cache*"
-					 "/tmp/*"
-					 "=~/.emacs\.d/.*"))
   (backup-directory-alist
    `((".*" . ,temporary-file-directory)))
   :config
+  (setq recentf-exclude '(
+						  ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
+						  "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
+						  "/tmp/.*"           ;; matches any string that includes directory named tmp
+						  "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
+						  ))
   (defun save-recentf ()
 	"Save recentf list."
 	(interactive)
@@ -712,7 +775,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package minibuffer
   :ensure nil
-  ;; :hook (minibuffer-setup . olivetti-mode) ;; fun but glichy 
   :bind
   (:map minibuffer-local-completion-map
   		("<backtab>" . minibuffer-force-complete))
@@ -720,7 +782,7 @@ point reaches the beginning or end of the buffer, stop there."
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
   (read-minibuffer-restore-windows t) ;; don't revert to original layout after cancel.
-  (resize-mini-windows nil)
+  (resize-mini-windows t)
   (minibuffer-prompt-properties
    '(read-only t cursor-intangible t face minibuffer-prompt))
   :hook
@@ -1665,6 +1727,18 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
 
+(use-package pdf-tools 
+  :defer 1
+  :hook
+  (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
+						 (toggle-mode-line)))
+  :custom
+  (pdf-view-display-size 'fit-width)
+  (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
+  :config
+  (setopt pdf-continuous-suppress-introduction t)
+  (pdf-loader-install))
+
 (use-package pdf-continuous-scroll-mode
   :after pdf-tools
   :ensure (:host github :repo "dalanicolai/pdf-continuous-scroll-mode.el"))
@@ -1858,7 +1932,6 @@ point reaches the beginning or end of the buffer, stop there."
 	 (cape-capf-super #'cape-file
 					  #'cape-dabbrev
 					  #'cape-dict)))
-
   (defun sn/cape-in-code ()
 	(cape-wrap-inside-code
 	 (cape-capf-super 
@@ -1900,7 +1973,7 @@ point reaches the beginning or end of the buffer, stop there."
   ("C-c C-i" . blamer-mode)
   ("C-c i" . blamer-show-posframe-commit-info)
   :custom
-  (blamer-idle-time 0.6)
+  (blamer-idle-time 0.2)
   (blamer-min-offset 70))
 
 (use-package magit
@@ -1949,11 +2022,9 @@ point reaches the beginning or end of the buffer, stop there."
 							  cursor-type 'bar)
 				  (face-remap-add-relative
 				   'default
-				   :family "Iosevka"
 				   :background "#281d12")
 				  (face-remap-set-base
 				   'default
-				   :family "Iosevka"
 				   :background "#281d12")
 				  (face-remap-add-relative
 				   'fringe

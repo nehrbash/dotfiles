@@ -113,8 +113,10 @@ scale trough {
 }
 
 .title {
-	font-size: 0.9rem;
 	margin-left: 5px;
+	// for some reason firefox app titles are rendering lower. this ensures that the bar height isn't forced to be
+	// bigger.
+	margin-bottom: -10px;
 	color: $surface0;
 }
 
