@@ -52,6 +52,16 @@
 		(height . 600)
 		))
 
+(add-hook 'after-make-frame-functions
+		  (lambda (frame)
+			(modify-frame-parameters
+			 frame '((scroll-bar-width . 10)))
+			(set-window-scroll-bars
+			 (minibuffer-window frame) 0 nil 0 nil t)
+			(set-window-fringes
+			 (minibuffer-window frame) 0 0 nil t)))
+
+
 ;; Disable toolbar, scroll bar, and menu bar
 (tool-bar-mode -1)
 (menu-bar-mode -1)

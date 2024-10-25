@@ -40,3 +40,16 @@ instance = "Alacritty"
 [window.padding]
 x = 8
 y = 4
+
+[terminal]
+osc52 = "CopyPaste"
+
+[selection]
+save_to_clipboard = true
+
+[keyboard]
+bindings = [
+  { key = "C", mods = "Control|Shift", action = "CopySelection" },
+  { key = "V", mods = "Control|Shift", action = "Paste" },
+  { key = "N", mods = "Control|Shift", action = "CreateNewWindow" },
+]

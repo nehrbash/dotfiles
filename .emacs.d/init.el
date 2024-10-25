@@ -55,9 +55,11 @@
 (defun sn/elpacha-hook ()
   "Settup after elpaca finishes"
   (progn
-	(spacious-padding-mode 1)
-	(my-ef-themes-mod)
 	(load custom-file 'noerror)
+	(meow-global-mode 1)
+	(spacious-padding-mode 1)
+	;; (mapc #'disable-theme custom-enabled-themes)
+	(ef-themes-select 'ef-melissa-dark)
 	(let ((buffer (get-buffer " elpaca--read-file")))
 	  (when buffer
 		(kill-buffer buffer)))))
@@ -75,17 +77,13 @@
 	 (agenda-date 1.9)
 	 (agenda-structure variable-pitch light 1.8)
 	 (t variable-pitch)))
-  :config
+  :preface
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
 	(interactive)
-	(mapc #'disable-theme custom-enabled-themes)
-	(load-theme 'ef-melissa-dark t)
 	(ef-themes-with-colors
 	  (custom-set-faces
 	   `(default ((,c :font "Iosevka" :height 115)))
-	   `(fixed-pitch ((,c :font "Iosevka")))
-	   `(variable-pitch ((,c :font "Iosevka")))
 	   `(window-divider ((,c :background ,bg-main :foreground ,bg-main))) 
 	   `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
@@ -96,28 +94,26 @@
 	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
 	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
 	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
-	   `(line-number ((,c :inherit ,default :background "#281d12")))
+	   `(line-number ((,c :background "#281d12")))
 	   `(tab-line-env-default ((,c :background ,green-faint )))
 	   `(tab-line-env-1 ((,c :background ,red-faint )))
 	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
 	   `(tab-line-env-3 ((,c :background ,blue-faint )))
-	   `(scroll-bar ((,c :foreground ,bg-alt :background "#281d12")))
+	   `(scroll-bar ((,c :foreground ,fg-alt :background "#281d12")))
 	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
-	   `(mode-line-inactive ((,c :font "Iosevka Aile" :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line-active ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
+	   `(mode-line-inactive ((,c :font "Iosevka Aile" :height 120 :box (:line-width 3 :color "#281d12"))))
 	   `(org-document-title ((,c :height 1.4)))
 	   `(org-modern-todo ((,c :height 1.2)))
 	   `(org-modern-done ((,c :height 1.2)))
 	   `(org-modern-tag ((,c :height 1.2)))
 	   `(org-modern-symbol ((,c :font "Iosevka"))))))
-  (defun sn/load-my-theme (frame)
-	(select-frame frame)
-	(when (display-graphic-p frame)
-	  (progn
-		(message "Loading theme")
-		(my-ef-themes-mod)	
-		(remove-hook 'after-make-frame-functions 'sn/load-my-theme nil))))
-  (if (daemonp)
-	  (add-hook 'after-make-frame-functions 'sn/load-my-theme)))
+  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
+  (add-hook 'after-make-frame-functions
+			(lambda (frame)
+			  (progn
+				(select-frame frame)
+				(my-ef-themes-mod)))))
 
 (use-package doom-modeline
   :custom
@@ -128,7 +124,7 @@
   (doom-modeline-workspace-name nil)
   :config
   (doom-modeline-def-modeline 'simple-line
-    '(eldoc window-number vcs bar buffer-info remote-host)
+    '(eldoc modals window-number vcs bar buffer-info remote-host)
     '(compilation debug check objed-state persp-name process))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
@@ -236,6 +232,7 @@ ARG and REDISPLAY are identical to the original function."
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
   :custom
+  (olivetti-minimum-body-width 100)
   (olivetti-style nil))
 
 (setq-default fringe-indicator-alist
@@ -253,9 +250,10 @@ ARG and REDISPLAY are identical to the original function."
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
- tooltip-delay .8
+ tooltip-delay .4
  ring-bell-function 'ignore
- truncate-lines t)
+ truncate-lines nil
+ word-wrap t)
 (setopt 
  use-dialog-box nil
  text-mode-ispell-word-completion nil)
@@ -517,6 +515,102 @@ Call a second time to restore the original window configuration."
 			   (buffer-name)))))
 
 (setq confirm-kill-processes nil)
+
+(use-package meow
+  :hook (after-init . meow-global-mode)
+  :demand t
+  :config
+  (setq meow-replace-state-name-list
+		 '((normal . "🟢")
+		   (motion . "🟡")
+		   (keypad . "🟣")
+		   (insert . "🟠")
+		   (beacon . "🔴")))
+  (add-to-list 'meow-mode-state-list '(org-mode . insert))
+  (add-to-list 'meow-mode-state-list '(eat-mode . insert))
+  (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
+  (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+  (meow-motion-overwrite-define-key
+	;; Use e to move up, n to move down.
+	;; Since special modes usually use n to move down, we only overwrite e here.
+	'("e" . meow-prev)
+	'("<escape>" . ignore))
+  (meow-leader-define-key
+	'("?" . meow-cheatsheet)
+	;; To execute the originally e in MOTION state, use SPC e.
+	'("e" . "H-e")
+	'("o" . switch-window)
+	'("1" . meow-digit-argument)
+	'("2" . meow-digit-argument)
+	'("3" . meow-digit-argument)
+	'("4" . meow-digit-argument)
+	'("5" . meow-digit-argument)
+	'("6" . meow-digit-argument)
+	'("7" . meow-digit-argument)
+	'("8" . meow-digit-argument)
+	'("9" . meow-digit-argument)
+	'("0" . meow-digit-argument)
+	'("f ." . find-file-at-point))
+  (meow-normal-define-key
+	'("0" . meow-expand-0)
+	'("1" . meow-expand-1)
+	'("2" . meow-expand-2)
+	'("3" . meow-expand-3)
+	'("4" . meow-expand-4)
+	'("5" . meow-expand-5)
+	'("6" . meow-expand-6)
+	'("7" . meow-expand-7)
+	'("8" . meow-expand-8)
+	'("9" . meow-expand-9)
+	'("-" . negative-argument)
+	'(";" . meow-reverse)
+	'("," . meow-inner-of-thing)
+	'("." . meow-bounds-of-thing)
+	'("[" . meow-beginning-of-thing)
+	'("]" . meow-end-of-thing)
+	'("/" . meow-visit)
+	'("a" . meow-append)
+	'("A" . meow-open-below)
+	'("b" . meow-back-word)
+	'("B" . meow-back-symbol)
+	'("c" . meow-change)
+	'("i" . meow-prev)
+	'("I" . meow-prev-expand)
+	'("f" . meow-find)
+	'("g" . meow-cancel-selection)
+	'("G" . meow-grab)
+	'("n" . meow-left)
+	'("N" . meow-left-expand)
+	'("o" . meow-right)
+	'("O" . meow-right-expand)
+	'("j" . meow-join)
+	'("k" . meow-kill)
+	'("l" . meow-line)
+	'("L" . meow-goto-line)
+	'("m" . meow-mark-word)
+	'("M" . meow-mark-symbol)
+	'("e" . meow-next)
+	'("E" . meow-next-expand)
+	'("h" . meow-block)
+	'("H" . meow-to-block)
+	'("p" . meow-yank)
+	'("q" . meow-quit)
+	'("r" . meow-replace)
+	'("s" . meow-insert)
+	'("S" . meow-open-above)
+	'("t" . meow-till)
+	'("u" . meow-undo)
+	'("U" . meow-undo-in-selection)
+	'("v" . meow-search)
+	'("w" . meow-next-word)
+	'("W" . meow-next-symbol)
+	'("x" . meow-delete)
+	'("X" . meow-backward-delete)
+	'("y" . meow-save)
+	'("z" . meow-pop-selection)
+	'("'" . repeat)
+	'("<escape>" . ignore)))
 
 (use-package avy
   :commands avy-goto-char-timer
@@ -903,6 +997,19 @@ point reaches the beginning or end of the buffer, stop there."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
+  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  (defun vc-modified-file ()
+	"Use completion to go to a modified file in the Git repository."
+	(interactive)
+	(let* ((default-directory (vc-root-dir))  ;; Ensures we're in the root of the project
+           (git-cmd "git status --porcelain=v1 --untracked-files=no")  ;; Git command to get modified files
+           (files (split-string (shell-command-to-string git-cmd) "\n" t))
+           (modified-files (mapcar (lambda (line)
+									 (string-trim (substring line 3))) files))
+           ;; Use completing-read to select the file
+           (selected-file (completing-read "Goto vc file: " modified-files nil t)))
+      (when selected-file
+		(find-file selected-file))))
   (defvar consult--source-vc-modified-file
 	`(:name     "VC Modified File"
 				:narrow   ?g
@@ -933,9 +1040,6 @@ point reaches the beginning or end of the buffer, stop there."
 							 (put-text-property 0 1 'multi-category `(file . ,file) part)
 							 (push part items))))))))
 	"VC modified file candidate source for `consult-buffer'.")
-
-  
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
   (defvar consult--source-org
 	(list :name     "Org"
 		  :category 'buffer
@@ -965,12 +1069,13 @@ point reaches the beginning or end of the buffer, stop there."
 		  :state    #'consult--buffer-state
 		  :new
 		  (lambda (name)
-			(vterm (concat "Term " name))
+			(vterm (concat "shell: " name))
 			(setq-local vterm-buffer-name-string nil))
 		  :items
-		  (lambda () (consult--buffer-query :sort 'visibility
-											:as #'buffer-name
-											:include '("Term\\ ")))))
+		  (lambda () (consult--buffer-query
+					  :sort 'visibility
+					  :as #'buffer-name
+					  :include '("shell\\:\\ " "shell")))))
   (defun consult-term ()
 	(interactive)
 	(consult-buffer '(consult--source-vterm)))
@@ -994,7 +1099,8 @@ point reaches the beginning or end of the buffer, stop there."
 					 :as #'buffer-name
 					 :exclude '("\\*."           ; star buffers
 								"\\#."
-								"Term\\ "        ; Term buffers
+								"shell"
+								"shell\\:\\ "        ; Term buffers
 								"^magit"         ; magit buffers
 								"[\\.]org$"))))) ; org files
 
@@ -1388,7 +1494,7 @@ point reaches the beginning or end of the buffer, stop there."
 	:interactive t " Writing" nil
 	(if wr-mode
 		(progn
-		  (setq truncate-lines nil
+		  (setq 
 				word-wrap t
 				cursor-type 'bar)
 		  (when (eq major-mode 'org)
@@ -1403,7 +1509,6 @@ point reaches the beginning or end of the buffer, stop there."
 		  (visual-line-mode 1)
 		  (variable-pitch-mode 1))
 
-	  (kill-local-variable 'truncate-lines)
 	  (kill-local-variable 'word-wrap)
 	  (kill-local-variable 'cursor-type)
 	  (kill-local-variable 'blink-cursor-interval)
@@ -1772,6 +1877,15 @@ point reaches the beginning or end of the buffer, stop there."
   :bind ("C-c n g" . org-roam-node-find)
   :after org-roam)
 
+(use-package org-roam-ui
+  :ensure (:host github :repo "org-roam/org-roam-ui")
+  :after org-roam
+  :config
+  (setq org-roam-ui-sync-theme t
+		org-roam-ui-follow t
+		org-roam-ui-update-on-save t
+		org-roam-ui-open-on-start nil))
+
 (add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
 
 (setopt comment-auto-fill-only-comments t)
@@ -1790,62 +1904,14 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
 
-(use-package treesit
-  :ensure nil
-  :demand t
-  :mode ("\\.tsx\\'" . tsx-ts-mode)
-  :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go"))
-			   (gomod . ("https://github.com/camdencheek/tree-sitter-go-mod"))
-               (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
-               (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-               (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
-               (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
-               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-			   ))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-        (treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
-  ;; non-ts-modes.
-
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
-  (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
-			 (go-mod-mode . go-mod-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
-    (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars)
+(use-package treesit-auto
+  :after tsc-dyn-get
   :custom
   (treesit-auto-install t)
-  (treesit-font-lock-level 4))
+  (treesit-font-lock-level 4)
+  :config
+  (treesit-auto-add-to-auto-mode-alist 'all)
+  (global-treesit-auto-mode))
 
 (use-package combobulate
   :demand t
@@ -1949,12 +2015,25 @@ point reaches the beginning or end of the buffer, stop there."
 									#'sn/cape-in-string
 									#'sn/cape-in-comment
 									#'tabnine-completion-at-point))))
-
 (use-package consult-eglot
   :after eglot
   :bind
   (:map eglot-mode-map
 		("C-c f" . consult-eglot-symbols)))
+
+(use-package dape
+  :bind ("<F7>" . dape)
+  ;; To use window configuration like gud (gdb-mi)
+  :init
+  (setq dape-buffer-window-arrangement 'gud)
+  :config
+  ;; Info buffers to the right
+  (setq dape-buffer-window-arrangement 'right)
+  ;; To not display info and/or buffers on startup
+  (remove-hook 'dape-on-start-hooks 'dape-info)
+  (remove-hook 'dape-on-start-hooks 'dape-repl)o (add-hook 'dape-on-start-hooks
+            (defun dape--save-on-start ()
+              (save-some-buffers t t))))
 
 (use-package git-gutter
   :config
@@ -1999,11 +2078,44 @@ point reaches the beginning or end of the buffer, stop there."
 	  ("e" "Resolve With Ediff" smerge-ediff)]
 	 ["Actions"
 	  ("q" "Quit" transient-quit-one)
-	  ("s" "Magit Status" magit-status)]])
+	  ("s" "Magit Status" magit-status)
+	  ("S" "git Logs" magit-pg-repo)]])
   :custom
   (magit-diff-refine-hunk t))
 (use-package git-timemachine
   :custom (git-timemachine-show-minibuffer-details t))
+
+(use-package hl-todo
+  :ensure (hl-todo :depth nil)
+  :init (global-hl-todo-mode t)
+  :hook (ef-themes-post-load . my-ef-themes-hl-todo-faces)
+  :config
+  (defun my-ef-themes-hl-todo-faces ()
+	"Configure `hl-todo-keyword-faces' with Ef themes colors.
+The exact color values are taken from the active Ef theme."
+	(ef-themes-with-colors
+      (setq hl-todo-keyword-faces
+			`(("HOLD" . ,yellow)
+              ("TODO" . ,red)
+              ("NEXT" . ,blue)
+              ("THEM" . ,magenta)
+              ("PROG" . ,cyan-warmer)
+              ("OKAY" . ,green-warmer)
+              ("DONT" . ,yellow-warmer)
+              ("FAIL" . ,red-warmer)
+              ("BUG" . ,red-warmer)
+              ("DONE" . ,green)
+              ("NOTE" . ,blue-warmer)
+              ("KLUDGE" . ,cyan)
+              ("HACK" . ,cyan)
+              ("TEMP" . ,red)
+              ("FIXME" . ,red-warmer)
+              ("XXX+" . ,red-warmer)
+              ("REVIEW" . ,red)
+              ("DEPRECATED" . ,yellow)))))
+  (my-ef-themes-hl-todo-faces))
+(use-package magit-todos
+  :init (magit-todos-mode 1))
 
 (use-package browse-at-remote
   :bind
@@ -2030,18 +2142,18 @@ point reaches the beginning or end of the buffer, stop there."
 				   'fringe
 				   :background "#281d12"))))
 (use-package vterm-tabs
-  ;; :ensure (:host github :repo "nehrbash/multi-vterm")
+  ;; :ensure (:host github :repo "nehrbash/vterm-tabs")
   :load-path "~/src/vterm-tabs"
   :bind
-  (("M-t" . multi-vterm-dedicated-toggle)
+  (("M-t" . vterm-tabs-dedicated-toggle)
    :map vterm-mode-map
-   ("M-t" . multi-vterm-dedicated-toggle)
+   ("M-t" . vterm-tabs-dedicated-toggle)
    ("C-M-r" . (lambda ()
                 (interactive)
                 (setq-local vterm-buffer-name-string nil)
                 (rename-buffer (concat "Term " (read-string "Term: ")))))
-   ("C-M-t" . multi-vterm)
-   ("C-M-p" . multi-vterm-project)
+   ("C-M-t" . vterm-tabs)
+   ("C-M-p" . vterm-tabs-project)
    ("C-M-f" . tab-line-switch-to-next-tab)
    ("C-M-b" . tab-line-switch-to-prev-tab)
    ("C-M-s" . consult-term)
@@ -2055,7 +2167,7 @@ point reaches the beginning or end of the buffer, stop there."
 	 ("sudo" "/bin/bash")))
   (vterm-always-compile-module t)
   :config
-  (vterm-tabs-mode 1))
+  (global-vterm-tabs-mode 1))
 
 (use-package direnv
   :config (direnv-mode))
@@ -2145,9 +2257,12 @@ point reaches the beginning or end of the buffer, stop there."
    :commands flymake-shellcheck-load
    :hook (bash-ts-mode . flymake-shellcheck-load))
 
-(use-package ts-fold
-  :ensure (:host github :repo "emacs-tree-sitter/ts-fold")
-  :init (global-ts-fold-mode t))
+(use-package treesit-fold
+  :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
+  :bind ("M-SPC f" . treesit-fold-toggle)
+  :custom (treesit-fold-summary-max-length 80)
+  :init
+  (global-treesit-fold-mode))
 
 (use-package go-mode
   :ensure-system-package
@@ -2179,10 +2294,11 @@ point reaches the beginning or end of the buffer, stop there."
 						  (setq-local compile-command "cargo run")))
   :config
   (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
-;; (use-package cargo-jump-xref
-;;   :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
-;;   :config
-;;   (add-to-list 'xref-backend-functions #'cargo-jump-xref-backend))
+(use-package cargo-jump-xref
+  :after toml-mode
+  :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
+  :config
+  (add-to-list 'xref-backend-functions #'cargo-jump-xref-backend))
 
 (use-package geiser
   :config
@@ -2243,26 +2359,19 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
 
-;; (use-package web-mode
-;;   :mode ("\\.html$" .  web-mode)
-;;   :hook (web-mode . sn/web-mode-hook)
-;;   :custom (web-mode-markup-indent-offset 2)
-;;   :config
-;;   (defun sn/web-mode-hook()
-;; 	(web-mode-set-engine "go")))
 (use-package web-mode
-  :ensure t
   :mode (("\\.html?\\'" . web-mode)
 		 ("\\.css\\'" . web-mode)
 		 ("\\.jsx?\\'" . web-mode)
 		 ("\\.tsx?\\'" . web-mode)
 		 ("\\.json\\'" . web-mode))
-  :custom
-  (let 
-  (web-mode-markup-indent-offset 7)
-  (web-mode-code-indent-offset 7)
-  (web-mode-css-indent-offset 7)
-  (web-mode-content-types-alist '(("jsx" . "\\.js[x]?\\'")))))
+  :hook (web-mode . sn/web-mode-hook)
+  :custom (web-mode-markup-indent-offset 2)
+  :config
+  (defun sn/web-mode-hook()
+	"Set web-mode engine to 'go' if in web-mode."
+	(when (equal major-mode 'web-mode)
+      (web-mode-set-engine "go"))))
 
 (defun sn/start-ag-devcontainer ()
   "Start work."
@@ -2352,37 +2461,8 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package devdocs
   :defer t)
 
-(defun ea-write-clipboard ()
-  (let ((file "/tmp/.emacs_everywhere_clipboard"))
-    (if (region-active-p)
-        (write-region (region-beginning) (region-end) file)
-      (write-region (point-min) (point-max) file))
-    (kill-buffer "*Emacs Everywhere*")))
-
-(defun ea-commit ()
-  (interactive)
-  (ea-write-clipboard)
-  (delete-frame))
-
-(defun ea-abort ()
-  (interactive)
-  (remove-hook 'delete-frame-functions 'ea-on-delete t)
-  (kill-buffer "*Emacs Everywhere*")
-  (delete-frame))
-
-(defun ea-on-delete (frame)
-  (kill-buffer "*Emacs Everywhere*"))
-
-(defun emacs-everywhere ()
-  (interactive)
-  (switch-to-buffer "*Emacs Everywhere*")
-  (select-frame-set-input-focus (selected-frame))
-  (add-hook 'delete-frame-functions 'ea-on-delete nil t)
-  (org-mode)
-  (gptel-mode)
-  (toggle-mode-line)
-  (local-set-key (kbd "M-RET") 'ea-commit)
-  (local-set-key (kbd "M-DEL") 'ea-abort))
+(use-package ea
+  :load-path "~/.emacs.d/lisp")
 
 (use-package consult-taskfile
   :load-path "~/src/consult-taskfile"
