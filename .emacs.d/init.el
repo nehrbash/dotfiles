@@ -2256,11 +2256,11 @@ The exact color values are taken from the active Ef theme."
   (defun sanityinc/find-prev-compilation (orig &optional edit-command)
 	"Find the previous compilation buffer, if present, and recompile there."
 	(if (and (null edit-command)
-			 (not (derived-mode-p 'compilation-mode))
-			 sanityinc/last-compilation-buffer
-			 (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
-		(with-current-buffer sanityinc/last-compilation-buffer
-		  (funcall orig edit-command))
+		  (not (derived-mode-p 'compilation-mode))
+		  sanityinc/last-compilation-buffer
+		  (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
+	  (with-current-buffer sanityinc/last-compilation-buffer
+		(funcall orig edit-command))
 	  (funcall orig edit-command)))
   (advice-add 'recompile :around 'sanityinc/find-prev-compilation)
   
@@ -2275,33 +2275,20 @@ The exact color values are taken from the active Ef theme."
 	(when (eq major-mode 'compilation-mode)
 	  (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer)
-  (defun sn/close-compile-window-if-successful (buffer string)
-  "Close the compilation window if the compilation was successful."
-  (when (and
-         (string-match "compilation" (buffer-name buffer))
-         (string-match "finished" string)
-         (not (with-current-buffer buffer
-                (save-excursion
-                  (goto-char (point-min))
-                  (search-forward "error" nil t)))))
-    (delete-windows-on buffer)))
-
-(add-hook 'compilation-finish-functions 'sn/close-compile-window-if-successful)
-
   (transient-define-prefix sn/project-menu ()
 	"Project Actions"
 	[["Commpile"
-	  ("c" "Compile" protogg-compile)
-	  ("r" "Recompile" recompile)
-	  ("m" "Makefile" makefile-runner)]
-	 ["Git"
-	  ("s" "Status" magit-status)
-	  ("d" "Dispatch" magit-dispatch)
-	  ("R" "Rebase menu" sn/smerge)
-	  ("g" "Time Machine" git-timemachine)]]
+	   ("c" "Compile" protogg-compile)
+	   ("r" "Recompile" recompile)
+	   ("m" "Makefile" makefile-runner)]
+	  ["Git"
+		("s" "Status" magit-status)
+		("d" "Dispatch" magit-dispatch)
+		("R" "Rebase menu" sn/smerge)
+		("g" "Time Machine" git-timemachine)]]
 	[["Misc"
-	  ("q" "Quit" transient-quit-one)
-	  ("p" "Switch Project" project-switch-project)]])
+	   ("q" "Quit" transient-quit-one)
+	   ("p" "Switch Project" project-switch-project)]])
   :bind ("C-x g" . sn/project-menu))
 
 (use-package flymake
