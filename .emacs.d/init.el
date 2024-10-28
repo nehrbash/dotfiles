@@ -79,35 +79,39 @@
 	 (t variable-pitch)))
   :preface
   (defun my-ef-themes-mod ()
-	"Tweak the style of the ef theme."
-	(interactive)
-	(ef-themes-with-colors
-	  (custom-set-faces
-	   `(default ((,c :font "Iosevka" :height 115)))
-	   `(window-divider ((,c :background ,bg-main :foreground ,bg-main))) 
-	   `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
+  "Tweak the style of the ef theme."
+  (interactive)
+  (let ((darker "#281d12")) ; Bind the value of color here
+    (ef-themes-with-colors
+      (custom-set-faces
+       `(default ((,c :family "Iosevka" :height 115)))
+       `(variable-pitch ((,c :family "Iosevka Aile")))
+       `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
+       `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-	   `(blamer-face ((,c :foreground ,fg-alt :italic t))) 
-	   `(tab-line ((,c  :foreground  "#281d12" :background "#281d12" :box (:line-width 3 :color ,bg-dim))))
-	   `(tab-line-tab ((,c :inherit 'tab-line :background ,fg-alt :foreground "#281d12")))
-	   `(treemacs-window-background-face ((,c :background "#281d12")))
-	   `(tab-line-tab-current ((,c :background ,fg-alt :foreground "#281d12")))
-	   `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground "#281d12")))
-	   `(tab-line-highlight ((,c :background ,bg-active :foreground "#281d12")))
-	   `(line-number ((,c :background "#281d12")))
-	   `(tab-line-env-default ((,c :background ,green-faint )))
-	   `(tab-line-env-1 ((,c :background ,red-faint )))
-	   `(tab-line-env-2 ((,c :background ,yellow-faint )))
-	   `(tab-line-env-3 ((,c :background ,blue-faint )))
-	   `(scroll-bar ((,c :foreground ,fg-alt :background "#281d12")))
-	   `(mode-line ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
-	   `(mode-line-active ((,c :font "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color "#281d12"))))
-	   `(mode-line-inactive ((,c :font "Iosevka Aile" :height 120 :box (:line-width 3 :color "#281d12"))))
-	   `(org-document-title ((,c :height 1.4)))
-	   `(org-modern-todo ((,c :height 1.2)))
-	   `(org-modern-done ((,c :height 1.2)))
-	   `(org-modern-tag ((,c :height 1.2)))
-	   `(org-modern-symbol ((,c :font "Iosevka"))))))
+       `(blamer-face ((,c :foreground ,fg-alt :italic t)))
+       `(tab-line ((,c  :foreground  ,darker :background ,darker :box (:line-width 3 :color ,bg-dim))))
+       `(tab-line-tab ((,c :inherit 'tab-line :background ,fg-alt :foreground ,darker)))
+       `(treemacs-window-background-face ((,c :background ,darker)))
+       `(tab-line-tab-current ((,c :background ,fg-alt :foreground ,darker)))
+       `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground ,darker)))
+       `(tab-line-highlight ((,c :background ,bg-active :foreground ,darker)))
+       `(line-number ((,c :background ,darker)))
+       `(tab-line-env-default ((,c :background ,green-faint )))
+       `(tab-line-env-1 ((,c :background ,red-faint )))
+       `(tab-line-env-2 ((,c :background ,yellow-faint )))
+       `(tab-line-env-3 ((,c :background ,blue-faint )))
+       `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
+       `(mode-line ((,c :family "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
+       `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
+       `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
+       `(eldoc-box-border ((,c :background ,fg-alt)))
+       `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
+       `(org-document-title ((,c :height 1.4)))
+       `(org-modern-todo ((,c :height 1.2)))
+       `(org-modern-done ((,c :height 1.2)))
+       `(org-modern-tag ((,c :height 1.2)))
+       `(org-modern-symbol ((,c :font "Iosevka")))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
   (add-hook 'after-make-frame-functions
 			(lambda (frame)
@@ -124,8 +128,8 @@
   (doom-modeline-workspace-name nil)
   :config
   (doom-modeline-def-modeline 'simple-line
-    '(eldoc modals window-number vcs bar buffer-info remote-host)
-    '(compilation debug check objed-state persp-name process))
+    '(bar eldoc modals " " bar buffer-info " " bar remote-host)
+    '(compilation debug check objed-state persp-name process vcs))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
@@ -1210,11 +1214,10 @@ point reaches the beginning or end of the buffer, stop there."
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local corfu-auto t
-				corfu-auto-delay 0.0
-				eldoc-idle-delay 0.4
+				corfu-auto-delay 0
 				corfu-quit-no-match 'separator
 				completion-styles '(orderless-fast basic)
-				corfu-popupinfo-delay 0.4))
+				corfu-popupinfo-delay 0.2))
   (corfu-popupinfo-mode t)
   (defun corfu-move-to-minibuffer ()
 	"For long canadate lists view in minibuffer"
@@ -1886,10 +1889,16 @@ point reaches the beginning or end of the buffer, stop there."
 		org-roam-ui-update-on-save t
 		org-roam-ui-open-on-start nil))
 
-(add-hook 'prog-mode-hook 'hl-line-mode) ;; hilight line
+(use-package hl-line
+  :ensure nil ;; built-in
+  :hook (prog-mode . hl-line-mode))
 
-(setopt comment-auto-fill-only-comments t)
-(add-hook 'prog-mode-hook #'auto-fill-mode)
+(use-package simple
+  :ensure nil ;; built-in
+  :custom
+  (comment-auto-fill-only-comments t)
+  (idle-update-delay 0.1)
+  :hook (prog-mode . auto-fill-mode))
 
 (use-package indent-bars
   :ensure (:host github :repo "jdtsmith/indent-bars")
@@ -1904,14 +1913,60 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package rainbow-mode
   :hook (prog-mode . rainbow-mode))
 
-(use-package treesit-auto
-  :after tsc-dyn-get
-  :custom
-  (treesit-auto-install t)
-  (treesit-font-lock-level 4)
+(use-package treesit
+  :ensure nil
+  :mode ("\\.tsx\\'" . tsx-ts-mode)
+  :preface
+  (defun mp-setup-install-grammars ()
+    "Install Tree-sitter grammars if they are absent."
+    (interactive)
+    (dolist (grammar
+             ;; Note the version numbers. These are the versions that
+             ;; are known to work with Combobulate *and* Emacs.
+             '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
+               (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+			   (gomod . ("https://github.com/camdencheek/tree-sitter-go-mod"))
+               (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+               (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
+               (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+               (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
+               (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
+               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+			   ))
+      (add-to-list 'treesit-language-source-alist grammar)
+      ;; Only install `grammar' if we don't already have it
+      ;; installed. However, if you want to *update* a grammar then
+      ;; this obviously prevents that from happening.
+      (unless (treesit-language-available-p (car grammar))
+        (treesit-install-language-grammar (car grammar)))))
+
+  ;; Optional. Combobulate works in both xxxx-ts-modes and
+  ;; non-ts-modes.
+
+  ;; You can remap major modes with `major-mode-remap-alist'. Note
+  ;; that this does *not* extend to hooks! Make sure you migrate them
+  ;; also
+  (dolist (mapping
+           '((python-mode . python-ts-mode)
+             (css-mode . css-ts-mode)
+             (typescript-mode . typescript-ts-mode)
+             (js2-mode . js-ts-mode)
+             (bash-mode . bash-ts-mode)
+             (conf-toml-mode . toml-ts-mode)
+             (go-mode . go-ts-mode)
+			 (go-mod-mode . go-mod-ts-mode)
+             (css-mode . css-ts-mode)
+             (json-mode . json-ts-mode)
+             (js-json-mode . json-ts-mode)))
+    (add-to-list 'major-mode-remap-alist mapping))
   :config
-  (treesit-auto-add-to-auto-mode-alist 'all)
-  (global-treesit-auto-mode))
+  (mp-setup-install-grammars)
+  :custom
+  (treesit-font-lock-level 4))
 
 (use-package combobulate
   :demand t
@@ -1929,60 +1984,55 @@ point reaches the beginning or end of the buffer, stop there."
   :preface
   (defun sn/eglot-eldoc ()
     (setq eldoc-documentation-strategy
-          'eldoc-documentation-compose-eagerly))
+      'eldoc-documentation-compose-eagerly))
   :bind
   (:map eglot-mode-map
-		("C-h ." . eldoc-doc-buffer)
-		("C-c r" . eglot-rename)
-		("C-c t" . eglot-find-typeDefinition)
-		("C-c i" . eglot-find-implementation)
-		("C-c a" . eglot-code-actions)
-		("C-c q" . eglot-code-action-quickfix)
-		("C-c o" . eglot-code-action-organize-imports))
+	("C-h ." . eldoc-doc-buffer)
+	("C-c r" . eglot-rename)
+	("C-c t" . eglot-find-typeDefinition)
+	("C-c i" . eglot-find-implementation)
+	("C-c a" . eglot-code-actions)
+	("C-c q" . eglot-code-action-quickfix)
+	("C-c o" . eglot-code-action-organize-imports))
   :custom
   (eglot-report-progress nil)
   (eglot-autoshutdown t)
   (eglot-sync-connect nil)
   (eglot-events-buffer-config '(:size 0 :format full))
   :config
+  (add-to-list 'eglot-ignored-server-capabilites :hoverProvider)
   (setq-default eglot-workspace-configuration
-				'(:gopls
-				  (:usePlaceholders
-				   t
-				   :staticcheck t
-				   :gofumpt t
-				   :analyses
-				   (:nilness
-					t
-					:unusedparams t
-					:unusedwrite t
-					:unusedvariable t)
-				   :hints
-				   (:assignVariableTypes
-					t
-					:constantValues t
-					:rangeVariableTypes t))
-				  :js-ts
-                  (:format 
-				   (:convertTabsToSpaces
-					t
-					:indentSize 1
-					:tabSize 1
-					:tabWidth 1))))
+	'(:gopls
+	   (:usePlaceholders t
+		 :staticcheck t
+		 :gofumpt t
+		 :analyses (:nilness t
+					 :unusedparams t
+					 :unusedwrite t
+					 :unusedvariable t)
+		 :hints (:assignVariableTypes t
+				  :constantValues t
+				  :rangeVariableTypes t))
+	   :js-ts
+	   (:format 
+		 (:convertTabsToSpaces t
+		   :indentSize 1
+		   :tabSize 1
+		   :tabWidth 1))))
   (defun eglot-rename (newname)
 	"Rename the current symbol to NEWNAME."
 	(interactive
-	 (list (read-from-minibuffer
-			(format "Rename `%s' to: " (or (thing-at-point 'symbol t)
+	  (list (read-from-minibuffer
+			  (format "Rename `%s' to: " (or (thing-at-point 'symbol t)
 										   "unknown symbol"))
-			(thing-at-point 'symbol t) nil nil nil
-			(symbol-name (symbol-at-point)))))
+			  (thing-at-point 'symbol t) nil nil nil
+			  (symbol-name (symbol-at-point)))))
 	(eglot-server-capable-or-lose :renameProvider)
 	(eglot--apply-workspace-edit
-	 (eglot--request (eglot--current-server-or-lose)
-					 :textDocument/rename `(,@(eglot--TextDocumentPositionParams)
-											:newName ,newname))
-	 this-command))
+	  (eglot--request (eglot--current-server-or-lose)
+		:textDocument/rename `(,@(eglot--TextDocumentPositionParams)
+								:newName ,newname))
+	  this-command))
   
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (defun eglot-organize-imports ()
@@ -1990,36 +2040,39 @@ point reaches the beginning or end of the buffer, stop there."
 	(eglot-code-actions nil nil "source.organizeImports" t))
   (defun sn/cape-in-string ()
 	(cape-wrap-inside-string
-	 (cape-capf-super #'cape-file
-					  #'cape-dabbrev
-					  #'cape-dict)))
+	  (cape-capf-super #'cape-file
+		#'cape-dabbrev
+		#'cape-dict)))
   (defun sn/cape-in-comment ()
 	(cape-wrap-inside-comment
-	 (cape-capf-super #'cape-file
-					  #'cape-dabbrev
-					  #'cape-dict)))
+	  (cape-capf-super #'cape-file
+		#'cape-dabbrev
+		#'cape-dict)))
   (defun sn/cape-in-code ()
 	(cape-wrap-inside-code
-	 (cape-capf-super 
-	  #'eglot-completion-at-point
-	  #'yasnippet-capf
-	  #'cape-dabbrev)))
+	  (cape-capf-super 
+		#'eglot-completion-at-point
+		#'yasnippet-capf
+		#'cape-dabbrev)))
   (defun sn/setup-eglot ()
 	"Eglot customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
 	(add-hook 'before-save-hook 'eglot-organize-imports)
 	(setq-local
-	 cape-dabbrev-min-length 3
-	 completion-at-point-functions (list
-									#'sn/cape-in-code
-									#'sn/cape-in-string
-									#'sn/cape-in-comment
-									#'tabnine-completion-at-point))))
+	  cape-dabbrev-min-length 3
+	  completion-at-point-functions (list
+									  #'sn/cape-in-code
+									  #'sn/cape-in-string
+									  #'sn/cape-in-comment
+									  #'tabnine-completion-at-point))))
 (use-package consult-eglot
   :after eglot
   :bind
   (:map eglot-mode-map
-		("C-c f" . consult-eglot-symbols)))
+	("C-c f" . consult-eglot-symbols)))
+
+(use-package eldoc-box
+  :hook (eglot-managed-mode . eldoc-box-hover-mode))
 
 (use-package dape
   :bind ("<F7>" . dape)
@@ -2116,6 +2169,11 @@ The exact color values are taken from the active Ef theme."
   (my-ef-themes-hl-todo-faces))
 (use-package magit-todos
   :init (magit-todos-mode 1))
+
+(use-package magit-pretty-graph
+  :ensure (:host github :repo "georgek/magit-pretty-graph")
+  :bind 
+  )
 
 (use-package browse-at-remote
   :bind
@@ -2217,7 +2275,19 @@ The exact color values are taken from the active Ef theme."
 	(when (eq major-mode 'compilation-mode)
 	  (ansi-color-apply-on-region compilation-filter-start (point-max))))
   (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer)
-  (require 'transient)
+  (defun sn/close-compile-window-if-successful (buffer string)
+  "Close the compilation window if the compilation was successful."
+  (when (and
+         (string-match "compilation" (buffer-name buffer))
+         (string-match "finished" string)
+         (not (with-current-buffer buffer
+                (save-excursion
+                  (goto-char (point-min))
+                  (search-forward "error" nil t)))))
+    (delete-windows-on buffer)))
+
+(add-hook 'compilation-finish-functions 'sn/close-compile-window-if-successful)
+
   (transient-define-prefix sn/project-menu ()
 	"Project Actions"
 	[["Commpile"
@@ -2351,6 +2421,10 @@ The exact color values are taken from the active Ef theme."
   (setq sqlformat-args '("-s2" "-g")))
 
 (use-package terraform-mode)
+
+(use-package lisp-mode
+  :ensure nil
+  :custom (lisp-indent-offset 2))
 
 (use-package yuck-mode
   :mode ("\\.yuck\\'" . yuck-mode)
@@ -2487,3 +2561,18 @@ The exact color values are taken from the active Ef theme."
 (zalgo-max-up 5)
 (zalgo-max-mid 3)
 (zalgo-max-down 5))
+
+(use-package eww
+   :ensure nil
+   :custom
+   (eww-auto-rename-buffer 'title)
+   :config
+   (define-advice eww (:around (oldfun &rest args) always-new-buffer)
+     "Always open EWW in a new buffer."
+     (let ((current-prefix-arg '(4)))
+       (apply oldfun args)))
+   ;; :bind
+   ;; (:map eww-mode-map
+   ;;           [mouse-8] #'eww-back-url
+   ;;           [mouse-9] #'eww-forward-url)
+)
