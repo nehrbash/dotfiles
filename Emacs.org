@@ -6,13 +6,12 @@
   :END:
 - [[#package-manager][Package Manager]]
   - [[#load-package-manager][Load Package Manager]]
-  - [[#run-install-commands-after-upgrade-all][Run install commands after upgrade all]]
+  - [[#install-functions-that-arent-dynamic-detected][Install functions that aren't dynamic detected]]
   - [[#set-custom-file][Set Custom file]]
 - [[#ui-look][UI Look]]
   - [[#theme][Theme]]
   - [[#modeline][Modeline]]
   - [[#general][General]]
-  - [[#treemacs][Treemacs]]
 - [[#general-settings][General Settings]]
   - [[#track-recent-files][Track Recent Files]]
   - [[#auto-save][Auto Save]]
@@ -125,9 +124,9 @@
     (make-directory repo t)
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                 ,@(when-let* ((depth (plist-get order :depth)))
                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
                                                  ,(plist-get order :repo) ,repo))))
                  ((zerop (call-process "git" nil buffer t "checkout"
@@ -158,15 +157,27 @@
  native-compile-prune-cache t)
 #+end_src
 
-** Run install commands after upgrade all
+** Install functions that aren't dynamic detected 
 
    I've decided to just call these manually instaed of putting them in an install hook. 
 
-#+begin_src emacs-lisp :tangle no
-(all-the-icons-install-fonts)
-(yas-reload-all)
-(recentf-cleanup)
-(nerd-icons-install-fonts)
+#+begin_src emacs-lisp
+(defun run-commands-if-no-lock-file ()
+  (let ((lock-file "~/.emacs.d/install_lock"))
+    (unless (file-exists-p lock-file)
+      (condition-case err
+        (all-the-icons-install-fonts)
+        (error (message "Error running all-the-icons-install-fonts: %s" err)))
+      (condition-case err
+        (yas-reload-all)
+        (error (message "Error running yas-reload-all: %s" err)))
+      (condition-case err
+        (recentf-cleanup)
+        (error (message "Error running recentf-cleanup: %s" err)))
+      (condition-case err
+        (nerd-icons-install-fonts)
+        (error (message "Error running nerd-icons-install-fonts: %s" err))) ;; commented as 'nerd-icons-install-fonts' function doesn't exist.
+      (write-region "" nil lock-file))))
 #+end_src
    
 ** Set Custom file
@@ -266,16 +277,30 @@
   (doom-modeline-lsp nil)
   (doom-modeline-workspace-name nil)
   :config
+  ;; Define sloth-image segment
+  (defun sloth-image-segment ()
+	"Return the centered sloth image segment with a specified height in pixels, with background color based on mode line state."
+	(let* ((image (create-image (expand-file-name "~/Pictures/sloths/sloth8.png") nil nil :height doom-modeline-height :ascent 'center))
+			(current-face (if (eq (selected-window) (minibuffer-window))
+							'mode-line-inactive
+							'mode-line-active))) ; Choose face based on active state
+      (list
+		(propertize " " 'display image 'face current-face)
+		))) ; Add space on the other side
+
+  (doom-modeline-def-segment sloth-image
+	(sloth-image-segment))
+
+  ;; Define the simple line modeline with the sloth-image segment
   (doom-modeline-def-modeline 'simple-line
-    '(bar eldoc modals " " bar buffer-info " " bar remote-host)
-    '(compilation debug check objed-state persp-name process vcs))
+	'(sloth-image bar eldoc modals " " buffer-info remote-host)
+	'(compilation debug check objed-state persp-name process vcs))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
 	(column-number-mode -1)
 	(doom-modeline-set-modeline 'simple-line 'default))
   (sn/set-modeline))
-
    #+end_src
 
 ** General
@@ -427,30 +452,6 @@ ARG and REDISPLAY are identical to the original function."
               (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 #+end_src
 	
-** Treemacs
-
-#+begin_src emacs-lisp :tangle no
-(use-package treemacs
-  :commands (treemacs)
-  :bind
-  ("M-SPC t" . treemacs)
-  :hook
-  (treemacs-mode . (lambda ()
-					 (toggle-mode-line)
-					 (set-window-fringes (selected-window) 0 0)))
-  :custom
-  (treemacs-wrap-around nil)
-  (treemacs-indentation 1)
-  (treemacs-is-never-other-window t)
-  :config
-  (treemacs-follow-mode t)
-  (treemacs-filewatch-mode t)
-  (treemacs-resize-icons 18)
-  (treemacs-git-mode 'deferred))
-(use-package treemacs-magit
-  :after (treemacs magit)
-  :ensure t)
- #+end_src
 
 * General Settings
 
@@ -987,7 +988,6 @@ Call a second time to restore the original window configuration."
 #+end_src
 
 
-   
 *** Avy
 #+begin_src emacs-lisp
 (use-package avy
@@ -1318,7 +1318,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
  #+begin_src emacs-lisp
  (use-package sudo-edit
-   :defer t
    :commands (sudo-edit))
  #+end_src
 
@@ -1457,7 +1456,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 #+begin_src emacs-lisp
 (use-package consult
   :after vertico
-  :defer t
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("C-r" . (lambda () (interactive) (consult-ripgrep nil (thing-at-point 'symbol))))
@@ -1944,34 +1942,33 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package dired
-  :defer t
   :ensure nil
   :commands (dired dired-jump)
   :hook (dired-mode . (lambda ()
-  					  (dired-omit-mode 1)
-  					  (dired-hide-details-mode 1)
-  					  (toggle-mode-line)
-  					  (hl-line-mode 1)))
+  						(dired-omit-mode 1)
+  						(dired-hide-details-mode 1)
+  						(toggle-mode-line)
+  						(hl-line-mode 1)))
   :custom
   ((dired-mouse-drag-files t)
-   (dired-omit-files "^\\.\\.?$")
-   (dired-listing-switches "-agho --group-directories-first")
-   (dired-omit-verbose nil)
-   (dired-recursive-deletes 'top)
-   (dired-dwim-target t)))
+	(dired-omit-files "^\\.\\.?$")
+	(dired-listing-switches "-agho --group-directories-first")
+	(dired-omit-verbose nil)
+	(dired-recursive-deletes 'top)
+	(dired-dwim-target t)))
 (use-package dired-single
   :ensure (:host github :repo "emacsattic/dired-single")
   :after dired
   :bind (:map dired-mode-map
-  			("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
-  			("f" . dired-single-buffer)))
+  		  ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
+  		  ("f" . dired-single-buffer)))
 (use-package dired-ranger
   :after dired
   :bind (:map dired-mode-map
-  			("w" . dired-ranger-copy)
-  			("m" . dired-ranger-move)
-  			("H" . dired-omit-mode)
-  			("y" . dired-ranger-paste)))
+  		  ("w" . dired-ranger-copy)
+  		  ("m" . dired-ranger-move)
+  		  ("H" . dired-omit-mode)
+  		  ("y" . dired-ranger-paste)))
 (use-package all-the-icons
   :defer t)
 (use-package all-the-icons-dired
@@ -1987,7 +1984,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (:map dired-mode-map
-  			("." . dired-hide-dotfiles-mode)))
+  		  ("." . dired-hide-dotfiles-mode)))
 #+end_src
 
 *** Consult Directories
@@ -2032,9 +2029,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp  
 (use-package org-contrib
-  :defer t) ;; install but don't require unless needed.
+  :after org)
 (use-package org
   :ensure nil
+  :demand t
   :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
@@ -2579,16 +2577,15 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
    idk toggle-mode-line is not working for this mode but the timer work around forks fine
 
 #+begin_src emacs-lisp
-(use-package pdf-tools 
-  :defer 1
-  :hook
-  (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
+(use-package pdf-tools
+  :defer 5
+  :hook (pdf-tools-enabled . (lambda ()
+						 (pdf-view-midnight-minor-mode 1)
 						 (toggle-mode-line)))
   :custom
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   :config
-  (setopt pdf-continuous-suppress-introduction t)
   (pdf-loader-install))
 #+end_src
 
@@ -2597,6 +2594,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package pdf-continuous-scroll-mode
   :after pdf-tools
+  :custom
+  (pdf-continuous-suppress-introduction t)
   :ensure (:host github :repo "dalanicolai/pdf-continuous-scroll-mode.el"))  
 #+end_src
 
@@ -2604,7 +2603,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package org-roam
-  :defer t
   :init (setq-default org-roam-v2-ack t)
   :config (org-roam-db-autosync-mode)
   :custom
@@ -2613,21 +2611,21 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (org-roam-completion-system 'default)
   (org-roam-dailies-directory "Journal/")
   (setq org-roam-dailies-capture-templates
-	  '(("d" "default" entry
-		 "* %?"
-		 :target (file+head "%<%Y-%m-%d>.org"
-							"#+title: %<%Y-%m-%d>\n"))))
+	'(("d" "default" entry
+		"* %?"
+		:target (file+head "%<%Y-%m-%d>.org"
+				  "#+title: %<%Y-%m-%d>\n"))))
   :bind (("C-c n f"   . org-roam-node-find)
-		   ("C-c n d"   . org-roam-dailies-goto-date)
-		   ("C-c n n"   . org-roam-buffer-display-dedicated)
-		   ("C-c n c"   . org-roam-dailies-capture-today)
-		   ("C-c n C" . org-roam-dailies-capture-tomorrow)
-		   ("C-c n t"   . org-roam-dailies-goto-today)
-		   ("C-c n y"   . org-roam-dailies-goto-yesterday)
-		   ("C-c n r"   . org-roam-dailies-goto-tomorrow)
-		   ("C-c n G"   . org-roam-graph)
-		 :map org-mode-map
-		 (("C-c n i" . org-roam-node-insert))))
+		  ("C-c n d"   . org-roam-dailies-goto-date)
+		  ("C-c n n"   . org-roam-buffer-display-dedicated)
+		  ("C-c n c"   . org-roam-dailies-capture-today)
+		  ("C-c n C" . org-roam-dailies-capture-tomorrow)
+		  ("C-c n t"   . org-roam-dailies-goto-today)
+		  ("C-c n y"   . org-roam-dailies-goto-yesterday)
+		  ("C-c n r"   . org-roam-dailies-goto-tomorrow)
+		  ("C-c n G"   . org-roam-graph)
+		  :map org-mode-map
+		  (("C-c n i" . org-roam-node-insert))))
 (use-package consult-org-roam
   :bind ("C-c n g" . org-roam-node-find)
   :after org-roam)
@@ -2675,7 +2673,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package indent-bars
   :ensure (:host github :repo "jdtsmith/indent-bars")
-  :defer t
   :hook ((prog-mode conf-mode yaml-mode) . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.2))
@@ -2774,7 +2771,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package combobulate
-  :demand t
   :ensure (:host github :repo "mickeynp/combobulate" :branch "development")
   :custom (combobulate-key-prefix "C-c j")
   :hook (prog-mode . combobulate-mode))
@@ -3501,22 +3497,23 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (defun sn/start-ag-devcontainer ()
-  "Start work."
+  "Close analytics-hub buffers, start the dev container, and open Dired and Magit."
   (interactive)
-  ;; Close all buffers associated with files in ~/src/analytics-hub/
+  ;; Close all buffers in ~/src/analytics-hub/
   (dolist (buffer (buffer-list))
-    (when (and (buffer-file-name buffer)
-               (string-prefix-p (expand-file-name "~/src/analytics-hub/") (buffer-file-name buffer)))
+    (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
       (kill-buffer buffer)))
-  ;; Run the command in ~/src/analytics-hub/
-  (let ((default-directory (expand-file-name "~/src/analytics-hub/")))
-    (let ((result (call-process-shell-command "devcontainer up --workspace-folder ." nil "  *Start Dev-Container Output*" t)))
-      (if (= result 0)
-          (message "Command executed successfully.")
-        (message "Error: Command failed. Container might not be up."))))
-  ;; Open Dired in /docker:dev-container:/workspace/
-  (dired "/docker:dev-container:/workspace/")
-  (magit-status))
+  ;; Set default directory and run the dev container command
+  (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
+         (output-buffer "*Start Dev-Container Output*")
+         (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
+    (if (= result 0)
+        (progn
+          (message "Dev container started successfully.")
+          ;; Open Dired and Magit only if the container starts successfully
+          (dired "/docker:dev-container:/workspace/")
+          (magit-status))
+      (message "Error: Command failed. Check %s for details." output-buffer))))
 #+end_src
    
 * Fancy Bloat
@@ -3575,16 +3572,57 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
  #+begin_src emacs-lisp
  (use-package gptel
-   :bind (("<f5>" . gptel)
-			  ("C-<f5>" . gptel-menu))
+   :bind
+   ("<f5>" . gptel)
+   ("C-<f5>" . gptel-menu)
+   :hook (org-mode . gptel-activate-if-model-exists)
    :custom
-   (gptel-model "gpt-4")
-   (gptel-default-mode 'org-mode))
+   (gptel-model 'gpt-4-turbo)
+   ;; (gptel-org-branching-context t)
+   (gptel-display-buffer-action
+     '((display-buffer-reuse-window display-buffer-in-side-window)
+        (side . right)
+        (window-width . 80)
+        (slot . 0)))
+   (gptel-default-mode 'org-mode)
+   :config
+   (defun gptel-close-headers (from to)
+    	"Fold all org headers in the current buffer, except for the last 2."
+    	(when (eq major-mode 'org-mode)
+    	  (save-excursion
+    		(goto-char (point-max))
+    		(condition-case nil
+           (progn
+    			(org-cycle-global 0)
+    			(goto-char from)
+ 			(outline-show-subtree)
+    			(catch 'done
+    			  (while (org-next-visible-heading 1)
+ 				(outline-show-subtree)
+    				(when (eobp)          ; Check if we're at the end of the buffer
+    				  (throw 'done nil)))))
+    		  (error nil)))))
+   (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
+   (defun gptel-save-if-file (to from)
+    	"Save the current buffer if it is associated with a file."
+    	(when (buffer-file-name) ; Check if the buffer is associated with a file
+       (save-buffer)))         ; Save the buffer
+   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file)
+   (defun gptel-activate-if-model-exists ()
+ 	"Activate gptel mode if the GPTEL_MODEL property exists in any part of the Org document."
+ 	(org-with-wide-buffer
+       (goto-char (point-min))
+       (let ((found nil))
+ 		(while (and (not found) (re-search-forward "^\\*+" nil t))  ; Iterate over headings
+           (when (org-entry-get (point) "GPTEL_MODEL")
+ 			(setq found t)))
+ 		(when found
+           (gptel-mode 1))))))
  #+end_src
 
 *** Codeium
 
- #+begin_src emacs-lisp :tangle no
+ #+begin_src emacs-lisp 
  (use-package codeium
    :ensure (:host github :repo "Exafunction/codeium.el")
    :custom
@@ -3593,12 +3631,12 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
    (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
  #+end_src
 
-*** Tabnine
+*** Tabnin
 
     Alternative to codeium, supposed to be really fast.
 
 #+begin_src emacs-lisp
-(use-package tabnine
+(use-package tabnine 
   :bind
   (:map prog-mode-map
 		("M-SPC t d" . tabnine-chat-document-code)
@@ -3609,8 +3647,9 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :after cape
   :ensure (:host github :repo "50ways2sayhard/tabnine-capf")
   :hook (kill-emacs . tabnine-capf-kill-process)
-  :config
-  (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point)))  
+  :bind ("M-SPC /" . (lambda () (interactive) (cape-capf-interactive #'tabnine-completion-at-point)))
+  ;; (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point))
+  )  
 #+end_src
     
 ** Customize Dir Local
@@ -3764,5 +3803,4 @@ bound to key ~$Mod n~q . modified version of https://github.com/psibi/emacs-ever
 - [[https://github.com/jinnovation/dotemacs][jinnovation dotemacs]]
 - [[https://writequit.org/org/][writequit's config]]
 - Any Package of [[https://github.com/minad][Minad]]
-
-And of course [[https://systemcrafters.cc/][System Crafters]] !
+- [[https://systemcrafters.cc/][System Crafters]] !

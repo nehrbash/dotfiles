@@ -19,9 +19,9 @@
     (make-directory repo t)
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let ((depth (plist-get order :depth)))
+                                                 ,@(when-let* ((depth (plist-get order :depth)))
                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
                                                  ,(plist-get order :repo) ,repo))))
                  ((zerop (call-process "git" nil buffer t "checkout"
@@ -50,6 +50,23 @@
  native-comp-jit-compilation t
  byte-compile-docstring-max-column 120
  native-compile-prune-cache t)
+
+(defun run-commands-if-no-lock-file ()
+  (let ((lock-file "~/.emacs.d/install_lock"))
+    (unless (file-exists-p lock-file)
+      (condition-case err
+        (all-the-icons-install-fonts)
+        (error (message "Error running all-the-icons-install-fonts: %s" err)))
+      (condition-case err
+        (yas-reload-all)
+        (error (message "Error running yas-reload-all: %s" err)))
+      (condition-case err
+        (recentf-cleanup)
+        (error (message "Error running recentf-cleanup: %s" err)))
+      (condition-case err
+        (nerd-icons-install-fonts)
+        (error (message "Error running nerd-icons-install-fonts: %s" err))) ;; commented as 'nerd-icons-install-fonts' function doesn't exist.
+      (write-region "" nil lock-file))))
 
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
 (defun sn/elpacha-hook ()
@@ -127,9 +144,24 @@
   (doom-modeline-lsp nil)
   (doom-modeline-workspace-name nil)
   :config
+  ;; Define sloth-image segment
+  (defun sloth-image-segment ()
+	"Return the centered sloth image segment with a specified height in pixels, with background color based on mode line state."
+	(let* ((image (create-image (expand-file-name "~/Pictures/sloths/sloth8.png") nil nil :height doom-modeline-height :ascent 'center))
+			(current-face (if (eq (selected-window) (minibuffer-window))
+							'mode-line-inactive
+							'mode-line-active))) ; Choose face based on active state
+      (list
+		(propertize " " 'display image 'face current-face)
+		))) ; Add space on the other side
+
+  (doom-modeline-def-segment sloth-image
+	(sloth-image-segment))
+
+  ;; Define the simple line modeline with the sloth-image segment
   (doom-modeline-def-modeline 'simple-line
-    '(bar eldoc modals " " bar buffer-info " " bar remote-host)
-    '(compilation debug check objed-state persp-name process vcs))
+	'(sloth-image bar eldoc modals " " buffer-info remote-host)
+	'(compilation debug check objed-state persp-name process vcs))
   (defun sn/set-modeline ()
 	"Customize doom-modeline."
 	(line-number-mode -1)
@@ -858,7 +890,6 @@ point reaches the beginning or end of the buffer, stop there."
   (windswap-default-keybindings 'shift 'control))
 
 (use-package sudo-edit
-  :defer t
   :commands (sudo-edit))
 
 (use-package fullframe)
@@ -935,7 +966,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package consult
   :after vertico
-  :defer t
   :bind
   ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
   ("C-r" . (lambda () (interactive) (consult-ripgrep nil (thing-at-point 'symbol))))
@@ -1309,34 +1339,33 @@ point reaches the beginning or end of the buffer, stop there."
   :bind ("M-s D" . define-word-at-point))
 
 (use-package dired
-  :defer t
   :ensure nil
   :commands (dired dired-jump)
   :hook (dired-mode . (lambda ()
-  					  (dired-omit-mode 1)
-  					  (dired-hide-details-mode 1)
-  					  (toggle-mode-line)
-  					  (hl-line-mode 1)))
+  						(dired-omit-mode 1)
+  						(dired-hide-details-mode 1)
+  						(toggle-mode-line)
+  						(hl-line-mode 1)))
   :custom
   ((dired-mouse-drag-files t)
-   (dired-omit-files "^\\.\\.?$")
-   (dired-listing-switches "-agho --group-directories-first")
-   (dired-omit-verbose nil)
-   (dired-recursive-deletes 'top)
-   (dired-dwim-target t)))
+	(dired-omit-files "^\\.\\.?$")
+	(dired-listing-switches "-agho --group-directories-first")
+	(dired-omit-verbose nil)
+	(dired-recursive-deletes 'top)
+	(dired-dwim-target t)))
 (use-package dired-single
   :ensure (:host github :repo "emacsattic/dired-single")
   :after dired
   :bind (:map dired-mode-map
-  			("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
-  			("f" . dired-single-buffer)))
+  		  ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
+  		  ("f" . dired-single-buffer)))
 (use-package dired-ranger
   :after dired
   :bind (:map dired-mode-map
-  			("w" . dired-ranger-copy)
-  			("m" . dired-ranger-move)
-  			("H" . dired-omit-mode)
-  			("y" . dired-ranger-paste)))
+  		  ("w" . dired-ranger-copy)
+  		  ("m" . dired-ranger-move)
+  		  ("H" . dired-omit-mode)
+  		  ("y" . dired-ranger-paste)))
 (use-package all-the-icons
   :defer t)
 (use-package all-the-icons-dired
@@ -1352,7 +1381,7 @@ point reaches the beginning or end of the buffer, stop there."
   :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (:map dired-mode-map
-  			("." . dired-hide-dotfiles-mode)))
+  		  ("." . dired-hide-dotfiles-mode)))
 
 (use-package consult-dir
   :after consult
@@ -1385,9 +1414,10 @@ point reaches the beginning or end of the buffer, stop there."
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
 (use-package org-contrib
-  :defer t) ;; install but don't require unless needed.
+  :after org)
 (use-package org
   :ensure nil
+  :demand t
   :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
@@ -1835,24 +1865,24 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package toc-org
   :hook (org-mode . toc-org-mode))
 
-(use-package pdf-tools 
-  :defer 1
-  :hook
-  (pdf-tools-enabled . (lambda ()  (pdf-view-midnight-minor-mode 1)
+(use-package pdf-tools
+  :defer 5
+  :hook (pdf-tools-enabled . (lambda ()
+						 (pdf-view-midnight-minor-mode 1)
 						 (toggle-mode-line)))
   :custom
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   :config
-  (setopt pdf-continuous-suppress-introduction t)
   (pdf-loader-install))
 
 (use-package pdf-continuous-scroll-mode
   :after pdf-tools
+  :custom
+  (pdf-continuous-suppress-introduction t)
   :ensure (:host github :repo "dalanicolai/pdf-continuous-scroll-mode.el"))
 
 (use-package org-roam
-  :defer t
   :init (setq-default org-roam-v2-ack t)
   :config (org-roam-db-autosync-mode)
   :custom
@@ -1861,21 +1891,21 @@ point reaches the beginning or end of the buffer, stop there."
   (org-roam-completion-system 'default)
   (org-roam-dailies-directory "Journal/")
   (setq org-roam-dailies-capture-templates
-	  '(("d" "default" entry
-		 "* %?"
-		 :target (file+head "%<%Y-%m-%d>.org"
-							"#+title: %<%Y-%m-%d>\n"))))
+	'(("d" "default" entry
+		"* %?"
+		:target (file+head "%<%Y-%m-%d>.org"
+				  "#+title: %<%Y-%m-%d>\n"))))
   :bind (("C-c n f"   . org-roam-node-find)
-		   ("C-c n d"   . org-roam-dailies-goto-date)
-		   ("C-c n n"   . org-roam-buffer-display-dedicated)
-		   ("C-c n c"   . org-roam-dailies-capture-today)
-		   ("C-c n C" . org-roam-dailies-capture-tomorrow)
-		   ("C-c n t"   . org-roam-dailies-goto-today)
-		   ("C-c n y"   . org-roam-dailies-goto-yesterday)
-		   ("C-c n r"   . org-roam-dailies-goto-tomorrow)
-		   ("C-c n G"   . org-roam-graph)
-		 :map org-mode-map
-		 (("C-c n i" . org-roam-node-insert))))
+		  ("C-c n d"   . org-roam-dailies-goto-date)
+		  ("C-c n n"   . org-roam-buffer-display-dedicated)
+		  ("C-c n c"   . org-roam-dailies-capture-today)
+		  ("C-c n C" . org-roam-dailies-capture-tomorrow)
+		  ("C-c n t"   . org-roam-dailies-goto-today)
+		  ("C-c n y"   . org-roam-dailies-goto-yesterday)
+		  ("C-c n r"   . org-roam-dailies-goto-tomorrow)
+		  ("C-c n G"   . org-roam-graph)
+		  :map org-mode-map
+		  (("C-c n i" . org-roam-node-insert))))
 (use-package consult-org-roam
   :bind ("C-c n g" . org-roam-node-find)
   :after org-roam)
@@ -1902,7 +1932,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package indent-bars
   :ensure (:host github :repo "jdtsmith/indent-bars")
-  :defer t
   :hook ((prog-mode conf-mode yaml-mode) . indent-bars-mode)
   :custom
   (indent-bars-color '(highlight :face-bg t :blend 0.2))
@@ -1969,7 +1998,6 @@ point reaches the beginning or end of the buffer, stop there."
   (treesit-font-lock-level 4))
 
 (use-package combobulate
-  :demand t
   :ensure (:host github :repo "mickeynp/combobulate" :branch "development")
   :custom (combobulate-key-prefix "C-c j")
   :hook (prog-mode . combobulate-mode))
@@ -2435,22 +2463,23 @@ The exact color values are taken from the active Ef theme."
       (web-mode-set-engine "go"))))
 
 (defun sn/start-ag-devcontainer ()
-  "Start work."
+  "Close analytics-hub buffers, start the dev container, and open Dired and Magit."
   (interactive)
-  ;; Close all buffers associated with files in ~/src/analytics-hub/
+  ;; Close all buffers in ~/src/analytics-hub/
   (dolist (buffer (buffer-list))
-    (when (and (buffer-file-name buffer)
-               (string-prefix-p (expand-file-name "~/src/analytics-hub/") (buffer-file-name buffer)))
+    (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
       (kill-buffer buffer)))
-  ;; Run the command in ~/src/analytics-hub/
-  (let ((default-directory (expand-file-name "~/src/analytics-hub/")))
-    (let ((result (call-process-shell-command "devcontainer up --workspace-folder ." nil "  *Start Dev-Container Output*" t)))
-      (if (= result 0)
-          (message "Command executed successfully.")
-        (message "Error: Command failed. Container might not be up."))))
-  ;; Open Dired in /docker:dev-container:/workspace/
-  (dired "/docker:dev-container:/workspace/")
-  (magit-status))
+  ;; Set default directory and run the dev container command
+  (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
+         (output-buffer "*Start Dev-Container Output*")
+         (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
+    (if (= result 0)
+        (progn
+          (message "Dev container started successfully.")
+          ;; Open Dired and Magit only if the container starts successfully
+          (dired "/docker:dev-container:/workspace/")
+          (magit-status))
+      (message "Error: Command failed. Check %s for details." output-buffer))))
 
 (use-package mu4e
   :ensure nil
@@ -2489,13 +2518,61 @@ The exact color values are taken from the active Ef theme."
 		whisper-translate nil))
 
 (use-package gptel
-  :bind (("<f5>" . gptel)
-			  ("C-<f5>" . gptel-menu))
+  :bind
+  ("<f5>" . gptel)
+  ("C-<f5>" . gptel-menu)
+  :hook (org-mode . gptel-activate-if-model-exists)
   :custom
-  (gptel-model "gpt-4")
-  (gptel-default-mode 'org-mode))
+  (gptel-model 'gpt-4-turbo)
+  ;; (gptel-org-branching-context t)
+  (gptel-display-buffer-action
+    '((display-buffer-reuse-window display-buffer-in-side-window)
+       (side . right)
+       (window-width . 80)
+       (slot . 0)))
+  (gptel-default-mode 'org-mode)
+  :config
+  (defun gptel-close-headers (from to)
+   	"Fold all org headers in the current buffer, except for the last 2."
+   	(when (eq major-mode 'org-mode)
+   	  (save-excursion
+   		(goto-char (point-max))
+   		(condition-case nil
+          (progn
+   			(org-cycle-global 0)
+   			(goto-char from)
+			(outline-show-subtree)
+   			(catch 'done
+   			  (while (org-next-visible-heading 1)
+				(outline-show-subtree)
+   				(when (eobp)          ; Check if we're at the end of the buffer
+   				  (throw 'done nil)))))
+   		  (error nil)))))
+  (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
+  (defun gptel-save-if-file (to from)
+   	"Save the current buffer if it is associated with a file."
+   	(when (buffer-file-name) ; Check if the buffer is associated with a file
+      (save-buffer)))         ; Save the buffer
+  (add-to-list 'gptel-post-response-functions #'gptel-save-if-file)
+  (defun gptel-activate-if-model-exists ()
+	"Activate gptel mode if the GPTEL_MODEL property exists in any part of the Org document."
+	(org-with-wide-buffer
+      (goto-char (point-min))
+      (let ((found nil))
+		(while (and (not found) (re-search-forward "^\\*+" nil t))  ; Iterate over headings
+          (when (org-entry-get (point) "GPTEL_MODEL")
+			(setq found t)))
+		(when found
+          (gptel-mode 1))))))
 
-(use-package tabnine
+(use-package codeium
+  :ensure (:host github :repo "Exafunction/codeium.el")
+  :custom
+  (codeium-log-buffer nil)
+  :config 
+  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
+
+(use-package tabnine 
   :bind
   (:map prog-mode-map
 		("M-SPC t d" . tabnine-chat-document-code)
@@ -2506,8 +2583,9 @@ The exact color values are taken from the active Ef theme."
   :after cape
   :ensure (:host github :repo "50ways2sayhard/tabnine-capf")
   :hook (kill-emacs . tabnine-capf-kill-process)
-  :config
-  (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point)))
+  :bind ("M-SPC /" . (lambda () (interactive) (cape-capf-interactive #'tabnine-completion-at-point)))
+  ;; (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point))
+  )
 
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
