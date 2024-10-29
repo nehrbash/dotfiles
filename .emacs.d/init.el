@@ -2523,7 +2523,7 @@ The exact color values are taken from the active Ef theme."
   ("C-<f5>" . gptel-menu)
   :hook (org-mode . gptel-activate-if-model-exists)
   :custom
-  (gptel-model 'gpt-4-turbo)
+  (gptel-model 'gpt-4o)
   ;; (gptel-org-branching-context t)
   (gptel-display-buffer-action
     '((display-buffer-reuse-window display-buffer-in-side-window)
@@ -2533,33 +2533,32 @@ The exact color values are taken from the active Ef theme."
   (gptel-default-mode 'org-mode)
   :config
   (defun gptel-close-headers (from to)
-   	"Fold all org headers in the current buffer, except for the last 2."
+   	"Fold all org headers in the current buffer, except for the last response."
    	(when (eq major-mode 'org-mode)
-   	  (save-excursion
-   		(goto-char (point-max))
+	  (progn
    		(condition-case nil
           (progn
    			(org-cycle-global 0)
    			(goto-char from)
-			(outline-show-subtree)
-   			(catch 'done
-   			  (while (org-next-visible-heading 1)
-				(outline-show-subtree)
-   				(when (eobp)          ; Check if we're at the end of the buffer
-   				  (throw 'done nil)))))
-   		  (error nil)))))
+   			(while (outline-invisible-p (line-end-position))
+			  (progn
+			  (outline-show-subtree)
+			  (outline-next-visible-heading 1))))
+   		  (error (message "gptel-close-headers error: %s" (error-message-string err))))
+		(outline-show-subtree) ; not sure why but sometimes needs this
+		(org-end-of-line))))
   (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
   (defun gptel-save-if-file (to from)
    	"Save the current buffer if it is associated with a file."
-   	(when (buffer-file-name) ; Check if the buffer is associated with a file
-      (save-buffer)))         ; Save the buffer
+   	(when (buffer-file-name)
+      (save-buffer)))
   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file)
   (defun gptel-activate-if-model-exists ()
 	"Activate gptel mode if the GPTEL_MODEL property exists in any part of the Org document."
 	(org-with-wide-buffer
       (goto-char (point-min))
       (let ((found nil))
-		(while (and (not found) (re-search-forward "^\\*+" nil t))  ; Iterate over headings
+		(while (and (not found) (re-search-forward "^\\*+" nil t))
           (when (org-entry-get (point) "GPTEL_MODEL")
 			(setq found t)))
 		(when found
