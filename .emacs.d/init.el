@@ -147,7 +147,7 @@
   ;; Define sloth-image segment
   (defun sloth-image-segment ()
 	"Return the centered sloth image segment with a specified height in pixels, with background color based on mode line state."
-	(let* ((image (create-image (expand-file-name "~/Pictures/sloths/sloth8.png") nil nil :height doom-modeline-height :ascent 'center))
+	(let* ((image (create-image (expand-file-name "~/.emacs.d/img/sloth-head.jpg") nil nil :height doom-modeline-height :ascent 'center))
 			(current-face (if (eq (selected-window) (minibuffer-window))
 							'mode-line-inactive
 							'mode-line-active))) ; Choose face based on active state
@@ -2091,7 +2091,7 @@ point reaches the beginning or end of the buffer, stop there."
 		  #'cape-dabbrev))))
   (defun sn/cape-ai ()
 	(cape-wrap-prefix-length
-	  (cape-capf-accept-all #'codeium-completion-at-point) 3))
+	  (cape-capf-accept-all #'codeium-completion-at-point) 2))
   (defun sn/setup-eglot ()
 	"Eglot setup customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 'local)
