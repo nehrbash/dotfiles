@@ -1216,10 +1216,10 @@ point reaches the beginning or end of the buffer, stop there."
   :after orderless
   :hook (((prog-mode conf-mode yaml-mode) . sn/corfu-basic))
   :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
-			  ("TAB" . corfu-next)
-			  ([tab] . corfu-next)
-			  ("S-TAB" . corfu-previous)
-			  ([backtab] . corfu-previous))
+		  ("TAB" . corfu-next)
+		  ([tab] . corfu-next)
+		  ("S-TAB" . corfu-previous)
+		  ([backtab] . corfu-previous))
   :custom
   (corfu-cycle t)
   (corfu-preselect 'prompt) ;; Always preselect the prompt
@@ -1228,6 +1228,7 @@ point reaches the beginning or end of the buffer, stop there."
   (tab-always-indent 'complete)
   (corfu-auto-delay 0.8)
   (corfu-popupinfo-delay 0.2)
+  (corfu-quit-no-match 'separator)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold nil)
   :init
@@ -1236,27 +1237,28 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
-		 `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
+	  `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
   (orderless-define-completion-style orderless-fast
 	"A basic completion suitable for coding."
 	(orderless-style-dispatchers '(orderless-fast-dispatch))
 	(orderless-matching-styles '(orderless-literal orderless-regexp)))
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
-	(setq-local corfu-auto t
-				corfu-auto-delay 0
-				corfu-quit-no-match 'separator
-				completion-styles '(orderless-fast basic)
-				corfu-popupinfo-delay 0.2))
+	(setq-local
+	  corfu-auto t
+	  corfu-auto-delay 0
+	  corfu-quit-no-match t
+	  completion-styles '(orderless-fast basic)
+	  corfu-popupinfo-delay .8))
   (corfu-popupinfo-mode t)
   (defun corfu-move-to-minibuffer ()
 	"For long canadate lists view in minibuffer"
 	(interactive)
 	(pcase completion-in-region--data
       (`(,beg ,end ,table ,pred ,extras)
-       (let ((completion-extra-properties extras)
-			 completion-cycle-threshold completion-cycling)
-		 (consult-completion-in-region beg end table pred)))))
+		(let ((completion-extra-properties extras)
+			   completion-cycle-threshold completion-cycling)
+		  (consult-completion-in-region beg end table pred)))))
   (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
   (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
 
@@ -2068,31 +2070,34 @@ point reaches the beginning or end of the buffer, stop there."
 	(eglot-code-actions nil nil "source.organizeImports" t))
   (defun sn/cape-in-string ()
 	(cape-wrap-inside-string
-	  (cape-capf-super #'cape-file
+	  (cape-capf-super
+		#'cape-file
 		#'cape-dabbrev
 		#'cape-dict)))
   (defun sn/cape-in-comment ()
 	(cape-wrap-inside-comment
-	  (cape-capf-super #'cape-file
+	  (cape-capf-super
 		#'cape-dabbrev
-		#'cape-dict)))
+		#'cape-dict
+		#'cape-file)))
   (defun sn/cape-in-code ()
-	(cape-wrap-inside-code
-	  (cape-capf-super 
-		#'eglot-completion-at-point
-		#'yasnippet-capf
-		#'cape-dabbrev)))
+	(cape-wrap-nonexclusive
+	  (cape-capf-inside-code
+		(cape-capf-super
+		  #'eglot-completion-at-point
+		  #'yasnippet-capf
+		  #'cape-dabbrev))))
   (defun sn/setup-eglot ()
-	"Eglot customizations"
-	(add-hook 'before-save-hook #'eglot-format-buffer -10 t)
-	(add-hook 'before-save-hook 'eglot-organize-imports)
+	"Eglot setup customizations"
+	(add-hook 'before-save-hook #'eglot-format-buffer -10 'local)
+	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local)
 	(setq-local
 	  cape-dabbrev-min-length 3
 	  completion-at-point-functions (list
 									  #'sn/cape-in-code
 									  #'sn/cape-in-string
 									  #'sn/cape-in-comment
-									  #'tabnine-completion-at-point))))
+									  #'codeium-completion-at-point))))
 (use-package consult-eglot
   :after eglot
   :bind
