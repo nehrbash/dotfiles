@@ -305,24 +305,28 @@ ARG and REDISPLAY are identical to the original function."
   (recentf-auto-cleanup 'never) 
   (recentf-max-saved-items 100)
   (backup-directory-alist
-   `((".*" . ,temporary-file-directory)))
+	`((".*" . ,temporary-file-directory)))
+  :hook ((kill-emacs find-file) . (lambda ()
+						(recentf-save-list)))
   :config
   (setq recentf-exclude '(
-						  ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
-						  "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
-						  "/tmp/.*"           ;; matches any string that includes directory named tmp
-						  "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
-						  ))
-  (defun save-recentf ()
-	"Save recentf list."
-	(interactive)
-	(recentf-save-list))
-  (run-at-time 60 360 'save-recentf))
+						   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
+						   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
+						   "/tmp/.*"           ;; matches any string that includes directory named tmp
+						   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
+						   )))
+
+(use-package files
+  :ensure nil
+  :custom
+  (auto-save-default nil) ;; Disable global auto-save feature
+  (remote-file-name-inhibit-locks t))
 
 (use-package autorevert
   :ensure nil
   :custom
   (auto-revert-use-notify nil)
+  (auto-revert-verbose nil)
   :init (global-auto-revert-mode 1))
 
 (use-package tramp
@@ -2524,7 +2528,7 @@ The exact color values are taken from the active Ef theme."
 
 (use-package gptel
   :bind
-  ("<f5>" . gptel)
+  ("<f5>" . gptel-toggle-sidebar)
   ("C-<f5>" . gptel-menu)
   :hook (org-mode . gptel-activate-if-model-exists)
   :custom
@@ -2537,6 +2541,20 @@ The exact color values are taken from the active Ef theme."
        (slot . 0)))
   (gptel-default-mode 'org-mode)
   :config
+  (defun gptel-toggle-sidebar ()
+	"Toggle a custom sidebar for the buffer '*My Sidebar*'."
+	(interactive)
+	(let ((buffer-name "AI Chat"))
+	  (if-let* ((window (get-buffer-window buffer-name)))
+		;; If the sidebar is already open, close it.
+		(delete-window window)
+		;; Else, create the sidebar using
+		(let ((chat-buffer (gptel buffer-name)))
+		  (display-buffer-in-side-window
+			chat-buffer '((side . right) (window-width . 80) (slot . 0)))
+		  (let ((window (get-buffer-window chat-buffer)))
+			(when window
+			  (select-window window)))))))
   (defun gptel-close-headers (from to)
    	"Fold all org headers in the current buffer, except for the last response."
    	(when (eq major-mode 'org-mode)
@@ -2547,8 +2565,8 @@ The exact color values are taken from the active Ef theme."
    			(goto-char from)
    			(while (outline-invisible-p (line-end-position))
 			  (progn
-			  (outline-show-subtree)
-			  (outline-next-visible-heading 1))))
+				(outline-show-subtree)
+				(outline-next-visible-heading 1))))
    		  (error (message "gptel-close-headers error: %s" (error-message-string err))))
 		(outline-show-subtree) ; not sure why but sometimes needs this
 		(org-end-of-line))))
