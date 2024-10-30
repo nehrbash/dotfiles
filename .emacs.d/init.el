@@ -783,7 +783,6 @@ Call a second time to restore the original window configuration."
 	   "Toggle lax whitespace"
 	   isearch-toggle-lax-whitespace
 	   :transient nil)]
-
 	 ["Misc"
 	  ("l"
 	   "Start ‘consult-line’"
@@ -801,11 +800,6 @@ Call a second time to restore the original window configuration."
 	   "occur"
 	   isearch-occur
 	   :transient nil)]]))
-
-(defun add-auto-mode (mode &rest patterns)
-  "Add entries to `auto-mode-alist' to use `MODE' for all given file `PATTERNS'."
-  (dolist (pattern patterns)
-	 (add-to-list 'auto-mode-alist (cons pattern mode))))
 
 (defun delete-this-file ()
   "Delete the current file, and kill the buffer."
@@ -1346,7 +1340,6 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package dired
   :ensure nil
-  :commands (dired dired-jump)
   :hook (dired-mode . (lambda ()
   						(dired-omit-mode 1)
   						(dired-hide-details-mode 1)
@@ -1372,8 +1365,13 @@ point reaches the beginning or end of the buffer, stop there."
   		  ("m" . dired-ranger-move)
   		  ("H" . dired-omit-mode)
   		  ("y" . dired-ranger-paste)))
-(use-package all-the-icons
-  :defer t)
+(use-package all-the-icons)
+(use-package dired-subtree 
+  :after dired
+  :bind (:map dired-mode-map
+		  ("<tab>" . dired-subtree-toggle)
+		  ("<backtab>" . dired-subtree-cycle)))
+
 (use-package all-the-icons-dired
   :after dired
   :hook (dired-mode . all-the-icons-dired-mode))
@@ -2048,7 +2046,7 @@ point reaches the beginning or end of the buffer, stop there."
 				  :constantValues t
 				  :rangeVariableTypes t))
 	   :js-ts
-	   (:format 
+	   (:format
 		 (:convertTabsToSpaces t
 		   :indentSize 1
 		   :tabSize 1
@@ -2091,6 +2089,9 @@ point reaches the beginning or end of the buffer, stop there."
 		  #'eglot-completion-at-point
 		  #'yasnippet-capf
 		  #'cape-dabbrev))))
+  (defun sn/cape-ai ()
+	(cape-wrap-prefix-length
+	  (cape-capf-accept-all #'codeium-completion-at-point) 3))
   (defun sn/setup-eglot ()
 	"Eglot setup customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 'local)
@@ -2101,7 +2102,7 @@ point reaches the beginning or end of the buffer, stop there."
 									  #'sn/cape-in-code
 									  #'sn/cape-in-string
 									  #'sn/cape-in-comment
-									  #'codeium-completion-at-point))))
+									  #'sn/cape-ai))))
 (use-package consult-eglot
   :after eglot
   :bind
@@ -2533,7 +2534,6 @@ The exact color values are taken from the active Ef theme."
   :hook (org-mode . gptel-activate-if-model-exists)
   :custom
   (gptel-model 'gpt-4o)
-  ;; (gptel-org-branching-context t)
   (gptel-display-buffer-action
     '((display-buffer-reuse-window display-buffer-in-side-window)
        (side . right)
@@ -2551,10 +2551,12 @@ The exact color values are taken from the active Ef theme."
 		;; Else, create the sidebar using
 		(let ((chat-buffer (gptel buffer-name)))
 		  (display-buffer-in-side-window
-			chat-buffer '((side . right) (window-width . 80) (slot . 0)))
+			chat-buffer gptel-display-buffer-action)
 		  (let ((window (get-buffer-window chat-buffer)))
 			(when window
-			  (select-window window)))))))
+			  (set-window-dedicated-p window t)
+			  (select-window window)
+			  (setq mode-line-format nil)))))))
   (defun gptel-close-headers (from to)
    	"Fold all org headers in the current buffer, except for the last response."
    	(when (eq major-mode 'org-mode)
@@ -2589,10 +2591,24 @@ The exact color values are taken from the active Ef theme."
 
 (use-package codeium
   :ensure (:host github :repo "Exafunction/codeium.el")
+  :after cape
   :custom
   (codeium-log-buffer nil)
-  :config 
-  (add-to-list 'completion-at-point-functions #'codeium-completion-at-point))
+  :config
+  (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
+  
+  ;; You can overwrite all the codeium configs!
+  ;; for example, we recommend limiting the string sent to codeium for better performance
+  (defun my-codeium/document/text ()
+    (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
+  ;; if you change the text, you should also change the cursor_offset
+  ;; warning: this is measured by UTF-8 encoded bytes
+  (defun my-codeium/document/cursor_offset ()
+    (codeium-utf8-byte-length
+      (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
+  (setq codeium/document/text 'my-codeium/document/text)
+  (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset)
+  )
 
 (use-package tabnine 
   :bind
