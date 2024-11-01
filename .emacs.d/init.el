@@ -107,17 +107,18 @@
        `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
        `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
        `(blamer-face ((,c :foreground ,fg-alt :italic t)))
-       `(tab-line ((,c  :foreground  ,darker :background ,darker :box (:line-width 3 :color ,bg-dim))))
-       `(tab-line-tab ((,c :inherit 'tab-line :background ,fg-alt :foreground ,darker)))
-       `(treemacs-window-background-face ((,c :background ,darker)))
-       `(tab-line-tab-current ((,c :background ,fg-alt :foreground ,darker)))
-       `(tab-line-tab-inactive ((,c :background ,fg-dim :foreground ,darker)))
-       `(tab-line-highlight ((,c :background ,bg-active :foreground ,darker)))
+       `(tab-line              ((,c :background ,bg-dim :foreground ,bg-dim :height 1.1 :box nil)))
+       `(tab-line-tab-group    ((,c :inherit 'tab-line)))
+       `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
+       `(tab-line-tab-current  ((,c :height 1.1 :inherit 'tab-line-tab :background nil :box nil)))
+       `(tab-line-tab-inactive ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
+       `(tab-line-tab-inactive-alternate ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
+       `(tab-line-highlight ((,c :inherit nil :background nil :foreground nil :box nil)))
+       ;; `(tab-line-env-default ((,c :background ,green-faint )))
+       ;; `(tab-line-env-1 ((,c :background ,red-faint )))
+       ;; `(tab-line-env-2 ((,c :background ,yellow-faint )))
+       ;; `(tab-line-env-3 ((,c :background ,blue-faint )))
        `(line-number ((,c :background ,darker)))
-       `(tab-line-env-default ((,c :background ,green-faint )))
-       `(tab-line-env-1 ((,c :background ,red-faint )))
-       `(tab-line-env-2 ((,c :background ,yellow-faint )))
-       `(tab-line-env-3 ((,c :background ,blue-faint )))
        `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
        `(mode-line ((,c :family "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
        `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
@@ -2218,7 +2219,7 @@ The exact color values are taken from the active Ef theme."
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
-(use-package svg-tag-mode :ensure t)
+(use-package svg-tag-mode)
 (use-package vterm
   :hook
   (vterm-mode . (lambda ()
@@ -2237,6 +2238,7 @@ The exact color values are taken from the active Ef theme."
 				  (face-remap-add-relative
 				   'fringe
 				   :background "#281d12"))))
+
 (use-package vterm-tabs
   ;; :ensure (:host github :repo "nehrbash/vterm-tabs")
   :load-path "~/src/vterm-tabs"
@@ -2263,6 +2265,7 @@ The exact color values are taken from the active Ef theme."
 	 ("sudo" "/bin/bash")))
   (vterm-always-compile-module t)
   :config
+  (require 'svg-tabs)
   (global-vterm-tabs-mode 1))
 
 (use-package direnv
