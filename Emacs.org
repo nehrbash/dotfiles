@@ -1027,86 +1027,64 @@ Call a second time to restore the original window configuration."
 #+begin_src emacs-lisp
 (use-package transient
   :bind
+  ("C-x g" . sn/project-menu)
   (:map isearch-mode-map
 		("C-t" . sn/isearch-menu))
   :config
+  (transient-define-prefix sn/project-menu ()
+	"Project Actions"
+	[["Commpile"
+	   ("c" "Compile" protogg-compile)
+	   ("r" "Recompile" recompile)
+	   ("m" "Makefile" makefile-runner)]
+	  ["Git"
+		("s" "Status" magit-status)
+		("d" "Dispatch" magit-dispatch)
+		("R" "Rebase menu" sn/smerge)
+		("g" "Time Machine" git-timemachine)]]
+	[["Misc"
+	   ("q" "Quit" transient-quit-one)
+	   ("p" "Switch Project" project-switch-project)]])
   (transient-define-prefix sn/isearch-menu ()
 	"isearch Menu"
 	[["Edit Search String"
-	  ("e"
-	   "Edit the search string (recursive)"
-	   isearch-edit-string
-	   :transient nil)
-	  ("w"
-	   "Pull next word or character word from buffer"
-	   isearch-yank-word-or-char
-	   :transient nil)
-	  ("s"
-	   "Pull next symbol or character from buffer"
-	   isearch-yank-symbol-or-char
-	   :transient nil)
-	  ("l"
-	   "Pull rest of line from buffer"
-	   isearch-yank-line
-	   :transient nil)
-	  ("y"
-	   "Pull string from kill ring"
-	   isearch-yank-kill
-	   :transient nil)
-	  ("t"
-	   "Pull thing from buffer"
-	   isearch-forward-thing-at-point
-	   :transient nil)]
+	  ("e" "Edit the search string (recursive)"
+	   isearch-edit-string :transient nil)
+	  ("w" "Pull next word or character word from buffer"
+	   isearch-yank-word-or-char :transient nil)
+	  ("s" "Pull next symbol or character from buffer"
+	   isearch-yank-symbol-or-char :transient nil)
+	  ("l" "Pull rest of line from buffer"
+	   isearch-yank-line :transient nil)
+	  ("y" "Pull string from kill ring"
+	   isearch-yank-kill :transient nil)
+	  ("t" "Pull thing from buffer"
+	   isearch-forward-thing-at-point :transient nil)]
 	 ["Replace"
-	  ("q"
-	   "Start ‘query-replace’"
-	   anzu-isearch-query-replace
-	   :if-nil buffer-read-only
-	   :transient nil)
-	  ("x"
-	   "Start ‘query-replace-regexp’"
-	   anzu-isearch-query-replace-regexp
-	   :if-nil buffer-read-only
-	   :transient nil)
-	  ]]
+	  ("q" "Start ‘query-replace’"
+	   anzu-isearch-query-replace :if-nil buffer-read-only :transient nil)
+	  ("x" "Start ‘query-replace-regexp’"
+		anzu-isearch-query-replace-regexp :if-nil buffer-read-only :transient nil)]]
 	[["Toggle"
-	  ("X"
-	   "Toggle regexp searching"
-	   isearch-toggle-regexp
-	   :transient nil)
-	  ("S"
-	   "Toggle symbol searching"
-	   isearch-toggle-symbol
-	   :transient nil)
-	  ("W"
-	   "Toggle word searching"
-	   isearch-toggle-word
-	   :transient nil)
-	  ("F"
-	   "Toggle case fold"
-	   isearch-toggle-case-fold
-	   :transient nil)
-	  ("L"
-	   "Toggle lax whitespace"
-	   isearch-toggle-lax-whitespace
-	   :transient nil)]
+	  ("X" "Toggle regexp searching"
+	   isearch-toggle-regexp :transient nil)
+	  ("S" "Toggle symbol searching"
+	   isearch-toggle-symbol :transient nil)
+	  ("W" "Toggle word searching"
+	   isearch-toggle-word :transient nil)
+	  ("F" "Toggle case fold"
+	   isearch-toggle-case-fold :transient nil)
+	  ("L" "Toggle lax whitespace"
+	   isearch-toggle-lax-whitespace :transient nil)]
 	 ["Misc"
-	  ("l"
-	   "Start ‘consult-line’"
-	   consult-line
-	   :transient nil)
-	  ("g"
-	   "Start ‘consult-git-grep’"
-	   consult-git-grep
-	   :transient nil)
-	  ("r"
-	   "Start ‘consult-ripgrep’"
-	   consult-ripgrep
-	   :transient nil)
-	  ("o"
-	   "occur"
-	   isearch-occur
-	   :transient nil)]]))
+	  ("l" "Start ‘consult-line’"
+	   consult-line :transient nil)
+	  ("g" "Start ‘consult-git-grep’"
+	   consult-git-grep :transient nil)
+	  ("r" "Start ‘consult-ripgrep’"
+	   consult-ripgrep :transient nil)
+	  ("o" "occur"
+	   isearch-occur :transient nil)]]))
  #+end_src
 
 *** File Handler Functions
@@ -3041,17 +3019,14 @@ The exact color values are taken from the active Ef theme."
   ;; :ensure (:host github :repo "nehrbash/vterm-tabs")
   :load-path "~/src/vterm-tabs"
   :bind
-  (("M-t" . vterm-tabs-dedicated-toggle)
+  (("<f6>" . vterm-tabs-toggle)
    :map vterm-mode-map
-   ("M-t" . vterm-tabs-dedicated-toggle)
-   ("C-M-r" . (lambda ()
-                (interactive)
-                (setq-local vterm-buffer-name-string nil)
-                (rename-buffer (concat "Term " (read-string "Term: ")))))
-   ("C-M-t" . vterm-tabs)
+   ("<f6>" . vterm-tabs-toggle)
+   ("C-M-r" . vterm-tabs-rename-buffer)
+   ("C-M-t" . vterm-tabs-home)
    ("C-M-p" . vterm-tabs-project)
-   ("C-M-f" . tab-line-switch-to-next-tab)
-   ("C-M-b" . tab-line-switch-to-prev-tab)
+   ("C-M-f" . vterm-tabs-next)
+   ("C-M-b" . vterm-tabs-prev)
    ("C-M-s" . consult-term)
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
@@ -3100,52 +3075,7 @@ The exact color values are taken from the active Ef theme."
   :ensure nil
   :custom
   (compilation-scroll-output t)
-  (compile-command "task ")
-  :config
-  (defvar sanityinc/last-compilation-buffer nil
-	"The last buffer in which compilation took place.")
-  (defun sanityinc/save-compilation-buffer (&rest _)
-	"Save the compilation buffer to find it later."
-	(setq sanityinc/last-compilation-buffer next-error-last-buffer))
-  (advice-add 'compilation-start :after 'sanityinc/save-compilation-buffer)
-
-  (defun sanityinc/find-prev-compilation (orig &optional edit-command)
-	"Find the previous compilation buffer, if present, and recompile there."
-	(if (and (null edit-command)
-		  (not (derived-mode-p 'compilation-mode))
-		  sanityinc/last-compilation-buffer
-		  (buffer-live-p (get-buffer sanityinc/last-compilation-buffer)))
-	  (with-current-buffer sanityinc/last-compilation-buffer
-		(funcall orig edit-command))
-	  (funcall orig edit-command)))
-  (advice-add 'recompile :around 'sanityinc/find-prev-compilation)
-  
-  (defun sanityinc/shell-command-in-view-mode (start end command &optional output-buffer replace &rest other-args)
-	"Put \"*Shell Command Output*\" buffers into view-mode."
-	(unless (or output-buffer replace)
-	  (with-current-buffer "*Shell Command Output*"
-		(view-mode 1))))
-  (advice-add 'shell-command-on-region :after 'sanityinc/shell-command-in-view-mode)
-
-  (defun sanityinc/colourise-compilation-buffer ()
-	(when (eq major-mode 'compilation-mode)
-	  (ansi-color-apply-on-region compilation-filter-start (point-max))))
-  (add-hook 'compilation-filter-hook 'sanityinc/colourise-compilation-buffer)
-  (transient-define-prefix sn/project-menu ()
-	"Project Actions"
-	[["Commpile"
-	   ("c" "Compile" protogg-compile)
-	   ("r" "Recompile" recompile)
-	   ("m" "Makefile" makefile-runner)]
-	  ["Git"
-		("s" "Status" magit-status)
-		("d" "Dispatch" magit-dispatch)
-		("R" "Rebase menu" sn/smerge)
-		("g" "Time Machine" git-timemachine)]]
-	[["Misc"
-	   ("q" "Quit" transient-quit-one)
-	   ("p" "Switch Project" project-switch-project)]])
-  :bind ("C-x g" . sn/project-menu))
+  (compile-command "task "))
 #+end_src
 
 *** Static Checking
@@ -3523,6 +3453,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
  (use-package gptel
    :bind
    ("<f5>" . gptel-toggle-sidebar)
+   (:map vterm-mode-map
+ 	 ("<f5>" . gptel-toggle-sidebar))
    ("C-<f5>" . gptel-menu)
    :hook (org-mode . gptel-activate-if-model-exists)
    :custom
@@ -3548,6 +3480,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
  		  (let ((window (get-buffer-window chat-buffer)))
  			(when window
  			  (set-window-dedicated-p window t)
+ 			  (set-window-parameter window 'no-other-window t)
  			  (select-window window)
  			  (setq mode-line-format nil)))))))
    (defun gptel-close-headers (from to)
