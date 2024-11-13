@@ -65,3 +65,4 @@
 # Added by cargo
 
 /target
+/.local/bin/aider
