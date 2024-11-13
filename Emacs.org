@@ -346,7 +346,8 @@ ARG and REDISPLAY are identical to the original function."
       (setq distance-in-pixels (- target-pixel current-pixel))
       (condition-case err
           (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
-		(error (message "[kb/pixel-recenter] %s" (error-message-string err))))
+		(error nil ;; (message "[kb/pixel-recenter] %s" (error-message-string err))
+		  ))
       (when redisplay (redisplay t))))
 
   (defun kb/pixel-scroll-up (&optional arg)
