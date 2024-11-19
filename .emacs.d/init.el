@@ -941,13 +941,16 @@ point reaches the beginning or end of the buffer, stop there."
   :after vertico
   :init (vertico-posframe-mode 1)
   :custom
-  (vertico-multiform-commands
-	'((consult-line
-		posframe
-		(vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
-		(vertico-posframe-border-width . 10)
-		(vertico-posframe-fallback-mode . vertico-buffer-mode))
-       (t posframe))))
+  (vertico-posframe-poshandler #'posframe-poshandler-frame-top-center)
+  ;; :config
+  ;; (add-to-list 'vertico-multiform-commands
+  ;; 	'(consult-line
+  ;; 	   posframe
+  ;; 	   (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
+  ;; 	   (vertico-posframe-border-width . 10)
+  ;; 	   (vertico-posframe-fallback-mode . vertico-buffer-mode))
+  ;;   (t posframe))
+  )
 
 (use-package hotfuzz)
 

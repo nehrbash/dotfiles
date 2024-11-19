@@ -107,7 +107,7 @@
    =elpaca= has been most pleasant experience thus far.
 
 #+begin_src emacs-lisp
-(defvar elpaca-installer-version 0.7)
+(defvar elpaca-installer-version 0.8)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -125,17 +125,17 @@
     (when (< emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
         (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                 ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                 ,@(when-let* ((depth (plist-get order :depth)))
-                                                     (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                 ,(plist-get order :repo) ,repo))))
-                 ((zerop (call-process "git" nil buffer t "checkout"
-                                       (or (plist-get order :ref) "--"))))
-                 (emacs (concat invocation-directory invocation-name))
-                 ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                       "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                 ((require 'elpaca))
-                 ((elpaca-generate-autoloads "elpaca" repo)))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
             (progn (message "%s" (buffer-string)) (kill-buffer buffer))
           (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
@@ -217,54 +217,66 @@
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
   (ef-themes-headings
-   '((0 variable-pitch light 2.1)
-	 (1 variable-pitch light 1.6)
-	 (t variable-pitch 1.1)
-	 (agenda-date 1.9)
-	 (agenda-structure variable-pitch light 1.8)
-	 (t variable-pitch)))
+	'((0 variable-pitch light 2.1)
+	   (1 variable-pitch light 1.6)
+	   (t variable-pitch 1.1)
+	   (agenda-date 1.9)
+	   (agenda-structure variable-pitch light 1.8)
+	   (t variable-pitch)))
   :preface
+  (defun my-rgb-to-hex (r g b)
+	"Convert RGB to hex color format."
+	(format "#%02x%02x%02x" r g b))
+
+  (defun my-darken-color (hex-color factor)
+	"Darken HEX-COLOR by factor (a float between 0 and 1)."
+	(let* ((r (string-to-number (substring hex-color 1 3) 16))
+			(g (string-to-number (substring hex-color 3 5) 16))
+			(b (string-to-number (substring hex-color 5 7) 16))
+			(r-dark (max 0 (floor (* r factor))))
+			(g-dark (max 0 (floor (* g factor))))
+			(b-dark (max 0 (floor (* b factor)))))
+      (my-rgb-to-hex r-dark g-dark b-dark)))
   (defun my-ef-themes-mod ()
-  "Tweak the style of the ef theme."
-  (interactive)
-  (let ((darker "#281d12")) ; Bind the value of color here
+	"Tweak the style of the ef theme."
+	(interactive)
     (ef-themes-with-colors
-      (custom-set-faces
-       `(default ((,c :family "Iosevka" :height 115)))
-       `(variable-pitch ((,c :family "Iosevka Aile")))
-       `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
-       `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-       `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-       `(blamer-face ((,c :foreground ,fg-alt :italic t)))
-       `(tab-line              ((,c :background ,bg-dim :foreground ,bg-dim :height 1.1 :box nil)))
-       `(tab-line-tab-group    ((,c :inherit 'tab-line)))
-       `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
-       `(tab-line-tab-current  ((,c :height 1.1 :inherit 'tab-line-tab :background nil :box nil)))
-       `(tab-line-tab-inactive ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
-       `(tab-line-tab-inactive-alternate ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
-       `(tab-line-highlight ((,c :inherit nil :background nil :foreground nil :box nil)))
-       ;; `(tab-line-env-default ((,c :background ,green-faint )))
-       ;; `(tab-line-env-1 ((,c :background ,red-faint )))
-       ;; `(tab-line-env-2 ((,c :background ,yellow-faint )))
-       ;; `(tab-line-env-3 ((,c :background ,blue-faint )))
-       `(line-number ((,c :background ,darker)))
-       `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
-       `(mode-line ((,c :family "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
-       `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
-       `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
-       `(eldoc-box-border ((,c :background ,fg-alt)))
-       `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
-       `(org-document-title ((,c :height 1.4)))
-       `(org-modern-todo ((,c :height 1.2)))
-       `(org-modern-done ((,c :height 1.2)))
-       `(org-modern-tag ((,c :height 1.2)))
-       `(org-modern-symbol ((,c :font "Iosevka")))))))
+	  (let ((darker (my-darken-color bg-main 0.7)))
+		(custom-set-faces
+		  `(default ((,c :family "Iosevka" )))
+		  `(variable-pitch ((,c :family "Iosevka Aile")))
+		  `(ef-themes-key-binding ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer :height 0.95)))
+		  
+		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
+		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
+		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
+		  `(blamer-face ((,c :foreground ,fg-alt :italic t)))
+		  `(tab-line              ((,c :background ,bg-dim :foreground ,bg-dim :height 1.1 :box nil)))
+		  `(tab-line-tab-group    ((,c :inherit 'tab-line)))
+		  `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
+		  `(tab-line-tab-current  ((,c :height 1.1 :inherit 'tab-line-tab :background nil :box nil)))
+		  `(tab-line-tab-inactive ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
+		  `(tab-line-tab-inactive-alternate ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
+		  `(tab-line-highlight ((,c :inherit nil :background nil :foreground nil :box nil)))
+		  `(line-number ((,c :background ,darker)))
+		  `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
+		  `(mode-line ((,c :family "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
+		  `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
+		  `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
+		  `(eldoc-box-border ((,c :background ,fg-alt)))
+		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
+		  `(org-document-title ((,c :height 1.4)))
+		  `(org-modern-todo ((,c :height 1.2)))
+		  `(org-modern-done ((,c :height 1.2)))
+		  `(org-modern-tag ((,c :height 1.2)))
+		  `(org-modern-symbol ((,c :font "Iosevka")))))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
+  ;; HACK: for scroll bar 
   (add-hook 'after-make-frame-functions
-			(lambda (frame)
-			  (progn
-				(select-frame frame)
-				(my-ef-themes-mod)))))
+	(lambda (frame)
+	  (progn
+		(select-frame frame)
+		(my-ef-themes-mod)))))
 #+end_src
 
 ** Modeline
@@ -1309,7 +1321,10 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   (add-to-list 'vertico-multiform-commands
 			   '(project-switch-project buffer)))
 (use-package marginalia
-  :init (marginalia-mode)
+  :init
+  (marginalia-mode)
+  :custom
+  (marginalia-align 'right)
   :bind
   (:map minibuffer-local-map
 		("M-a" . marginalia-cycle))
@@ -1322,20 +1337,21 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 
 *** postframe candidate menu
 
-    Don't like this but will keep it around if I do want to start using it.
-
-#+begin_src emacs-lisp :tangle no
+#+begin_src emacs-lisp
 (use-package vertico-posframe
   :after vertico
   :init (vertico-posframe-mode 1)
   :custom
-  (vertico-multiform-commands
-   '((consult-line
-      posframe
-      (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
-      (vertico-posframe-border-width . 10)
-      (vertico-posframe-fallback-mode . vertico-buffer-mode))
-     (t posframe))))
+  (vertico-posframe-poshandler #'posframe-poshandler-frame-top-center)
+  ;; :config
+  ;; (add-to-list 'vertico-multiform-commands
+  ;; 	'(consult-line
+  ;; 	   posframe
+  ;; 	   (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
+  ;; 	   (vertico-posframe-border-width . 10)
+  ;; 	   (vertico-posframe-fallback-mode . vertico-buffer-mode))
+  ;;   (t posframe))
+  )
 #+end_src
     
 
@@ -1628,7 +1644,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 	;;; add more keys as needed here.
 	)
 #+end_src
-
 	
 ** Embark
 
@@ -3022,12 +3037,6 @@ The exact color values are taken from the active Ef theme."
   :bind
   (("<f6>" . vterm-tabs-toggle)
    :map vterm-mode-map
-   ("<f6>" . vterm-tabs-toggle)
-   ("C-M-r" . vterm-tabs-rename-buffer)
-   ("C-M-t" . vterm-tabs-home)
-   ("C-M-p" . vterm-tabs-project)
-   ("C-M-f" . vterm-tabs-next)
-   ("C-M-b" . vterm-tabs-prev)
    ("C-M-s" . consult-term)
    ("M-w" . copy-region-as-kill)
    ("C-y" . vterm-yank))
