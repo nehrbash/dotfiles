@@ -130,17 +130,20 @@
 		  `(tab-line-tab-inactive-alternate ((,c :height 1.1 :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
 		  `(tab-line-highlight ((,c :inherit nil :background nil :foreground nil :box nil)))
 		  `(line-number ((,c :background ,darker)))
+		  `(vertico-posframe ((,c :inherit default :background ,darker)))
+		  `(vertico-posframe-border ((,c (:background ,bg-dim))))
 		  `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
 		  `(mode-line ((,c :family "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
 		  `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
 		  `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
 		  `(eldoc-box-border ((,c :background ,fg-alt)))
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
-		  `(org-document-title ((,c :height 1.4)))
-		  `(org-modern-todo ((,c :height 1.2)))
-		  `(org-modern-done ((,c :height 1.2)))
-		  `(org-modern-tag ((,c :height 1.2)))
-		  `(org-modern-symbol ((,c :font "Iosevka")))))))
+		  ;; `(org-document-title ((,c :height 1.4)))
+		  ;; `(org-modern-todo ((,c :height 1.2)))
+		  ;; `(org-modern-done ((,c :height 1.2)))
+		  ;; `(org-modern-tag ((,c :height 1.2)))
+		  ;; `(org-modern-symbol ((,c :font "Iosevka")))
+		  ))))
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
   ;; HACK: for scroll bar 
   (add-hook 'after-make-frame-functions
@@ -939,20 +942,19 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package vertico-posframe
   :after vertico
-  :init (vertico-posframe-mode 1)
+  :config
+  (vertico-posframe-mode 1)
+  ;; don't change colors
+  (defun my-vertico-posframe-get-border-color-advice (&rest _args)
+  "Always return the color of `vertico-posframe-border`."
+	(face-attribute 'vertico-posframe-border :background nil t))
+  (advice-add 'vertico-posframe--get-border-color :override #'my-vertico-posframe-get-border-color-advice)
   :custom
-  (vertico-posframe-poshandler #'posframe-poshandler-frame-top-center)
-  ;; :config
-  ;; (add-to-list 'vertico-multiform-commands
-  ;; 	'(consult-line
-  ;; 	   posframe
-  ;; 	   (vertico-posframe-poshandler . posframe-poshandler-frame-top-center)
-  ;; 	   (vertico-posframe-border-width . 10)
-  ;; 	   (vertico-posframe-fallback-mode . vertico-buffer-mode))
-  ;;   (t posframe))
-  )
+  (vertico-posframe-poshandler #'posframe-poshandler-frame-center)
+  (vertico-posframe-vertico-multiform-key "M-m"))
 
-(use-package hotfuzz)
+(use-package hotfuzz
+  :after orderless)
 
 (use-package orderless
   :custom
@@ -964,7 +966,7 @@ point reaches the beginning or end of the buffer, stop there."
   (completion-lazy-hilit t)
   (completion-flex-nospace t)
   (completion-category-defaults nil)
-  (completion-styles '(orderless hotfuzz))
+  (completion-styles '(orderless))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 
 (use-package wgrep
@@ -1927,11 +1929,11 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package org-roam-ui
   :ensure (:host github :repo "org-roam/org-roam-ui")
   :after org-roam
-  :config
-  (setq org-roam-ui-sync-theme t
-		org-roam-ui-follow t
-		org-roam-ui-update-on-save t
-		org-roam-ui-open-on-start nil))
+  :custom
+  (org-roam-ui-sync-theme t)
+  (org-roam-ui-follow t)
+  (org-roam-ui-update-on-save t)
+  (org-roam-ui-open-on-start nil))
 
 (use-package hl-line
   :ensure nil ;; built-in
@@ -2042,7 +2044,6 @@ point reaches the beginning or end of the buffer, stop there."
   (eglot-sync-connect nil)
   (eglot-events-buffer-config '(:size 0 :format full))
   :config
-  (add-to-list 'eglot-ignored-server-capabilites :hoverProvider)
   (setq-default eglot-workspace-configuration
 	'(:gopls
 	   (:usePlaceholders t
@@ -2157,30 +2158,29 @@ point reaches the beginning or end of the buffer, stop there."
   (blamer-min-offset 70))
 
 (use-package magit
-  :commands (magit-status magit-dispatch project-switch-project)
+  :ensure nil
   :config
-  (fullframe magit-status magit-mode-quit-window)
   (require 'magit-extras)
   (require 'transient)
   (require 'smerge-mode)
   (transient-define-prefix sn/smerge ()
 	"Rebase Menu"
 	[["Smerge nav/show"
-	  ("n" "Next" smerge-next :transient t)
-	  ("p" "Prev" smerge-prev :transient t)
-	  ("h" "Highlight diff" smerge-refine :transient t)]
-	 ["Quick Resolve"
-	  ("a" "Keep All" smerge-keep-all :transient t)
-	  ("u" "Keep Upper" smerge-keep-upper :transient t)
-	  ("l" "Keep Lower" smerge-keep-lower :transient t)]]
+	   ("n" "Next" smerge-next :transient t)
+	   ("p" "Prev" smerge-prev :transient t)
+	   ("h" "Highlight diff" smerge-refine :transient t)]
+	  ["Quick Resolve"
+		("a" "Keep All" smerge-keep-all :transient t)
+		("u" "Keep Upper" smerge-keep-upper :transient t)
+		("l" "Keep Lower" smerge-keep-lower :transient t)]]
 	[["Resolve"
-	  ("r" "Resolve Intelligently" smerge-resolve :transient t)
-	  ("R" "Auto Resolve All" smerge-resolve-all :transient t)
-	  ("e" "Resolve With Ediff" smerge-ediff)]
-	 ["Actions"
-	  ("q" "Quit" transient-quit-one)
-	  ("s" "Magit Status" magit-status)
-	  ("S" "git Logs" magit-pg-repo)]])
+	   ("r" "Resolve Intelligently" smerge-resolve :transient t)
+	   ("R" "Auto Resolve All" smerge-resolve-all :transient t)
+	   ("e" "Resolve With Ediff" smerge-ediff)]
+	  ["Actions"
+		("q" "Quit" transient-quit-one)
+		("s" "Magit Status" magit-status)
+		("S" "git Logs" magit-pg-repo)]])
   :custom
   (magit-diff-refine-hunk t))
 (use-package git-timemachine
@@ -2601,6 +2601,29 @@ The exact color values are taken from the active Ef theme."
 
 (use-package ea
   :load-path "~/.emacs.d/lisp")
+
+(defun setup-min-frame ()
+  "Set up frames for minibuffer and editor."
+  (setq default-minibuffer-frame
+		(make-frame
+		 '((name . "Emacs Minibuffer")
+		   (width . 80)
+		   (height . 1)
+		   (minibuffer . only)
+		   (top . 0) ;; Ensure it's at the top
+		   (left . 0)))))
+(defun setup-no-min-frame ()
+  "Set up frames for minibuffer and editor."
+  (setq new-frame
+		(make-frame
+		 '((name . "Emacs Frame")
+		   (width . 80)
+		   (height . 30)
+		   (minibuffer . nil)
+		   (top . 50) ;; Adjust as needed
+		   (left . 0)))))
+
+;; (add-hook 'window-setup-hook 'setup-frames)
 
 (use-package consult-taskfile
   :load-path "~/src/consult-taskfile"

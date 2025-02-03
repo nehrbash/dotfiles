@@ -21,6 +21,17 @@ killem () {
     pkill emacs
 }
 
+em() {
+    emacsclient -nw -a "" "$@" 2>/dev/null
+}
+
+emw() {
+    set +m
+    nohup emacsclient -c -a "" "$@" >/dev/null 2>&1 &
+    disown
+    set -m
+}
+
 cleanem () {
     find . -type f -name "*~" -exec rm -f {} \;
 	find . -type f -name ".#*" -exec rm -f {} \;
