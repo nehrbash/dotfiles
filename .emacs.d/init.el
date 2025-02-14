@@ -2,12 +2,12 @@
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
-(defvar elpaca-installer-version 0.8)
+(defvar elpaca-installer-version 0.9)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1
+                              :ref nil :depth 1 :inherit ignore
                               :files (:defaults "elpaca-test.el" (:exclude "extensions"))
                               :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
@@ -40,7 +40,6 @@
     (load "./elpaca-autoloads")))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
-;; Install use-package support
 (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
 		(elpaca-use-package-mode))
@@ -188,6 +187,15 @@
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
 (setopt after-delete-frame-functions nil)
+
+(defun gcm-scroll-down ()
+      (interactive)
+      (scroll-up 1))
+    (defun gcm-scroll-up ()
+      (interactive)
+      (scroll-down 1))
+
+
 
 (use-package pixel-scroll
   :ensure nil
@@ -2142,7 +2150,7 @@ point reaches the beginning or end of the buffer, stop there."
   (global-git-gutter-mode t)
   :custom
   (git-gutter:ask-p nil)
-  (git-gutter:update-interval 0.8))
+  (git-gutter:update-interval 0.4))
 (use-package git-gutter-fringe
   :after git-gutter
   :config
@@ -2151,17 +2159,18 @@ point reaches the beginning or end of the buffer, stop there."
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 (use-package blamer
   :bind
-  ("C-c C-i" . blamer-mode)
   ("C-c i" . blamer-show-posframe-commit-info)
   :custom
-  (blamer-idle-time 0.2)
-  (blamer-min-offset 70))
+  (blamer-idle-time 1.5)
+  (blamer-view 'overlay-right)
+  (blamer-min-offset 70)
+  :config (global-blamer-mode))
 
 (use-package magit
   :ensure nil
+  :after (transient git-timemachine)
   :config
   (require 'magit-extras)
-  (require 'transient)
   (require 'smerge-mode)
   (transient-define-prefix sn/smerge ()
 	"Rebase Menu"

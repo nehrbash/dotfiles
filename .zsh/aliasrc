@@ -41,3 +41,6 @@ alias ..='cd ..'
 alias ...='cd ../../../'
 alias ....='cd ../../../../'
 alias .....='cd ../../../../'
+
+alias update-system="sudo guix system -L ~/.dotfiles reconfigure ~/dotfiles/config/systems/(hostname).scm"
+alias update-home="guix home -L ~/.dotfiles reconfigure ~/dotfiles/config/home/ocean.scm"
