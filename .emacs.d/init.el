@@ -164,25 +164,37 @@
 (line-number-mode -1)
 (column-number-mode -1)
 
-(defun sn/tab-bar-tab-name-function ()
-  (let ((project (project-current)))
-    (if project
-      (project-root project)
-      (tab-bar-tab-name-current))))
-(setq tab-bar-tab-name-function #'sn/tab-bar-tab-name-function)
-(setq-default tab-bar-show 1)
-(defun sn/project-find-dir ()
+(use-package tab-bar
+  :ensure nil
+  :after breadcrumb
+  :custom
+  (tab-bar-show t)
+  (tab-bar-format-tabs nil)
+  (tab-bar-close-button-show nil)
+  (tab-bar-tab-name-function #'sn/tab-bar-tab-name-function)
+  (tab-bar-format '(tab-bar-format-tabs
+					 tab-bar-format-align-right
+					 breadcrumb-project-crumbs
+					 (lambda() "    ")))
+  (project-switch-commands #'sn/project-find-dir)
+  :config
+  (defun sn/tab-bar-tab-name-function ()
+	(let ((project (project-current)))
+      (if project
+		(project-root project)
+		(tab-bar-tab-name-current))))
+  (defun sn/project-find-dir ()
   "Start Dired in a directory inside the current project root."
   (interactive)
   (tab-bar-new-tab)
-  (let* ((project (project-current t))
-          (default-directory (project-root project))
-          (dir "./"))
-    (dired dir)
-	(delete-other-windows)
-	(redraw-display)))
-(setq project-switch-commands #'sn/project-find-dir)
-(setq tab-bar-format '(tab-bar-format-tabs))
+	(let* ((project (project-current t))
+			(default-directory (project-root project))
+			(dir "./"))
+      (dired dir)
+	  (delete-other-windows))))
+
+(use-package breadcrumb
+  :ensure (:host github :repo "joaotavora/breadcrumb"))
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
@@ -208,22 +220,19 @@
   (defun kb/pixel-recenter (&optional arg redisplay)
 	"Similar to `recenter' but with pixel scrolling.
 ARG and REDISPLAY are identical to the original function."
-	;; See the links in line 6676 in window.c for
 	(when-let* ((current-pixel (pixel-posn-y-at-point))
+				 (window-height-pixels (window-body-height nil t))
 				 (target-pixel (if (numberp arg)
                                  (* (line-pixel-height) arg)
-								 (* 0.5 (window-body-height nil t))))
+								 (* 0.5 window-height-pixels)))
 				 (distance-in-pixels 0)
-				 (pixel-scroll-precision-interpolation-total-time
-				   (/ pixel-scroll-precision-interpolation-total-time 2.0)))
-      (setq target-pixel
-		(if (<= 0 target-pixel)
-		  target-pixel
-          (- (window-body-height nil t) (abs target-pixel))))
+				 (interpolation-total-time (/ pixel-scroll-precision-interpolation-total-time 2.0)))
+      (setq target-pixel (max 0 (min target-pixel
+                                  (- window-height-pixels (line-pixel-height)))))
       (setq distance-in-pixels (- target-pixel current-pixel))
       (condition-case err
-        (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
-		(error nil (message "[kb/pixel-recenter] %s" (error-message-string err))))
+        (pixel-scroll-precision-interpolate distance-in-pixels nil interpolation-total-time)
+		(error (message "[kb/pixel-recenter] %s" (error-message-string err))))
       (when redisplay (redisplay t))))
 
   (defun kb/pixel-scroll-up (&optional arg)
@@ -249,16 +258,16 @@ ARG and REDISPLAY are identical to the original function."
 			(or arg (- (window-text-height) next-screen-context-lines)))
 		  nil 1))))
 
-	(defun sn/smooth-scroll-hook ()
-	  (cond
-		(pixel-scroll-precision-mode
-		  (advice-add 'scroll-up :override 'kb/pixel-scroll-up)
-		  (advice-add 'scroll-down :override 'kb/pixel-scroll-down)
-		  (advice-add 'recenter :override 'kb/pixel-recenter))
-		(t
-		  (advice-remove 'scroll-up 'kb/pixel-scroll-up)
-		  (advice-remove 'scroll-down 'kb/pixel-scroll-down)
-		  (advice-remove 'recenter 'kb/pixel-recenter)))))
+  (defun sn/smooth-scroll-hook ()
+	(cond
+	  (pixel-scroll-precision-mode
+		(advice-add 'scroll-up :override 'kb/pixel-scroll-up)
+		(advice-add 'scroll-down :override 'kb/pixel-scroll-down)
+		(advice-add 'recenter :override 'kb/pixel-recenter))
+	  (t
+		(advice-remove 'scroll-up 'kb/pixel-scroll-up)
+		(advice-remove 'scroll-down 'kb/pixel-scroll-down)
+		(advice-remove 'recenter 'kb/pixel-recenter)))))
 
 (use-package page-break-lines
   :init (global-page-break-lines-mode))
@@ -275,7 +284,9 @@ ARG and REDISPLAY are identical to the original function."
   :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
 (use-package olivetti
-  :hook (markdown-mode . olivetti-mode)
+  :hook
+  (org-load . olivetti-mode)
+  (markdown-mode . olivetti-mode)
   :custom
   (olivetti-minimum-body-width 120)
   (olivetti-style nil))
@@ -325,14 +336,14 @@ ARG and REDISPLAY are identical to the original function."
 
 (use-package recentf
   :ensure nil
-  :init (recentf-mode t)
   :custom
   (recentf-auto-cleanup 'never) 
   (recentf-max-saved-items 100)
   (backup-directory-alist
 	`((".*" . ,temporary-file-directory)))
-  :hook ((kill-emacs find-file) . (lambda ()
-						(recentf-save-list)))
+  :hook ((kill-emacs save-buffer) . (lambda ()
+									(recentf-save-list)))
+  (elpaca-after-init . recentf-mode)
   :config
   (setq recentf-exclude '(
 						   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
@@ -343,9 +354,11 @@ ARG and REDISPLAY are identical to the original function."
 
 (use-package files
   :ensure nil
+  :hook (elpaca-after-init . auto-save-visited-mode)
+  :config
+  (auto-save-visited-mode +1)
   :custom
-  (auto-save-default nil) ;; Disable global auto-save feature
-  (remote-file-name-inhibit-locks t))
+  (auto-save-default nil))
 
 (use-package autorevert
   :ensure nil
@@ -493,7 +506,6 @@ This is useful when followed by an immediate kill."
 		 ("C-c m a" . mc/edit-beginnings-of-lines)))
 
 (use-package whitespace-cleanup-mode
-  :commands (whitespace-cleanup)
   :hook ((prog-mode text-mode conf-mode web-mode sql-mode) . sanityinc/show-trailing-whitespace)
   :config
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
@@ -583,99 +595,99 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 
 (use-package meow
-  :hook (elpaca-after-init . meow-global-mode)
-  :config
-  (setq meow-replace-state-name-list
-		 '((normal . "🟢")
-		   (motion . "🟡")
-		   (keypad . "🟣")
-		   (insert . "🟠")
-		   (beacon . "🔴")))
-  (add-to-list 'meow-mode-state-list '(org-mode . insert))
-  (add-to-list 'meow-mode-state-list '(eat-mode . insert))
-  (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
-  (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
-  (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-  (meow-motion-overwrite-define-key
-	;; Use e to move up, n to move down.
-	;; Since special modes usually use n to move down, we only overwrite e here.
-	'("e" . meow-prev)
-	'("<escape>" . ignore))
-  (meow-leader-define-key
-	'("?" . meow-cheatsheet)
-	;; To execute the originally e in MOTION state, use SPC e.
-	'("e" . "H-e")
-	'("o" . switch-window)
-	'("1" . meow-digit-argument)
-	'("2" . meow-digit-argument)
-	'("3" . meow-digit-argument)
-	'("4" . meow-digit-argument)
-	'("5" . meow-digit-argument)
-	'("6" . meow-digit-argument)
-	'("7" . meow-digit-argument)
-	'("8" . meow-digit-argument)
-	'("9" . meow-digit-argument)
-	'("0" . meow-digit-argument)
-	'("f ." . find-file-at-point))
-  (meow-normal-define-key
-	'("0" . meow-expand-0)
-	'("1" . meow-expand-1)
-	'("2" . meow-expand-2)
-	'("3" . meow-expand-3)
-	'("4" . meow-expand-4)
-	'("5" . meow-expand-5)
-	'("6" . meow-expand-6)
-	'("7" . meow-expand-7)
-	'("8" . meow-expand-8)
-	'("9" . meow-expand-9)
-	'("-" . negative-argument)
-	'(";" . meow-reverse)
-	'("," . meow-inner-of-thing)
-	'("." . meow-bounds-of-thing)
-	'("[" . meow-beginning-of-thing)
-	'("]" . meow-end-of-thing)
-	'("/" . meow-visit)
-	'("a" . meow-append)
-	'("A" . meow-open-below)
-	'("b" . meow-back-word)
-	'("B" . meow-back-symbol)
-	'("c" . meow-change)
-	'("i" . meow-prev)
-	'("I" . meow-prev-expand)
-	'("f" . meow-find)
-	'("g" . meow-cancel-selection)
-	'("G" . meow-grab)
-	'("n" . meow-left)
-	'("N" . meow-left-expand)
-	'("o" . meow-right)
-	'("O" . meow-right-expand)
-	'("j" . meow-join)
-	'("k" . meow-kill)
-	'("l" . meow-line)
-	'("L" . meow-goto-line)
-	'("m" . meow-mark-word)
-	'("M" . meow-mark-symbol)
-	'("e" . meow-next)
-	'("E" . meow-next-expand)
-	'("h" . meow-block)
-	'("H" . meow-to-block)
-	'("p" . meow-yank)
-	'("q" . meow-quit)
-	'("r" . meow-replace)
-	'("s" . meow-insert)
-	'("S" . meow-open-above)
-	'("t" . meow-till)
-	'("u" . meow-undo)
-	'("U" . meow-undo-in-selection)
-	'("v" . meow-search)
-	'("w" . meow-next-word)
-	'("W" . meow-next-symbol)
-	'("x" . meow-delete)
-	'("X" . meow-backward-delete)
-	'("y" . meow-save)
-	'("z" . meow-pop-selection)
-	'("'" . repeat)
-	'("<escape>" . ignore)))
+   :config
+   (setq meow-replace-state-name-list
+ 		 '((normal . "🟢")
+ 		   (motion . "🟡")
+ 		   (keypad . "🟣")
+ 		   (insert . "🟠")
+ 		   (beacon . "🔴")))
+   (add-to-list 'meow-mode-state-list '(org-mode . insert))
+   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
+   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
+   (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+   (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+   (meow-motion-overwrite-define-key
+ 	;; Use e to move up, n to move down.
+ 	;; Since special modes usually use n to move down, we only overwrite e here.
+ 	'("e" . meow-prev)
+ 	'("<escape>" . ignore))
+   (meow-leader-define-key
+ 	'("?" . meow-cheatsheet)
+ 	;; To execute the originally e in MOTION state, use SPC e.
+ 	'("e" . "H-e")
+ 	'("o" . switch-window)
+ 	'("1" . meow-digit-argument)
+ 	'("2" . meow-digit-argument)
+ 	'("3" . meow-digit-argument)
+ 	'("4" . meow-digit-argument)
+ 	'("5" . meow-digit-argument)
+ 	'("6" . meow-digit-argument)
+ 	'("7" . meow-digit-argument)
+ 	'("8" . meow-digit-argument)
+ 	'("9" . meow-digit-argument)
+ 	'("0" . meow-digit-argument)
+ 	'("f ." . find-file-at-point))
+   (meow-normal-define-key
+ 	'("0" . meow-expand-0)
+ 	'("1" . meow-expand-1)
+ 	'("2" . meow-expand-2)
+ 	'("3" . meow-expand-3)
+ 	'("4" . meow-expand-4)
+ 	'("5" . meow-expand-5)
+ 	'("6" . meow-expand-6)
+ 	'("7" . meow-expand-7)
+ 	'("8" . meow-expand-8)
+ 	'("9" . meow-expand-9)
+ 	'("-" . negative-argument)
+ 	'(";" . meow-reverse)
+ 	'("," . meow-inner-of-thing)
+ 	'("." . meow-bounds-of-thing)
+ 	'("[" . meow-beginning-of-thing)
+ 	'("]" . meow-end-of-thing)
+ 	'("/" . meow-visit)
+ 	'("a" . meow-append)
+ 	'("A" . meow-open-below)
+ 	'("b" . meow-back-word)
+ 	'("B" . meow-back-symbol)
+ 	'("c" . meow-change)
+ 	'("i" . meow-prev)
+ 	'("I" . meow-prev-expand)
+ 	'("f" . meow-find)
+ 	'("g" . meow-cancel-selection)
+ 	'("G" . meow-grab)
+ 	'("n" . meow-left)
+ 	'("N" . meow-left-expand)
+ 	'("o" . meow-right)
+ 	'("O" . meow-right-expand)
+ 	'("j" . meow-join)
+ 	'("k" . meow-kill)
+ 	'("l" . meow-line)
+ 	'("L" . meow-goto-line)
+ 	'("m" . meow-mark-word)
+ 	'("M" . meow-mark-symbol)
+ 	'("e" . meow-next)
+ 	'("E" . meow-next-expand)
+ 	'("h" . meow-block)
+ 	'("H" . meow-to-block)
+ 	'("p" . meow-yank)
+ 	'("q" . meow-quit)
+ 	'("r" . meow-replace)
+ 	'("s" . meow-insert)
+ 	'("S" . meow-open-above)
+ 	'("t" . meow-till)
+ 	'("u" . meow-undo)
+ 	'("U" . meow-undo-in-selection)
+ 	'("v" . meow-search)
+ 	'("w" . meow-next-word)
+ 	'("W" . meow-next-symbol)
+ 	'("x" . meow-delete)
+ 	'("X" . meow-backward-delete)
+ 	'("y" . meow-save)
+ 	'("z" . meow-pop-selection)
+ 	'("'" . repeat)
+ 	'("<escape>" . ignore))
+(meow-global-mode 1))
 
 (use-package avy
   :commands avy-goto-char-timer
@@ -910,7 +922,8 @@ point reaches the beginning or end of the buffer, stop there."
   (desktop-save t)
   :init
   (desktop-save-mode 1)
-  (desktop-read))
+  ;; (desktop-read)
+  )
 
 (defmacro with-suppressed-message (&rest body)
   "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
@@ -922,20 +935,31 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package minibuffer
   :ensure nil
   :bind
+  (:map minibuffer-local-map ("M-." . sn/minibuffer-fetch-symbol-at-point))
   (:map minibuffer-local-completion-map
-  		("<backtab>" . minibuffer-force-complete))
+  	("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
   (read-minibuffer-restore-windows t) ;; don't revert to original layout after cancel.
   (resize-mini-windows t)
   (minibuffer-prompt-properties
-   '(read-only t cursor-intangible t face minibuffer-prompt))
+	'(read-only t cursor-intangible t face minibuffer-prompt))
   :hook
   (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . (lambda ()
   						(cursor-intangible-mode 1)))
   :config
+  (defun sn/minibuffer-fetch-symbol-at-point ()
+	"Fetch the current or next symbol at point in the current buffer while in minibuffer."
+	(interactive)
+	(let ((symbol (with-minibuffer-selected-window
+					(or (thing-at-point 'symbol) 
+                      (save-excursion
+                        (forward-symbol 1)
+                        (thing-at-point 'symbol))))))
+      (when symbol
+		(insert symbol))))
   (minibuffer-depth-indicate-mode)
   (minibuffer-electric-default-mode))
 
@@ -948,15 +972,15 @@ point reaches the beginning or end of the buffer, stop there."
   (vertico-mode 1)
   :config
   (setq vertico-multiform-commands
-    '((project-switch-project buffer)
-	   (consult-imenu buffer indexed)
-	   (consult-line posframe
+    '((consult-imenu buffer indexed)
+	   (consult-line reverse)
+	   (project-switch-project posframe
          (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
        (t posframe)))
   (setq vertico-multiform-categories
     '((file grid)
 	   (jinx grid (vertico-grid-annotate . 30))
-       (consult-grep buffer)))
+       (consult-grep reverse)))
   (vertico-multiform-mode 1))
 (use-package marginalia
   :init
@@ -975,7 +999,7 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package vertico-posframe
   :after vertico
   :custom
-  (vertico-posframe-width 100)
+  (vertico-posframe-width 180)
   (vertico-posframe-vertico-multiform-key "M-m")
   :config
   ;; don't change colors
@@ -1029,33 +1053,29 @@ Otherwise, it centers the posframe in the frame."
 (use-package consult
   :after vertico
   :bind
-  ("C-s" . (lambda () (interactive) (consult-line (thing-at-point 'symbol))))
-  ("C-r" . (lambda () (interactive) (consult-ripgrep nil (thing-at-point 'symbol))))
-  ("M-S" . (lambda () (interactive) (consult-line-multi (thing-at-point 'symbol))))
+  ("C-s" . consult-line)
+  ("C-r" . consult-ripgrep)
+  ("M-S" . consult-line-multi)
   ("C-c M-x" . consult-mode-command)
   ("C-c h" . consult-history)
   ("C-c k" . consult-kmacro)
   ("C-c m" . consult-man)
   ("C-c i" . consult-info)
   ([remap Info-search] . consult-info)
-  ;; C-x bindings in `ctl-x-map'
-  ("C-x M-:" . consult-complex-command)     ;; orig. repeat-complex-command
-  ("C-x b" . consult-buffer)                ;; orig. switch-to-buffer
-  ("C-x f" . consult-buffer-other-window) ;; orig. switch-to-buffer-other-window
-  ("C-x 5 b" . consult-buffer-other-frame)  ;; orig. switch-to-buffer-other-frame
-  ("C-x t b" . consult-buffer-other-tab)    ;; orig. switch-to-buffer-other-tab
-  ("C-x r b" . consult-bookmark)            ;; orig. bookmark-jump
-  ;; Custom M-# bindings for fast register access
+  ("C-x M-:" . consult-complex-command)
+  ("C-x b" . consult-buffer)
+  ("C-x f" . consult-buffer-other-window)
+  ("C-x 5 b" . consult-buffer-other-frame)
+  ("C-x t b" . consult-buffer-other-tab)
+  ("C-x r b" . consult-bookmark)
   ("M-\"" . consult-register)
-  ("M-'" . consult-register-store)          ;; orig. abbrev-prefix-mark (unrelated)
+  ("M-'" . consult-register-store)
   ("C-M-'" . consult-register)
-  ;; Other custom bindings
-  ("M-y" . consult-yank-pop)                ;; orig. yank-pop
-  ;; M-g bindings in `goto-map'
+  ("M-y" . consult-yank-pop)
   ("M-SPC e" . consult-compile-error)
-  ("M-g g" . consult-goto-line)             ;; orig. goto-line
-  ("M-g M-g" . consult-goto-line)           ;; orig. goto-line
-  ("M-g o" . consult-outline)               ;; Alternative: consult-org-heading
+  ("M-g g" . consult-goto-line)
+  ("M-g M-g" . consult-goto-line)
+  ("M-g o" . consult-outline)
   ("M-SPC m" . consult-mark)
   ("M-SPC g" . consult-global-mark)
   ("M-g i" . consult-imenu)
@@ -1073,14 +1093,13 @@ Otherwise, it centers the posframe in the frame."
   ;; Isearch integration
   ("M-s e" . consult-isearch-history)
   (:map isearch-mode-map
-		("M-e" . consult-isearch-history)         ;; orig. isearch-edit-string
-		("M-s e" . consult-isearch-history)       ;; orig. isearch-edit-string
-		("M-s l" . consult-line)                  ;; needed by consult-line to detect isearch
-		("M-s L" . consult-line-multi))            ;; needed by consult-line to detect isearch
-  ;; Minibuffer history
+	("M-e" . consult-isearch-history)
+	("M-s e" . consult-isearch-history)
+	("M-s l" . consult-line)
+	("M-s L" . consult-line-multi))
   (:map minibuffer-local-map
-		("M-s" . consult-history)                 ;; orig. next-matching-history-element
-		("M-r" . consult-history))
+	("M-s" . consult-history)
+	("M-r" . consult-history))
   :init
   ;; This adds thin lines, sorting and hides the mode line of the window.
   (advice-add #'register-preview :override #'consult-register-window)
@@ -1088,7 +1107,7 @@ Otherwise, it centers the posframe in the frame."
   (advice-add #'consult-line :around #'sn/add-mark-before)  ;; Use Consult to select xref locations with preview
   (setq xref-show-xrefs-function #'consult-xref xref-show-definitions-function #'consult-xref)
   (setq register-preview-delay 0.5
-		register-preview-function #'consult-register-format)
+	register-preview-function #'consult-register-format)
   :custom
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
@@ -1098,139 +1117,139 @@ Otherwise, it centers the posframe in the frame."
 	"Use completion to go to a modified file in the Git repository."
 	(interactive)
 	(let* ((default-directory (vc-root-dir))  ;; Ensures we're in the root of the project
-           (git-cmd "git status --porcelain=v1 --untracked-files=no")  ;; Git command to get modified files
-           (files (split-string (shell-command-to-string git-cmd) "\n" t))
-           (modified-files (mapcar (lambda (line)
-									 (string-trim (substring line 3))) files))
-           ;; Use completing-read to select the file
-           (selected-file (completing-read "Goto vc file: " modified-files nil t)))
-      (when selected-file
+			(git-cmd "git status --porcelain=v1 --untracked-files=no")  ;; Git command to get modified files
+			(files (split-string (shell-command-to-string git-cmd) "\n" t))
+			(modified-files (mapcar (lambda (line)
+									  (string-trim (substring line 3))) files))
+			;; Use completing-read to select the file
+			(selected-file (completing-read "Goto vc file: " modified-files nil t)))
+	  (when selected-file
 		(find-file selected-file))))
   (defvar consult--source-vc-modified-file
 	`(:name     "VC Modified File"
-				:narrow   ?g
-				:category file
-				:face     consult-file
-				:history  file-name-history
-				:state    ,#'consult--file-state
-				:new
-				,(lambda (file)
-				   (consult--file-action
-					(expand-file-name file (vc-root-dir))))
-				:enabled
-				,(lambda ()
-				   (vc-root-dir))
-				:items
-				,(lambda ()
-				   (when-let (root (vc-root-dir))
-					 (let ((len (length root))
-						   (ht (consult--buffer-file-hash))
-						   items)
-					   (dolist (file (vc-modified-files) (nreverse items))
-						 (unless (eq (aref file 0) ?/)
-						   (let (file-name-handler-alist) ;; No Tramp slowdown please.
-							 (setq file (expand-file-name file))))
-						 (when (and (not (gethash file ht)) (string-prefix-p root file))
-						   (let ((part (substring file len)))
-							 (when (equal part "") (setq part "./"))
-							 (put-text-property 0 1 'multi-category `(file . ,file) part)
-							 (push part items))))))))
+	   :narrow   ?g
+	   :category file
+	   :face     consult-file
+	   :history  file-name-history
+	   :state    ,#'consult--file-state
+	   :new
+	   ,(lambda (file)
+		  (consult--file-action
+			(expand-file-name file (vc-root-dir))))
+	   :enabled
+	   ,(lambda ()
+		  (vc-root-dir))
+	   :items
+	   ,(lambda ()
+		  (when-let (root (vc-root-dir))
+			(let ((len (length root))
+				   (ht (consult--buffer-file-hash))
+				   items)
+			  (dolist (file (vc-modified-files) (nreverse items))
+				(unless (eq (aref file 0) ?/)
+				  (let (file-name-handler-alist) ;; No Tramp slowdown please.
+					(setq file (expand-file-name file))))
+				(when (and (not (gethash file ht)) (string-prefix-p root file))
+				  (let ((part (substring file len)))
+					(when (equal part "") (setq part "./"))
+					(put-text-property 0 1 'multi-category `(file . ,file) part)
+					(push part items))))))))
 	"VC modified file candidate source for `consult-buffer'.")
   (defvar consult--source-org
 	(list :name     "Org"
-		  :category 'buffer
-		  :narrow   ?o
-		  :face     'consult-buffer
-		  :history  'buffer-name-history
-		  :state    #'consult--buffer-state
-		  :new
-		  (lambda (name)
-			(with-current-buffer (get-buffer-create name)
-			  (insert "#+title: " name "\n\n")
-			  (org-mode)
-			  (consult--buffer-action (current-buffer))))
-		  :items
-		  (lambda ()
-			(mapcar #'buffer-name
-					(seq-filter
-					 (lambda (x)
-					   (eq (buffer-local-value 'major-mode x) 'org-mode))
-					 (buffer-list))))))
+	  :category 'buffer
+	  :narrow   ?o
+	  :face     'consult-buffer
+	  :history  'buffer-name-history
+	  :state    #'consult--buffer-state
+	  :new
+	  (lambda (name)
+		(with-current-buffer (get-buffer-create name)
+		  (insert "#+title: " name "\n\n")
+		  (org-mode)
+		  (consult--buffer-action (current-buffer))))
+	  :items
+	  (lambda ()
+		(mapcar #'buffer-name
+		  (seq-filter
+			(lambda (x)
+			  (eq (buffer-local-value 'major-mode x) 'org-mode))
+			(buffer-list))))))
   (defvar consult--source-vterm
 	(list :name     "Term"
-		  :category 'buffer
-		  :narrow   ?v
-		  :face     'consult-buffer
-		  :history  'buffer-name-history
-		  :state    #'consult--buffer-state
-		  :new
-		  (lambda (name)
-			(vterm (concat "shell: " name))
-			(setq-local vterm-buffer-name-string nil))
-		  :items
-		  (lambda () (consult--buffer-query
-					  :sort 'visibility
-					  :as #'buffer-name
-					  :include '("shell\\:\\ " "shell")))))
+	  :category 'buffer
+	  :narrow   ?v
+	  :face     'consult-buffer
+	  :history  'buffer-name-history
+	  :state    #'consult--buffer-state
+	  :new
+	  (lambda (name)
+		(vterm (concat "shell: " name))
+		(setq-local vterm-buffer-name-string nil))
+	  :items
+	  (lambda () (consult--buffer-query
+				   :sort 'visibility
+				   :as #'buffer-name
+				   :include '("shell\\:\\ " "shell")))))
   (defun consult-term ()
 	(interactive)
 	(consult-buffer '(consult--source-vterm)))
   (defvar consult--source-star
 	(list :name     "*Star-Buffers*"
-		  :category 'buffer
-		  :narrow   ?s
-		  :face     'consult-buffer
-		  :history  'buffer-name-history
-		  :state    #'consult--buffer-state
-		  :items
-		  (lambda () (consult--buffer-query :sort 'visibility
-											:as #'buffer-name
-											:include '("\\*." "^magit")))))
+	  :category 'buffer
+	  :narrow   ?s
+	  :face     'consult-buffer
+	  :history  'buffer-name-history
+	  :state    #'consult--buffer-state
+	  :items
+	  (lambda () (consult--buffer-query :sort 'visibility
+				   :as #'buffer-name
+				   :include '("\\*." "^magit")))))
   ;; remove org and vterm buffers from buffer list
   (setq consult--source-buffer
-		(plist-put
-		 consult--source-buffer :items
-		 (lambda () (consult--buffer-query
-					 :sort 'visibility
-					 :as #'buffer-name
-					 :exclude '("\\*."           ; star buffers
-								"\\#."
-								"shell"
-								"shell\\:\\ "        ; Term buffers
-								"^magit"         ; magit buffers
-								"[\\.]org$"))))) ; org files
+	(plist-put
+	  consult--source-buffer :items
+	  (lambda () (consult--buffer-query
+				   :sort 'visibility
+				   :as #'buffer-name
+				   :exclude '("\\*."
+							   "\\#."
+							   "shell"
+							   "shell\\:\\ "
+							   "^magit"
+							   "[\\.]org$")))))
 
   (setq consult--source-project-buffer
-		(plist-put
-		 consult--source-project-buffer :items
-		 (lambda ()
-		   (consult--buffer-query
-			:sort 'visibility
-			:as #'buffer-name
-			:exclude '("\\*."           ; star buffers
-					   "Term\\ "        ; Term buffers
-					   "^magit"          ; magit buffers
-					   "^type-break.el"
-					   "\#\!*")))))
+	(plist-put
+	  consult--source-project-buffer :items
+	  (lambda ()
+	  (consult--buffer-query
+	  :sort 'visibility
+	  :as #'buffer-name
+	  :exclude '("\\*."           ; star buffers
+				"Term\\ "        ; Term buffers
+				"^magit"          ; magit buffers
+				"^type-break.el"
+				"\#\!*")))))
   ;; reorder, mainly to move recent-file down and  org
   (setq consult-buffer-sources
-		'(consult--source-hidden-buffer
-		  consult--source-modified-buffer
-		  consult--source-buffer
-		  consult--source-org
-		  consult--source-vterm
-		  consult--source-bookmark
-		  consult--source-recent-file
-		  consult--source-file-register
-		  consult--source-project-buffer-hidden
-		  consult--source-project-recent-file-hidden
-		  consult--source-star))
+	'(consult--source-hidden-buffer
+	   consult--source-modified-buffer
+	   consult--source-buffer
+	   consult--source-org
+	   consult--source-vterm
+	   consult--source-bookmark
+	   consult--source-recent-file
+	   consult--source-file-register
+	   consult--source-project-buffer-hidden
+	   consult--source-project-recent-file-hidden
+	   consult--source-star))
   (setq consult-project-buffer-sources
-		'(consult--source-project-buffer
-		  consult--source-vc-modified-file
-		  consult--source-vterm
-		  consult--source-project-recent-file
-		  consult--source-star)))
+	'(consult--source-project-buffer
+	   consult--source-vc-modified-file
+	   consult--source-vterm
+	   consult--source-project-recent-file
+	   consult--source-star)))
 
 (use-package consult-xref-stack
   :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
@@ -1411,6 +1430,11 @@ Otherwise, it centers the posframe in the frame."
   (define-abbrev global-abbrev-table "cdate" ""
     #'(lambda ()
         (insert (format-time-string "%Y-%m-%d"))))
+  (defun insert-current-time ()
+	"Insert the current time in the format HH:MM:SS."
+	(interactive)
+	(insert (format-time-string "%H:%M:%S")))
+  (define-abbrev global-abbrev-table "ctime" "" 'insert-current-time)
   :custom
   (save-abbrevs nil))
 
@@ -1518,27 +1542,27 @@ Otherwise, it centers the posframe in the frame."
   :after org)
 (use-package org
   :ensure nil
-  :demand t
+  :after olivetti-mode
   :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
   (:map org-mode-map
-		( "C-M-<up>" . org-up-element)
-		("C-c v" . wr-mode))
+	( "C-M-<up>" . org-up-element)
+	("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
   (org-mode . (lambda ()
 				(add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
-						  'run-at-end 'only-in-org-mode)))
+				  'run-at-end 'only-in-org-mode)))
   :custom
   (org-todo-keywords
-   (quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
-		   (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
-		   (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
-   org-todo-repeat-to-state "NEXT")
+	(quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
+			 (sequence "PROJECT(p)" "|" "DONE(d!/!)")
+			 (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
+	org-todo-repeat-to-state "NEXT")
   (org-todo-keyword-faces
-   (quote (("NEXT" :inherit warning)
-		   ("PROJECT" :inherit font-lock-string-face))))
+	(quote (("NEXT" :inherit warning)
+			 ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
   (org-auto-align-tags nil)
   (org-edit-src-content-indentation 0)
@@ -1567,58 +1591,57 @@ Otherwise, it centers the posframe in the frame."
   (org-directory "~/doc")
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-agenda-files
-   (cl-remove-if-not #'file-exists-p
-					 '("~/doc/inbox.org"
-					   "~/doc/projects.org"
-					   "~/doc/gcal.org"
-					   "~/doc/repeater.org")))
+	(cl-remove-if-not #'file-exists-p
+	  '("~/doc/inbox.org"
+		 "~/doc/projects.org"
+		 "~/doc/gcal.org"
+		 "~/doc/repeater.org")))
   (org-capture-templates
-   `(("t" "Tasks")
-	 ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
-	  "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
-	 ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
-	  "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
-	 ("p" "New Project")
-	 ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
-	  "* PROJECT %?\n" :clock-keep t)
-	 ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
-	  "* PROJECT %?\n" :clock-keep t :clock-in t)
-	 ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
-	  "* PROJECT %?\n" :clock-keep t)
-	 ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
-	  "* PROJECT %?\n" :clock-keep t :clock-in t)
-	 ("c" "Current task" checkitem (clock))
-	 ("r" "Roam")
-	 ("rt" "Go to today's daily note" entry (function (lambda ()
-														(org-roam-dailies-goto-today)
-														(org-capture-finalize))))
-	 ("rf" "Find or create an Org-roam node" entry (function (lambda ()
-															   (org-roam-node-find)
-															   (org-capture-finalize))))
-	 ("rv" "Open Roam UI in browser" entry (function (lambda ()
-													   (org-roam-ui-open)
-													   (org-capture-finalize))))))
+	`(("t" "Tasks")
+	   ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
+		 "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
+	   ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
+		 "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
+	   ("p" "New Project")
+	   ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+		 "* PROJECT %?\n" :clock-keep t)
+	   ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+		 "* PROJECT %?\n" :clock-keep t :clock-in t)
+	   ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
+		 "* PROJECT %?\n" :clock-keep t)
+	   ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
+		 "* PROJECT %?\n" :clock-keep t :clock-in t)
+	   ("c" "Current task" checkitem (clock))
+	   ("r" "Roam")
+	   ("rt" "Go to today's daily note" entry (function (lambda ()
+														  (org-roam-dailies-goto-today)
+														  (org-capture-finalize))))
+	   ("rf" "Find or create an Org-roam node" entry (function (lambda ()
+																 (org-roam-node-find)
+																 (org-capture-finalize))))
+	   ("rv" "Open Roam UI in browser" entry (function (lambda ()
+														 (org-roam-ui-open)
+														 (org-capture-finalize))))))
   :config
   (defun sn/org-babel-tangle-dont-ask ()
 	"Tangle Org file without asking for confirmation."
 	(let ((org-confirm-babel-evaluate nil))
 	  (org-babel-tangle)))
   (org-babel-do-load-languages
-   'org-babel-load-languages
-   `((dot . t)
-	 (emacs-lisp . t)
-	 (gnuplot . t)
-	 (latex . t)
-	 (python . t)
-	 (,(if (locate-library "ob-sh") 'sh 'shell) . t)
-	 (sql . t)
-	 (sqlite . t)))
+	'org-babel-load-languages
+	`((dot . t)
+	   (emacs-lisp . t)
+	   (gnuplot . t)
+	   (latex . t)
+	   (python . t)
+	   (,(if (locate-library "ob-sh") 'sh 'shell) . t)
+	   (sql . t)
+	   (sqlite . t)))
   (defun sn/org-clock-in-if-inprogress ()
 	"Clock in when the task state is changed to INPROGRESS."
 	(when (string= org-state "INPROGRESS")
 	  (org-clock-in)))
   (add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress)
-  :init
   (define-minor-mode wr-mode
 	"Set up a buffer for word editing.
    This enables or modifies a number of settings so that the
@@ -1626,22 +1649,21 @@ Otherwise, it centers the posframe in the frame."
    typical word processor."
 	:interactive t " Writing" nil
 	(if wr-mode
-		(progn
-		  (setq 
-				word-wrap t
-				cursor-type 'bar)
-		  (when (eq major-mode 'org)
-			(kill-local-variable 'buffer-face-mode-face))
-		  (buffer-face-mode 1)
-		  (setq-local
-		   blink-cursor-interval 0.8
-		   show-trailing-whitespace nil
-		   line-spacing 0.2
-		   electric-pair-mode nil)
-		  (olivetti-mode 1)
-		  (visual-line-mode 1)
-		  (variable-pitch-mode 1))
-
+	  (progn
+		(setq 
+		  word-wrap t
+		  cursor-type 'bar)
+		(when (eq major-mode 'org)
+		  (kill-local-variable 'buffer-face-mode-face))
+		(buffer-face-mode 1)
+		(setq-local
+		  blink-cursor-interval 0.8
+		  show-trailing-whitespace nil
+		  line-spacing 0.2
+		  electric-pair-mode nil)
+		(olivetti-mode 1)
+		(visual-line-mode 1)
+		(variable-pitch-mode 1))
 	  (kill-local-variable 'word-wrap)
 	  (kill-local-variable 'cursor-type)
 	  (kill-local-variable 'blink-cursor-interval)
@@ -1691,12 +1713,23 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package org-clock
   :ensure nil  ;; built in
+  :after consult
+  :config
+  (defun consult-clock-in ()
+	"Clock into an Org agenda heading."
+	(interactive)
+	(save-window-excursion
+      (consult-org-agenda)
+      (org-clock-in)))
+  (consult-customize consult-clock-in
+    :prompt "Clock in: "
+    :preview-key "M-.")
   :init
   (defvar org-clock-map
     (let ((map (make-sparse-keymap))) 
       (define-key map (kbd "j") 'org-clock-goto)
       (define-key map (kbd "l") 'org-clock-in-last)
-      (define-key map (kbd "i") 'org-clock-in)
+      (define-key map (kbd "i") 'consult-clock-in)
       (define-key map (kbd "o") 'org-clock-out)
       map)
     "Keymap for org-clock commands.")
@@ -1962,7 +1995,11 @@ Otherwise, it centers the posframe in the frame."
 (setq org-refile-allow-creating-parent-nodes 'confirm)
 
 (use-package toc-org
-  :hook (org-mode . toc-org-mode))
+  :config
+  (add-to-list 'org-tag-alist '("TOC" . ?T))
+  :init
+   (add-hook 'org-mode-hook 'toc-org-mode)
+  (add-hook 'markdown-mode-hook 'toc-org-mode))
 
 (use-package pdf-tools
   :ensure (:host github :repo "aikrahguzar/pdf-tools"
@@ -1992,8 +2029,17 @@ Otherwise, it centers the posframe in the frame."
   )
 
 (use-package org-roam
-  :init (setq-default org-roam-v2-ack t)
-  :config (org-roam-db-autosync-mode)
+  :demand t
+  :init
+  (setq-default org-roam-v2-ack t)
+  :config
+  (org-roam-db-autosync-mode)
+  (defun sn/org-roam-dailies-goto-today ()
+	"Open today's daily note non-interactively and return the buffer name as a string."
+	(interactive)
+	(org-roam-dailies-goto-today)
+	(get-buffer (format-time-string "%Y-%m-%d.org")))
+  (setq initial-buffer-choice #'sn/org-roam-dailies-goto-today)
   :custom
   (org-roam-directory "~/doc/Roam/")
   (org-roam-completion-everywhere t)
@@ -2234,8 +2280,9 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package eldoc-box
   :custom
-  (eldoc-box-max-pixel-width 100)
-  (eldoc-box-max-pixel-height 20)
+  (eldoc-box-offset '(32 32 32))
+  (eldoc-box-max-pixel-width 600)
+  (eldoc-box-max-pixel-height 200)
   :hook (eglot-managed-mode . eldoc-box-hover-mode))
 
 (use-package dape
@@ -2706,9 +2753,6 @@ The exact color values are taken from the active Ef theme."
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")
   :bind ("C-x p d" . customize-dirlocals-project))
-
-(use-package speed-type
-  :defer t)
 
 (use-package google-this
   :bind ("M-s w" . google-this))
