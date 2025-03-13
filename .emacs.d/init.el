@@ -199,6 +199,8 @@
   :custom
   (pixel-scroll-precision-interpolate-page t)
   (pixel-scroll-precision-use-momentum t)
+  (pixel-scroll-precision-interpolate-page t)
+  (pixel-scroll-precision-interpolation-total-time 0.25)
   (pixel-scroll-precision-large-scroll-height 10) ;; default 40
   (scroll-conservatively 5)
   (scroll-margin 5)
@@ -293,11 +295,12 @@ ARG and REDISPLAY are identical to the original function."
  mouse-yank-at-point t
  save-interprogram-paste-before-kill t
  set-mark-command-repeat-pop t
- tooltip-delay .4
+ tooltip-delay .3
  ring-bell-function 'ignore
  truncate-lines nil
  word-wrap t)
 (setopt
+ idle-update-delay 0.1
  use-dialog-box nil
  text-mode-ispell-word-completion nil)
 (global-goto-address-mode t)
@@ -359,6 +362,7 @@ ARG and REDISPLAY are identical to the original function."
   (tramp-use-connection-share nil)
   (tramp-use-ssh-controlmaster-options nil)
   :config
+  (setq tramp-verbose 0)
   (add-to-list 'backup-directory-alist
              (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -908,6 +912,13 @@ point reaches the beginning or end of the buffer, stop there."
   (desktop-save-mode 1)
   (desktop-read))
 
+(defmacro with-suppressed-message (&rest body)
+  "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
+  (declare (indent 0))
+  (let ((message-log-max nil))
+    `(with-temp-message (or (current-message) "") ,@body)))
+(with-suppressed-message (save-buffer))
+
 (use-package minibuffer
   :ensure nil
   :bind
@@ -935,7 +946,6 @@ point reaches the beginning or end of the buffer, stop there."
 	("C-q" . vertico-quick-exit))
   :init
   (vertico-mode 1)
-  (vertico-multiform-mode 1)
   :config
   (setq vertico-multiform-commands
     '((project-switch-project buffer)
@@ -945,6 +955,7 @@ point reaches the beginning or end of the buffer, stop there."
        (t posframe)))
   (setq vertico-multiform-categories
     '((file grid)
+	   (jinx grid (vertico-grid-annotate . 30))
        (consult-grep buffer)))
   (vertico-multiform-mode 1))
 (use-package marginalia
@@ -1221,6 +1232,11 @@ Otherwise, it centers the posframe in the frame."
 		  consult--source-project-recent-file
 		  consult--source-star)))
 
+(use-package consult-xref-stack
+  :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
+  :bind
+  ("C-," . consult-xref-stack-backward))
+
 (use-package embark
   :bind
   ("M-SPC SPC" . embark-act)
@@ -1286,6 +1302,26 @@ Otherwise, it centers the posframe in the frame."
   (global-corfu-mode t)
   (global-completion-preview-mode t)
   :config
+  (setq completion-preview-minimum-symbol-length 2)
+  ;; Non-standard commands to that should show the preview:
+  ;; Org mode has a custom `self-insert-command'
+  (push 'org-self-insert-command completion-preview-commands)
+  ;; Paredit has a custom `delete-backward-char' command
+  (push 'paredit-backward-delete completion-preview-commands)
+  ;; Bindings that take effect when the preview is shown:
+  ;; Cycle the completion candidate that the preview shows
+  (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+  (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+  ;; Convenient alternative to C-i after typing one of the above
+  (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
+  (defun my-custom-completion-at-point-functions ()
+ 	"Define your custom list of completion at point functions here."
+ 	(list #'codeium-completion-at-point))
+  (defun my-custom-completion-preview--update-advice (orig-fun &rest args)
+ 	(let ((completion-at-point-functions (my-custom-completion-at-point-functions)))
+      (apply orig-fun args)))
+  ;; (advice-add 'completion-preview--update :around #'my-custom-completion-preview--update-advice)
+  
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
 	  `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
@@ -1379,15 +1415,12 @@ Otherwise, it centers the posframe in the frame."
   (save-abbrevs nil))
 
 (use-package jinx
-  :after vertico
+  :hook (elpaca-after-init . global-jinx-mode)
   :bind
   (:map jinx-overlay-map
 		("C-M-$" . #'jinx-correct-all))
-  :init
-  (global-jinx-mode t)
+  (([remap ispell] . jinx-correct-nearest))
   :config
-  (add-to-list 'vertico-multiform-categories
-			   '(jinx grid (vertico-grid-annotate . 30)))
   (defun jinx-save-corrected-word ()
 	"Save corrected word to a file."
 	(interactive)
@@ -2003,7 +2036,6 @@ Otherwise, it centers the posframe in the frame."
   :ensure nil ;; built-in
   :custom
   (comment-auto-fill-only-comments t)
-  (idle-update-delay 0.1)
   :hook (prog-mode . auto-fill-mode))
 
 (use-package indent-bars
@@ -2170,10 +2202,30 @@ Otherwise, it centers the posframe in the frame."
 	(setq-local
 	  cape-dabbrev-min-length 3
 	  completion-at-point-functions (list
-									  #'sn/cape-in-code
-									  #'sn/cape-in-string
-									  #'sn/cape-in-comment
-									  #'sn/cape-ai))))
+									  (cape-wrap-super #'eglot-capf-code-actions) 
+									  ;; #'sn/cape-in-code
+									  ;; #'sn/cape-in-string
+									  ;; #'sn/cape-in-comment
+									  ;; #'sn/cape-ai
+									  )))
+ (defun eglot-capf-code-actions ()
+  "Completion at point function for Eglot code actions."
+  (let* ((bounds (eglot--code-action-bounds))
+         (beg (car bounds))
+         (end (cadr bounds))
+         (actions (eglot-code-actions beg end nil nil)))
+    (when actions
+      (list beg end
+            (mapcar (lambda (action)
+                      (propertize (plist-get action :title)
+                                  'eglot-code-action action))
+                    actions)
+            :annotation-function (lambda (str)
+                                   (concat " " (plist-get (get-text-property 0 'eglot-code-action str) :kind)))
+            :exit-function (lambda (str _status)
+                             (let ((action (get-text-property 0 'eglot-code-action str)))
+                               (eglot--apply-code-action action)))))))
+) 
 (use-package consult-eglot
   :after eglot
   :bind
@@ -2181,6 +2233,9 @@ Otherwise, it centers the posframe in the frame."
 	("C-c f" . consult-eglot-symbols)))
 
 (use-package eldoc-box
+  :custom
+  (eldoc-box-max-pixel-width 100)
+  (eldoc-box-max-pixel-height 20)
   :hook (eglot-managed-mode . eldoc-box-hover-mode))
 
 (use-package dape
@@ -2357,18 +2412,24 @@ The exact color values are taken from the active Ef theme."
   ;; (flymake-show-diagnostics-at-end-of-line 'short)
   :config
   (add-to-list 'display-buffer-alist
-             '("\\*Flymake diagnostics.*\\*"
-               (display-buffer-reuse-window
-                display-buffer-in-side-window)
-               (side . bottom)
-               (slot . 0)
-               (window-height . 0.3)))
+    '("\\*Flymake diagnostics.*\\*"
+       (display-buffer-reuse-window
+         display-buffer-in-side-window)
+       (side . bottom)
+       (slot . 0)
+       (window-height . 0.3)))
   :bind
   ("M-g f" . consult-flymake)          
   ("M-SPC p" . flymake-show-project-diagnostics))
+(use-package sideline-flymake
+  :hook (flymake-mode . sideline-mode)
+  :config
+  (setq sideline-flymake-display-mode 'point) ; 'point to show errors only on point
+										; 'line to show errors on the current line
+  (setq sideline-backends-right '(sideline-flymake)))
 (use-package flymake-shellcheck
-   :commands flymake-shellcheck-load
-   :hook (bash-ts-mode . flymake-shellcheck-load))
+  :commands flymake-shellcheck-load
+  :hook (bash-ts-mode . flymake-shellcheck-load))
 
 (use-package treesit-fold
   :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
@@ -2651,9 +2712,6 @@ The exact color values are taken from the active Ef theme."
 
 (use-package google-this
   :bind ("M-s w" . google-this))
-
-(use-package devdocs
-  :defer t)
 
 (use-package ea
   :load-path "~/.emacs.d/lisp")

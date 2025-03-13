@@ -1,4 +1,4 @@
-# /bin/zsh
+#!/bin/zsh
 # Dependancies You Need for this Config
 # zsh-syntax-highlighting - syntax highlighting for ZSH in standard repos
 # zsh-autosuggestions - Suggestions based on your history
@@ -63,5 +63,3 @@ source /usr/share/autojump/autojump.zsh 2>/dev/null
 
 # Load direnv
 [ -f "$(which direnv)" ] && eval "$(direnv hook zsh)"
-
-[ -f "$HOME/.zsh/emacs_functions" ] && source "$HOME/.zsh/emacs_functions"
