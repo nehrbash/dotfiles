@@ -2,7 +2,7 @@
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
-(defvar elpaca-installer-version 0.9)
+(defvar elpaca-installer-version 0.10)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
@@ -17,7 +17,7 @@
   (add-to-list 'load-path (if (file-exists-p build) build repo))
   (unless (file-exists-p repo)
     (make-directory repo t)
-    (when (< emacs-major-version 28) (require 'subr-x))
+    (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
         (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
                   ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
@@ -71,14 +71,10 @@
 (defun sn/elpacha-hook ()
   "Settup after elpaca finishes"
   (progn
-	(load custom-file 'noerror)
-	(meow-global-mode 1)
-	(spacious-padding-mode 1)
-	;; (mapc #'disable-theme custom-enabled-themes)
-	(ef-themes-select 'ef-melissa-dark)
 	(let ((buffer (get-buffer " elpaca--read-file")))
 	  (when buffer
-		(kill-buffer buffer)))))
+		(kill-buffer buffer)))
+	(load custom-file 'noerror)))
 (add-hook 'elpaca-after-init-hook 'sn/elpacha-hook)
 
 (use-package ef-themes
@@ -143,128 +139,124 @@
 		  ;; `(org-modern-tag ((,c :height 1.2)))
 		  ;; `(org-modern-symbol ((,c :font "Iosevka")))
 		  ))))
+  ;; load theme
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  ;; HACK: for scroll bar 
-  (add-hook 'after-make-frame-functions
-	(lambda (frame)
-	  (progn
-		(select-frame frame)
-		(my-ef-themes-mod)))))
+  (ef-themes-select 'ef-melissa-dark))
 
-(use-package doom-modeline
-  :custom
-  (doom-modeline-project-detection 'project)
-  (doom-modeline-vcs-max-length 30)
-  (doom-modeline-height 32)
-  (doom-modeline-lsp nil)
-  (doom-modeline-workspace-name nil)
-  :config
-  ;; Define sloth-image segment
-  (defun sloth-image-segment ()
-	"Return the centered sloth image segment with a specified height in pixels, with background color based on mode line state."
-	(let* ((image (create-image (expand-file-name "~/.emacs.d/img/sloth-head.jpg") nil nil :height doom-modeline-height :ascent 'center))
-			(current-face (if (eq (selected-window) (minibuffer-window))
-							'mode-line-inactive
-							'mode-line-active))) ; Choose face based on active state
-      (list
-		(propertize " " 'display image 'face current-face)
-		))) ; Add space on the other side
+(defvar custom-mode-line-height 32
+  "Height of the mode line image.")
+(defun custom-sloth-image-segment ()
+  "Return an image segment with a specified height."
+  (let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory))
+        (img-height custom-mode-line-height))
+    (when (file-exists-p img-file)
+      (propertize " "
+                  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
 
-  (doom-modeline-def-segment sloth-image
-	(sloth-image-segment))
+(setq-default mode-line-format
+              (list
+               '(:eval (custom-sloth-image-segment))
+               '(:eval (propertize " %b " 'face 'mode-line-buffer-id)) ; Buffer name
+               '(vc-mode vc-mode) ; Version control info
+               ))
 
-  ;; Define the simple line modeline with the sloth-image segment
-  (doom-modeline-def-modeline 'simple-line
-	'(sloth-image bar eldoc modals " " buffer-info remote-host)
-	'(compilation debug check objed-state persp-name process vcs))
-  (defun sn/set-modeline ()
-	"Customize doom-modeline."
-	(line-number-mode -1)
-	(column-number-mode -1)
-	(doom-modeline-set-modeline 'simple-line 'default))
-  (sn/set-modeline))
+;; Basic settings to disable line and column mode numbers
+(line-number-mode -1)
+(column-number-mode -1)
+
+(defun sn/tab-bar-tab-name-function ()
+  (let ((project (project-current)))
+    (if project
+      (project-root project)
+      (tab-bar-tab-name-current))))
+(setq tab-bar-tab-name-function #'sn/tab-bar-tab-name-function)
+(setq-default tab-bar-show 1)
+(defun sn/project-find-dir ()
+  "Start Dired in a directory inside the current project root."
+  (interactive)
+  (tab-bar-new-tab)
+  (let* ((project (project-current t))
+          (default-directory (project-root project))
+          (dir "./"))
+    (dired dir)
+	(delete-other-windows)
+	(redraw-display)))
+(setq project-switch-commands #'sn/project-find-dir)
+(setq tab-bar-format '(tab-bar-format-tabs))
 
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
 (setopt after-delete-frame-functions nil)
-
-(defun gcm-scroll-down ()
-      (interactive)
-      (scroll-up 1))
-    (defun gcm-scroll-up ()
-      (interactive)
-      (scroll-down 1))
-
-
 
 (use-package pixel-scroll
   :ensure nil
   :bind
   ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
   ([remap scroll-down-command] . pixel-scroll-interpolate-up)
+  :hook
+  (pixel-scroll-precision-mode . sn/smooth-scroll-hook)
+  (elpaca-after-init . pixel-scroll-precision-mode)
   :custom
   (pixel-scroll-precision-interpolate-page t)
   (pixel-scroll-precision-use-momentum t)
   (pixel-scroll-precision-large-scroll-height 10) ;; default 40
-  
+  (scroll-conservatively 5)
+  (scroll-margin 5)
   :init
   (defun kb/pixel-recenter (&optional arg redisplay)
 	"Similar to `recenter' but with pixel scrolling.
 ARG and REDISPLAY are identical to the original function."
 	;; See the links in line 6676 in window.c for
 	(when-let* ((current-pixel (pixel-posn-y-at-point))
-				(target-pixel (if (numberp arg)
-                                  (* (line-pixel-height) arg)
-								(* 0.5 (window-body-height nil t))))
-				(distance-in-pixels 0)
-				(pixel-scroll-precision-interpolation-total-time
-				 (/ pixel-scroll-precision-interpolation-total-time 2.0)))
+				 (target-pixel (if (numberp arg)
+                                 (* (line-pixel-height) arg)
+								 (* 0.5 (window-body-height nil t))))
+				 (distance-in-pixels 0)
+				 (pixel-scroll-precision-interpolation-total-time
+				   (/ pixel-scroll-precision-interpolation-total-time 2.0)))
       (setq target-pixel
-			(if (<= 0 target-pixel)
-				target-pixel
-              (- (window-body-height nil t) (abs target-pixel))))
+		(if (<= 0 target-pixel)
+		  target-pixel
+          (- (window-body-height nil t) (abs target-pixel))))
       (setq distance-in-pixels (- target-pixel current-pixel))
       (condition-case err
-          (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
-		(error nil ;; (message "[kb/pixel-recenter] %s" (error-message-string err))
-		  ))
+        (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
+		(error nil (message "[kb/pixel-recenter] %s" (error-message-string err))))
       (when redisplay (redisplay t))))
 
   (defun kb/pixel-scroll-up (&optional arg)
-	 "(Nearly) drop-in replacement for `scroll-up'."
-	 (cond
+	"(Nearly) drop-in replacement for `scroll-up'."
+	(cond
 	  ((eq this-command 'scroll-up-line)
-       (funcall (ad-get-orig-definition 'scroll-up) (or arg 1)))
+		(funcall (ad-get-orig-definition 'scroll-up) (or arg 1)))
 	  (t
-       (unless (eobp) ; Jittery window if trying to go down when already at bottom
-		 (pixel-scroll-precision-interpolate
-		  (- (* (line-pixel-height)
-				(or arg (- (window-text-height) next-screen-context-lines))))
-		  nil 1)))))
+		(unless (eobp) ; Jittery window if trying to go down when already at bottom
+		  (pixel-scroll-precision-interpolate
+			(- (* (line-pixel-height)
+				 (or arg (- (window-text-height) next-screen-context-lines))))
+			nil 1)))))
 
   (defun kb/pixel-scroll-down (&optional arg)
-		 "(Nearly) drop-in replacement for `scroll-down'."
-		 (cond
-		  ((eq this-command 'scroll-down-line)
-		   (funcall (ad-get-orig-definition 'scroll-down) (or arg 1)))
-		  (t
-		   (pixel-scroll-precision-interpolate
-			(* (line-pixel-height)
-			   (or arg (- (window-text-height) next-screen-context-lines)))
-			nil 1))))
+	"(Nearly) drop-in replacement for `scroll-down'."
+	(cond
+	  ((eq this-command 'scroll-down-line)
+		(funcall (ad-get-orig-definition 'scroll-down) (or arg 1)))
+	  (t
+		(pixel-scroll-precision-interpolate
+		  (* (line-pixel-height)
+			(or arg (- (window-text-height) next-screen-context-lines)))
+		  nil 1))))
 
-  (add-hook 'pixel-scroll-precision-mode-hook
-			   (lambda ()
-				 (cond
-				  (pixel-scroll-precision-mode
-				   (advice-add 'scroll-up :override 'kb/pixel-scroll-up)
-				   (advice-add 'scroll-down :override 'kb/pixel-scroll-down)
-				   (advice-add 'recenter :override 'kb/pixel-recenter))
-				  (t
-				   (advice-remove 'scroll-up 'kb/pixel-scroll-up)
-				   (advice-remove 'scroll-down 'kb/pixel-scroll-down)
-				   (advice-remove 'recenter 'kb/pixel-recenter)))))
-  (pixel-scroll-precision-mode 1))
+	(defun sn/smooth-scroll-hook ()
+	  (cond
+		(pixel-scroll-precision-mode
+		  (advice-add 'scroll-up :override 'kb/pixel-scroll-up)
+		  (advice-add 'scroll-down :override 'kb/pixel-scroll-down)
+		  (advice-add 'recenter :override 'kb/pixel-recenter))
+		(t
+		  (advice-remove 'scroll-up 'kb/pixel-scroll-up)
+		  (advice-remove 'scroll-down 'kb/pixel-scroll-down)
+		  (advice-remove 'recenter 'kb/pixel-recenter)))))
 
 (use-package page-break-lines
   :init (global-page-break-lines-mode))
@@ -280,20 +272,10 @@ ARG and REDISPLAY are identical to the original function."
   :ensure nil
   :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
-(use-package spacious-padding
-  :custom
-  (spacious-padding-widths
-	'( :internal-border-width 15
-	   :header-line-width 4
-	   :mode-line-width 2
-	   :tab-width 4
-	   :right-divider-width 30
-	   :scroll-bar-width 8)))
-
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
   :custom
-  (olivetti-minimum-body-width 100)
+  (olivetti-minimum-body-width 120)
   (olivetti-style nil))
 
 (setq-default fringe-indicator-alist
@@ -315,12 +297,27 @@ ARG and REDISPLAY are identical to the original function."
  ring-bell-function 'ignore
  truncate-lines nil
  word-wrap t)
-(setopt 
+(setopt
  use-dialog-box nil
  text-mode-ispell-word-completion nil)
 (global-goto-address-mode t)
+(setq browse-url-firefox-program "zen-browser")
+(defun browse-url-zen (url &optional new-window)
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((process-environment (browse-url-process-environment)))
+    (apply #'start-process
+           (concat "zen-browser " url) nil
+           browse-url-firefox-program
+           (append
+            browse-url-firefox-arguments
+            (if (browse-url-maybe-new-window new-window)
+		(if browse-url-firefox-new-window-is-tab
+		    '("-new-tab")
+		  '("-new-window")))
+            (list url)))))
 (with-eval-after-load 'browse-url
-  (setq browse-url-browser-function #'browse-url-firefox))
+  (setq browse-url-browser-function #'browse-url-zen))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
 
 (use-package recentf
@@ -582,8 +579,7 @@ Call a second time to restore the original window configuration."
 (setq confirm-kill-processes nil)
 
 (use-package meow
-  :hook (after-init . meow-global-mode)
-  :demand t
+  :hook (elpaca-after-init . meow-global-mode)
   :config
   (setq meow-replace-state-name-list
 		 '((normal . "🟢")
@@ -903,6 +899,15 @@ point reaches the beginning or end of the buffer, stop there."
       (when (and (buffer-file-name) (buffer-modified-p))
         (revert-buffer t t t)))))
 
+(use-package desktop
+  :ensure nil
+  :if (daemonp)
+  :custom
+  (desktop-save t)
+  :init
+  (desktop-save-mode 1)
+  (desktop-read))
+
 (use-package minibuffer
   :ensure nil
   :bind
@@ -926,14 +931,22 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package vertico
   :bind
   (:map vertico-map
-		("M-j" . vertico-quick-insert)
-		("C-q" . vertico-quick-exit))
+	("M-j" . vertico-quick-insert)
+	("C-q" . vertico-quick-exit))
   :init
   (vertico-mode 1)
   (vertico-multiform-mode 1)
   :config
-  (add-to-list 'vertico-multiform-commands
-			   '(project-switch-project buffer)))
+  (setq vertico-multiform-commands
+    '((project-switch-project buffer)
+	   (consult-imenu buffer indexed)
+	   (consult-line posframe
+         (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
+       (t posframe)))
+  (setq vertico-multiform-categories
+    '((file grid)
+       (consult-grep buffer)))
+  (vertico-multiform-mode 1))
 (use-package marginalia
   :init
   (marginalia-mode)
@@ -941,7 +954,7 @@ point reaches the beginning or end of the buffer, stop there."
   (marginalia-align 'right)
   :bind
   (:map minibuffer-local-map
-		("M-a" . marginalia-cycle))
+	("M-a" . marginalia-cycle))
   :custom
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil)))
 (use-package all-the-icons-completion
@@ -950,16 +963,36 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package vertico-posframe
   :after vertico
+  :custom
+  (vertico-posframe-width 100)
+  (vertico-posframe-vertico-multiform-key "M-m")
   :config
-  (vertico-posframe-mode 1)
   ;; don't change colors
   (defun my-vertico-posframe-get-border-color-advice (&rest _args)
   "Always return the color of `vertico-posframe-border`."
-	(face-attribute 'vertico-posframe-border :background nil t))
+	(face-attribute 'vertico-posframe-border
+	  :background nil t))
   (advice-add 'vertico-posframe--get-border-color :override #'my-vertico-posframe-get-border-color-advice)
-  :custom
-  (vertico-posframe-poshandler #'posframe-poshandler-frame-center)
-  (vertico-posframe-vertico-multiform-key "M-m"))
+  (vertico-posframe-mode 1)
+  (defun sn/posframe-poshandler-window-or-frame-center (info)
+  "Position handler that centers the posframe in the window if the window width is at least 120 columns.
+Otherwise, it centers the posframe in the frame."
+  (let* ((window-left (plist-get info :parent-window-left))
+         (window-top (plist-get info :parent-window-top))
+         (window-width (plist-get info :parent-window-width))
+         (window-height (plist-get info :parent-window-height))
+         (posframe-width (plist-get info :posframe-width))
+         (posframe-height (plist-get info :posframe-height))
+         (frame-width (plist-get info :parent-frame-width))
+         (frame-height (plist-get info :parent-frame-height)))
+    (if (>= window-width posframe-width)
+        ;; Center in window
+        (cons (max 0 (+ window-left (/ (- window-width posframe-width) 2)))
+              (max 0 (+ window-top (/ (- window-height posframe-height) 2))))
+      ;; Center in frame
+      (cons (/ (- frame-width posframe-width) 2)
+            (/ (- frame-height posframe-height) 2)))))
+  (setq vertico-posframe-poshandler #'sn/posframe-poshandler-window-or-frame-center))
 
 (use-package hotfuzz
   :after orderless)
@@ -1334,6 +1367,17 @@ point reaches the beginning or end of the buffer, stop there."
 (use-package yasnippet-capf
   :after yasnippet)
 
+(use-package abbrev
+  :ensure nil
+  :init
+  (setq-default abbrev-mode t)
+  :config
+  (define-abbrev global-abbrev-table "cdate" ""
+    #'(lambda ()
+        (insert (format-time-string "%Y-%m-%d"))))
+  :custom
+  (save-abbrevs nil))
+
 (use-package jinx
   :after vertico
   :bind
@@ -1463,7 +1507,6 @@ point reaches the beginning or end of the buffer, stop there."
    (quote (("NEXT" :inherit warning)
 		   ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
-  (org-clock-resolve-expert t)
   (org-auto-align-tags nil)
   (org-edit-src-content-indentation 0)
   (org-edit-timestamp-down-means-later t)
@@ -1487,7 +1530,7 @@ point reaches the beginning or end of the buffer, stop there."
   (org-startup-with-latex-preview nil);; wait for the async rendering to be merged
   (org-support-shift-select t)
   (org-archive-location "%s_archive::* Archive")
-  (org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
+  ;; (org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
   (org-directory "~/doc")
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-agenda-files
@@ -1615,16 +1658,16 @@ point reaches the beginning or end of the buffer, stop there."
 
 (use-package org-clock
   :ensure nil  ;; built in
-  :bind 
-  (("C-o" . org-clock-map))
-  :config
-  (defvar org-clock-map (make-sparse-keymap)
+  :init
+  (defvar org-clock-map
+    (let ((map (make-sparse-keymap))) 
+      (define-key map (kbd "j") 'org-clock-goto)
+      (define-key map (kbd "l") 'org-clock-in-last)
+      (define-key map (kbd "i") 'org-clock-in)
+      (define-key map (kbd "o") 'org-clock-out)
+      map)
     "Keymap for org-clock commands.")
-
-  (define-key org-clock-map (kbd "j") 'org-clock-goto)
-  (define-key org-clock-map (kbd "l") 'org-clock-in-last)
-  (define-key org-clock-map (kbd "i") 'org-clock-in)
-  (define-key org-clock-map (kbd "o") 'org-clock-out)
+  (global-set-key (kbd "C-o") org-clock-map)
   :hook
   (org-clock-in . type-break-mode)
   (org-clock-out . (lambda () (type-break-mode -1)))
@@ -1635,11 +1678,9 @@ point reaches the beginning or end of the buffer, stop there."
   					   (org-todo "NEXT")
   					   (setq org-clock-heading "")
   					   (org-save-all-org-buffers))))
-  :init
-  (org-clock-persistence-insinuate)
   :custom
   (org-clock-in-resume t)
-  (org-clock-persist t)
+  (org-clock-persist 'history)
   ;; Save clock data and notes in the LOGBOOK drawer
   (org-clock-into-drawer t)
   ;; Save state changes in the LOGBOOK drawer
@@ -1654,7 +1695,8 @@ point reaches the beginning or end of the buffer, stop there."
   (org-clock-report-include-clocking-task t)
   ;; use pretty things for the clocktable
   (org-pretty-entities t)
-  (org-clock-persist 'history))
+  (org-clock-resolve-expert t)
+  (org-clock-persistence-insinuate))
 
 (use-package type-break
 	:ensure nil
@@ -1890,21 +1932,31 @@ point reaches the beginning or end of the buffer, stop there."
   :hook (org-mode . toc-org-mode))
 
 (use-package pdf-tools
-  :defer 5
+  :ensure (:host github :repo "aikrahguzar/pdf-tools"
+			:branch "continuous-scroll")
   :hook (pdf-tools-enabled . (lambda ()
-						 (pdf-view-midnight-minor-mode 1)
-						 (toggle-mode-line)))
+							   (pdf-view-midnight-minor-mode 1)
+							   (toggle-mode-line)))
   :custom
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
+  (pdf-annot-activate-created-annotations t)
+  :magic ("%PDF" . pdf-view-mode)
+  :init (setq-default pdf-view-roll-minor-mode t)
   :config
-  (pdf-loader-install))
-
-(use-package pdf-continuous-scroll-mode
-  :after pdf-tools
-  :custom
-  (pdf-continuous-suppress-introduction t)
-  :ensure (:host github :repo "dalanicolai/pdf-continuous-scroll-mode.el"))
+  (require 'pdf-tools)
+  (require 'pdf-view)
+  (require 'pdf-misc)
+  (require 'pdf-occur)
+  (require 'pdf-util)
+  (require 'pdf-annot)
+  (require 'pdf-info)
+  (require 'pdf-isearch)
+  (require 'pdf-history)
+  (require 'pdf-links)
+  (require 'pdf-roll)
+  (pdf-tools-install :no-query)
+  )
 
 (use-package org-roam
   :init (setq-default org-roam-v2-ack t)
@@ -2146,8 +2198,7 @@ point reaches the beginning or end of the buffer, stop there."
               (save-some-buffers t t))))
 
 (use-package git-gutter
-  :config
-  (global-git-gutter-mode t)
+  :hook (elpaca-after-init .  global-git-gutter-mode)
   :custom
   (git-gutter:ask-p nil)
   (git-gutter:update-interval 0.4))
@@ -2161,16 +2212,16 @@ point reaches the beginning or end of the buffer, stop there."
   :bind
   ("C-c i" . blamer-show-posframe-commit-info)
   :custom
-  (blamer-idle-time 1.5)
-  (blamer-view 'overlay-right)
-  (blamer-min-offset 70)
-  :config (global-blamer-mode))
+  (blamer-idle-time 0.7)
+  (blamer-min-offset 10)
+  (blamer-max-commit-message-length 50)
+  (blamer-type 'visual)
+  :init (global-blamer-mode t))
 
 (use-package magit
   :ensure nil
   :after (transient git-timemachine)
   :config
-  (require 'magit-extras)
   (require 'smerge-mode)
   (transient-define-prefix sn/smerge ()
 	"Rebase Menu"
@@ -2580,20 +2631,16 @@ The exact color values are taken from the active Ef theme."
   (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset)
   )
 
-(use-package tabnine 
-  :bind
-  (:map prog-mode-map
-		("M-SPC t d" . tabnine-chat-document-code)
-		("M-SPC t g" . tabnine-chat-generate-test-for-code)
-		("M-SPC t e" . tabnine-chat-explain-code)
-		("M-SPC t f" . tabnine-chat-fix-code)))
-(use-package tabnine-capf
-  :after cape
-  :ensure (:host github :repo "50ways2sayhard/tabnine-capf")
-  :hook (kill-emacs . tabnine-capf-kill-process)
-  :bind ("M-SPC /" . (lambda () (interactive) (cape-capf-interactive #'tabnine-completion-at-point)))
-  ;; (keymap-global-set "M-SPC /" (cape-capf-interactive #'tabnine-completion-at-point))
-  )
+(use-package aidermacs
+  :ensure (:host github :repo "MatthewZMD/aidermacs")
+  :bind (("M-SPC a" . aidermacs-transient-menu))
+  :config
+  ; Enable minor mode for Aider files
+  (aidermacs-setup-minor-mode)
+  :custom
+  ; See the Configuration section below
+  (aidermacs-use-architect-mode t)
+  (aidermacs-default-model "sonnet"))
 
 (use-package cus-dir
   :ensure (:host gitlab :repo "mauroaranda/cus-dir")

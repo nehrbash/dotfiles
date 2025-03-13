@@ -61,6 +61,7 @@ source /usr/share/autojump/autojump.zsh 2>/dev/null
 # Load emacs functions
 [ -f "$HOME/.zsh/emacs_functions" ] && source "$HOME/.zsh/emacs_functions"
 
-eval "$(direnv hook zsh)"
+# Load direnv
+[ -f "$(which direnv)" ] && eval "$(direnv hook zsh)"
 
-source /usr/share/nvm/init-nvm.sh
+[ -f "$HOME/.zsh/emacs_functions" ] && source "$HOME/.zsh/emacs_functions"
