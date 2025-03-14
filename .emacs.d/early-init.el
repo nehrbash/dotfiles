@@ -66,8 +66,5 @@
 (tool-bar-mode -1)
 (menu-bar-mode -1)
 
-;; disable mode line replaced with doom-modeline later
-(setq-default mode-line-format nil)
-
 (provide 'early-init)
 ;;; early-init.el ends here
