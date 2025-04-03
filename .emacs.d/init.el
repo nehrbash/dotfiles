@@ -133,7 +133,8 @@
 		  `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
 		  `(eldoc-box-border ((,c :background ,fg-alt)))
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
-		  `(breadcrumb-imenu-leaf-face ((,c :inherit mode-line :foreground ,fg-alt)))
+		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
+		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))
 		  ;; `(org-document-title ((,c :height 1.4)))
 		  ;; `(org-modern-todo ((,c :height 1.2)))
 		  ;; `(org-modern-done ((,c :height 1.2)))
@@ -150,6 +151,7 @@
 			:files ("emacs/.emacs.d/prot-lisp/prot-modeline.el" 
 					 "emacs/.emacs.d/prot-lisp/prot-common.el")
 			:main "emacs/.emacs.d/prot-lisp/prot-modeline.el")
+  :custom (prot-modeline-string-truncate-length 30)
   :config
   (setq mode-line-compact nil) ; Emacs 28
   (setq mode-line-right-align-edge 'right-margin) ; Emacs 30
@@ -238,9 +240,10 @@
   (pixel-scroll-precision-use-momentum t)
   (pixel-scroll-precision-interpolate-page t)
   (pixel-scroll-precision-interpolation-total-time 0.25)
-  (pixel-scroll-precision-large-scroll-height 10) ;; default 40
+  (pixel-scroll-precision-large-scroll-height 30) ;; default 40
   (scroll-conservatively 5)
   (scroll-margin 5)
+  (scroll-preserve-screen-position t)
   :init
   (defun kb/pixel-recenter (&optional arg redisplay)
 	"Similar to `recenter' but with pixel scrolling.
@@ -799,18 +802,32 @@ Call a second time to restore the original window configuration."
 (meow-global-mode 1))
 
 (use-package avy
-  :commands avy-goto-char-timer
-  :custom (avy-timeout-seconds 0.3)
-  :bind ("M-j" . avy-goto-char-timer)
+  :custom
+  (avy-timeout-seconds 0.5)
+  (avy-keys '(?n ?e ?i ?o ?h ?t ?s ?r ?a ?d))
+  (avy-dispatch-alist '((?b . avy-embark-act)
+						 (?y . avy-action-yank)
+						 (?Y . avy-action-yank-whole-line)
+						 (?w . avy-action-copy)
+						 (?W . avy-action-yank-whole-line)
+						 (?v . avy-action-teleport)
+						 (?V . avy-action-teleport-whole-line)
+						 (?x . avy-action-kill-move)
+						 (?X . avy-action-kill-stay)
+						 (?m . avy-action-mark)
+						 (?z . avy-acton-zap-to-char)))
+  :bind
+  ("C-c e" . avy-goto-char-timer)
+  ("C-c E" . avy-resume)
   :config
   (defun avy-action-copy-whole-line (pt)
 	(save-excursion
       (goto-char pt)
       (cl-destructuring-bind (start . end)
-          (bounds-of-thing-at-point 'line)
+        (bounds-of-thing-at-point 'line)
 		(copy-region-as-kill start end)))
 	(select-window
-	 (cdr (ring-ref avy-ring 0))) t)
+	  (cdr (ring-ref avy-ring 0))) t)
   (defun avy-action-yank-whole-line (pt)
 	"Quick copy line."
 	(avy-action-copy-whole-line pt)
@@ -822,19 +839,19 @@ Call a second time to restore the original window configuration."
   (defun avy-embark-act (pt)
 	"Use Embark to act on the item at PT."
 	(unwind-protect
-		(save-excursion
-          (goto-char pt)
-          (embark-act))
+	  (save-excursion
+        (goto-char pt)
+        (embark-act))
       (select-window
-       (cdr (ring-ref avy-ring 0))) t))
+		(cdr (ring-ref avy-ring 0))) t))
   (setf
-   (alist-get ?y avy-dispatch-alist) 'avy-embark-act
-   (alist-get ?y avy-dispatch-alist) 'avy-action-yank
-   (alist-get ?w avy-dispatch-alist) 'avy-action-copy
-   (alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
-   (alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line
-   (alist-get ?t avy-dispatch-alist) 'avy-action-teleport
-   (alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line))
+	(alist-get ?y avy-dispatch-alist) 'avy-embark-act
+	(alist-get ?y avy-dispatch-alist) 'avy-action-yank
+	(alist-get ?w avy-dispatch-alist) 'avy-action-copy
+	(alist-get ?W avy-dispatch-alist) 'avy-action-copy-whole-line
+	(alist-get ?Y avy-dispatch-alist) 'avy-action-yank-whole-line
+	(alist-get ?t avy-dispatch-alist) 'avy-action-teleport
+	(alist-get ?T avy-dispatch-alist) 'avy-action-teleport-whole-line))
 
 (use-package lasgun
   :ensure (:host github :repo "aatmunbaxi/lasgun.el")
@@ -1050,7 +1067,7 @@ point reaches the beginning or end of the buffer, stop there."
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
-  (read-minibuffer-restore-windows t) ;; don't revert to original layout after cancel.
+  (read-minibuffer-restore-windows nil) ;; don't revert to original layout after cancel.
   (resize-mini-windows t)
   (minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
@@ -1063,7 +1080,7 @@ point reaches the beginning or end of the buffer, stop there."
 	"Fetch the current or next symbol at point in the current buffer while in minibuffer."
 	(interactive)
 	(let ((symbol (with-minibuffer-selected-window
-					(or (thing-at-point 'symbol) 
+					(or (thing-at-point 'symbol)
                       (save-excursion
                         (forward-symbol 1)
                         (thing-at-point 'symbol))))))
@@ -1393,7 +1410,7 @@ Otherwise, it centers the posframe in the frame."
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
-		 ("C-c e" . protogg-eshell)
+		 ;; ("C-c e" . protogg-eshell)
 		 ("M-s d" . protogg-find-dired)
 		 ([remap find-file] . protogg-find-file) ;; C-x C-f
 		 ([remap list-buffers] . protogg-list-buffers) ;; type C-x C-b
@@ -2947,6 +2964,29 @@ Otherwise, it centers the posframe in the frame."
 	 ("shower" "~/.dotfiles/icons/shower.svg" nil nil :ascent center :mask heuristic)
 	 ("archive" "~/.dotfiles/icons/archive.svg" nil nil :ascent center :mask heuristic)))
   :config
+  (defcustom my/org-scheduled-tag "scheduled"
+  "Tag to add or remove based on the presence of a SCHEDULED timestamp."
+  :type 'string
+  :group 'org)
+
+(defun my/org-update-scheduled-tag ()
+  "Add or remove the scheduled tag based on the presence of a SCHEDULED timestamp."
+  (org-map-entries
+   (lambda ()
+     (let ((scheduled (org-get-scheduled-time (point)))
+           (tags (org-get-tags)))
+       (if scheduled
+           (unless (member my/org-scheduled-tag tags)
+             (org-set-tags (cons my/org-scheduled-tag tags)))
+         (when (member my/org-scheduled-tag tags)
+           (org-set-tags (remove my/org-scheduled-tag tags))))))))
+
+(defun my/org-agenda-update-scheduled-tag ()
+  "Hook to update the scheduled tag before building the agenda."
+  (save-excursion
+    (my/org-update-scheduled-tag)))
+
+  (add-hook 'org-agenda-before-todo-list-hook #'my/org-agenda-update-scheduled-tag)
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
   (let ((active-project-match "-INBOX/PROJECT"))
@@ -3086,17 +3126,17 @@ Otherwise, it centers the posframe in the frame."
   )
 
 (use-package org-roam
-  :demand t
   :init
   (setq-default org-roam-v2-ack t)
-  :config
-  (org-roam-db-autosync-mode)
   (defun sn/org-roam-dailies-goto-today ()
 	"Open today's daily note non-interactively and return the buffer name as a string."
 	(interactive)
 	(org-roam-dailies-goto-today)
 	(get-buffer (format-time-string "%Y-%m-%d.org")))
-  (setq initial-buffer-choice #'sn/org-roam-dailies-goto-today)
+  (unless (> (length command-line-args) 1)
+	(setq initial-buffer-choice #'sn/org-roam-dailies-goto-today))
+  :config
+  (org-roam-db-autosync-mode)
   :custom
   (org-roam-directory "~/doc/Roam/")
   (org-roam-completion-everywhere t)
@@ -3107,15 +3147,15 @@ Otherwise, it centers the posframe in the frame."
 		"* %?"
 		:target (file+head "%<%Y-%m-%d>.org"
 				  "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n f"   . org-roam-node-find)
-		  ("C-c n d"   . org-roam-dailies-goto-date)
-		  ("C-c n n"   . org-roam-buffer-display-dedicated)
-		  ("C-c n c"   . org-roam-dailies-capture-today)
+  :bind (("C-c n f" . org-roam-node-find)
+		  ("C-c n d" . org-roam-dailies-goto-date)
+		  ("C-c n n" . org-roam-buffer-display-dedicated)
+		  ("C-c n c" . org-roam-dailies-capture-today)
 		  ("C-c n C" . org-roam-dailies-capture-tomorrow)
-		  ("C-c n t"   . org-roam-dailies-goto-today)
-		  ("C-c n y"   . org-roam-dailies-goto-yesterday)
-		  ("C-c n r"   . org-roam-dailies-goto-tomorrow)
-		  ("C-c n G"   . org-roam-graph)
+		  ("C-c n t" . org-roam-dailies-goto-today)
+		  ("C-c n y" . org-roam-dailies-goto-yesterday)
+		  ("C-c n r" . org-roam-dailies-goto-tomorrow)
+		  ("C-c n G" . org-roam-graph)
 		  :map org-mode-map
 		  (("C-c n i" . org-roam-node-insert))))
 (use-package consult-org-roam
@@ -3416,6 +3456,8 @@ The exact color values are taken from the active Ef theme."
 				  (buffer-face-mode t)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
+					          scroll-margin 0
+					          scroll-conservatively 0
 							  cursor-type 'bar)
 				  (face-remap-add-relative
 				   'default
@@ -3625,6 +3667,40 @@ The exact color values are taken from the active Ef theme."
           (dired "/docker:dev-container:/workspace/")
           (magit-status))
       (message "Error: Command failed. Check %s for details." output-buffer))))
+
+(defun sn/ssh-pub-key ()
+  "Select a .pub key from ~/.ssh/ and copy its contents to the kill ring."
+  (interactive)
+  (let* ((ssh-dir (expand-file-name "~/.ssh/"))
+         (keys (when (file-exists-p ssh-dir)
+                 (directory-files ssh-dir t "\\.pub$")))
+         (key-name (completing-read "Select SSH public key: " keys nil t)))
+    (when key-name
+      (with-temp-buffer
+        (insert-file-contents key-name)
+        (kill-new (buffer-string)))
+      (message "Copied %s to kill ring" key-name))))
+
+(defun sn/copy-path ()
+  "Copy the buffer's file path to the kill ring.
+If the buffer is part of a project, copy the relative path from the project root.
+Otherwise, copy the absolute file path."
+  (interactive)
+  (let* ((file-name (buffer-file-name))
+         (project (project-current nil))
+         (project-root (and project (project-root project)))
+         (relative-file-name (and project-root
+                                  file-name
+                                  (file-relative-name file-name project-root))))
+    (if (and project-root relative-file-name)
+        (progn
+          (kill-new relative-file-name)
+          (message "Copied relative file path: %s" relative-file-name))
+      (if file-name
+          (progn
+            (kill-new file-name)
+            (message "Copied file path: %s" file-name))
+        (message "Buffer is not visiting a file")))))
 
 (use-package mu4e
   :ensure nil
