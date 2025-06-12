@@ -116,7 +116,6 @@
 		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-		  `(blamer-face ((,c :foreground ,fg-alt :italic t)))
 		  `(tab-line              ((,c :background ,bg-dim :foreground ,bg-dim :height 1.1 :box nil)))
 		  `(tab-line-tab-group    ((,c :inherit 'tab-line)))
 		  `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
@@ -1426,15 +1425,15 @@ Otherwise, it centers the posframe in the frame."
 (use-package corfu
   :after orderless
   :hook (((prog-mode conf-mode yaml-mode) . sn/corfu-basic))
-  :bind (:map corfu-map ("M-SPC" . corfu-insert-separator)
+  :bind (:map corfu-map
+		  ("M-SPC" . corfu-insert-separator)
 		  ("TAB" . corfu-next)
 		  ([tab] . corfu-next)
 		  ("S-TAB" . corfu-previous)
 		  ([backtab] . corfu-previous))
   :custom
   (corfu-cycle t)
-  (corfu-preselect 'prompt) ;; Always preselect the prompt
-  ;; default/writting settings, see sn/corfu-basic for coding completion
+   ;; default/writting settings, see sn/corfu-basic for coding completion
   (tab-first-completion t)
   (tab-always-indent 'complete)
   (corfu-auto-delay 0.8)
@@ -1476,11 +1475,7 @@ Otherwise, it centers the posframe in the frame."
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local
-	  corfu-auto t
-	  corfu-auto-delay 0
-	  corfu-quit-no-match t
-	  completion-styles '(orderless-fast basic)
-	  corfu-popupinfo-delay .8))
+	  completion-styles '(orderless-fast basic)))
   (corfu-popupinfo-mode t)
   (defun corfu-move-to-minibuffer ()
 	"For long canadate lists view in minibuffer"
@@ -3333,14 +3328,14 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package eldoc-box
   :custom
-  (eldoc-idle-delay 0)
-  (eldoc-box-cleanup-interval 3)
+  (eldoc-idle-delay 0.3)
+  (eldoc-box-cleanup-interval 2)
   (eldoc-box-only-multi-line t)
   (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (eldoc-box-offset '(32 32 32))
   (eldoc-box-max-pixel-width 600)
   (eldoc-box-max-pixel-height 200)
-  :hook (eglot-managed-mode . eldoc-box-hover-mode))
+  :hook (eldoc-mode . eldoc-box-hover-mode))
 
 (use-package dape
   :bind ("<F7>" . dape)
@@ -3367,15 +3362,6 @@ Otherwise, it centers the posframe in the frame."
   (define-fringe-bitmap 'git-gutter-fr:added [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:modified [224] nil nil '(center repeated))
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
-(use-package blamer
-  :bind
-  ("C-c i" . blamer-show-posframe-commit-info)
-  :custom
-  (blamer-idle-time 0.7)
-  (blamer-min-offset 10)
-  (blamer-max-commit-message-length 50)
-  (blamer-type 'visual)
-  :init (global-blamer-mode t))
 
 (use-package magit
   :ensure nil
@@ -3682,11 +3668,12 @@ The exact color values are taken from the active Ef theme."
       (message "Copied %s to kill ring" key-name))))
 
 (defun sn/copy-path ()
-  "Copy the buffer's file path to the kill ring.
+  "Copy the buffer's file path and line number to the kill ring.
 If the buffer is part of a project, copy the relative path from the project root.
-Otherwise, copy the absolute file path."
+Otherwise, copy the absolute file path. Appends the line number at the end."
   (interactive)
   (let* ((file-name (buffer-file-name))
+         (line-number (line-number-at-pos))
          (project (project-current nil))
          (project-root (and project (project-root project)))
          (relative-file-name (and project-root
@@ -3694,12 +3681,12 @@ Otherwise, copy the absolute file path."
                                   (file-relative-name file-name project-root))))
     (if (and project-root relative-file-name)
         (progn
-          (kill-new relative-file-name)
-          (message "Copied relative file path: %s" relative-file-name))
+          (kill-new (format "%s:%d" relative-file-name line-number))
+          (message "Copied relative file path: %s:%d" relative-file-name line-number))
       (if file-name
           (progn
-            (kill-new file-name)
-            (message "Copied file path: %s" file-name))
+            (kill-new (format "%s:%d" file-name line-number))
+            (message "Copied file path: %s:%d" file-name line-number))
         (message "Buffer is not visiting a file")))))
 
 (use-package mu4e
