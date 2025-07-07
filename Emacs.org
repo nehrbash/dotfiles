@@ -108,53 +108,53 @@
    =elpaca= has been most pleasant experience thus far.
 
 #+begin_src emacs-lisp
-(defvar elpaca-installer-version 0.10)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (<= emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-(elpaca elpaca-use-package
-		;; use-package enable :ensure keyword.
-		(elpaca-use-package-mode))
-(setopt
- use-package-always-ensure t
- warning-minimum-level :emergency
- native-comp-jit-compilation t
- byte-compile-docstring-max-column 120
- native-compile-prune-cache t)
+  (defvar elpaca-installer-version 0.11)
+  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                                :ref nil :depth 1 :inherit ignore
+                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                                :build (:not elpaca--activate-package)))
+  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+         (build (expand-file-name "elpaca/" elpaca-builds-directory))
+         (order (cdr elpaca-order))
+         (default-directory repo))
+    (add-to-list 'load-path (if (file-exists-p build) build repo))
+    (unless (file-exists-p repo)
+      (make-directory repo t)
+      (when (<= emacs-major-version 28) (require 'subr-x))
+      (condition-case-unless-debug err
+          (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                    ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                    ,@(when-let* ((depth (plist-get order :depth)))
+                                                        (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                    ,(plist-get order :repo) ,repo))))
+                    ((zerop (call-process "git" nil buffer t "checkout"
+                                          (or (plist-get order :ref) "--"))))
+                    (emacs (concat invocation-directory invocation-name))
+                    ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                          "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                    ((require 'elpaca))
+                    ((elpaca-generate-autoloads "elpaca" repo)))
+              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+            (error "%s" (with-current-buffer buffer (buffer-string))))
+        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+    (unless (require 'elpaca-autoloads nil t)
+      (require 'elpaca)
+      (elpaca-generate-autoloads "elpaca" repo)
+      (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+  (add-hook 'after-init-hook #'elpaca-process-queues)
+  (elpaca `(,@elpaca-order))
+  (elpaca elpaca-use-package
+  		;; use-package enable :ensure keyword.
+  		(elpaca-use-package-mode))
+  (setopt
+   use-package-always-ensure t
+   warning-minimum-level :emergency
+   native-comp-jit-compilation t
+   byte-compile-docstring-max-column 120
+   native-compile-prune-cache t)
 #+end_src
 
 ** Install functions that aren't dynamic detected
@@ -213,10 +213,7 @@
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
   (ef-themes-headings
-	'((0 variable-pitch light 2.1)
-	   (1 variable-pitch light 1.6)
-	   (t variable-pitch 1.1)
-	   (agenda-date 1.9)
+	'((agenda-date 1)
 	   (agenda-structure variable-pitch light 1.8)
 	   (t variable-pitch)))
   :preface
@@ -240,13 +237,13 @@
 	  (let ((darker (my-darken-color bg-main 0.7)))
 		(custom-set-faces
 		  `(default ((,c :family "Iosevka" )))
+		  `(org-modern-symbol ((,c :family "Iosevka" )))
 		  `(variable-pitch ((,c :family "Iosevka Aile")))
-		  `(ef-themes-key-binding ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer :height 0.95)))
-		  
+		  `(ef-themes-key-binding ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer)))
 		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-		  `(tab-line              ((,c :background ,bg-dim :foreground ,bg-dim :height 1.1 :box nil)))
+		  `(tab-line              ((,c :family "Iosevka Aile" :background ,bg-dim :foreground ,bg-dim :height 2 :box nil)))
 		  `(tab-line-tab-group    ((,c :inherit 'tab-line)))
 		  `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
 		  `(tab-line-tab-current  ((,c :height 1.1 :inherit 'tab-line-tab :background nil :box nil)))
@@ -264,11 +261,6 @@
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))
-		  ;; `(org-document-title ((,c :height 1.4)))
-		  ;; `(org-modern-todo ((,c :height 1.2)))
-		  ;; `(org-modern-done ((,c :height 1.2)))
-		  ;; `(org-modern-tag ((,c :height 1.2)))
-		  ;; `(org-modern-symbol ((,c :font "Iosevka")))
 		  ))))
   ;; load theme
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
@@ -377,81 +369,108 @@
 	~C-v~ and ~M-v~ are scroll commands.
 
 #+begin_src emacs-lisp
-(use-package pixel-scroll
-  :ensure nil
-  :bind
-  ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
-  ([remap scroll-down-command] . pixel-scroll-interpolate-up)
-  :hook
-  (pixel-scroll-precision-mode . sn/smooth-scroll-hook)
-  (elpaca-after-init . pixel-scroll-precision-mode)
-  :custom
-  (pixel-scroll-precision-interpolate-page t)
-  (pixel-scroll-precision-use-momentum t)
-  (pixel-scroll-precision-interpolate-page t)
-  (pixel-scroll-precision-interpolation-total-time 0.25)
-  (pixel-scroll-precision-large-scroll-height 30) ;; default 40
-  (scroll-conservatively 5)
-  (scroll-margin 5)
-  (scroll-preserve-screen-position t)
-  :init
-  (defun kb/pixel-recenter (&optional arg redisplay)
-	"Similar to `recenter' but with pixel scrolling.
-ARG and REDISPLAY are identical to the original function."
-	;; See the links in line 6676 in window.c for
-	(when-let* ((current-pixel (pixel-posn-y-at-point))
-				 (target-pixel (if (numberp arg)
-                                 (* (line-pixel-height) arg)
-								 (* 0.5 (window-body-height nil t))))
-				 (distance-in-pixels 0)
-				 (pixel-scroll-precision-interpolation-total-time
-				   (/ pixel-scroll-precision-interpolation-total-time 2.0)))
-      (setq target-pixel
-		(if (<= 0 target-pixel)
-		  target-pixel
-          (- (window-body-height nil t) (abs target-pixel))))
-      (setq distance-in-pixels (- target-pixel current-pixel))
-      (condition-case err
-        (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
-		(error nil ;; (message "[kb/pixel-recenter] %s" (error-message-string err))
-		  ))
-      (when redisplay (redisplay t))))
+(use-package ultra-scroll
+   :ensure (:host github :repo "jdtsmith/ultra-scroll")
+  :custom (scroll-conservatively 3)
+  :config
+  (ultra-scroll-mode)
+  (add-hook 'ultra-scroll-hide-functions 'hl-line-mode)
+  ;; provide scroll-margin without fucking up buffers and smooth scrolling
+  ;; Eliminate stupid window movements caused by minibuffer or transient opening
+;; and closing.
+(defcustom pmx-no-herky-jerk-margin 12
+  "Number of lines to protect from incidental scrolling.
+A good value is the maximum height of your minibuffer, such as
+configured by `ivy-height' and similar variables that configure packages
+like `vertico' and `helm'."
+  :type 'integer
+  :group 'scrolling)
 
-  (defun kb/pixel-scroll-up (&optional arg)
-	"(Nearly) drop-in replacement for `scroll-up'."
-	(cond
-	  ((eq this-command 'scroll-up-line)
-		(funcall (ad-get-orig-definition 'scroll-up) (or arg 1)))
-	  (t
-		(unless (eobp) ; Jittery window if trying to go down when already at bottom
-		  (pixel-scroll-precision-interpolate
-			(- (* (line-pixel-height)
-				 (or arg (- (window-text-height) next-screen-context-lines))))
-			nil 1)))))
+;; You would think we need multiple restore points.  However, there seems to be
+;; a behavior where window points in non-selected windows are restored all the
+;; time.  This was only apparent after moving them.
+(defvar pmx--no-herky-jerk-restore nil
+  "Where to restore selected buffer point.
+List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 
-  (defun kb/pixel-scroll-down (&optional arg)
-	"(Nearly) drop-in replacement for `scroll-down'."
-	(cond
-	  ((eq this-command 'scroll-down-line)
-		(funcall (ad-get-orig-definition 'scroll-down) (or arg 1)))
-	  (t
-		(pixel-scroll-precision-interpolate
-		  (* (line-pixel-height)
-			(or arg (- (window-text-height) next-screen-context-lines)))
-		  nil 1))))
+;; Counting line height would be more correct.  In general, lines are taller but
+;; not shorter than the default, so this is a conservative approximation that
+;; treats all lines as the default height.
+(defun pmx--no-herky-jerk-enter (&rest _)
+  "Adjust window points to prevent implicit scrolling."
+  (unless (> (minibuffer-depth) 1)
+    (let ((windows (window-at-side-list
+                    (window-frame (selected-window))
+                    'bottom))
+          ;; height of default lines
+          (frame-char-height (frame-char-height
+                              (window-frame (selected-window)))))
+      (while-let ((w (pop windows)))
+        (with-current-buffer (window-buffer w)
+          (let* ((current-line (line-number-at-pos (window-point w)))
+                 (end-line (line-number-at-pos (window-end w)))
+                 (window-pixel-height (window-pixel-height w))
+                 (window-used-height (cdr (window-text-pixel-size
+                                           w (window-start w) (window-end w))))
+                 (margin-height (* frame-char-height pmx-no-herky-jerk-margin))
+                 (unsafe-height (- window-used-height
+                                   (- window-pixel-height margin-height)))
+                 (unsafe-lines (+ 2 (ceiling (/ unsafe-height frame-char-height))))
+                 (exceeded-lines (- unsafe-lines (- end-line current-line))))
+            (when (> exceeded-lines 0)
+              ;;  save value for restore
+              (let* ((buffer (window-buffer w))
+                     (restore-marker (let ((marker (make-marker)))
+                                       ;; XXX this may error?
+                                       (set-marker marker (window-point w)
+                                                   buffer)))
+                     (safe-point (progn
+                                   (goto-char restore-marker)
+                                   ;; XXX goes up too many lines when skipping
+                                   ;; wrapped lines
+                                   (ignore-error '(beginning-of-buffer
+                                                   end-of-buffer)
+                                     (previous-line exceeded-lines t))
+                                   (end-of-line)
+                                   (point))))
+                (set-window-point w safe-point)
+                (when (eq w (minibuffer-selected-window))
+                  (let ((safe-marker (make-marker)))
+                    (set-marker safe-marker safe-point buffer)
+                    (setq pmx--no-herky-jerk-restore
+                          (list buffer w safe-marker restore-marker))))
+                (goto-char (marker-position restore-marker))))))))))
 
-	(defun sn/smooth-scroll-hook ()
-	  (cond
-		(pixel-scroll-precision-mode
-		  (advice-add 'scroll-up :override 'kb/pixel-scroll-up)
-		  (advice-add 'scroll-down :override 'kb/pixel-scroll-down)
-		  (advice-add 'recenter :override 'kb/pixel-recenter))
-		(t
-		  (advice-remove 'scroll-up 'kb/pixel-scroll-up)
-		  (advice-remove 'scroll-down 'kb/pixel-scroll-down)
-		  (advice-remove 'recenter 'kb/pixel-recenter)))))
+(defun pmx--no-herky-jerk-exit ()
+  "Restore window points that were rescued from implicit scrolling."
+  (when (and pmx--no-herky-jerk-restore
+             (= (minibuffer-depth) 1)
+             (null (transient-active-prefix)))
+    (when-let* ((restore pmx--no-herky-jerk-restore)
+                (buffer (pop restore))
+                (w (pop restore))
+                (safe-marker (pop restore))
+                (restore-marker (pop restore)))
+      (when (and (window-live-p w)
+                 (eq (window-buffer w) buffer)
+                 (= (window-point w) (marker-position safe-marker)))
+        (goto-char restore-marker)
+        (set-window-point w restore-marker))
+      (set-marker restore-marker nil)
+      (set-marker safe-marker nil)
+      (setq pmx--no-herky-jerk-restore nil))))
+
+(add-hook 'minibuffer-setup-hook #'pmx--no-herky-jerk-enter)
+(add-hook 'minibuffer-exit-hook #'pmx--no-herky-jerk-exit)
+
+;; Add the same for transient
+(with-eval-after-load 'transient
+  (advice-add 'transient-setup :before #'pmx--no-herky-jerk-enter)
+  (add-hook 'transient-exit-hook #'pmx--no-herky-jerk-exit)
+  (setopt transient-hide-during-minibuffer-read t)))
 #+end_src
-	
+    
+
 *** Page Break Lines render
 	
 #+begin_src emacs-lisp
@@ -641,7 +660,7 @@ ARG and REDISPLAY are identical to the original function."
   (use-package recentf
     :ensure nil
     :custom
-    (recentf-auto-cleanup 'never)
+    (recentf-auto-cleanup 300)
     (recentf-max-saved-items 100)
     (backup-directory-alist
   	`((".*" . ,temporary-file-directory)))
@@ -651,12 +670,7 @@ ARG and REDISPLAY are identical to the original function."
   	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
   	   "/tmp/.*"           ;; matches any string that includes directory named tmp
   	   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
-  	   ))
-    :hook ((kill-emacs save-buffer) . (lambda ()
-  									  (recentf-save-list)))
-    (elpaca-after-init . recentf-mode)
-    :config
-    )
+  	   )))
 #+end_src
 
 **  Auto Save
@@ -1100,6 +1114,14 @@ Call a second time to restore the original window configuration."
  (meow-global-mode 1))
  #+end_src
     
+**** meow treesitter
+
+#+begin_src emacs-lisp
+(use-package meow-tree-sitter
+  :after meow
+  :config (meow-tree-sitter-register-defaults))
+#+end_src
+
 *** Avy
 #+begin_src emacs-lisp
 (use-package avy
@@ -1506,7 +1528,8 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
   :config
   (setq vertico-multiform-commands
     '((consult-imenu buffer indexed)
-	   (consult-line reverse)
+	   (corfu-move-to-minibuffer reverse indexed (:not posframe))
+	   (consult-line reverse (:not posframe))
 	   (project-switch-project posframe
          (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
        (t posframe)))
@@ -1939,38 +1962,33 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
 		  ([backtab] . corfu-previous))
   :custom
   (corfu-cycle t)
-   ;; default/writting settings, see sn/corfu-basic for coding completion
+  ;; default/writting settings, see sn/corfu-basic for coding completion
   (tab-first-completion t)
   (tab-always-indent 'complete)
+  (corfu-auto t)
   (corfu-auto-delay 0.8)
-  (corfu-popupinfo-delay 0.2)
-  (corfu-quit-no-match 'separator)
+  ;; (corfu-popupinfo-delay (1.8 1.0))
+  ;; (corfu-quit-no-match 'separator)
+  (corfu-quit-no-match t)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold nil)
   :init
   (global-corfu-mode t)
-  (global-completion-preview-mode t)
+  ;; (global-completion-preview-mode t)
   :config
-  (setq completion-preview-minimum-symbol-length 2)
-  ;; Non-standard commands to that should show the preview:
-  ;; Org mode has a custom `self-insert-command'
-  (push 'org-self-insert-command completion-preview-commands)
-  ;; Paredit has a custom `delete-backward-char' command
-  (push 'paredit-backward-delete completion-preview-commands)
-  ;; Bindings that take effect when the preview is shown:
-  ;; Cycle the completion candidate that the preview shows
-  (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
-  (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
-  ;; Convenient alternative to C-i after typing one of the above
-  (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
-  (defun my-custom-completion-at-point-functions ()
- 	"Define your custom list of completion at point functions here."
- 	(list #'codeium-completion-at-point))
-  (defun my-custom-completion-preview--update-advice (orig-fun &rest args)
- 	(let ((completion-at-point-functions (my-custom-completion-at-point-functions)))
-      (apply orig-fun args)))
-  ;; (advice-add 'completion-preview--update :around #'my-custom-completion-preview--update-advice)
-  
+  ;; (setq completion-preview-minimum-symbol-length 1)
+  ;; ;; Non-standard commands to that should show the preview:
+  ;; ;; Org mode has a custom `self-insert-command'
+  ;; (push 'org-self-insert-command completion-preview-commands)
+  ;; ;; Paredit has a custom `delete-backward-char' command
+  ;; (push 'paredit-backward-delete completion-preview-commands)
+  ;; ;; Bindings that take effect when the preview is shown:
+  ;; ;; Cycle the completion candidate that the preview shows
+  ;; (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+  ;; (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+  ;; ;; Convenient alternative to C-i after typing one of the above
+  ;; (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
+  ;; fast completion
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
 	  `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
@@ -1981,6 +1999,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local
+	  corfu-auto-delay 0.08
 	  completion-styles '(orderless-fast basic)))
   (corfu-popupinfo-mode t)
   (defun corfu-move-to-minibuffer ()
@@ -2022,37 +2041,23 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
 
 #+begin_src emacs-lisp
 (use-package cape
-  :demand t ; for eglot
   :bind
   ("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
   ("C-c /" . sn/cape)
+  :hook
+  ((prog-mode eglot-managed-mode) . sn/code-completion)
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   (cape-dabbrev-min-length 2)
-  :config
-  (transient-define-prefix sn/cape ()
-	"explicit Completion type"
-	[[
-	  ("d" "Dabbrev" cape-dabbrev)
-	  ("s" "Spelling" cape-dict)
-	  ("k" "Keyword" cape-keyword)
-	  ("l" "Line" cape-line)]
-	 [
-	  ("f" "File" cape-file)
-	  ("h" "History" cape-history)
-	  ("a" "Abbrev" cape-abbrev)
-	  ("q" "Quit" transient-quit-one)]
-	 [
-	  ("e" "Elisp Symbol" cape-elisp-symbol)
-	  ("E" "Elisp Block" cape-elisp-block)
-	  ("t" "Tags" complete-tag)
-	  ]])
   :config
   (setq completion-at-point-functions
 	'(#'cape-dict
 	   #'cape-dabbrev
 	   #'cape-file
 	   #'cape-abbrev))
+  (defun sn/codeium-capf ()
+	(interactive)
+	(cape-wrap-nonexclusive #'codeium-completion-at-point))
   (defun sn/cape-in-string ()
 	(cape-wrap-inside-string
 	  (cape-capf-super
@@ -2069,9 +2074,32 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
 	(cape-wrap-nonexclusive
 	  (cape-capf-inside-code
 		(cape-capf-super
-		  #'eglot-completion-at-point
-		  #'yasnippet-capf
-		  #'cape-dabbrev)))))
+		  #'eglot-completion-at-point))))
+  (defun sn/code-completion ()
+	(setq-local
+	  completion-at-point-functions
+	  (list
+        #'sn/cape-in-code
+        #'sn/cape-in-string
+        #'sn/cape-in-comment
+		#'sn/codeium-capf
+		#'cape-dabbrev)))
+  (transient-define-prefix sn/cape ()
+	"explicit Completion type"
+	[[("d" "Dabbrev" cape-dabbrev)
+	   ("s" "Spelling" cape-dict)
+	   ("k" "Keyword" cape-keyword)
+	   ("l" "Line" cape-line)]
+	  [("c" "codeium" sn/codeium-capf)
+		("e" "Elisp Symbol" cape-elisp-symbol)
+		("E" "Elisp Block" cape-elisp-block)
+		("t" "Tags" complete-tag)
+		]
+	  [("f" "File" cape-file)
+		("h" "History" cape-history)
+		("a" "Abbrev" cape-abbrev)
+		("q" "Quit" transient-quit-one)]
+	  ]))
 #+end_src
 
 *** Snippets
@@ -3203,7 +3231,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 			 ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
   (org-auto-align-tags nil)
-  (org-edit-src-content-indentation 0)
+  (org-tags-column 0)
+  (org-src-preserve-indentation t) ;; mainly to ignore ‘org-edit-src-content-indentation’.
   (org-edit-timestamp-down-means-later t)
   (org-ellipsis "…")
   (org-fast-tag-selection-single-key 'expert)
@@ -3220,9 +3249,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (org-src-ask-before-returning-to-edit-buffer nil)
   (org-startup-folded t)
   (org-startup-with-inline-images t)
-  (org-tags-column 0)
-  ;; TODO(SN): https://github.com/karthink/org-auctex
-  (org-startup-with-latex-preview nil);; wait for the async rendering to be merged
   (org-support-shift-select t)
   (org-archive-location "%s_archive::* Archive")
   ;; (org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
@@ -3356,8 +3382,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 #+begin_src emacs-lisp
 (use-package org-modern
-  :init
-  (global-org-modern-mode t))
+  :config (global-org-modern-mode t))
 #+end_src
 
 *** Org Appear
@@ -3964,7 +3989,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package eglot
   :ensure nil
-  :after cape
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . eglot-inlay-hints-mode)
@@ -3980,7 +4004,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	("C-c o" . eglot-code-action-organize-imports))
   :custom
   (eglot-mode-line-format '(eglot-mode-line-action-suggestion))
-  (eglot-code-action-indications '(nearby mode-line margin))
+  (eglot-code-action-indications '(margin eldoc-hint))
   (eglot-report-progress nil)
   (eglot-autoshutdown t)
   (eglot-advertise-cancellation t)
@@ -4018,7 +4042,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	  (eglot--request (eglot--current-server-or-lose)
 		:textDocument/rename `(,@(eglot--TextDocumentPositionParams)
 								:newName ,newname))
-	  this-command))  
+	  this-command))
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (defun eglot-organize-imports ()
 	(interactive)
@@ -4026,14 +4050,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (defun sn/setup-eglot ()
 	"Eglot setup customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 'local)
-	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local)
-	(setq-local
-	  completion-at-point-functions (list
-									  #'sn/cape-in-code
-									  #'sn/cape-in-string
-									  #'sn/cape-in-comment
-									  #'codeium-completion-at-point
-									  )))) 
+	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local))) 
 (use-package consult-eglot
   :after eglot
   :bind
@@ -4241,8 +4258,6 @@ The exact color values are taken from the active Ef theme."
 				  (buffer-face-mode t)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
-					          scroll-margin 0
-					          scroll-conservatively 0
 							  cursor-type 'bar)
 				  (face-remap-add-relative
 				   'default

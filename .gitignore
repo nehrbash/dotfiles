@@ -69,3 +69,4 @@
 /.emacs.d/lisp/hotfuzz-module.so
 /.local/bin/roamui
 .aider*
+*.eld

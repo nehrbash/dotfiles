@@ -2,53 +2,53 @@
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
-(defvar elpaca-installer-version 0.10)
-(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-       (build (expand-file-name "elpaca/" elpaca-builds-directory))
-       (order (cdr elpaca-order))
-       (default-directory repo))
-  (add-to-list 'load-path (if (file-exists-p build) build repo))
-  (unless (file-exists-p repo)
-    (make-directory repo t)
-    (when (<= emacs-major-version 28) (require 'subr-x))
-    (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
-      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-  (unless (require 'elpaca-autoloads nil t)
-    (require 'elpaca)
-    (elpaca-generate-autoloads "elpaca" repo)
-    (load "./elpaca-autoloads")))
-(add-hook 'after-init-hook #'elpaca-process-queues)
-(elpaca `(,@elpaca-order))
-(elpaca elpaca-use-package
-		;; use-package enable :ensure keyword.
-		(elpaca-use-package-mode))
-(setopt
- use-package-always-ensure t
- warning-minimum-level :emergency
- native-comp-jit-compilation t
- byte-compile-docstring-max-column 120
- native-compile-prune-cache t)
+  (defvar elpaca-installer-version 0.11)
+  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                                :ref nil :depth 1 :inherit ignore
+                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                                :build (:not elpaca--activate-package)))
+  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+         (build (expand-file-name "elpaca/" elpaca-builds-directory))
+         (order (cdr elpaca-order))
+         (default-directory repo))
+    (add-to-list 'load-path (if (file-exists-p build) build repo))
+    (unless (file-exists-p repo)
+      (make-directory repo t)
+      (when (<= emacs-major-version 28) (require 'subr-x))
+      (condition-case-unless-debug err
+          (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                    ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                    ,@(when-let* ((depth (plist-get order :depth)))
+                                                        (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                    ,(plist-get order :repo) ,repo))))
+                    ((zerop (call-process "git" nil buffer t "checkout"
+                                          (or (plist-get order :ref) "--"))))
+                    (emacs (concat invocation-directory invocation-name))
+                    ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                          "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                    ((require 'elpaca))
+                    ((elpaca-generate-autoloads "elpaca" repo)))
+              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+            (error "%s" (with-current-buffer buffer (buffer-string))))
+        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+    (unless (require 'elpaca-autoloads nil t)
+      (require 'elpaca)
+      (elpaca-generate-autoloads "elpaca" repo)
+      (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+  (add-hook 'after-init-hook #'elpaca-process-queues)
+  (elpaca `(,@elpaca-order))
+  (elpaca elpaca-use-package
+  		;; use-package enable :ensure keyword.
+  		(elpaca-use-package-mode))
+  (setopt
+   use-package-always-ensure t
+   warning-minimum-level :emergency
+   native-comp-jit-compilation t
+   byte-compile-docstring-max-column 120
+   native-compile-prune-cache t)
 
 (defun run-commands-if-no-lock-file ()
   (let ((lock-file "~/.emacs.d/install_lock"))
@@ -83,10 +83,7 @@
   (ef-themes-mixed-fonts t)
   (ef-themes-variable-pitch-ui t)
   (ef-themes-headings
-	'((0 variable-pitch light 2.1)
-	   (1 variable-pitch light 1.6)
-	   (t variable-pitch 1.1)
-	   (agenda-date 1.9)
+	'((agenda-date 1)
 	   (agenda-structure variable-pitch light 1.8)
 	   (t variable-pitch)))
   :preface
@@ -110,13 +107,13 @@
 	  (let ((darker (my-darken-color bg-main 0.7)))
 		(custom-set-faces
 		  `(default ((,c :family "Iosevka" )))
+		  `(org-modern-symbol ((,c :family "Iosevka" )))
 		  `(variable-pitch ((,c :family "Iosevka Aile")))
-		  `(ef-themes-key-binding ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer :height 0.95)))
-		  
+		  `(ef-themes-key-binding ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer)))
 		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-		  `(tab-line              ((,c :background ,bg-dim :foreground ,bg-dim :height 1.1 :box nil)))
+		  `(tab-line              ((,c :family "Iosevka Aile" :background ,bg-dim :foreground ,bg-dim :height 2 :box nil)))
 		  `(tab-line-tab-group    ((,c :inherit 'tab-line)))
 		  `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
 		  `(tab-line-tab-current  ((,c :height 1.1 :inherit 'tab-line-tab :background nil :box nil)))
@@ -134,11 +131,6 @@
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))
-		  ;; `(org-document-title ((,c :height 1.4)))
-		  ;; `(org-modern-todo ((,c :height 1.2)))
-		  ;; `(org-modern-done ((,c :height 1.2)))
-		  ;; `(org-modern-tag ((,c :height 1.2)))
-		  ;; `(org-modern-symbol ((,c :font "Iosevka")))
 		  ))))
   ;; load theme
   (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
@@ -226,79 +218,105 @@
 (global-prettify-symbols-mode t)
 (setopt after-delete-frame-functions nil)
 
-(use-package pixel-scroll
-  :ensure nil
-  :bind
-  ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
-  ([remap scroll-down-command] . pixel-scroll-interpolate-up)
-  :hook
-  (pixel-scroll-precision-mode . sn/smooth-scroll-hook)
-  (elpaca-after-init . pixel-scroll-precision-mode)
-  :custom
-  (pixel-scroll-precision-interpolate-page t)
-  (pixel-scroll-precision-use-momentum t)
-  (pixel-scroll-precision-interpolate-page t)
-  (pixel-scroll-precision-interpolation-total-time 0.25)
-  (pixel-scroll-precision-large-scroll-height 30) ;; default 40
-  (scroll-conservatively 5)
-  (scroll-margin 5)
-  (scroll-preserve-screen-position t)
-  :init
-  (defun kb/pixel-recenter (&optional arg redisplay)
-	"Similar to `recenter' but with pixel scrolling.
-ARG and REDISPLAY are identical to the original function."
-	;; See the links in line 6676 in window.c for
-	(when-let* ((current-pixel (pixel-posn-y-at-point))
-				 (target-pixel (if (numberp arg)
-                                 (* (line-pixel-height) arg)
-								 (* 0.5 (window-body-height nil t))))
-				 (distance-in-pixels 0)
-				 (pixel-scroll-precision-interpolation-total-time
-				   (/ pixel-scroll-precision-interpolation-total-time 2.0)))
-      (setq target-pixel
-		(if (<= 0 target-pixel)
-		  target-pixel
-          (- (window-body-height nil t) (abs target-pixel))))
-      (setq distance-in-pixels (- target-pixel current-pixel))
-      (condition-case err
-        (pixel-scroll-precision-interpolate distance-in-pixels nil 1)
-		(error nil ;; (message "[kb/pixel-recenter] %s" (error-message-string err))
-		  ))
-      (when redisplay (redisplay t))))
+(use-package ultra-scroll
+   :ensure (:host github :repo "jdtsmith/ultra-scroll")
+  :custom (scroll-conservatively 3)
+  :config
+  (ultra-scroll-mode)
+  (add-hook 'ultra-scroll-hide-functions 'hl-line-mode)
+  ;; provide scroll-margin without fucking up buffers and smooth scrolling
+  ;; Eliminate stupid window movements caused by minibuffer or transient opening
+;; and closing.
+(defcustom pmx-no-herky-jerk-margin 12
+  "Number of lines to protect from incidental scrolling.
+A good value is the maximum height of your minibuffer, such as
+configured by `ivy-height' and similar variables that configure packages
+like `vertico' and `helm'."
+  :type 'integer
+  :group 'scrolling)
 
-  (defun kb/pixel-scroll-up (&optional arg)
-	"(Nearly) drop-in replacement for `scroll-up'."
-	(cond
-	  ((eq this-command 'scroll-up-line)
-		(funcall (ad-get-orig-definition 'scroll-up) (or arg 1)))
-	  (t
-		(unless (eobp) ; Jittery window if trying to go down when already at bottom
-		  (pixel-scroll-precision-interpolate
-			(- (* (line-pixel-height)
-				 (or arg (- (window-text-height) next-screen-context-lines))))
-			nil 1)))))
+;; You would think we need multiple restore points.  However, there seems to be
+;; a behavior where window points in non-selected windows are restored all the
+;; time.  This was only apparent after moving them.
+(defvar pmx--no-herky-jerk-restore nil
+  "Where to restore selected buffer point.
+List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 
-  (defun kb/pixel-scroll-down (&optional arg)
-	"(Nearly) drop-in replacement for `scroll-down'."
-	(cond
-	  ((eq this-command 'scroll-down-line)
-		(funcall (ad-get-orig-definition 'scroll-down) (or arg 1)))
-	  (t
-		(pixel-scroll-precision-interpolate
-		  (* (line-pixel-height)
-			(or arg (- (window-text-height) next-screen-context-lines)))
-		  nil 1))))
+;; Counting line height would be more correct.  In general, lines are taller but
+;; not shorter than the default, so this is a conservative approximation that
+;; treats all lines as the default height.
+(defun pmx--no-herky-jerk-enter (&rest _)
+  "Adjust window points to prevent implicit scrolling."
+  (unless (> (minibuffer-depth) 1)
+    (let ((windows (window-at-side-list
+                    (window-frame (selected-window))
+                    'bottom))
+          ;; height of default lines
+          (frame-char-height (frame-char-height
+                              (window-frame (selected-window)))))
+      (while-let ((w (pop windows)))
+        (with-current-buffer (window-buffer w)
+          (let* ((current-line (line-number-at-pos (window-point w)))
+                 (end-line (line-number-at-pos (window-end w)))
+                 (window-pixel-height (window-pixel-height w))
+                 (window-used-height (cdr (window-text-pixel-size
+                                           w (window-start w) (window-end w))))
+                 (margin-height (* frame-char-height pmx-no-herky-jerk-margin))
+                 (unsafe-height (- window-used-height
+                                   (- window-pixel-height margin-height)))
+                 (unsafe-lines (+ 2 (ceiling (/ unsafe-height frame-char-height))))
+                 (exceeded-lines (- unsafe-lines (- end-line current-line))))
+            (when (> exceeded-lines 0)
+              ;;  save value for restore
+              (let* ((buffer (window-buffer w))
+                     (restore-marker (let ((marker (make-marker)))
+                                       ;; XXX this may error?
+                                       (set-marker marker (window-point w)
+                                                   buffer)))
+                     (safe-point (progn
+                                   (goto-char restore-marker)
+                                   ;; XXX goes up too many lines when skipping
+                                   ;; wrapped lines
+                                   (ignore-error '(beginning-of-buffer
+                                                   end-of-buffer)
+                                     (previous-line exceeded-lines t))
+                                   (end-of-line)
+                                   (point))))
+                (set-window-point w safe-point)
+                (when (eq w (minibuffer-selected-window))
+                  (let ((safe-marker (make-marker)))
+                    (set-marker safe-marker safe-point buffer)
+                    (setq pmx--no-herky-jerk-restore
+                          (list buffer w safe-marker restore-marker))))
+                (goto-char (marker-position restore-marker))))))))))
 
-	(defun sn/smooth-scroll-hook ()
-	  (cond
-		(pixel-scroll-precision-mode
-		  (advice-add 'scroll-up :override 'kb/pixel-scroll-up)
-		  (advice-add 'scroll-down :override 'kb/pixel-scroll-down)
-		  (advice-add 'recenter :override 'kb/pixel-recenter))
-		(t
-		  (advice-remove 'scroll-up 'kb/pixel-scroll-up)
-		  (advice-remove 'scroll-down 'kb/pixel-scroll-down)
-		  (advice-remove 'recenter 'kb/pixel-recenter)))))
+(defun pmx--no-herky-jerk-exit ()
+  "Restore window points that were rescued from implicit scrolling."
+  (when (and pmx--no-herky-jerk-restore
+             (= (minibuffer-depth) 1)
+             (null (transient-active-prefix)))
+    (when-let* ((restore pmx--no-herky-jerk-restore)
+                (buffer (pop restore))
+                (w (pop restore))
+                (safe-marker (pop restore))
+                (restore-marker (pop restore)))
+      (when (and (window-live-p w)
+                 (eq (window-buffer w) buffer)
+                 (= (window-point w) (marker-position safe-marker)))
+        (goto-char restore-marker)
+        (set-window-point w restore-marker))
+      (set-marker restore-marker nil)
+      (set-marker safe-marker nil)
+      (setq pmx--no-herky-jerk-restore nil))))
+
+(add-hook 'minibuffer-setup-hook #'pmx--no-herky-jerk-enter)
+(add-hook 'minibuffer-exit-hook #'pmx--no-herky-jerk-exit)
+
+;; Add the same for transient
+(with-eval-after-load 'transient
+  (advice-add 'transient-setup :before #'pmx--no-herky-jerk-enter)
+  (add-hook 'transient-exit-hook #'pmx--no-herky-jerk-exit)
+  (setopt transient-hide-during-minibuffer-read t)))
 
 (use-package page-break-lines
   :init (global-page-break-lines-mode))
@@ -310,9 +328,9 @@ ARG and REDISPLAY are identical to the original function."
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
-(use-package display-fill-column-indicator
-  :ensure nil
-  :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
+    (use-package display-fill-column-indicator
+      :ensure nil
+      :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
@@ -323,45 +341,45 @@ ARG and REDISPLAY are identical to the original function."
 (setq-default fringe-indicator-alist
               (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 
-(setq-default
- fill-column 80
- blink-cursor-interval 0.4
- buffers-menu-max-size 30
- case-fold-search t
- column-number-mode t
- ediff-split-window-function 'split-window-horizontally
- ediff-window-setup-function 'ediff-setup-windows-plain
- tab-width 4
- mouse-yank-at-point t
- save-interprogram-paste-before-kill t
- set-mark-command-repeat-pop t
- tooltip-delay .3
- ring-bell-function 'ignore
- truncate-lines nil
- word-wrap t)
-(setopt
- idle-update-delay 0.1
- use-dialog-box nil
- text-mode-ispell-word-completion nil)
-(global-goto-address-mode t)
-(setq browse-url-firefox-program "zen-browser")
-(defun browse-url-zen (url &optional new-window)
-  (interactive (browse-url-interactive-arg "URL: "))
-  (setq url (browse-url-encode-url url))
-  (let* ((process-environment (browse-url-process-environment)))
-    (apply #'start-process
-           (concat "zen-browser " url) nil
-           browse-url-firefox-program
-           (append
-            browse-url-firefox-arguments
-            (if (browse-url-maybe-new-window new-window)
-		(if browse-url-firefox-new-window-is-tab
-		    '("-new-tab")
-		  '("-new-window")))
-            (list url)))))
-(with-eval-after-load 'browse-url
-  (setq browse-url-browser-function #'browse-url-zen))
-(global-unset-key (kbd "M-SPC")) ;; my second C-c binding
+  (setq-default
+   fill-column 80
+   blink-cursor-interval 0.4
+   buffers-menu-max-size 30
+   case-fold-search t
+   column-number-mode t
+   ediff-split-window-function 'split-window-horizontally
+   ediff-window-setup-function 'ediff-setup-windows-plain
+   tab-width 4
+   mouse-yank-at-point t
+   save-interprogram-paste-before-kill t
+   set-mark-command-repeat-pop t
+   tooltip-delay .3
+   ring-bell-function 'ignore
+   truncate-lines nil
+   word-wrap t)
+  (setopt
+   idle-update-delay 0.1
+   use-dialog-box nil
+   text-mode-ispell-word-completion nil)
+  (global-goto-address-mode t)
+  (setq browse-url-firefox-program "zen-browser")
+  (defun browse-url-zen (url &optional new-window)
+    (interactive (browse-url-interactive-arg "URL: "))
+    (setq url (browse-url-encode-url url))
+    (let* ((process-environment (browse-url-process-environment)))
+      (apply #'start-process
+             (concat "zen-browser " url) nil
+             browse-url-firefox-program
+             (append
+              browse-url-firefox-arguments
+              (if (browse-url-maybe-new-window new-window)
+  		(if browse-url-firefox-new-window-is-tab
+  		    '("-new-tab")
+  		  '("-new-window")))
+              (list url)))))
+  (with-eval-after-load 'browse-url
+    (setq browse-url-browser-function #'browse-url-zen))
+  (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
 
 (use-package prot-window
   :ensure (:host gitlab
@@ -442,25 +460,20 @@ ARG and REDISPLAY are identical to the original function."
                 "\\*\\(Man\\|woman\\).*"))
          (display-buffer-same-window)))))
 
-(use-package recentf
-  :ensure nil
-  :custom
-  (recentf-auto-cleanup 'never)
-  (recentf-max-saved-items 100)
-  (backup-directory-alist
-	`((".*" . ,temporary-file-directory)))
-  (recentf-exclude
-	'(
-	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
-	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
-	   "/tmp/.*"           ;; matches any string that includes directory named tmp
-	   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
-	   ))
-  :hook ((kill-emacs save-buffer) . (lambda ()
-									  (recentf-save-list)))
-  (elpaca-after-init . recentf-mode)
-  :config
-  )
+  (use-package recentf
+    :ensure nil
+    :custom
+    (recentf-auto-cleanup 300)
+    (recentf-max-saved-items 100)
+    (backup-directory-alist
+  	`((".*" . ,temporary-file-directory)))
+    (recentf-exclude
+  	'(
+  	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
+  	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
+  	   "/tmp/.*"           ;; matches any string that includes directory named tmp
+  	   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
+  	   )))
 
 (use-package files
   :ensure nil
@@ -506,7 +519,7 @@ ARG and REDISPLAY are identical to the original function."
   :config
   (setq history-length 25))
 
-(save-place-mode 1)
+ (save-place-mode 1)
 
 (use-package anzu
   :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
@@ -704,101 +717,105 @@ Call a second time to restore the original window configuration."
 
 (setq confirm-kill-processes nil)
 
-(use-package meow
-   :demand t
-   :config
-   (setq meow-replace-state-name-list
- 		 '((normal . "🟢")
- 		   (motion . "🟡")
- 		   (keypad . "🟣")
- 		   (insert . "🟠")
- 		   (beacon . "🔴")))
-   (add-to-list 'meow-mode-state-list '(org-mode . insert))
-   (add-to-list 'meow-mode-state-list '(eat-mode . insert))
-   (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
-   (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
-   (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
-   (meow-motion-overwrite-define-key
- 	;; Use e to move up, n to move down.
- 	;; Since special modes usually use n to move down, we only overwrite e here.
- 	'("e" . meow-prev)
- 	'("<escape>" . ignore))
-   (meow-leader-define-key
- 	'("?" . meow-cheatsheet)
- 	;; To execute the originally e in MOTION state, use SPC e.
- 	'("e" . "H-e")
- 	'("o" . switch-window)
- 	'("1" . meow-digit-argument)
- 	'("2" . meow-digit-argument)
- 	'("3" . meow-digit-argument)
- 	'("4" . meow-digit-argument)
- 	'("5" . meow-digit-argument)
- 	'("6" . meow-digit-argument)
- 	'("7" . meow-digit-argument)
- 	'("8" . meow-digit-argument)
- 	'("9" . meow-digit-argument)
- 	'("0" . meow-digit-argument)
- 	'("f ." . find-file-at-point))
-   (meow-normal-define-key
- 	'("0" . meow-expand-0)
- 	'("1" . meow-expand-1)
- 	'("2" . meow-expand-2)
- 	'("3" . meow-expand-3)
- 	'("4" . meow-expand-4)
- 	'("5" . meow-expand-5)
- 	'("6" . meow-expand-6)
- 	'("7" . meow-expand-7)
- 	'("8" . meow-expand-8)
- 	'("9" . meow-expand-9)
- 	'("-" . negative-argument)
- 	'(";" . meow-reverse)
- 	'("," . meow-inner-of-thing)
- 	'("." . meow-bounds-of-thing)
- 	'("[" . meow-beginning-of-thing)
- 	'("]" . meow-end-of-thing)
- 	'("/" . meow-visit)
- 	'("a" . meow-append)
- 	'("A" . meow-open-below)
- 	'("b" . meow-back-word)
- 	'("B" . meow-back-symbol)
- 	'("c" . meow-change)
- 	'("i" . meow-prev)
- 	'("I" . meow-prev-expand)
- 	'("f" . meow-find)
- 	'("g" . meow-cancel-selection)
- 	'("G" . meow-grab)
- 	'("n" . meow-left)
- 	'("N" . meow-left-expand)
- 	'("o" . meow-right)
- 	'("O" . meow-right-expand)
- 	'("j" . meow-join)
- 	'("k" . meow-kill)
- 	'("l" . meow-line)
- 	'("L" . meow-goto-line)
- 	'("m" . meow-mark-word)
- 	'("M" . meow-mark-symbol)
- 	'("e" . meow-next)
- 	'("E" . meow-next-expand)
- 	'("h" . meow-block)
- 	'("H" . meow-to-block)
- 	'("p" . meow-yank)
- 	'("q" . meow-quit)
- 	'("r" . meow-replace)
- 	'("s" . meow-insert)
- 	'("S" . meow-open-above)
- 	'("t" . meow-till)
- 	'("u" . meow-undo)
- 	'("U" . meow-undo-in-selection)
- 	'("v" . meow-search)
- 	'("w" . meow-next-word)
- 	'("W" . meow-next-symbol)
- 	'("x" . meow-delete)
- 	'("X" . meow-backward-delete)
- 	'("y" . meow-save)
- 	'("z" . meow-pop-selection)
- 	'("'" . repeat)
- 	'("<escape>" . ignore))
-(meow-global-mode 1))
+  (use-package meow
+    :demand t
+    :config
+    (setq meow-replace-state-name-list
+  		 '((normal . "🟢")
+  		   (motion . "🟡")
+  		   (keypad . "🟣")
+  		   (insert . "🟠")
+  		   (beacon . "🔴")))
+    (add-to-list 'meow-mode-state-list '(org-mode . insert))
+    (add-to-list 'meow-mode-state-list '(eat-mode . insert))
+    (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
+    (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+    (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
+    (meow-motion-overwrite-define-key
+  	;; Use e to move up, n to move down.
+  	;; Since special modes usually use n to move down, we only overwrite e here.
+  	'("e" . meow-prev)
+  	'("<escape>" . ignore))
+    (meow-leader-define-key
+  	'("?" . meow-cheatsheet)
+  	;; To execute the originally e in MOTION state, use SPC e.
+  	'("e" . "H-e")
+  	'("o" . switch-window)
+  	'("1" . meow-digit-argument)
+  	'("2" . meow-digit-argument)
+  	'("3" . meow-digit-argument)
+  	'("4" . meow-digit-argument)
+  	'("5" . meow-digit-argument)
+  	'("6" . meow-digit-argument)
+  	'("7" . meow-digit-argument)
+  	'("8" . meow-digit-argument)
+  	'("9" . meow-digit-argument)
+  	'("0" . meow-digit-argument)
+  	'("f ." . find-file-at-point))
+    (meow-normal-define-key
+  	'("0" . meow-expand-0)
+  	'("1" . meow-expand-1)
+  	'("2" . meow-expand-2)
+  	'("3" . meow-expand-3)
+  	'("4" . meow-expand-4)
+  	'("5" . meow-expand-5)
+  	'("6" . meow-expand-6)
+  	'("7" . meow-expand-7)
+  	'("8" . meow-expand-8)
+  	'("9" . meow-expand-9)
+  	'("-" . negative-argument)
+  	'(";" . meow-reverse)
+  	'("," . meow-inner-of-thing)
+  	'("." . meow-bounds-of-thing)
+  	'("[" . meow-beginning-of-thing)
+  	'("]" . meow-end-of-thing)
+  	'("/" . meow-visit)
+  	'("a" . meow-append)
+  	'("A" . meow-open-below)
+  	'("b" . meow-back-word)
+  	'("B" . meow-back-symbol)
+  	'("c" . meow-change)
+  	'("i" . meow-prev)
+  	'("I" . meow-prev-expand)
+  	'("f" . meow-find)
+  	'("g" . meow-cancel-selection)
+  	'("G" . meow-grab)
+  	'("n" . meow-left)
+  	'("N" . meow-left-expand)
+  	'("o" . meow-right)
+  	'("O" . meow-right-expand)
+  	'("j" . meow-join)
+  	'("k" . meow-kill)
+  	'("l" . meow-line)
+  	'("L" . meow-goto-line)
+  	'("m" . meow-mark-word)
+  	'("M" . meow-mark-symbol)
+  	'("e" . meow-next)
+  	'("E" . meow-next-expand)
+  	'("h" . meow-block)
+  	'("H" . meow-to-block)
+  	'("p" . meow-yank)
+  	'("q" . meow-quit)
+  	'("r" . meow-replace)
+  	'("s" . meow-insert)
+  	'("S" . meow-open-above)
+  	'("t" . meow-till)
+  	'("u" . meow-undo)
+  	'("U" . meow-undo-in-selection)
+  	'("v" . meow-search)
+  	'("w" . meow-next-word)
+  	'("W" . meow-next-symbol)
+  	'("x" . meow-delete)
+  	'("X" . meow-backward-delete)
+  	'("y" . meow-save)
+  	'("z" . meow-pop-selection)
+  	'("'" . repeat)
+  	'("<escape>" . ignore))
+ (meow-global-mode 1))
+
+(use-package meow-tree-sitter
+  :after meow
+  :config (meow-tree-sitter-register-defaults))
 
 (use-package avy
   :custom
@@ -941,20 +958,20 @@ Call a second time to restore the original window configuration."
 	  ("o" "occur"
 	   isearch-occur :transient nil)]]))
 
-(defun delete-this-file ()
-  "Delete the current file, and kill the buffer."
-  (interactive)
-  (unless (buffer-file-name)
+ (defun delete-this-file ()
+   "Delete the current file, and kill the buffer."
+   (interactive)
+   (unless (buffer-file-name)
 	 (error "No file is currently being edited"))
-  (when (yes-or-no-p (format "Really delete '%s'?"
+   (when (yes-or-no-p (format "Really delete '%s'?"
 							  (file-name-nondirectory buffer-file-name)))
 	 (delete-file (buffer-file-name))
 	 (kill-this-buffer)))
 
-(defun rename-this-file-and-buffer (new-name)
-  "Renames both current buffer and file it's visiting to NEW-NAME."
-  (interactive "sNew name: ")
-  (let ((name (buffer-name))
+ (defun rename-this-file-and-buffer (new-name)
+   "Renames both current buffer and file it's visiting to NEW-NAME."
+   (interactive "sNew name: ")
+   (let ((name (buffer-name))
 		 (filename (buffer-file-name)))
 	 (unless filename
 	   (error "Buffer '%s' is not visiting a file!" name))
@@ -980,40 +997,40 @@ Call a second time to restore the original window configuration."
   (push-mark (point) t nil)
   (apply func args))
 
-(use-package move-dup
-  :bind(("M-<up>" . move-dup-move-lines-up)
+ (use-package move-dup
+   :bind(("M-<up>" . move-dup-move-lines-up)
 		 ("M-<down>" . move-dup-move-lines-down)
 		 ("C-c d" . move-dup-duplicate-down)
 		 ("C-c u" . move-dup-duplicate-up)))
 
-(use-package whole-line-or-region
-  :config (whole-line-or-region-global-mode t))
+ (use-package whole-line-or-region
+   :config (whole-line-or-region-global-mode t))
 
-(defun smarter-move-beginning-of-line (arg)
-  "Move point back to indentation of beginning of line.
+ (defun smarter-move-beginning-of-line (arg)
+   "Move point back to indentation of beginning of line.
 
-Move point to the first non-whitespace character on this line.
-If point is already there, move to the beginning of the line.
-Effectively toggle between the first non-whitespace character and
-the beginning of the line.
+ Move point to the first non-whitespace character on this line.
+ If point is already there, move to the beginning of the line.
+ Effectively toggle between the first non-whitespace character and
+ the beginning of the line.
 
-If ARG is not nil or 1, move forward ARG - 1 lines first.  If
-point reaches the beginning or end of the buffer, stop there."
-  (interactive "^p")
-  (setq arg (or arg 1))
+ If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+ point reaches the beginning or end of the buffer, stop there."
+   (interactive "^p")
+   (setq arg (or arg 1))
 
-  ;; Move lines first
-  (when (/= arg 1)
+   ;; Move lines first
+   (when (/= arg 1)
 	 (let ((line-move-visual nil))
 	   (forward-line (1- arg))))
 
-  (let ((orig-point (point)))
+   (let ((orig-point (point)))
 	 (back-to-indentation)
 	 (when (= orig-point (point))
 	   (move-beginning-of-line 1))))
 
-;; remap C-a to `smarter-move-beginning-of-line'
-(global-set-key [remap move-beginning-of-line]
+ ;; remap C-a to `smarter-move-beginning-of-line'
+ (global-set-key [remap move-beginning-of-line]
 				 'smarter-move-beginning-of-line)
 
 (use-package ace-window
@@ -1022,13 +1039,13 @@ point reaches the beginning or end of the buffer, stop there."
   (aw-ignore-current t)
   :bind ("M-o" . ace-window))
 
-(use-package windswap
-  :config
-  (windmove-default-keybindings 'control)
-  (windswap-default-keybindings 'shift 'control))
+ (use-package windswap
+   :config
+   (windmove-default-keybindings 'control)
+   (windswap-default-keybindings 'shift 'control))
 
-(use-package sudo-edit
-  :commands (sudo-edit))
+ (use-package sudo-edit
+   :commands (sudo-edit))
 
 (use-package fullframe)
 
@@ -1097,7 +1114,8 @@ point reaches the beginning or end of the buffer, stop there."
   :config
   (setq vertico-multiform-commands
     '((consult-imenu buffer indexed)
-	   (consult-line reverse)
+	   (corfu-move-to-minibuffer reverse indexed (:not posframe))
+	   (consult-line reverse (:not posframe))
 	   (project-switch-project posframe
          (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
        (t posframe)))
@@ -1375,10 +1393,10 @@ Otherwise, it centers the posframe in the frame."
 	   consult--source-project-recent-file
 	   consult--source-star)))
 
-(use-package consult-xref-stack
-  :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
-  :bind
-  ("C-," . consult-xref-stack-backward))
+    (use-package consult-xref-stack
+      :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
+      :bind
+      ("C-," . consult-xref-stack-backward))
 
 (use-package embark
   :bind
@@ -1433,38 +1451,33 @@ Otherwise, it centers the posframe in the frame."
 		  ([backtab] . corfu-previous))
   :custom
   (corfu-cycle t)
-   ;; default/writting settings, see sn/corfu-basic for coding completion
+  ;; default/writting settings, see sn/corfu-basic for coding completion
   (tab-first-completion t)
   (tab-always-indent 'complete)
+  (corfu-auto t)
   (corfu-auto-delay 0.8)
-  (corfu-popupinfo-delay 0.2)
-  (corfu-quit-no-match 'separator)
+  ;; (corfu-popupinfo-delay (1.8 1.0))
+  ;; (corfu-quit-no-match 'separator)
+  (corfu-quit-no-match t)
   (corfu-auto-prefix 2)
   (completion-cycle-threshold nil)
   :init
   (global-corfu-mode t)
-  (global-completion-preview-mode t)
+  ;; (global-completion-preview-mode t)
   :config
-  (setq completion-preview-minimum-symbol-length 2)
-  ;; Non-standard commands to that should show the preview:
-  ;; Org mode has a custom `self-insert-command'
-  (push 'org-self-insert-command completion-preview-commands)
-  ;; Paredit has a custom `delete-backward-char' command
-  (push 'paredit-backward-delete completion-preview-commands)
-  ;; Bindings that take effect when the preview is shown:
-  ;; Cycle the completion candidate that the preview shows
-  (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
-  (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
-  ;; Convenient alternative to C-i after typing one of the above
-  (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
-  (defun my-custom-completion-at-point-functions ()
- 	"Define your custom list of completion at point functions here."
- 	(list #'codeium-completion-at-point))
-  (defun my-custom-completion-preview--update-advice (orig-fun &rest args)
- 	(let ((completion-at-point-functions (my-custom-completion-at-point-functions)))
-      (apply orig-fun args)))
-  ;; (advice-add 'completion-preview--update :around #'my-custom-completion-preview--update-advice)
-  
+  ;; (setq completion-preview-minimum-symbol-length 1)
+  ;; ;; Non-standard commands to that should show the preview:
+  ;; ;; Org mode has a custom `self-insert-command'
+  ;; (push 'org-self-insert-command completion-preview-commands)
+  ;; ;; Paredit has a custom `delete-backward-char' command
+  ;; (push 'paredit-backward-delete completion-preview-commands)
+  ;; ;; Bindings that take effect when the preview is shown:
+  ;; ;; Cycle the completion candidate that the preview shows
+  ;; (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+  ;; (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+  ;; ;; Convenient alternative to C-i after typing one of the above
+  ;; (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
+  ;; fast completion
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
 	  `(orderless-regexp . ,(concat "^" (regexp-quote word)))))
@@ -1475,6 +1488,7 @@ Otherwise, it centers the posframe in the frame."
   (defun sn/corfu-basic ()
 	"Setup completion for programming"
 	(setq-local
+	  corfu-auto-delay 0.08
 	  completion-styles '(orderless-fast basic)))
   (corfu-popupinfo-mode t)
   (defun corfu-move-to-minibuffer ()
@@ -1496,37 +1510,23 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
-  :demand t ; for eglot
   :bind
   ("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
   ("C-c /" . sn/cape)
+  :hook
+  ((prog-mode eglot-managed-mode) . sn/code-completion)
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   (cape-dabbrev-min-length 2)
-  :config
-  (transient-define-prefix sn/cape ()
-	"explicit Completion type"
-	[[
-	  ("d" "Dabbrev" cape-dabbrev)
-	  ("s" "Spelling" cape-dict)
-	  ("k" "Keyword" cape-keyword)
-	  ("l" "Line" cape-line)]
-	 [
-	  ("f" "File" cape-file)
-	  ("h" "History" cape-history)
-	  ("a" "Abbrev" cape-abbrev)
-	  ("q" "Quit" transient-quit-one)]
-	 [
-	  ("e" "Elisp Symbol" cape-elisp-symbol)
-	  ("E" "Elisp Block" cape-elisp-block)
-	  ("t" "Tags" complete-tag)
-	  ]])
   :config
   (setq completion-at-point-functions
 	'(#'cape-dict
 	   #'cape-dabbrev
 	   #'cape-file
 	   #'cape-abbrev))
+  (defun sn/codeium-capf ()
+	(interactive)
+	(cape-wrap-nonexclusive #'codeium-completion-at-point))
   (defun sn/cape-in-string ()
 	(cape-wrap-inside-string
 	  (cape-capf-super
@@ -1543,9 +1543,32 @@ Otherwise, it centers the posframe in the frame."
 	(cape-wrap-nonexclusive
 	  (cape-capf-inside-code
 		(cape-capf-super
-		  #'eglot-completion-at-point
-		  #'yasnippet-capf
-		  #'cape-dabbrev)))))
+		  #'eglot-completion-at-point))))
+  (defun sn/code-completion ()
+	(setq-local
+	  completion-at-point-functions
+	  (list
+        #'sn/cape-in-code
+        #'sn/cape-in-string
+        #'sn/cape-in-comment
+		#'sn/codeium-capf
+		#'cape-dabbrev)))
+  (transient-define-prefix sn/cape ()
+	"explicit Completion type"
+	[[("d" "Dabbrev" cape-dabbrev)
+	   ("s" "Spelling" cape-dict)
+	   ("k" "Keyword" cape-keyword)
+	   ("l" "Line" cape-line)]
+	  [("c" "codeium" sn/codeium-capf)
+		("e" "Elisp Symbol" cape-elisp-symbol)
+		("E" "Elisp Block" cape-elisp-block)
+		("t" "Tags" complete-tag)
+		]
+	  [("f" "File" cape-file)
+		("h" "History" cape-history)
+		("a" "Abbrev" cape-abbrev)
+		("q" "Quit" transient-quit-one)]
+	  ]))
 
 (use-package yasnippet
   :hook ((text-mode
@@ -2634,7 +2657,8 @@ Otherwise, it centers the posframe in the frame."
 			 ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
   (org-auto-align-tags nil)
-  (org-edit-src-content-indentation 0)
+  (org-tags-column 0)
+  (org-src-preserve-indentation t) ;; mainly to ignore ‘org-edit-src-content-indentation’.
   (org-edit-timestamp-down-means-later t)
   (org-ellipsis "…")
   (org-fast-tag-selection-single-key 'expert)
@@ -2651,9 +2675,6 @@ Otherwise, it centers the posframe in the frame."
   (org-src-ask-before-returning-to-edit-buffer nil)
   (org-startup-folded t)
   (org-startup-with-inline-images t)
-  (org-tags-column 0)
-  ;; TODO(SN): https://github.com/karthink/org-auctex
-  (org-startup-with-latex-preview nil);; wait for the async rendering to be merged
   (org-support-shift-select t)
   (org-archive-location "%s_archive::* Archive")
   ;; (org-latex-pdf-process '("latexmk -pdflatex='lualatex -shell-escape -interaction nonstopmode' -pdf -outdir=~/.cache/emacs %f"))
@@ -2770,15 +2791,14 @@ Otherwise, it centers the posframe in the frame."
 (add-hook 'org-capture-mode-hook 'toggle-mode-line)
 
 (use-package org-modern
-  :init
-  (global-org-modern-mode t))
+  :config (global-org-modern-mode t))
 
-(use-package org-appear
-  :ensure (:host github :repo "awth13/org-appear")
-  :hook (org-mode . org-appear-mode))
+   (use-package org-appear
+     :ensure (:host github :repo "awth13/org-appear")
+     :hook (org-mode . org-appear-mode))
 
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
+ (use-package org-fragtog
+   :hook (org-mode . org-fragtog-mode))
 
 (use-package org-clock
   :ensure nil  ;; built in
@@ -2833,7 +2853,7 @@ Otherwise, it centers the posframe in the frame."
   (org-clock-resolve-expert t)
   (org-clock-persistence-insinuate))
 
-(use-package type-break
+  (use-package type-break
 	:ensure nil
 	:custom
 	(org-clock-ask-before-exiting nil)
@@ -3250,7 +3270,6 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package eglot
   :ensure nil
-  :after cape
   :hook
   ((go-ts-mode rust-ts-mode bash-ts-mode js-ts-mode terraform-mode) . eglot-ensure)
   (eglot-managed-mode . eglot-inlay-hints-mode)
@@ -3266,7 +3285,7 @@ Otherwise, it centers the posframe in the frame."
 	("C-c o" . eglot-code-action-organize-imports))
   :custom
   (eglot-mode-line-format '(eglot-mode-line-action-suggestion))
-  (eglot-code-action-indications '(nearby mode-line margin))
+  (eglot-code-action-indications '(margin eldoc-hint))
   (eglot-report-progress nil)
   (eglot-autoshutdown t)
   (eglot-advertise-cancellation t)
@@ -3304,7 +3323,7 @@ Otherwise, it centers the posframe in the frame."
 	  (eglot--request (eglot--current-server-or-lose)
 		:textDocument/rename `(,@(eglot--TextDocumentPositionParams)
 								:newName ,newname))
-	  this-command))  
+	  this-command))
   (advice-add 'eglot-completion-at-point :around #'cape-wrap-buster)
   (defun eglot-organize-imports ()
 	(interactive)
@@ -3312,14 +3331,7 @@ Otherwise, it centers the posframe in the frame."
   (defun sn/setup-eglot ()
 	"Eglot setup customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 'local)
-	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local)
-	(setq-local
-	  completion-at-point-functions (list
-									  #'sn/cape-in-code
-									  #'sn/cape-in-string
-									  #'sn/cape-in-comment
-									  #'codeium-completion-at-point
-									  )))) 
+	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local))) 
 (use-package consult-eglot
   :after eglot
   :bind
@@ -3423,10 +3435,10 @@ The exact color values are taken from the active Ef theme."
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
-(use-package magit-pretty-graph
-  :ensure (:host github :repo "georgek/magit-pretty-graph")
-  :bind 
-  )
+      (use-package magit-pretty-graph
+        :ensure (:host github :repo "georgek/magit-pretty-graph")
+        :bind 
+        )
 
 (use-package browse-at-remote
   :bind
@@ -3442,8 +3454,6 @@ The exact color values are taken from the active Ef theme."
 				  (buffer-face-mode t)
 				  (setq-local left-margin-width 3
 							  right-margin-width 3
-					          scroll-margin 0
-					          scroll-conservatively 0
 							  cursor-type 'bar)
 				  (face-remap-add-relative
 				   'default
@@ -3635,24 +3645,24 @@ The exact color values are taken from the active Ef theme."
 	(when (equal major-mode 'web-mode)
       (web-mode-set-engine "go"))))
 
-(defun sn/start-ag-devcontainer ()
-  "Close analytics-hub buffers, start the dev container, and open Dired and Magit."
-  (interactive)
-  ;; Close all buffers in ~/src/analytics-hub/
-  (dolist (buffer (buffer-list))
-    (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
-      (kill-buffer buffer)))
-  ;; Set default directory and run the dev container command
-  (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
-         (output-buffer "*Start Dev-Container Output*")
-         (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
-    (if (= result 0)
-        (progn
-          (message "Dev container started successfully.")
-          ;; Open Dired and Magit only if the container starts successfully
-          (dired "/docker:dev-container:/workspace/")
-          (magit-status))
-      (message "Error: Command failed. Check %s for details." output-buffer))))
+ (defun sn/start-ag-devcontainer ()
+   "Close analytics-hub buffers, start the dev container, and open Dired and Magit."
+   (interactive)
+   ;; Close all buffers in ~/src/analytics-hub/
+   (dolist (buffer (buffer-list))
+     (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
+       (kill-buffer buffer)))
+   ;; Set default directory and run the dev container command
+   (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
+          (output-buffer "*Start Dev-Container Output*")
+          (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
+     (if (= result 0)
+         (progn
+           (message "Dev container started successfully.")
+           ;; Open Dired and Magit only if the container starts successfully
+           (dired "/docker:dev-container:/workspace/")
+           (magit-status))
+       (message "Error: Command failed. Check %s for details." output-buffer))))
 
 (defun sn/ssh-pub-key ()
   "Select a .pub key from ~/.ssh/ and copy its contents to the kill ring."
@@ -3725,91 +3735,91 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 		whisper-language "en"
 		whisper-translate nil))
 
-(use-package gptel
-  :bind
-  ("<f5>" . gptel-toggle-sidebar)
-  (:map vterm-mode-map
-	 ("<f5>" . gptel-toggle-sidebar))
-  ("C-<f5>" . gptel-menu)
-  :hook (org-mode . gptel-activate-if-model-exists)
-  :custom
-  (gptel-model 'gpt-4o)
-  (gptel-display-buffer-action
-    '((display-buffer-reuse-window display-buffer-in-side-window)
-       (side . right)
-       (window-width . 80)
-       (slot . 0)))
-  (gptel-default-mode 'org-mode)
-  :config
-  (defun gptel-toggle-sidebar ()
-	"Toggle a custom sidebar for the buffer '*My Sidebar*'."
-	(interactive)
-	(let ((buffer-name "AI Chat"))
-	  (if-let* ((window (get-buffer-window buffer-name)))
-		;; If the sidebar is already open, close it.
-		(delete-window window)
-		;; Else, create the sidebar using
-		(let ((chat-buffer (gptel buffer-name)))
-		  (display-buffer-in-side-window
-			chat-buffer gptel-display-buffer-action)
-		  (let ((window (get-buffer-window chat-buffer)))
-			(when window
-			  (set-window-dedicated-p window t)
-			  (set-window-parameter window 'no-other-window t)
-			  (select-window window)
-			  (setq mode-line-format nil)))))))
-  (defun gptel-close-headers (from to)
-   	"Fold all org headers in the current buffer, except for the last response."
-   	(when (eq major-mode 'org-mode)
-	  (progn
-   		(condition-case nil
-          (progn
-   			(org-cycle-global 0)
-   			(goto-char from)
-   			(while (outline-invisible-p (line-end-position))
-			  (progn
-				(outline-show-subtree)
-				(outline-next-visible-heading 1))))
-   		  (error (message "gptel-close-headers error: %s" (error-message-string err))))
-		(outline-show-subtree) ; not sure why but sometimes needs this
-		(org-end-of-line))))
-  (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
-  (defun gptel-save-if-file (to from)
-   	"Save the current buffer if it is associated with a file."
-   	(when (buffer-file-name)
-      (save-buffer)))
-  (add-to-list 'gptel-post-response-functions #'gptel-save-if-file)
-  (defun gptel-activate-if-model-exists ()
-	"Activate gptel mode if the GPTEL_MODEL property exists in any part of the Org document."
-	(org-with-wide-buffer
-      (goto-char (point-min))
-      (let ((found nil))
-		(while (and (not found) (re-search-forward "^\\*+" nil t))
-          (when (org-entry-get (point) "GPTEL_MODEL")
-			(setq found t)))
-		(when found
-          (gptel-mode 1))))))
+ (use-package gptel
+   :bind
+   ("<f5>" . gptel-toggle-sidebar)
+   (:map vterm-mode-map
+ 	 ("<f5>" . gptel-toggle-sidebar))
+   ("C-<f5>" . gptel-menu)
+   :hook (org-mode . gptel-activate-if-model-exists)
+   :custom
+   (gptel-model 'gpt-4o)
+   (gptel-display-buffer-action
+     '((display-buffer-reuse-window display-buffer-in-side-window)
+        (side . right)
+        (window-width . 80)
+        (slot . 0)))
+   (gptel-default-mode 'org-mode)
+   :config
+   (defun gptel-toggle-sidebar ()
+ 	"Toggle a custom sidebar for the buffer '*My Sidebar*'."
+ 	(interactive)
+ 	(let ((buffer-name "AI Chat"))
+ 	  (if-let* ((window (get-buffer-window buffer-name)))
+ 		;; If the sidebar is already open, close it.
+ 		(delete-window window)
+ 		;; Else, create the sidebar using
+ 		(let ((chat-buffer (gptel buffer-name)))
+ 		  (display-buffer-in-side-window
+ 			chat-buffer gptel-display-buffer-action)
+ 		  (let ((window (get-buffer-window chat-buffer)))
+ 			(when window
+ 			  (set-window-dedicated-p window t)
+ 			  (set-window-parameter window 'no-other-window t)
+ 			  (select-window window)
+ 			  (setq mode-line-format nil)))))))
+   (defun gptel-close-headers (from to)
+    	"Fold all org headers in the current buffer, except for the last response."
+    	(when (eq major-mode 'org-mode)
+ 	  (progn
+    		(condition-case nil
+           (progn
+    			(org-cycle-global 0)
+    			(goto-char from)
+    			(while (outline-invisible-p (line-end-position))
+ 			  (progn
+ 				(outline-show-subtree)
+ 				(outline-next-visible-heading 1))))
+    		  (error (message "gptel-close-headers error: %s" (error-message-string err))))
+ 		(outline-show-subtree) ; not sure why but sometimes needs this
+ 		(org-end-of-line))))
+   (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
+   (defun gptel-save-if-file (to from)
+    	"Save the current buffer if it is associated with a file."
+    	(when (buffer-file-name)
+       (save-buffer)))
+   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file)
+   (defun gptel-activate-if-model-exists ()
+ 	"Activate gptel mode if the GPTEL_MODEL property exists in any part of the Org document."
+ 	(org-with-wide-buffer
+       (goto-char (point-min))
+       (let ((found nil))
+ 		(while (and (not found) (re-search-forward "^\\*+" nil t))
+           (when (org-entry-get (point) "GPTEL_MODEL")
+ 			(setq found t)))
+ 		(when found
+           (gptel-mode 1))))))
 
-(use-package codeium
-  :ensure (:host github :repo "Exafunction/codeium.el")
-  :after cape
-  :custom
-  (codeium-log-buffer nil)
-  :config
-  (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
-  
-  ;; You can overwrite all the codeium configs!
-  ;; for example, we recommend limiting the string sent to codeium for better performance
-  (defun my-codeium/document/text ()
-    (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-  ;; if you change the text, you should also change the cursor_offset
-  ;; warning: this is measured by UTF-8 encoded bytes
-  (defun my-codeium/document/cursor_offset ()
-    (codeium-utf8-byte-length
-      (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
-  (setq codeium/document/text 'my-codeium/document/text)
-  (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset)
-  )
+ (use-package codeium
+   :ensure (:host github :repo "Exafunction/codeium.el")
+   :after cape
+   :custom
+   (codeium-log-buffer nil)
+   :config
+   (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
+   
+   ;; You can overwrite all the codeium configs!
+   ;; for example, we recommend limiting the string sent to codeium for better performance
+   (defun my-codeium/document/text ()
+     (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
+   ;; if you change the text, you should also change the cursor_offset
+   ;; warning: this is measured by UTF-8 encoded bytes
+   (defun my-codeium/document/cursor_offset ()
+     (codeium-utf8-byte-length
+       (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
+   (setq codeium/document/text 'my-codeium/document/text)
+   (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset)
+   )
 
 (use-package aidermacs
   :ensure (:host github :repo "MatthewZMD/aidermacs")
@@ -3879,17 +3889,17 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 (zalgo-max-mid 3)
 (zalgo-max-down 5))
 
-(use-package eww
-   :ensure nil
-   :custom
-   (eww-auto-rename-buffer 'title)
-   :config
-   (define-advice eww (:around (oldfun &rest args) always-new-buffer)
-     "Always open EWW in a new buffer."
-     (let ((current-prefix-arg '(4)))
-       (apply oldfun args)))
-   ;; :bind
-   ;; (:map eww-mode-map
-   ;;           [mouse-8] #'eww-back-url
-   ;;           [mouse-9] #'eww-forward-url)
-)
+    (use-package eww
+      :ensure nil
+      :custom
+      (eww-auto-rename-buffer 'title)
+      :config
+      (define-advice eww (:around (oldfun &rest args) always-new-buffer)
+        "Always open EWW in a new buffer."
+        (let ((current-prefix-arg '(4)))
+          (apply oldfun args)))
+      ;; :bind
+      ;; (:map eww-mode-map
+      ;;           [mouse-8] #'eww-back-url
+      ;;           [mouse-9] #'eww-forward-url)
+   )

@@ -37,12 +37,11 @@
 
 ;; Set default font for new frames overwritten by default-frame-alist
 (setq initial-frame-alist
-	  '((background-color . "#352718") ;; avoid any flash of white so we can load theme after later
+	  '((font . "Iosevka")
 		(left-fringe . 10)
 		(width . 700)
 		(height . 400)
-		(right-fringe . 10)
-		)
+		(right-fringe . 10))
 	  default-frame-alist
 	  '(;;(alpha-background . 90)
 		(font . "Iosevka")
