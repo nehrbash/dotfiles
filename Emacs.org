@@ -1631,7 +1631,7 @@ Otherwise, it centers the posframe in the frame."
   (completion-lazy-hilit t)
   (completion-flex-nospace t)
   (completion-category-defaults nil)
-  (completion-styles '(orderless))
+  (completion-styles '(orderless orderless-flex))
   (completion-category-overrides '((file (styles basic partial-completion)))))
 #+end_src
 
@@ -3133,18 +3133,20 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package dired
   :ensure nil
-  :hook (dired-mode . (lambda ()
-  						(dired-omit-mode 1)
-  						(dired-hide-details-mode 1)
-  						(toggle-mode-line)
-  						(hl-line-mode 1)))
+  :hook (dired-mode . sn/dired-hook)
   :custom
   ((dired-mouse-drag-files t)
 	(dired-omit-files "^\\.\\.?$")
 	(dired-listing-switches "-agho --group-directories-first")
 	(dired-omit-verbose nil)
 	(dired-recursive-deletes 'top)
-	(dired-dwim-target t)))
+	(dired-dwim-target t))
+  :config
+  (defun sn/dired-hook ()
+  	(dired-omit-mode 1)
+  	(dired-hide-details-mode 1)
+  	(toggle-mode-line)
+  	(hl-line-mode 1)))
 (use-package dired-single
   :ensure (:host github :repo "emacsattic/dired-single")
   :after dired
@@ -3234,9 +3236,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
-  (org-mode . (lambda ()
-				(add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
-				  'run-at-end 'only-in-org-mode)))
   :custom
   (org-todo-keywords
 	(quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
@@ -3304,6 +3303,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 														 (org-roam-ui-open)
 														 (org-capture-finalize))))))
   :config
+  (defun sn/org-mode-hook ()
+	(add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
+	  'run-at-end 'only-in-org-mode))
   (defun sn/org-babel-tangle-dont-ask ()
 	"Tangle Org file without asking for confirmation."
 	(let ((org-confirm-babel-evaluate nil))
@@ -3343,8 +3345,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 		  line-spacing 0.2
 		  electric-pair-mode nil)
 		(olivetti-mode 1)
-		(visual-line-mode 1)
-		(variable-pitch-mode 1))
+		(visual-line-mode 1))
 	  (kill-local-variable 'word-wrap)
 	  (kill-local-variable 'cursor-type)
 	  (kill-local-variable 'blink-cursor-interval)
@@ -3353,8 +3354,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	  (kill-local-variable 'electric-pair-mode)
 	  (buffer-face-mode -1)
 	  (visual-line-mode -1)
-	  (olivetti-mode -1)
-	  (variable-pitch-mode -1))))
+	  (olivetti-mode -1))))
 #+end_src
 
 
@@ -3425,7 +3425,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package org-clock
   :ensure nil  ;; built in
-  :after consult
   :config
   (defun consult-clock-in ()
 	"Clock into an Org agenda heading."
@@ -3446,16 +3445,19 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
       map)
     "Keymap for org-clock commands.")
   (global-set-key (kbd "C-o") org-clock-map)
+  (defun sn/clock-in ()
+	(org-todo "INPROGRESS")
+	(type-break-mode 1)
+	(org-save-all-org-buffers))
+  (defun sn/clock-out ()
+	(type-break-mode -1)
+	(unless (string-equal (org-get-todo-state) "DONE")
+  	  (org-todo "NEXT")
+  	  (setq org-clock-heading "")
+  	  (org-save-all-org-buffers)))
   :hook
-  (org-clock-in . type-break-mode)
-  (org-clock-out . (lambda () (type-break-mode -1)))
-  (org-clock-in . (lambda () (org-todo "INPROGRESS")
-  					(org-save-all-org-buffers)))
-  (org-clock-out . (lambda ()
-  					 (unless (string-equal (org-get-todo-state) "DONE")
-  					   (org-todo "NEXT")
-  					   (setq org-clock-heading "")
-  					   (org-save-all-org-buffers))))
+  (org-clock-out . sn/clock-out)
+  (org-clock-in . sn/clock-in)
   :custom
   (org-clock-in-resume t)
   (org-clock-persist 'history)
