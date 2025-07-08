@@ -234,7 +234,8 @@
 	"Tweak the style of the ef theme."
 	(interactive)
     (ef-themes-with-colors
-	  (let ((darker (my-darken-color bg-main 0.7)))
+	  (let ((darker (my-darken-color bg-main 0.7))
+			 (custom-file "/dev/null"))
 		(custom-set-faces
 		  `(default ((,c :family "Iosevka" )))
 		  `(org-modern-symbol ((,c :family "Iosevka" )))
@@ -258,7 +259,7 @@
 		  `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
 		  `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
 		  `(eldoc-box-border ((,c :background ,fg-alt)))
-		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker)))
+		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker :height 0.8)))
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))
 		  ))))
@@ -268,6 +269,7 @@
 #+end_src
 
 ** Modeline
+   
 #+begin_src emacs-lisp
 (use-package prot-modeline
   :ensure (:host gitlab
@@ -288,8 +290,22 @@
       (when (file-exists-p img-file)
 		(propertize " "
           'display (create-image img-file nil nil :height img-height :ascent 'center)))))
+  (defun custom-branch-left-cap ()
+  "Return a left branch SVG cap for the modeline."
+  (let ((svg-file (expand-file-name "img/left-branch.svg" user-emacs-directory)))
+    (when (file-exists-p svg-file)
+      (propertize " "
+        'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
+(defun custom-branch-right-cap ()
+  "Return a right branch SVG cap for the modeline."
+  (let ((svg-file (expand-file-name "img/right-branch.svg" user-emacs-directory)))
+    (when (file-exists-p svg-file)
+      (propertize " "
+        'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
+
   (setq-default mode-line-format
     '("%e"
+	   ;; (:eval (custom-branch-left-cap))
 	   (:eval (custom-sloth-image-segment))
        prot-modeline-kbd-macro
        prot-modeline-narrow
@@ -303,13 +319,14 @@
        prot-modeline-process
 	   " "
 	   (:eval (breadcrumb-imenu-crumbs))
-       mode-line-format-right-align ; Emacs 30
+       mode-line-format-right-align
 	   "  "
        prot-modeline-eglot
        "  "
        prot-modeline-flymake
 	   "  "
 	   prot-modeline-vc-branch
+	   ;; (:eval (custom-branch-right-cap))
        "  ")))
 
 ;; (line-number-mode -1)
@@ -720,7 +737,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
 			   (list (regexp-quote "/ssh:ag-nehrbash:")
-					 "remote-shell" "/usr/bin/bash"
+					 ;; "remote-shell" "/usr/bin/bash"
 					 "direct-async-process" t
 					 "tramp-direct-async" t))
   (add-to-list 'tramp-connection-properties
@@ -1535,7 +1552,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
        (t posframe)))
   (setq vertico-multiform-categories
     '((file grid)
-	   (jinx grid (vertico-grid-annotate . 30))
+	   (jinx grid (vertico-grid-annotate . 30) (:not postframe))
        (consult-grep reverse)))
   (vertico-multiform-mode 1))
 (use-package marginalia
@@ -2045,7 +2062,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   ("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
   ("C-c /" . sn/cape)
   :hook
-  ((prog-mode eglot-managed-mode) . sn/code-completion)
+  (eglot-managed-mode . sn/code-completion)
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   (cape-dabbrev-min-length 2)
@@ -2123,7 +2140,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
 
 **** Abbrev
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package abbrev
   :ensure nil
   :init
@@ -4050,7 +4067,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (defun sn/setup-eglot ()
 	"Eglot setup customizations"
 	(add-hook 'before-save-hook #'eglot-format-buffer -10 'local)
-	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local))) 
+	(add-hook 'before-save-hook #'eglot-organize-imports nil 'local)
+	(setq-local eldoc-documentation-functions
+	  (remove #'flymake-eldoc-function eldoc-documentation-functions))))
 (use-package consult-eglot
   :after eglot
   :bind
@@ -4065,9 +4084,10 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package eldoc-box
   :custom
-  (eldoc-idle-delay 0.3)
-  (eldoc-box-cleanup-interval 2)
-  (eldoc-box-only-multi-line t)
+  (eldoc-idle-delay 1.2)
+  (eldoc-box-clear-with-C-g t)
+  (eldoc-box-cleanup-interval 0.8)
+  (eldoc-box-only-multi-line nil)
   (eldoc-documentation-strategy 'eldoc-documentation-compose-eagerly)
   (eldoc-box-offset '(32 32 32))
   (eldoc-box-max-pixel-width 600)
@@ -4340,36 +4360,37 @@ The exact color values are taken from the active Ef theme."
   :hook (prog-mode . flymake-mode)
   :custom
   (flymake-wrap-around t)
-  (flymake-no-changes-timeout 3)
+  (flymake-no-changes-timeout 0.3)
   (flymake-fringe-indicator-position 'right-fringe)
   ;; (flymake-show-diagnostics-at-end-of-line 'short)
   :bind
   ("M-g f" . consult-flymake)
   ("M-SPC p" . flymake-show-project-diagnostics))
-(use-package sideline-flymake
-  :hook (flymake-mode . sideline-mode)
-  :config
-  (setq sideline-flymake-display-mode 'point) ; 'point to show errors only on point
-										; 'line to show errors on the current line
-  (setq sideline-backends-right '(sideline-flymake)))
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load
   :hook (bash-ts-mode . flymake-shellcheck-load))
 #+end_src
 
+***** Display error in-line
 
-
-***** Display error in box on hover
-
-	  For now I like line error in eldoc.
-
-#+begin_src emacs-lisp :tangle no
-(use-package flymake-diagnostic-at-point
-  :after flymake
-  :config
-  (add-hook 'flymake-mode-hook #'flymake-diagnostic-at-point-mode))  
+#+begin_src emacs-lisp
+(use-package flyover
+  :demand t
+  :bind ("M-SPC s" . flyover-toggle)
+  :ensure (:host github :repo "konrad1977/flyover")
+  :hook (flymake-mode . flyover-mode)
+  :custom
+  (flyover-checkers '(flymake))
+  (flyover-debug nil)
+  (flyover-debounce-interval 0.2)
+  (flyover-levels '(error warning info))
+  (flyover-use-theme-colors t)
+  (flyover-wrap-messages t)
+  (flyover-max-line-length 80))
 #+end_src
-	  
+
+      
+
 *** Folding
 
 #+begin_src emacs-lisp
