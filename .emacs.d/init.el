@@ -1107,13 +1107,12 @@ Call a second time to restore the original window configuration."
   (minibuffer-electric-default-mode))
 
 (use-package vertico
-  :demand t
   :bind
   (:map vertico-map
 	("M-j" . vertico-quick-insert)
 	("C-q" . vertico-quick-exit))
-  :config
-  (setq vertico-multiform-commands
+  :custom
+  (vertico-multiform-commands
     '((consult-imenu buffer indexed)
 	   (corfu-move-to-minibuffer reverse indexed (:not posframe))
 	   (consult-line reverse (:not posframe))
@@ -1121,21 +1120,23 @@ Call a second time to restore the original window configuration."
 	   (project-switch-project posframe
          (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
        (t posframe)))
-  (setq vertico-multiform-categories
+  (vertico-multiform-categories
     '((file grid)
 	   (embark-keybinding grid)
        (consult-grep reverse)))
+  :init
   (vertico-mode 1)
   (vertico-multiform-mode 1))
+
 (use-package marginalia
-  :custom
-  (marginalia-align 'right)
-  :bind
-  (:map minibuffer-local-map
+  :after vertico
+  :bind (:map minibuffer-local-map
 	("M-a" . marginalia-cycle))
   :custom
+  (marginalia-align 'right)
   (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :config (marginalia-mode 1)  :config (marginalia-mode 1))
+  :config (marginalia-mode 1))
+
 (use-package all-the-icons-completion
   :after marginalia
   :config (all-the-icons-completion-mode))
