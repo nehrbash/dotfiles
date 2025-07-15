@@ -105,6 +105,7 @@
 			 (custom-file "/dev/null"))
 		(custom-set-faces
 		  `(default ((,c :family "Iosevka" )))
+		  `(org-table ((,c :family "Iosevka")))
 		  `(org-modern-symbol ((,c :family "Iosevka" )))
 		  `(org-block ((,c :family "Iosevka" )))
 		  `(variable-pitch ((,c :family "Iosevka Aile")))
@@ -1129,13 +1130,10 @@ Call a second time to restore the original window configuration."
   (vertico-multiform-mode 1))
 
 (use-package marginalia
-  :after vertico
   :bind (:map minibuffer-local-map
-	("M-a" . marginalia-cycle))
-  :custom
-  (marginalia-align 'right)
-  (marginalia-annotators '(marginalia-annotators-heavy marginalia-annotators-light nil))
-  :config (marginalia-mode 1))
+		  ("M-a" . marginalia-cycle))
+  :custom (marginalia-align 'right)
+  :init (marginalia-mode 1))
 
 (use-package all-the-icons-completion
   :after marginalia
@@ -2809,11 +2807,11 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 		;; Otherwise, set up the sidebar buffer and open window.
 		(progn
           (let* ((window (display-buffer
-               buffer
-               '((display-buffer-in-side-window
-                  display-buffer-same-window)
-                 (side . right)
-                 (slot . 0)))))
+						   buffer
+						   '((display-buffer-in-side-window
+							   display-buffer-same-window)
+							  (side . right)
+							  (slot . 0)))))
 			(with-current-buffer buffer
               (progn
 				(goto-char (point-min))
@@ -2829,28 +2827,28 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
               (set-window-parameter window 'no-other-window t)
               (with-selected-window window
 				(setq mode-line-format nil))
-              (select-window window))))))))
-(defun gptel-close-headers (from to)
-  "Fold all org headers in the current buffer, except for the last response."
-  (when (eq major-mode 'org-mode)
- 	(progn
-	  (condition-case nil
-        (progn
-    	  (org-cycle-global 0)
-    	  (goto-char from)
-    	  (while (outline-invisible-p (line-end-position))
- 			(progn
- 			  (outline-show-subtree)
- 			  (outline-next-visible-heading 1))))
-    	(error (message "gptel-close-headers error: %s" (error-message-string err))))
- 	  (outline-show-subtree) ; not sure why but sometimes needs this
- 	  (org-end-of-line))))
-(add-to-list 'gptel-post-response-functions #'gptel-close-headers)
-(defun gptel-save-if-file (to from)
-  "Save the current buffer if it is associated with a file."
-  (when (buffer-file-name)
-    (save-buffer)))
-(add-to-list 'gptel-post-response-functions #'gptel-save-if-file))
+              (select-window window)))))))
+  (defun gptel-close-headers (from to)
+	"Fold all org headers in the current buffer, except for the last response."
+	(when (eq major-mode 'org-mode)
+ 	  (progn
+		(condition-case nil
+      (progn
+    	(org-cycle-global 0)
+    	(goto-char from)
+    	(while (outline-invisible-p (line-end-position))
+ 		  (progn
+ 			(outline-show-subtree)
+ 			(outline-next-visible-heading 1))))
+      (error (message "gptel-close-headers error: %s" (error-message-string err))))
+ 		(outline-show-subtree) ; not sure why but sometimes needs this
+ 		(org-end-of-line))))
+  (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
+  (defun gptel-save-if-file (to from)
+	"Save the current buffer if it is associated with a file."
+	(when (buffer-file-name)
+      (save-buffer)))
+  (add-to-list 'gptel-post-response-functions #'gptel-save-if-file))
 
  (use-package codeium
    :ensure (:host github :repo "Exafunction/codeium.el")
