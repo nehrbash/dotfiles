@@ -100,46 +100,46 @@
 ** Load Package Manager
 
    =elpaca= has been most pleasant experience thus far.
-
+   
 #+begin_src emacs-lisp
-  (defvar elpaca-installer-version 0.11)
-  (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
-  (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-  (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
-  (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                                :ref nil :depth 1 :inherit ignore
-                                :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                                :build (:not elpaca--activate-package)))
-  (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
-         (build (expand-file-name "elpaca/" elpaca-builds-directory))
-         (order (cdr elpaca-order))
-         (default-directory repo))
-    (add-to-list 'load-path (if (file-exists-p build) build repo))
-    (unless (file-exists-p repo)
-      (make-directory repo t)
-      (when (<= emacs-major-version 28) (require 'subr-x))
-      (condition-case-unless-debug err
-          (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                    ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                    ,@(when-let* ((depth (plist-get order :depth)))
-                                                        (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                    ,(plist-get order :repo) ,repo))))
-                    ((zerop (call-process "git" nil buffer t "checkout"
-                                          (or (plist-get order :ref) "--"))))
-                    (emacs (concat invocation-directory invocation-name))
-                    ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                          "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                    ((require 'elpaca))
-                    ((elpaca-generate-autoloads "elpaca" repo)))
-              (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-            (error "%s" (with-current-buffer buffer (buffer-string))))
-        ((error) (warn "%s" err) (delete-directory repo 'recursive))))
-    (unless (require 'elpaca-autoloads nil t)
-      (require 'elpaca)
-      (elpaca-generate-autoloads "elpaca" repo)
-      (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
-  (add-hook 'after-init-hook #'elpaca-process-queues)
-  (elpaca `(,@elpaca-order))
+(defvar elpaca-installer-version 0.11)
+(defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
+(defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
+(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
+                              :ref nil :depth 1 :inherit ignore
+                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+                              :build (:not elpaca--activate-package)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+       (build (expand-file-name "elpaca/" elpaca-builds-directory))
+       (order (cdr elpaca-order))
+       (default-directory repo))
+  (add-to-list 'load-path (if (file-exists-p build) build repo))
+  (unless (file-exists-p repo)
+    (make-directory repo t)
+    (when (<= emacs-major-version 28) (require 'subr-x))
+    (condition-case-unless-debug err
+        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+                                                  ,@(when-let* ((depth (plist-get order :depth)))
+                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
+                                                  ,(plist-get order :repo) ,repo))))
+                  ((zerop (call-process "git" nil buffer t "checkout"
+                                        (or (plist-get order :ref) "--"))))
+                  (emacs (concat invocation-directory invocation-name))
+                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
+                  ((require 'elpaca))
+                  ((elpaca-generate-autoloads "elpaca" repo)))
+            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+          (error "%s" (with-current-buffer buffer (buffer-string))))
+      ((error) (warn "%s" err) (delete-directory repo 'recursive))))
+  (unless (require 'elpaca-autoloads nil t)
+    (require 'elpaca)
+    (elpaca-generate-autoloads "elpaca" repo)
+    (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
+(add-hook 'after-init-hook #'elpaca-process-queues)
+(elpaca `(,@elpaca-order))
   (elpaca elpaca-use-package
   		;; use-package enable :ensure keyword.
   		(elpaca-use-package-mode))
@@ -536,45 +536,50 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   Slowly organizing these.
 
 #+begin_src emacs-lisp
-  (setq-default
-   fill-column 80
-   blink-cursor-interval 0.4
-   buffers-menu-max-size 30
-   case-fold-search t
-   column-number-mode t
-   ediff-split-window-function 'split-window-horizontally
-   ediff-window-setup-function 'ediff-setup-windows-plain
-   tab-width 4
-   mouse-yank-at-point t
-   save-interprogram-paste-before-kill t
-   set-mark-command-repeat-pop t
-   tooltip-delay .3
-   ring-bell-function 'ignore
-   truncate-lines nil
-   word-wrap t)
-  (setopt
-   idle-update-delay 0.1
-   use-dialog-box nil
-   text-mode-ispell-word-completion nil)
-  (global-goto-address-mode t)
-  (setq browse-url-firefox-program "zen-browser")
-  (defun browse-url-zen (url &optional new-window)
-    (interactive (browse-url-interactive-arg "URL: "))
-    (setq url (browse-url-encode-url url))
-    (let* ((process-environment (browse-url-process-environment)))
-      (apply #'start-process
-             (concat "zen-browser " url) nil
-             browse-url-firefox-program
-             (append
-              browse-url-firefox-arguments
-              (if (browse-url-maybe-new-window new-window)
-  		(if browse-url-firefox-new-window-is-tab
+(setq-default
+  fill-column 80
+  blink-cursor-interval 0.4
+  buffers-menu-max-size 30
+  case-fold-search t
+  column-number-mode t
+  ediff-split-window-function 'split-window-horizontally
+  ediff-window-setup-function 'ediff-setup-windows-plain
+  tab-width 4
+  mouse-yank-at-point t
+  save-interprogram-paste-before-kill t
+  set-mark-command-repeat-pop t
+  tooltip-delay .3
+  ring-bell-function 'ignore
+  truncate-lines nil
+  word-wrap t)
+(setopt
+  idle-update-delay 0.1
+  use-dialog-box nil
+  text-mode-ispell-word-completion nil)
+
+(setq goto-address-url-face 'link
+  goto-address-url-mouse-face 'highlight
+  goto-address-mail-face 'link
+  goto-address-mail-mouse-face 'highlight)
+(global-goto-address-mode 1)
+(setq browse-url-firefox-program "zen-browser")
+(defun browse-url-zen (url &optional new-window)
+  (interactive (browse-url-interactive-arg "URL: "))
+  (setq url (browse-url-encode-url url))
+  (let* ((process-environment (browse-url-process-environment)))
+    (apply #'start-process
+      (concat "zen-browser " url) nil
+      browse-url-firefox-program
+      (append
+        browse-url-firefox-arguments
+        (if (browse-url-maybe-new-window new-window)
+  		  (if browse-url-firefox-new-window-is-tab
   		    '("-new-tab")
-  		  '("-new-window")))
-              (list url)))))
-  (with-eval-after-load 'browse-url
-    (setq browse-url-browser-function #'browse-url-zen))
-  (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
+  			'("-new-window")))
+        (list url)))))
+(with-eval-after-load 'browse-url
+  (setq browse-url-browser-function #'browse-url-zen))
+(global-unset-key (kbd "M-SPC")) ;; my second C-c binding
 
 #+end_src
 
@@ -1694,7 +1699,7 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'consult-buffer-filter "[\\.]org$")
   (add-to-list 'consult-buffer-filter "shell*")
   ;; show my dots in find file
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden"))
+  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
   (defun vc-modified-file ()
 	"Use completion to go to a modified file in the Git repository."
 	(interactive)
@@ -3980,7 +3985,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	   (:usePlaceholders t
 		 :staticcheck t
 		 :gofumpt t
-		 :linksInHover nil
 		 :analyses (:nilness t
 					 :unusedparams t
 					 :unusedwrite t
@@ -4589,24 +4593,22 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 *** work
  #+begin_src emacs-lisp
- (defun sn/start-ag-devcontainer ()
-   "Close analytics-hub buffers, start the dev container, and open Dired and Magit."
-   (interactive)
-   ;; Close all buffers in ~/src/analytics-hub/
-   (dolist (buffer (buffer-list))
-     (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
-       (kill-buffer buffer)))
-   ;; Set default directory and run the dev container command
-   (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
+(defun sn/start-ag-devcontainer ()
+  "Close analytics-hub buffers, start the dev container, and open Dired and Magit."
+  (interactive)
+  ;; Close all buffers in ~/src/analytics-hub/
+  (dolist (buffer (buffer-list))
+    (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
+      (kill-buffer buffer)))
+  ;; Set default directory and run the dev container command
+  (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
           (output-buffer "*Start Dev-Container Output*")
           (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
-     (if (= result 0)
-         (progn
-           (message "Dev container started successfully.")
-           ;; Open Dired and Magit only if the container starts successfully
-           (dired "/docker:dev-container:/workspace/")
-           (magit-status))
-       (message "Error: Command failed. Check %s for details." output-buffer))))
+    (if (= result 0)
+      (progn
+        (message "Dev container started successfully.")
+        (dired "/docker:dev-container:/workspace/"))
+      (message "Error: Command failed. Check %s for details." output-buffer))))
  #+end_src
    
 *** copy ssh key

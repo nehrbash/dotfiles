@@ -33,6 +33,7 @@
  inhibit-startup-screen t
  inhibit-startup-message t
  inhibit-startup-echo-area-message t
+ inhibit-default-init t
  initial-scratch-message nil)
 
 ;; Set default font for new frames overwritten by default-frame-alist
