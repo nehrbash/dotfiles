@@ -43,7 +43,7 @@ gitsr () { # Git Squash then Rebase on BRANCH
     # Then soft reset to that point (to keep all changes staged).
     # Commit all changes as one atomic commit (i.e. squash merge).
     # Then rebase the updated HEAD onto BRANCH.
-    git reset --soft $(git merge-base HEAD $BRANCH) && git commit && git rebase $BRANCH
+    git reset --soft "$(git merge-base HEAD "$BRANCH")" && git commit && git rebase "$BRANCH"
 }
 
 update-tokens() {

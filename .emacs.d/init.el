@@ -1147,7 +1147,7 @@ Call a second time to restore the original window configuration."
 (use-package vertico-posframe
   :after vertico
   :custom
-  (vertico-posframe-width 180)
+  (vertico-posframe-width 120)
   (vertico-posframe-vertico-multiform-key "M-m")
   :config
   ;; don't change colors
@@ -1273,7 +1273,7 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'consult-buffer-filter "[\\.]org$")
   (add-to-list 'consult-buffer-filter "shell*")
   ;; show my dots in find file
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
+  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
   (defun vc-modified-file ()
 	"Use completion to go to a modified file in the Git repository."
 	(interactive)
@@ -1401,7 +1401,8 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package project
   :ensure nil
-  :bind-keymap ("C-c p". project-prefix-map))
+  :bind-keymap ("C-c p". project-prefix-map)
+  :custom (project-vc-extra-root-markers '(".project")))
 
 (use-package protogg 
   :ensure (:host github :repo "nehrbash/protogg")
@@ -2442,8 +2443,18 @@ Otherwise, it centers the posframe in the frame."
 		("q" "Quit" transient-quit-one)
 		("s" "Magit Status" magit-status)
 		("S" "git Logs" magit-pg-repo)]])
-  :custom
-  (magit-diff-refine-hunk t))
+  (defun sn/git-squash-then-rebase (branch)
+	"Squash merge and then rebase the current branch onto BRANCH."
+	(interactive (list (magit-read-branch "Branch to rebase onto")))
+	;; Fetch the latest changes from the remote
+	(magit-fetch-from-upstream branch)
+	;; Reset to the last common commit
+	(magit-run-git "reset" "--soft" (magit-git-string "merge-base" "HEAD" branch))
+	;; Create a single commit from all staged changes
+	(magit-commit)
+	;; Rebase onto the updated branch
+	(magit-run-git "rebase" branch))
+  :custom (magit-diff-refine-hunk t))
 (use-package git-timemachine
   :custom (git-timemachine-show-minibuffer-details t))
 
@@ -2652,6 +2663,8 @@ The exact color values are taken from the active Ef theme."
   :custom
   (sqlformat-command 'pgformatter)
   (setq sqlformat-args '("-s2" "-g")))
+
+(use-package systemd)
 
 (use-package terraform-mode)
 

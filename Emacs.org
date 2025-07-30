@@ -74,6 +74,7 @@
   - [[#yaml][YAML]]
   - [[#docker][Docker]]
   - [[#sql][SQL]]
+  - [[#systemd][Systemd]]
   - [[#terraform][Terraform]]
   - [[#lisp][Lisp]]
   - [[#yuck][Yuck]]
@@ -1549,7 +1550,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 (use-package vertico-posframe
   :after vertico
   :custom
-  (vertico-posframe-width 180)
+  (vertico-posframe-width 120)
   (vertico-posframe-vertico-multiform-key "M-m")
   :config
   ;; don't change colors
@@ -1699,7 +1700,7 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'consult-buffer-filter "[\\.]org$")
   (add-to-list 'consult-buffer-filter "shell*")
   ;; show my dots in find file
-  (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
+  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
   (defun vc-modified-file ()
 	"Use completion to go to a modified file in the Git repository."
 	(interactive)
@@ -1882,7 +1883,8 @@ Otherwise, it centers the posframe in the frame."
 #+begin_src emacs-lisp
 (use-package project
   :ensure nil
-  :bind-keymap ("C-c p". project-prefix-map))
+  :bind-keymap ("C-c p". project-prefix-map)
+  :custom (project-vc-extra-root-markers '(".project")))
 #+end_src
 
 
@@ -4113,8 +4115,18 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 		("q" "Quit" transient-quit-one)
 		("s" "Magit Status" magit-status)
 		("S" "git Logs" magit-pg-repo)]])
-  :custom
-  (magit-diff-refine-hunk t))
+  (defun sn/git-squash-then-rebase (branch)
+	"Squash merge and then rebase the current branch onto BRANCH."
+	(interactive (list (magit-read-branch "Branch to rebase onto")))
+	;; Fetch the latest changes from the remote
+	(magit-fetch-from-upstream branch)
+	;; Reset to the last common commit
+	(magit-run-git "reset" "--soft" (magit-git-string "merge-base" "HEAD" branch))
+	;; Create a single commit from all staged changes
+	(magit-commit)
+	;; Rebase onto the updated branch
+	(magit-run-git "rebase" branch))
+  :custom (magit-diff-refine-hunk t))
 (use-package git-timemachine
   :custom (git-timemachine-show-minibuffer-details t))
 #+end_src
@@ -4538,6 +4550,13 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   (setq sqlformat-args '("-s2" "-g")))
 #+end_src
    
+** Systemd
+
+   #+begin_src emacs-lisp
+(use-package systemd)  
+   #+end_src
+
+
 ** Terraform
 
 #+begin_src emacs-lisp
