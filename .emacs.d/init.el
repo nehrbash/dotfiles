@@ -2454,7 +2454,9 @@ Otherwise, it centers the posframe in the frame."
 	(magit-commit)
 	;; Rebase onto the updated branch
 	(magit-run-git "rebase" branch))
-  :custom (magit-diff-refine-hunk t))
+  :custom
+  (magit-log-margin-show-committer-date t)
+  (magit-diff-refine-hunk t))
 (use-package git-timemachine
   :custom (git-timemachine-show-minibuffer-details t))
 
