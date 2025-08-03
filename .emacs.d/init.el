@@ -356,7 +356,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
               (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 
 (setq-default
-  fill-column 80
+  fill-column 100
   blink-cursor-interval 0.4
   buffers-menu-max-size 30
   case-fold-search t
@@ -407,9 +407,13 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 					 "emacs/.emacs.d/prot-lisp/prot-common.el")
 			:main "emacs/.emacs.d/prot-lisp/prot-window.el")
   :config
+  (defun hide-modeline-in-buffer (window)
+	"Hide the modeline in the buffer displayed in WINDOW."
+	(with-current-buffer (window-buffer window)
+      (setq-local mode-line-format nil)))
   (setq display-buffer-alist
     `(("\\`\\*Async Shell Command\\*\\'"
-         (display-buffer-no-window))
+        (display-buffer-no-window))
        ("\\`\\*\\(Warnings\\|Compile-Log\\|Org Links\\)\\*\\'"
          (display-buffer-no-window)
          (allow-no-window . t))
@@ -421,20 +425,11 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
          (slot . 0)
          (window-parameters . ((mode-line-format . none)
 								(no-other-window . t))))
-	   ((or . ((derived-mode . dired-mode)
-				(derived-mode . vterm-mode)
-				(derived-mode . eat-mode)))
-		 nil
-		 (window-parameters . ((mode-line-format . none))))
-       ;; bottom buffer (NOT side window)
-       ;; ((or . ((derived-mode . flymake-diagnostics-buffer-mode)
-       ;;          (derived-mode . flymake-project-diagnostics-mode)
-       ;;          (derived-mode . messages-buffer-mode)
-       ;;          (derived-mode . backtrace-mode)))
-       ;;   (display-buffer-reuse-mode-window display-buffer-at-bottom)
-       ;;   (window-height . 0.3)
-       ;;   (dedicated . t)
-       ;;   (preserve-size . (t . t)))
+	   ((or (derived-mode . dired-mode)
+          (derived-mode . vterm-mode)
+          (derived-mode . eat-mode))
+		 (display-buffer-same-window)
+         (body-function . hide-modeline-in-buffer))
 	   ("\\*Embark Collect \\*"
 		 (display-buffer-reuse-mode-window display-buffer-at-bottom)
 		 (window-parameters (mode-line-format . none)))
@@ -1396,6 +1391,7 @@ Otherwise, it centers the posframe in the frame."
 	'(embark-verbose-indicator
 	   embark-highlight-indicator
 	   embark-isearch-highlight-indicator)))
+
 (use-package embark-consult
   :hook (embark-collect-mode . consult-preview-at-point-mode))
 
@@ -2522,11 +2518,9 @@ The exact color values are taken from the active Ef theme."
 				  (face-remap-add-relative
 				   'fringe
 				   :background "#281d12")))
-
 (use-package vterm-tabs
   :after (svg-tag-mode vterm)
-  ;; :ensure (:host github :repo "nehrbash/vterm-tabs")
-  :load-path "~/src/vterm-tabs"
+  :load-path "~/.emacs.d/lisp/vterm-tabs"
   :bind
   (("<f6>" . vterm-tabs-toggle)
 	:map vterm-mode-map
@@ -2576,6 +2570,7 @@ The exact color values are taken from the active Ef theme."
   ("M-SPC p" . flymake-show-project-diagnostics))
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load
+  ;; :custom (sh-shellcheck-arguments '("--exclude=SC1090"))
   :hook (bash-ts-mode . flymake-shellcheck-load))
 
 (use-package treesit-fold
@@ -2707,9 +2702,7 @@ The exact color values are taken from the active Ef theme."
           (output-buffer "*Start Dev-Container Output*")
           (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
     (if (= result 0)
-      (progn
-        (message "Dev container started successfully.")
-        (dired "/docker:dev-container:/workspace/"))
+	  (project-switch-project "/docker:dev-container:/workspace/")
       (message "Error: Command failed. Check %s for details." output-buffer))))
 
 (defun sn/ssh-pub-key ()
@@ -2906,7 +2899,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   :load-path "~/.emacs.d/lisp")
 
 (use-package consult-taskfile
-  :load-path "~/src/consult-taskfile"
+  :load-path "~/.emacs.d/lisp/consult-taskfile"
   :bind
-  ("M-SPC x" . consult-task)
+  ("M-SPC x" . consult-taskfile)
   ("M-SPC c" . taskfile))
