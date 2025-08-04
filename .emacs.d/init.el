@@ -657,6 +657,7 @@ This is useful when followed by an immediate kill."
 
 (use-package winner
   :ensure nil
+  :init (winner-mode 1)
   :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
 		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
 		 ("C-x 1" . sanityinc/toggle-delete-other-windows)
@@ -707,7 +708,7 @@ This is useful when followed by an immediate kill."
 	  (when other-buffer
 		(set-window-buffer (next-window) other-buffer))))
 
-  (defun sanityinc/split-window()
+  (defun sanityinc/split-window ()
 	"Split the window to see the most recent buffer in the other window.
 Call a second time to restore the original window configuration."
 	(interactive)
@@ -804,8 +805,8 @@ Call a second time to restore the original window configuration."
   	'("L" . meow-goto-line)
   	'("m" . meow-mark-word)
   	'("M" . meow-mark-symbol)
-  	;; '("e" . meow-next)
-  	;; '("E" . meow-next-expand)
+	    '("e" . avy-goto-char-timer)
+	    '("E" . avy-resume)
   	'("h" . meow-block)
   	'("H" . meow-to-block)
   	'("p" . meow-yank)
@@ -846,9 +847,6 @@ Call a second time to restore the original window configuration."
 						 (?X . avy-action-kill-stay)
 						 (?m . avy-action-mark)
 						 (?z . avy-acton-zap-to-char)))
-  :bind
-  ("C-c e" . avy-goto-char-timer)
-  ("C-c E" . avy-resume)
   :config
   (defun avy-action-copy-whole-line (pt)
 	(save-excursion
@@ -1059,16 +1057,6 @@ Call a second time to restore the original window configuration."
     (with-current-buffer buf
       (when (and (buffer-file-name) (buffer-modified-p))
         (revert-buffer t t t)))))
-
-(use-package desktop
-  :ensure nil
-  :if (daemonp)
-  :custom
-  (desktop-save t)
-  :init
-  (desktop-save-mode 1)
-  (desktop-read)
-  )
 
 (defmacro with-suppressed-message (&rest body)
   "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
@@ -1563,7 +1551,6 @@ Otherwise, it centers the posframe in the frame."
   :after yasnippet)
 
 (use-package jinx
-  :demand t
   :bind
   ([remap ispell-word] . jinx-correct-nearest)
   (:map jinx-overlay-map
@@ -2500,7 +2487,6 @@ The exact color values are taken from the active Ef theme."
 
 (use-package svg-tag-mode)
 (use-package vterm
-  :demand t
   :hook (vterm-mode . sn/setup-vterm)
   :init
   (defun sn/setup-vterm ()
@@ -2519,7 +2505,6 @@ The exact color values are taken from the active Ef theme."
 				   'fringe
 				   :background "#281d12")))
 (use-package vterm-tabs
-  :after (svg-tag-mode vterm)
   :load-path "~/.emacs.d/lisp/vterm-tabs"
   :bind
   (("<f6>" . vterm-tabs-toggle)

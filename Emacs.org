@@ -33,7 +33,6 @@
   - [[#improve-window-switching][Improve window switching]]
   - [[#dont-ask-to-kill-on-exit][Don't ask to kill on exit]]
   - [[#editing-utilities][Editing Utilities]]
-  - [[#desktop-mode][Desktop mode]]
 - [[#mini-buffer--completion-framework][Mini-buffer / Completion Framework]]
   - [[#minbuffer][Minbuffer]]
   - [[#vertico][Vertico]]
@@ -933,6 +932,7 @@ This is useful when followed by an immediate kill."
 #+begin_src emacs-lisp
 (use-package winner
   :ensure nil
+  :init (winner-mode 1)
   :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
 		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
 		 ("C-x 1" . sanityinc/toggle-delete-other-windows)
@@ -983,7 +983,7 @@ This is useful when followed by an immediate kill."
 	  (when other-buffer
 		(set-window-buffer (next-window) other-buffer))))
 
-  (defun sanityinc/split-window()
+  (defun sanityinc/split-window ()
 	"Split the window to see the most recent buffer in the other window.
 Call a second time to restore the original window configuration."
 	(interactive)
@@ -1100,8 +1100,8 @@ Call a second time to restore the original window configuration."
   	'("L" . meow-goto-line)
   	'("m" . meow-mark-word)
   	'("M" . meow-mark-symbol)
-  	;; '("e" . meow-next)
-  	;; '("E" . meow-next-expand)
+	    '("e" . avy-goto-char-timer)
+	    '("E" . avy-resume)
   	'("h" . meow-block)
   	'("H" . meow-to-block)
   	'("p" . meow-yank)
@@ -1149,9 +1149,6 @@ Call a second time to restore the original window configuration."
 						 (?X . avy-action-kill-stay)
 						 (?m . avy-action-mark)
 						 (?z . avy-acton-zap-to-char)))
-  :bind
-  ("C-c e" . avy-goto-char-timer)
-  ("C-c E" . avy-resume)
   :config
   (defun avy-action-copy-whole-line (pt)
 	(save-excursion
@@ -1440,20 +1437,6 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
         (revert-buffer t t t)))))
 #+end_src
 
-** Desktop mode
-
-#+begin_src emacs-lisp
-(use-package desktop
-  :ensure nil
-  :if (daemonp)
-  :custom
-  (desktop-save t)
-  :init
-  (desktop-save-mode 1)
-  (desktop-read)
-  )
-#+end_src
-   
 *** hide messages output on annoying functions
 
 #+begin_src emacs-lisp
@@ -3050,7 +3033,6 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
     Trqvel
 #+begin_src emacs-lisp
 (use-package jinx
-  :demand t
   :bind
   ([remap ispell-word] . jinx-correct-nearest)
   (:map jinx-overlay-map
@@ -4237,7 +4219,6 @@ The exact color values are taken from the active Ef theme."
 #+begin_src emacs-lisp
 (use-package svg-tag-mode)
 (use-package vterm
-  :demand t
   :hook (vterm-mode . sn/setup-vterm)
   :init
   (defun sn/setup-vterm ()
@@ -4256,7 +4237,6 @@ The exact color values are taken from the active Ef theme."
 				   'fringe
 				   :background "#281d12")))
 (use-package vterm-tabs
-  :after (svg-tag-mode vterm)
   :load-path "~/.emacs.d/lisp/vterm-tabs"
   :bind
   (("<f6>" . vterm-tabs-toggle)
