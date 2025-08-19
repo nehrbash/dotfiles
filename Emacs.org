@@ -233,7 +233,9 @@
 		  `(org-modern-symbol ((,c :family "Iosevka" )))
 		  `(org-block ((,c :family "Iosevka" )))
 		  `(variable-pitch ((,c :family "Iosevka Aile")))
+		  `(ef-themes-fixed-pitch ((,c :family "Iosevka" )))
 		  `(ef-themes-key-binding ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer)))
+		  `(page-break-lines ((,c :inherit (bold ef-themes-fixed-pitch) :foreground ,yellow-warmer)))
 		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
@@ -1731,7 +1733,7 @@ Otherwise, it centers the posframe in the frame."
 	  :new
 	  (lambda (name)
 		(with-current-buffer (get-buffer-create name)
-		  (insert "#+title: " name "\n\n")
+		  (insert "#+title: " name "\n\n")
 		  (org-mode)
 		  (consult--buffer-action (current-buffer))))
 	  :items
@@ -4735,39 +4737,42 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
           (gptel-mode 1)))))
   :config
   (defun gptel-toggle-sidebar ()
-	"Toggle a custom sidebar for today's daily note, initializing with 'gptel-mode' if new."
-	(interactive)
-	(let* ((buffer (or (get-buffer (format-time-string "%Y-%m-%d.org"))
+  "Toggle a custom sidebar for today's daily note, initializing with 'gptel-mode' if new."
+  (interactive)
+  (let* ((buffer (or (get-buffer (format-time-string "%Y-%m-%d.org"))
                      (save-window-excursion
                        (org-roam-dailies-goto-today)
-                       (current-buffer)))))
-      (if-let* ((window (get-buffer-window buffer)))
+                       (current-buffer))))
+         (width (+ (or fill-column 80) 2)))  ;; Default fallback to 82 if fill-column is not set.
+    (if-let* ((window (get-buffer-window buffer)))
         ;; If the sidebar is already open, close it.
         (delete-window window)
-		;; Otherwise, set up the sidebar buffer and open window.
-		(progn
-          (let* ((window (display-buffer
-						   buffer
-						   '((display-buffer-in-side-window
-							   display-buffer-same-window)
-							  (side . right)
-							  (slot . 0)))))
-			(with-current-buffer buffer
-              (progn
-				(goto-char (point-min))
-				(if (org-find-exact-headline-in-buffer "Chuck Chats")
+      ;; Otherwise, set up the sidebar buffer and open window.
+      (progn
+        (let* ((window (display-buffer
+                        buffer
+                        `((display-buffer-in-side-window
+                           display-buffer-same-window)
+                          (side . right)
+                          (window-width . ,width)
+                          (slot . 0)))))
+          (with-current-buffer buffer
+            (progn
+              (goto-char (point-min
+))
+              (if (org-find-exact-headline-in-buffer "Chuck Chats")
                   (goto-char (org-find-exact-headline-in-buffer "Chuck Chats"))
-                  (progn
-					(goto-char (1- (point-max)))
-					(insert "\n* Chuck Chats\n")
-					(gptel-mode)
-					(gptel-org-set-properties (point))))))
-			(when window
-              (set-window-dedicated-p window t)
-              (set-window-parameter window 'no-other-window t)
-              (with-selected-window window
-				(setq mode-line-format nil))
-              (select-window window)))))))
+                (progn
+                  (goto-char (1- (point-max)))
+                  (insert "\n* Chuck Chats\n")
+                  (gptel-mode)
+                  (gptel-org-set-properties (point))))))
+          (when window
+            (set-window-dedicated-p window t)
+            (set-window-parameter window 'no-other-window t)
+            (with-selected-window window
+              (setq mode-line-format nil))
+            (select-window window)))))))
   (defun gptel-close-headers (from to)
 	"Fold all org headers in the current buffer, except for the last response."
 	(when (eq major-mode 'org-mode)
