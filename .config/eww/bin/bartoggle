@@ -65,8 +65,7 @@ elif [ $COUNTER -eq 2 ]; then
             keyword general:gaps_out 0;\
             keyword decoration:rounding 0;\
             keyword decoration:active_opacity 1;\
-            keyword decoration:inactive_opacity 1;\
-			keyword dwindle:no_gaps_when_only 1;"
+            keyword decoration:inactive_opacity 1;"
 	set +e
     eww close corner-ul corner-ur corner-bl corner-br
 	if [ "$monitors_length" -gt 1 ]; then

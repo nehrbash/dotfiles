@@ -2770,7 +2770,9 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   (:map vterm-mode-map
  	("<f5>" . gptel-toggle-sidebar))
   ("C-<f5>" . gptel-menu)
-  :hook (org-mode . gptel-activate-if-model-exists)
+  :hook
+  (org-mode . gptel-activate-if-model-exists)
+  (gptel-post-stream . gptel-auto-scroll)
   :custom
   (gptel-model 'gpt-4o)
   (gptel-display-buffer-action
@@ -2779,6 +2781,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
        (window-width . fit-window-to-buffer)
        (slot . 0)))
   (gptel-default-mode 'org-mode)
+  (gptel-use-tools t)
   :init
   (defun gptel-activate-if-model-exists ()
 	"Activate gptel mode if the GPTEL_MODEL property exists in any part of the Org document."
@@ -2791,6 +2794,20 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
  		(when found
           (gptel-mode 1)))))
   :config
+  ;; (require 'gptel-integrations) mpc
+  (add-hook 'gptel-post-response-functions 'gptel-end-of-response)
+  (add-to-list 'gptel-tools
+             (gptel-make-tool
+              :name "read_url"
+              :function (lambda (url) 
+                         ;; function implementation
+                         )
+              :description "Fetch and read the contents of a URL"
+              :args (list '(:name "url"
+                            :type string
+                            :description "The URL to read"))
+              :category "web"))
+
   (defun gptel-toggle-sidebar ()
   "Toggle a custom sidebar for today's daily note, initializing with 'gptel-mode' if new."
   (interactive)
