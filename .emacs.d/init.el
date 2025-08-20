@@ -7,9 +7,9 @@
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
 (defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
-                              :ref nil :depth 1 :inherit ignore
-                              :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-                              :build (:not elpaca--activate-package)))
+			      :ref nil :depth 1 :inherit ignore
+			      :files (:defaults "elpaca-test.el" (:exclude "extensions"))
+			      :build (:not elpaca--activate-package)))
 (let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
@@ -19,20 +19,20 @@
     (make-directory repo t)
     (when (<= emacs-major-version 28) (require 'subr-x))
     (condition-case-unless-debug err
-        (if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
-                  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
-                                                  ,@(when-let* ((depth (plist-get order :depth)))
-                                                      (list (format "--depth=%d" depth) "--no-single-branch"))
-                                                  ,(plist-get order :repo) ,repo))))
-                  ((zerop (call-process "git" nil buffer t "checkout"
-                                        (or (plist-get order :ref) "--"))))
-                  (emacs (concat invocation-directory invocation-name))
-                  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
-                                        "--eval" "(byte-recompile-directory \".\" 0 'force)")))
-                  ((require 'elpaca))
-                  ((elpaca-generate-autoloads "elpaca" repo)))
-            (progn (message "%s" (buffer-string)) (kill-buffer buffer))
-          (error "%s" (with-current-buffer buffer (buffer-string))))
+	(if-let* ((buffer (pop-to-buffer-same-window "*elpaca-bootstrap*"))
+		  ((zerop (apply #'call-process `("git" nil ,buffer t "clone"
+						  ,@(when-let* ((depth (plist-get order :depth)))
+						      (list (format "--depth=%d" depth) "--no-single-branch"))
+						  ,(plist-get order :repo) ,repo))))
+		  ((zerop (call-process "git" nil buffer t "checkout"
+					(or (plist-get order :ref) "--"))))
+		  (emacs (concat invocation-directory invocation-name))
+		  ((zerop (call-process emacs nil buffer nil "-Q" "-L" "." "--batch"
+					"--eval" "(byte-recompile-directory \".\" 0 'force)")))
+		  ((require 'elpaca))
+		  ((elpaca-generate-autoloads "elpaca" repo)))
+	    (progn (message "%s" (buffer-string)) (kill-buffer buffer))
+	  (error "%s" (with-current-buffer buffer (buffer-string))))
       ((error) (warn "%s" err) (delete-directory repo 'recursive))))
   (unless (require 'elpaca-autoloads nil t)
     (require 'elpaca)
@@ -41,8 +41,8 @@
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
   (elpaca elpaca-use-package
-  		;; use-package enable :ensure keyword.
-  		(elpaca-use-package-mode))
+		;; use-package enable :ensure keyword.
+		(elpaca-use-package-mode))
   (setopt
    use-package-always-ensure t
    warning-minimum-level :emergency
@@ -54,17 +54,17 @@
   (let ((lock-file "~/.emacs.d/install_lock"))
     (unless (file-exists-p lock-file)
       (condition-case err
-        (all-the-icons-install-fonts)
-        (error (message "Error running all-the-icons-install-fonts: %s" err)))
+	(all-the-icons-install-fonts)
+	(error (message "Error running all-the-icons-install-fonts: %s" err)))
       (condition-case err
-        (yas-reload-all)
-        (error (message "Error running yas-reload-all: %s" err)))
+	(yas-reload-all)
+	(error (message "Error running yas-reload-all: %s" err)))
       (condition-case err
-        (recentf-cleanup)
-        (error (message "Error running recentf-cleanup: %s" err)))
+	(recentf-cleanup)
+	(error (message "Error running recentf-cleanup: %s" err)))
       (condition-case err
-        (nerd-icons-install-fonts)
-        (error (message "Error running nerd-icons-install-fonts: %s" err))) ;; commented as 'nerd-icons-install-fonts' function doesn't exist.
+	(nerd-icons-install-fonts)
+	(error (message "Error running nerd-icons-install-fonts: %s" err))) ;; commented as 'nerd-icons-install-fonts' function doesn't exist.
       (write-region "" nil lock-file))))
 
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
@@ -153,22 +153,22 @@
   (defun custom-sloth-image-segment ()
 	"Return an image segment with a specified height."
 	(let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory))
-           (img-height custom-mode-line-height))
+	   (img-height custom-mode-line-height))
       (when (file-exists-p img-file)
 		(propertize " "
-          'display (create-image img-file nil nil :height img-height :ascent 'center)))))
+	  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
   (defun custom-branch-left-cap ()
   "Return a left branch SVG cap for the modeline."
   (let ((svg-file (expand-file-name "img/left-branch.svg" user-emacs-directory)))
     (when (file-exists-p svg-file)
       (propertize " "
-        'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
+	'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
 (defun custom-branch-right-cap ()
   "Return a right branch SVG cap for the modeline."
   (let ((svg-file (expand-file-name "img/right-branch.svg" user-emacs-directory)))
     (when (file-exists-p svg-file)
       (propertize " "
-        'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
+	'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
 
   (setq-default mode-line-format
     '("%e"
@@ -265,62 +265,62 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   "Adjust window points to prevent implicit scrolling."
   (unless (> (minibuffer-depth) 1)
     (let ((windows (window-at-side-list
-                    (window-frame (selected-window))
-                    'bottom))
-          ;; height of default lines
-          (frame-char-height (frame-char-height
-                              (window-frame (selected-window)))))
+		    (window-frame (selected-window))
+		    'bottom))
+	  ;; height of default lines
+	  (frame-char-height (frame-char-height
+			      (window-frame (selected-window)))))
       (while-let ((w (pop windows)))
-        (with-current-buffer (window-buffer w)
-          (let* ((current-line (line-number-at-pos (window-point w)))
-                 (end-line (line-number-at-pos (window-end w)))
-                 (window-pixel-height (window-pixel-height w))
-                 (window-used-height (cdr (window-text-pixel-size
-                                           w (window-start w) (window-end w))))
-                 (margin-height (* frame-char-height pmx-no-herky-jerk-margin))
-                 (unsafe-height (- window-used-height
-                                   (- window-pixel-height margin-height)))
-                 (unsafe-lines (+ 2 (ceiling (/ unsafe-height frame-char-height))))
-                 (exceeded-lines (- unsafe-lines (- end-line current-line))))
-            (when (> exceeded-lines 0)
-              ;;  save value for restore
-              (let* ((buffer (window-buffer w))
-                     (restore-marker (let ((marker (make-marker)))
-                                       ;; XXX this may error?
-                                       (set-marker marker (window-point w)
-                                                   buffer)))
-                     (safe-point (progn
-                                   (goto-char restore-marker)
-                                   ;; XXX goes up too many lines when skipping
-                                   ;; wrapped lines
-                                   (ignore-error '(beginning-of-buffer
-                                                   end-of-buffer)
-                                     (previous-line exceeded-lines t))
-                                   (end-of-line)
-                                   (point))))
-                (set-window-point w safe-point)
-                (when (eq w (minibuffer-selected-window))
-                  (let ((safe-marker (make-marker)))
-                    (set-marker safe-marker safe-point buffer)
-                    (setq pmx--no-herky-jerk-restore
-                          (list buffer w safe-marker restore-marker))))
-                (goto-char (marker-position restore-marker))))))))))
+	(with-current-buffer (window-buffer w)
+	  (let* ((current-line (line-number-at-pos (window-point w)))
+		 (end-line (line-number-at-pos (window-end w)))
+		 (window-pixel-height (window-pixel-height w))
+		 (window-used-height (cdr (window-text-pixel-size
+					   w (window-start w) (window-end w))))
+		 (margin-height (* frame-char-height pmx-no-herky-jerk-margin))
+		 (unsafe-height (- window-used-height
+				   (- window-pixel-height margin-height)))
+		 (unsafe-lines (+ 2 (ceiling (/ unsafe-height frame-char-height))))
+		 (exceeded-lines (- unsafe-lines (- end-line current-line))))
+	    (when (> exceeded-lines 0)
+	      ;;  save value for restore
+	      (let* ((buffer (window-buffer w))
+		     (restore-marker (let ((marker (make-marker)))
+				       ;; XXX this may error?
+				       (set-marker marker (window-point w)
+						   buffer)))
+		     (safe-point (progn
+				   (goto-char restore-marker)
+				   ;; XXX goes up too many lines when skipping
+				   ;; wrapped lines
+				   (ignore-error '(beginning-of-buffer
+						   end-of-buffer)
+				     (previous-line exceeded-lines t))
+				   (end-of-line)
+				   (point))))
+		(set-window-point w safe-point)
+		(when (eq w (minibuffer-selected-window))
+		  (let ((safe-marker (make-marker)))
+		    (set-marker safe-marker safe-point buffer)
+		    (setq pmx--no-herky-jerk-restore
+			  (list buffer w safe-marker restore-marker))))
+		(goto-char (marker-position restore-marker))))))))))
 
 (defun pmx--no-herky-jerk-exit ()
   "Restore window points that were rescued from implicit scrolling."
   (when (and pmx--no-herky-jerk-restore
-             (= (minibuffer-depth) 1)
-             (null (transient-active-prefix)))
+	     (= (minibuffer-depth) 1)
+	     (null (transient-active-prefix)))
     (when-let* ((restore pmx--no-herky-jerk-restore)
-                (buffer (pop restore))
-                (w (pop restore))
-                (safe-marker (pop restore))
-                (restore-marker (pop restore)))
+		(buffer (pop restore))
+		(w (pop restore))
+		(safe-marker (pop restore))
+		(restore-marker (pop restore)))
       (when (and (window-live-p w)
-                 (eq (window-buffer w) buffer)
-                 (= (window-point w) (marker-position safe-marker)))
-        (goto-char restore-marker)
-        (set-window-point w restore-marker))
+		 (eq (window-buffer w) buffer)
+		 (= (window-point w) (marker-position safe-marker)))
+	(goto-char restore-marker)
+	(set-window-point w restore-marker))
       (set-marker restore-marker nil)
       (set-marker safe-marker nil)
       (setq pmx--no-herky-jerk-restore nil))))
@@ -355,7 +355,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   (olivetti-style nil))
 
 (setq-default fringe-indicator-alist
-              (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
+	      (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 
 (setq-default
   fill-column 100
@@ -392,12 +392,12 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
       (concat "zen-browser " url) nil
       browse-url-firefox-program
       (append
-        browse-url-firefox-arguments
-        (if (browse-url-maybe-new-window new-window)
-  		  (if browse-url-firefox-new-window-is-tab
-  		    '("-new-tab")
-  			'("-new-window")))
-        (list url)))))
+	browse-url-firefox-arguments
+	(if (browse-url-maybe-new-window new-window)
+		  (if browse-url-firefox-new-window-is-tab
+		    '("-new-tab")
+			'("-new-window")))
+	(list url)))))
 (with-eval-after-load 'browse-url
   (setq browse-url-browser-function #'browse-url-zen))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
@@ -415,61 +415,61 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
       (setq-local mode-line-format nil)))
   (setq display-buffer-alist
     `(("\\`\\*Async Shell Command\\*\\'"
-        (display-buffer-no-window))
+	(display-buffer-no-window))
        ("\\`\\*\\(Warnings\\|Compile-Log\\|Org Links\\)\\*\\'"
-         (display-buffer-no-window)
-         (allow-no-window . t))
+	 (display-buffer-no-window)
+	 (allow-no-window . t))
        ;; bottom side window
        ("\\*\\Org \\(Select\\|Note\\|Agenda\\)*"
-         (display-buffer-in-side-window)
+	 (display-buffer-in-side-window)
 		 (window-width . fit-window-to-buffer)
-         (side . left)
-         (slot . 0)
-         (window-parameters . ((mode-line-format . none)
+	 (side . left)
+	 (slot . 0)
+	 (window-parameters . ((mode-line-format . none)
 								(no-other-window . t))))
 	   ((or (derived-mode . dired-mode)
-          (derived-mode . vterm-mode)
-          (derived-mode . eat-mode))
+	  (derived-mode . vterm-mode)
+	  (derived-mode . eat-mode))
 		 (display-buffer-same-window)
-         (body-function . hide-modeline-in-buffer))
+	 (body-function . hide-modeline-in-buffer))
 	   ("\\*Embark Collect \\*"
 		 (display-buffer-reuse-mode-window display-buffer-at-bottom)
 		 (window-parameters (mode-line-format . none)))
        ("\\*Embark Actions\\*"
-         (display-buffer-reuse-mode-window display-buffer-below-selected)
-         (window-height . fit-window-to-buffer)
-         (window-parameters . ((no-other-window . t)
-                                (mode-line-format . none))))
+	 (display-buffer-reuse-mode-window display-buffer-below-selected)
+	 (window-height . fit-window-to-buffer)
+	 (window-parameters . ((no-other-window . t)
+				(mode-line-format . none))))
        ("\\*\\(Output\\|Register Preview\\).*"
-         (display-buffer-reuse-mode-window display-buffer-at-bottom))
+	 (display-buffer-reuse-mode-window display-buffer-at-bottom))
        ;; below current window
        ("\\(\\*Capture\\*\\|CAPTURE-.*\\)"
-         (display-buffer-reuse-mode-window display-buffer-below-selected))
+	 (display-buffer-reuse-mode-window display-buffer-below-selected))
        ((derived-mode . reb-mode) ; M-x re-builder
-         (display-buffer-reuse-mode-window display-buffer-below-selected)
-         (window-height . 4) ; note this is literal lines, not relative
-         (dedicated . t)
-         (preserve-size . (t . t)))
+	 (display-buffer-reuse-mode-window display-buffer-below-selected)
+	 (window-height . 4) ; note this is literal lines, not relative
+	 (dedicated . t)
+	 (preserve-size . (t . t)))
        ((or . ((derived-mode . occur-mode)
-                (derived-mode . grep-mode)
-                (derived-mode . Buffer-menu-mode)
-                (derived-mode . log-view-mode)
-                (derived-mode . help-mode) ; See the hooks for `visual-line-mode'
-                "\\*\\(|Buffer List\\|Occur\\|vc-change-log\\|eldoc.*\\).*"
-                "\\*\\vc-\\(incoming\\|outgoing\\|git : \\).*"
-                prot-window-shell-or-term-p
-                ;; ,world-clock-buffer-name
-                ))
-         (prot-window-display-buffer-below-or-pop)
-         (body-function . prot-window-select-fit-size))
+		(derived-mode . grep-mode)
+		(derived-mode . Buffer-menu-mode)
+		(derived-mode . log-view-mode)
+		(derived-mode . help-mode) ; See the hooks for `visual-line-mode'
+		"\\*\\(|Buffer List\\|Occur\\|vc-change-log\\|eldoc.*\\).*"
+		"\\*\\vc-\\(incoming\\|outgoing\\|git : \\).*"
+		prot-window-shell-or-term-p
+		;; ,world-clock-buffer-name
+		))
+	 (prot-window-display-buffer-below-or-pop)
+	 (body-function . prot-window-select-fit-size))
        ("\\*\\(Calendar\\|Bookmark Annotation\\|ert\\).*"
-         (display-buffer-reuse-mode-window display-buffer-below-selected)
-         (dedicated . t)
-         (window-height . fit-window-to-buffer))
+	 (display-buffer-reuse-mode-window display-buffer-below-selected)
+	 (dedicated . t)
+	 (window-height . fit-window-to-buffer))
        ((or . ((derived-mode . Man-mode)
-                (derived-mode . woman-mode)
-                "\\*\\(Man\\|woman\\).*"))
-         (display-buffer-same-window)))))
+		(derived-mode . woman-mode)
+		"\\*\\(Man\\|woman\\).*"))
+	 (display-buffer-same-window)))))
 
   (use-package recentf
     :ensure nil
@@ -478,14 +478,14 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
     (recentf-auto-cleanup 300)
     (recentf-max-saved-items 100)
     (setq backup-directory-alist
-  	`((".*" . ,temporary-file-directory)))
+	`((".*" . ,temporary-file-directory)))
     (recentf-exclude
-  	'(
-  	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
-  	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
-  	   "/tmp/.*"           ;; matches any string that includes directory named tmp
-  	   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
-  	   ))
+	'(
+	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
+	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
+	   "/tmp/.*"           ;; matches any string that includes directory named tmp
+	   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
+	   ))
 	:config
 	(setq backup-directory-alist
       `((".*" . ,temporary-file-directory))))
@@ -515,7 +515,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   :config
   (setq tramp-verbose 0)
   (add-to-list 'backup-directory-alist
-             (cons tramp-file-name-regexp nil))
+	     (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
 			   (list (regexp-quote "/ssh:ag-nehrbash:")
@@ -644,13 +644,14 @@ This is useful when followed by an immediate kill."
 		 ("C-c m a" . mc/edit-beginnings-of-lines)))
 
 (use-package whitespace-cleanup-mode
-  :hook ((prog-mode conf-mode) . sanityinc/show-trailing-whitespace)
+  :demand t
+  :hook (whitespace-cleanup-mode . sn/show-trailing-whitespace)
   :config
+  (global-whitespace-cleanup-mode t)
   (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
-  (defun sanityinc/show-trailing-whitespace ()
+  (defun sn/show-trailing-whitespace ()
 	"Enable display of trailing whitespace in this buffer."
-	(setq-local show-trailing-whitespace t)
-	(whitespace-cleanup-mode 1)))
+	(setq-local show-trailing-whitespace t)))
 
 (electric-pair-mode t)
 (use-package paren ; highight matching paren
@@ -738,96 +739,96 @@ Call a second time to restore the original window configuration."
 	:bind ("M-j" . meow-comment)
     :config
     (setq meow-replace-state-name-list
-  		 '((normal . "🟢")
-  		   (motion . "🟡")
-  		   (keypad . "🟣")
-  		   (insert . "🟠")
-  		   (beacon . "🔴")))
+		 '((normal . "🟢")
+		   (motion . "🟡")
+		   (keypad . "🟣")
+		   (insert . "🟠")
+		   (beacon . "🔴")))
     (add-to-list 'meow-mode-state-list '(org-mode . insert))
     (add-to-list 'meow-mode-state-list '(eat-mode . insert))
     (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
     (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
     (meow-motion-overwrite-define-key
-  	;; Use e to move up, n to move down.
-  	;; Since special modes usually use n to move down, we only overwrite e here.
-  	'("e" . meow-prev)
-  	'("<escape>" . ignore))
+	;; Use e to move up, n to move down.
+	;; Since special modes usually use n to move down, we only overwrite e here.
+	'("e" . meow-prev)
+	'("<escape>" . ignore))
     (meow-leader-define-key
-  	'("?" . meow-cheatsheet)
-  	;; To execute the originally e in MOTION state, use SPC e.
-  	'("e" . "H-e")
-  	'("o" . switch-window)
-  	'("1" . meow-digit-argument)
-  	'("2" . meow-digit-argument)
-  	'("3" . meow-digit-argument)
-  	'("4" . meow-digit-argument)
-  	'("5" . meow-digit-argument)
-  	'("6" . meow-digit-argument)
-  	'("7" . meow-digit-argument)
-  	'("8" . meow-digit-argument)
-  	'("9" . meow-digit-argument)
-  	'("0" . meow-digit-argument)
-  	'("f ." . find-file-at-point))
+	'("?" . meow-cheatsheet)
+	;; To execute the originally e in MOTION state, use SPC e.
+	'("e" . "H-e")
+	'("o" . switch-window)
+	'("1" . meow-digit-argument)
+	'("2" . meow-digit-argument)
+	'("3" . meow-digit-argument)
+	'("4" . meow-digit-argument)
+	'("5" . meow-digit-argument)
+	'("6" . meow-digit-argument)
+	'("7" . meow-digit-argument)
+	'("8" . meow-digit-argument)
+	'("9" . meow-digit-argument)
+	'("0" . meow-digit-argument)
+	'("f ." . find-file-at-point))
     (meow-normal-define-key
-  	'("0" . meow-expand-0)
-  	'("1" . meow-expand-1)
-  	'("2" . meow-expand-2)
-  	'("3" . meow-expand-3)
-  	'("4" . meow-expand-4)
-  	'("5" . meow-expand-5)
-  	'("6" . meow-expand-6)
-  	'("7" . meow-expand-7)
-  	'("8" . meow-expand-8)
-  	'("9" . meow-expand-9)
-  	'("-" . negative-argument)
-  	'(";" . meow-reverse)
-  	'("," . meow-inner-of-thing)
-  	'("." . meow-bounds-of-thing)
-  	'("[" . meow-beginning-of-thing)
-  	'("]" . meow-end-of-thing)
-  	'("/" . meow-visit)
-  	'("a" . meow-append)
-  	'("A" . meow-open-below)
-  	'("b" . meow-back-word)
-  	'("B" . meow-back-symbol)
-  	'("c" . meow-change)
-  	;; '("i" . meow-prev)
-  	;; '("I" . meow-prev-expand)
-  	'("f" . meow-find)
-  	'("g" . meow-cancel-selection)
-  	'("G" . meow-grab)
-  	;; '("n" . meow-left)
-  	;; '("N" . meow-left-expand)
-  	;; '("o" . meow-right)
-  	;; '("O" . meow-right-expand)
-  	'("j" . meow-join)
-  	'("k" . meow-kill)
-  	'("l" . meow-line)
-  	'("L" . meow-goto-line)
-  	'("m" . meow-mark-word)
-  	'("M" . meow-mark-symbol)
+	'("0" . meow-expand-0)
+	'("1" . meow-expand-1)
+	'("2" . meow-expand-2)
+	'("3" . meow-expand-3)
+	'("4" . meow-expand-4)
+	'("5" . meow-expand-5)
+	'("6" . meow-expand-6)
+	'("7" . meow-expand-7)
+	'("8" . meow-expand-8)
+	'("9" . meow-expand-9)
+	'("-" . negative-argument)
+	'(";" . meow-reverse)
+	'("," . meow-inner-of-thing)
+	'("." . meow-bounds-of-thing)
+	'("[" . meow-beginning-of-thing)
+	'("]" . meow-end-of-thing)
+	'("/" . meow-visit)
+	'("a" . meow-append)
+	'("A" . meow-open-below)
+	'("b" . meow-back-word)
+	'("B" . meow-back-symbol)
+	'("c" . meow-change)
+	;; '("i" . meow-prev)
+	;; '("I" . meow-prev-expand)
+	'("f" . meow-find)
+	'("g" . meow-cancel-selection)
+	'("G" . meow-grab)
+	;; '("n" . meow-left)
+	;; '("N" . meow-left-expand)
+	;; '("o" . meow-right)
+	;; '("O" . meow-right-expand)
+	'("j" . meow-join)
+	'("k" . meow-kill)
+	'("l" . meow-line)
+	'("L" . meow-goto-line)
+	'("m" . meow-mark-word)
+	'("M" . meow-mark-symbol)
 	    '("e" . avy-goto-char-timer)
 	    '("E" . avy-resume)
-  	'("h" . meow-block)
-  	'("H" . meow-to-block)
-  	'("p" . meow-yank)
-  	'("q" . meow-quit)
-  	'("r" . meow-replace)
-  	'("s" . meow-insert)
-  	'("S" . meow-open-above)
-  	'("t" . meow-till)
-  	'("u" . meow-undo)
-  	'("U" . meow-undo-in-selection)
-  	'("v" . meow-search)
-  	'("w" . meow-next-word)
-  	'("W" . meow-next-symbol)
-  	'("x" . meow-delete)
-  	'("X" . meow-backward-delete)
-  	'("y" . meow-save)
-  	'("z" . meow-pop-selection)
-  	'("'" . repeat)
-  	'("<escape>" . ignore))
+	'("h" . meow-block)
+	'("H" . meow-to-block)
+	'("p" . meow-yank)
+	'("q" . meow-quit)
+	'("r" . meow-replace)
+	'("s" . meow-insert)
+	'("S" . meow-open-above)
+	'("t" . meow-till)
+	'("u" . meow-undo)
+	'("U" . meow-undo-in-selection)
+	'("v" . meow-search)
+	'("w" . meow-next-word)
+	'("W" . meow-next-symbol)
+	'("x" . meow-delete)
+	'("X" . meow-backward-delete)
+	'("y" . meow-save)
+	'("z" . meow-pop-selection)
+	'("'" . repeat)
+	'("<escape>" . ignore))
 	(meow-global-mode 1))
 
 (use-package meow-tree-sitter
@@ -854,7 +855,7 @@ Call a second time to restore the original window configuration."
 	(save-excursion
       (goto-char pt)
       (cl-destructuring-bind (start . end)
-        (bounds-of-thing-at-point 'line)
+	(bounds-of-thing-at-point 'line)
 		(copy-region-as-kill start end)))
 	(select-window
 	  (cdr (ring-ref avy-ring 0))) t)
@@ -870,8 +871,8 @@ Call a second time to restore the original window configuration."
 	"Use Embark to act on the item at PT."
 	(unwind-protect
 	  (save-excursion
-        (goto-char pt)
-        (embark-act))
+	(goto-char pt)
+	(embark-act))
       (select-window
 		(cdr (ring-ref avy-ring 0))) t))
   (setf
@@ -1058,7 +1059,7 @@ Call a second time to restore the original window configuration."
   (dolist (buf (buffer-list))
     (with-current-buffer buf
       (when (and (buffer-file-name) (buffer-modified-p))
-        (revert-buffer t t t)))))
+	(revert-buffer t t t)))))
 
 (defmacro with-suppressed-message (&rest body)
   "Suppress new messages temporarily in the echo area and the `*Messages*' buffer while BODY is evaluated."
@@ -1072,7 +1073,7 @@ Call a second time to restore the original window configuration."
   :bind
   (:map minibuffer-local-map ("M-." . sn/minibuffer-fetch-symbol-at-point))
   (:map minibuffer-local-completion-map
-  	("<backtab>" . minibuffer-force-complete))
+	("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
   (minibuffer-eldef-shorten-default t)
@@ -1081,21 +1082,20 @@ Call a second time to restore the original window configuration."
   (minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
   :hook
-  ;; (completion-list-mode . force-truncate-lines)
   (minibuffer-setup . cursor-intangible-mode)
   :config
+  (minibuffer-depth-indicate-mode)
+  (minibuffer-electric-default-mode)
   (defun sn/minibuffer-fetch-symbol-at-point ()
 	"Fetch the current or next symbol at point in the current buffer while in minibuffer."
 	(interactive)
 	(let ((symbol (with-minibuffer-selected-window
 					(or (thing-at-point 'symbol)
-                      (save-excursion
-                        (forward-symbol 1)
-                        (thing-at-point 'symbol))))))
+		      (save-excursion
+			(forward-symbol 1)
+			(thing-at-point 'symbol))))))
       (when symbol
-		(insert symbol))))
-  (minibuffer-depth-indicate-mode)
-  (minibuffer-electric-default-mode))
+		(insert symbol)))))
 
 (use-package vertico
   :bind
@@ -1109,7 +1109,7 @@ Call a second time to restore the original window configuration."
 	   (consult-line reverse (:not posframe))
 	   (jinx-correct-nearest grid (vertico-grid-annotate . 30))
 	   (project-switch-project posframe
-         (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
+	 (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
        (t posframe)))
   (vertico-multiform-categories
     '((file grid)
@@ -1146,20 +1146,20 @@ Call a second time to restore the original window configuration."
   "Position handler that centers the posframe in the window if the window width is at least 120 columns.
 Otherwise, it centers the posframe in the frame."
   (let* ((window-left (plist-get info :parent-window-left))
-         (window-top (plist-get info :parent-window-top))
-         (window-width (plist-get info :parent-window-width))
-         (window-height (plist-get info :parent-window-height))
-         (posframe-width (plist-get info :posframe-width))
-         (posframe-height (plist-get info :posframe-height))
-         (frame-width (plist-get info :parent-frame-width))
-         (frame-height (plist-get info :parent-frame-height)))
+	 (window-top (plist-get info :parent-window-top))
+	 (window-width (plist-get info :parent-window-width))
+	 (window-height (plist-get info :parent-window-height))
+	 (posframe-width (plist-get info :posframe-width))
+	 (posframe-height (plist-get info :posframe-height))
+	 (frame-width (plist-get info :parent-frame-width))
+	 (frame-height (plist-get info :parent-frame-height)))
     (if (>= window-width posframe-width)
-        ;; Center in window
-        (cons (max 0 (+ window-left (/ (- window-width posframe-width) 2)))
-              (max 0 (+ window-top (/ (- window-height posframe-height) 2))))
+	;; Center in window
+	(cons (max 0 (+ window-left (/ (- window-width posframe-width) 2)))
+	      (max 0 (+ window-top (/ (- window-height posframe-height) 2))))
       ;; Center in frame
       (cons (/ (- frame-width posframe-width) 2)
-            (/ (- frame-height posframe-height) 2)))))
+	    (/ (- frame-height posframe-height) 2)))))
   (setq vertico-posframe-poshandler #'sn/posframe-poshandler-window-or-frame-center))
 
 (use-package hotfuzz
@@ -1249,7 +1249,7 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'consult-preview-allowed-hooks 'elide-head-mode)
   ;; enabled global modes
   (add-to-list 'consult-preview-allowed-hooks 'wr-mode) ;; my writtting mode
-  (add-to-list 'consult-preview-allowed-hooks 'global-org-modern-mode) 
+  (add-to-list 'consult-preview-allowed-hooks 'global-org-modern-mode)
   (add-to-list 'consult-preview-allowed-hooks 'global-hl-todo-mode)
   ;; hide more files
   (add-to-list 'consult-buffer-filter "^\\*")
@@ -1377,7 +1377,7 @@ Otherwise, it centers the posframe in the frame."
   :custom
   (embark-mixed-indicator-delay 0.6)
   (prefix-help-command #'embark-prefix-help-command)
-  (embark-indicators ; the default 
+  (embark-indicators ; the default
 	'(embark-verbose-indicator
 	   embark-highlight-indicator
 	   embark-isearch-highlight-indicator)))
@@ -1390,7 +1390,7 @@ Otherwise, it centers the posframe in the frame."
   :bind-keymap ("C-c p". project-prefix-map)
   :custom (project-vc-extra-root-markers '(".project")))
 
-(use-package protogg 
+(use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
@@ -1516,9 +1516,9 @@ Otherwise, it centers the posframe in the frame."
 	(setq-local
 	  completion-at-point-functions
 	  (list
-        #'sn/cape-in-code
-        #'sn/cape-in-string
-        #'sn/cape-in-comment
+	#'sn/cape-in-code
+	#'sn/cape-in-string
+	#'sn/cape-in-comment
 		#'sn/codeium-capf
 		#'cape-dabbrev)))
   (transient-define-prefix sn/cape ()
@@ -1585,24 +1585,24 @@ Otherwise, it centers the posframe in the frame."
 	(dired-dwim-target t))
   :config
   (defun sn/dired-hook ()
-  	(dired-omit-mode 1)
-  	(dired-hide-details-mode 1)
-  	(hl-line-mode 1)))
+	(dired-omit-mode 1)
+	(dired-hide-details-mode 1)
+	(hl-line-mode 1)))
 (use-package dired-single
   :ensure (:host github :repo "emacsattic/dired-single")
   :after dired
   :bind (:map dired-mode-map
-  		  ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
-  		  ("f" . dired-single-buffer)))
+		  ("b" . dired-single-up-directory) ;; alternative would be ("f" . dired-find-alternate-file)
+		  ("f" . dired-single-buffer)))
 (use-package dired-ranger
   :after dired
   :bind (:map dired-mode-map
-  		  ("w" . dired-ranger-copy)
-  		  ("m" . dired-ranger-move)
-  		  ("H" . dired-omit-mode)
-  		  ("y" . dired-ranger-paste)))
+		  ("w" . dired-ranger-copy)
+		  ("m" . dired-ranger-move)
+		  ("H" . dired-omit-mode)
+		  ("y" . dired-ranger-paste)))
 (use-package all-the-icons)
-(use-package dired-subtree 
+(use-package dired-subtree
   :after dired
   :bind (:map dired-mode-map
 		  ("<tab>" . dired-subtree-toggle)
@@ -1621,7 +1621,7 @@ Otherwise, it centers the posframe in the frame."
   :after dired
   :hook (dired-mode . dired-hide-dotfiles-mode)
   :bind (:map dired-mode-map
-  		  ("." . dired-hide-dotfiles-mode)))
+		  ("." . dired-hide-dotfiles-mode)))
 
 (use-package consult-dir
   :after consult
@@ -1656,7 +1656,7 @@ Otherwise, it centers the posframe in the frame."
 (use-package org
   :defer
   :ensure `(org :repo "https://code.tecosaur.net/tec/org-mode.git/"
-                :branch "dev")
+		:branch "dev")
   :ensure nil
   :bind
   ("C-c a" .  gtd)
@@ -1767,7 +1767,7 @@ Otherwise, it centers the posframe in the frame."
 	:interactive t " Writing" nil
 	(if wr-mode
 	  (progn
-		(setq 
+		(setq
 		  word-wrap t
 		  cursor-type 'bar)
 		(when (eq major-mode 'org)
@@ -1809,11 +1809,11 @@ Otherwise, it centers the posframe in the frame."
   (delete-other-windows)
   (cl-letf (((symbol-function 'switch-to-buffer-other-window) #'switch-to-buffer))
     (condition-case err
-        (org-capture)
+	(org-capture)
       ;; "q" signals (error "Abort") in `org-capture'
       ;; delete the newly created frame in this scenario.
       (user-error (when (string= (cadr err) "Abort")
-                    (delete-frame))))))
+		    (delete-frame))))))
 
 (use-package org-modern
   :config (global-org-modern-mode t))
@@ -1839,7 +1839,7 @@ Otherwise, it centers the posframe in the frame."
     :preview-key "M-.")
   :init
   (defvar org-clock-map
-    (let ((map (make-sparse-keymap))) 
+    (let ((map (make-sparse-keymap)))
       (define-key map (kbd "j") 'org-clock-goto)
       (define-key map (kbd "l") 'org-clock-in-last)
       (define-key map (kbd "i") 'consult-clock-in)
@@ -1854,9 +1854,9 @@ Otherwise, it centers the posframe in the frame."
   (defun sn/clock-out ()
 	(type-break-mode -1)
 	(unless (string-equal (org-get-todo-state) "DONE")
-  	  (org-todo "NEXT")
-  	  (setq org-clock-heading "")
-  	  (org-save-all-org-buffers)))
+	  (org-todo "NEXT")
+	  (setq org-clock-heading "")
+	  (org-save-all-org-buffers)))
   :hook
   (org-clock-out . sn/clock-out)
   (org-clock-in . sn/clock-in)
@@ -2018,12 +2018,12 @@ Otherwise, it centers the posframe in the frame."
   (org-map-entries
    (lambda ()
      (let ((scheduled (org-get-scheduled-time (point)))
-           (tags (org-get-tags)))
+	   (tags (org-get-tags)))
        (if scheduled
-           (unless (member my/org-scheduled-tag tags)
-             (org-set-tags (cons my/org-scheduled-tag tags)))
-         (when (member my/org-scheduled-tag tags)
-           (org-set-tags (remove my/org-scheduled-tag tags))))))))
+	   (unless (member my/org-scheduled-tag tags)
+	     (org-set-tags (cons my/org-scheduled-tag tags)))
+	 (when (member my/org-scheduled-tag tags)
+	   (org-set-tags (remove my/org-scheduled-tag tags))))))))
 
 (defun my/org-agenda-update-scheduled-tag ()
   "Hook to update the scheduled tag before building the agenda."
@@ -2035,76 +2035,76 @@ Otherwise, it centers the posframe in the frame."
   ;; Set active-project-match
   (let ((active-project-match "-INBOX/PROJECT"))
 	(setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
-  		  org-agenda-compact-blocks t
-  		  org-agenda-sticky t
-  		  org-agenda-start-on-weekday nil
-  		  org-agenda-span 'day
-  		  org-agenda-include-diary nil
-  		  org-agenda-use-time-grid nil
-  		  org-agenda-window-setup 'current-window
-  		  org-agenda-sorting-strategy
-  		  '((agenda habit-down time-up user-defined-up effort-up category-keep)
-  			(todo category-up effort-up)
-  			(tags category-up effort-up)
-  			(search category-up)))
+		  org-agenda-compact-blocks t
+		  org-agenda-sticky t
+		  org-agenda-start-on-weekday nil
+		  org-agenda-span 'day
+		  org-agenda-include-diary nil
+		  org-agenda-use-time-grid nil
+		  org-agenda-window-setup 'current-window
+		  org-agenda-sorting-strategy
+		  '((agenda habit-down time-up user-defined-up effort-up category-keep)
+			(todo category-up effort-up)
+			(tags category-up effort-up)
+			(search category-up)))
 	(setq org-agenda-custom-commands
-  		  `(("g" "GTD"
-  			 ((agenda "" nil)
-  			  (tags "INBOX"
-  					((org-agenda-overriding-header "Inbox")
-  					 (org-tags-match-list-sublevels nil)
-  					 (org-agenda-skip-function
-  					  '(lambda ()
-  						 (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
+		  `(("g" "GTD"
+			 ((agenda "" nil)
+			  (tags "INBOX"
+					((org-agenda-overriding-header "Inbox")
+					 (org-tags-match-list-sublevels nil)
+					 (org-agenda-skip-function
+					  '(lambda ()
+						 (org-agenda-skip-entry-if 'nottodo '("TODO" "DONE" "CANCELLED"))))))
 			  (tags-todo ,active-project-match
-  						 ((org-agenda-overriding-header "Projects")
-  						  (org-tags-match-list-sublevels t)
-  						  (org-agenda-sorting-strategy
-  						   '(category-keep))))
+						 ((org-agenda-overriding-header "Projects")
+						  (org-tags-match-list-sublevels t)
+						  (org-agenda-sorting-strategy
+						   '(category-keep))))
 			  (tags-todo "-INBOX"
-  						 ((org-agenda-overriding-header "Next Actions")
-  						  (org-agenda-tags-todo-honor-ignore-options t)
-  						  (org-agenda-todo-ignore-scheduled 'future)
-  						  (org-agenda-skip-function
-  						   '(lambda ()
-  							  (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
-  								  (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
-  						  (org-tags-match-list-sublevels t)
-  						  (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
-  			  (stuck nil
-  					 ((org-agenda-overriding-header "Stuck Projects")
-  					  (org-agenda-tags-todo-honor-ignore-options t)
-  					  (org-tags-match-list-sublevels t)
-  					  (org-agenda-todo-ignore-scheduled 'future)))
-  			  (tags-todo "-INBOX-repeater"
-  						 ((org-agenda-overriding-header "Orphaned Tasks")
-  						  (org-agenda-tags-todo-honor-ignore-options t)
-  						  (org-agenda-todo-ignore-scheduled 'future)
-  						  (org-agenda-skip-function
-  						   '(lambda ()
-  							  (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
-  								  (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
-  						  (org-tags-match-list-sublevels t)
-  						  (org-agenda-sorting-strategy '(category-keep))))
-  			  (tags-todo "/WAITING"
-  						 ((org-agenda-overriding-header "Waiting")
-  						  (org-agenda-tags-todo-honor-ignore-options t)
-  						  (org-agenda-todo-ignore-scheduled 'future)
-  						  (org-agenda-sorting-strategy
-  						   '(category-keep))))
-  			  (tags-todo "/DELEGATED"
-  						 ((org-agenda-overriding-header "Delegated")
-  						  (org-agenda-tags-todo-honor-ignore-options t)
-  						  (org-agenda-todo-ignore-scheduled 'future)
-  						  (org-agenda-sorting-strategy '(category-keep))))
-  			  (tags-todo "-INBOX"
-  						 ((org-agenda-overriding-header "On Hold")
-  						  (org-agenda-skip-function
-  						   '(lambda ()
-  							  (or (org-agenda-skip-subtree-if 'todo '("WAITING"))
-  								  (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
-  						  (org-tags-match-list-sublevels nil)
-  						  (org-agenda-sorting-strategy '(category-keep))))))))))
+						 ((org-agenda-overriding-header "Next Actions")
+						  (org-agenda-tags-todo-honor-ignore-options t)
+						  (org-agenda-todo-ignore-scheduled 'future)
+						  (org-agenda-skip-function
+						   '(lambda ()
+							  (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
+								  (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
+						  (org-tags-match-list-sublevels t)
+						  (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
+			  (stuck nil
+					 ((org-agenda-overriding-header "Stuck Projects")
+					  (org-agenda-tags-todo-honor-ignore-options t)
+					  (org-tags-match-list-sublevels t)
+					  (org-agenda-todo-ignore-scheduled 'future)))
+			  (tags-todo "-INBOX-repeater"
+						 ((org-agenda-overriding-header "Orphaned Tasks")
+						  (org-agenda-tags-todo-honor-ignore-options t)
+						  (org-agenda-todo-ignore-scheduled 'future)
+						  (org-agenda-skip-function
+						   '(lambda ()
+							  (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+								  (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
+						  (org-tags-match-list-sublevels t)
+						  (org-agenda-sorting-strategy '(category-keep))))
+			  (tags-todo "/WAITING"
+						 ((org-agenda-overriding-header "Waiting")
+						  (org-agenda-tags-todo-honor-ignore-options t)
+						  (org-agenda-todo-ignore-scheduled 'future)
+						  (org-agenda-sorting-strategy
+						   '(category-keep))))
+			  (tags-todo "/DELEGATED"
+						 ((org-agenda-overriding-header "Delegated")
+						  (org-agenda-tags-todo-honor-ignore-options t)
+						  (org-agenda-todo-ignore-scheduled 'future)
+						  (org-agenda-sorting-strategy '(category-keep))))
+			  (tags-todo "-INBOX"
+						 ((org-agenda-overriding-header "On Hold")
+						  (org-agenda-skip-function
+						   '(lambda ()
+							  (or (org-agenda-skip-subtree-if 'todo '("WAITING"))
+								  (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
+						  (org-tags-match-list-sublevels nil)
+						  (org-agenda-sorting-strategy '(category-keep))))))))))
 
 ;; Targets include this file and any file contributing to the agenda - up to 5 levels deep
 (setq org-refile-targets '((nil :maxlevel . 5) (org-agenda-files :maxlevel . 5)))
@@ -2243,28 +2243,28 @@ Otherwise, it centers the posframe in the frame."
     "Install Tree-sitter grammars if they are absent."
     (interactive)
     (dolist (grammar
-             ;; Note the version numbers. These are the versions that
-             ;; are known to work with Combobulate *and* Emacs.
-             '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
-               (go . ("https://github.com/tree-sitter/tree-sitter-go"))
+	     ;; Note the version numbers. These are the versions that
+	     ;; are known to work with Combobulate *and* Emacs.
+	     '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
+	       (go . ("https://github.com/tree-sitter/tree-sitter-go"))
 			   (gomod . ("https://github.com/camdencheek/tree-sitter-go-mod"))
-               (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-               (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-               (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-               (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
-               (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-               (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
-               (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
-               (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-               (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-               (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
+	       (html . ("https://github.com/tree-sitter/tree-sitter-html"))
+	       (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
+	       (json . ("https://github.com/tree-sitter/tree-sitter-json"))
+	       (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
+	       (python . ("https://github.com/tree-sitter/tree-sitter-python"))
+	       (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
+	       (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
+	       (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
+	       (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
+	       (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
 			   ))
       (add-to-list 'treesit-language-source-alist grammar)
       ;; Only install `grammar' if we don't already have it
       ;; installed. However, if you want to *update* a grammar then
       ;; this obviously prevents that from happening.
       (unless (treesit-language-available-p (car grammar))
-        (treesit-install-language-grammar (car grammar)))))
+	(treesit-install-language-grammar (car grammar)))))
 
   ;; Optional. Combobulate works in both xxxx-ts-modes and
   ;; non-ts-modes.
@@ -2273,17 +2273,17 @@ Otherwise, it centers the posframe in the frame."
   ;; that this does *not* extend to hooks! Make sure you migrate them
   ;; also
   (dolist (mapping
-           '((python-mode . python-ts-mode)
-             (css-mode . css-ts-mode)
-             (typescript-mode . typescript-ts-mode)
-             (js2-mode . js-ts-mode)
-             (bash-mode . bash-ts-mode)
-             (conf-toml-mode . toml-ts-mode)
-             (go-mode . go-ts-mode)
+	   '((python-mode . python-ts-mode)
+	     (css-mode . css-ts-mode)
+	     (typescript-mode . typescript-ts-mode)
+	     (js2-mode . js-ts-mode)
+	     (bash-mode . bash-ts-mode)
+	     (conf-toml-mode . toml-ts-mode)
+	     (go-mode . go-ts-mode)
 			 (go-mod-mode . go-mod-ts-mode)
-             (css-mode . css-ts-mode)
-             (json-mode . json-ts-mode)
-             (js-json-mode . json-ts-mode)))
+	     (css-mode . css-ts-mode)
+	     (json-mode . json-ts-mode)
+	     (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
   :config
   (mp-setup-install-grammars)
@@ -2390,8 +2390,8 @@ Otherwise, it centers the posframe in the frame."
   ;; To not display info and/or buffers on startup
   (remove-hook 'dape-on-start-hooks 'dape-info)
   (remove-hook 'dape-on-start-hooks 'dape-repl)o (add-hook 'dape-on-start-hooks
-            (defun dape--save-on-start ()
-              (save-some-buffers t t))))
+	    (defun dape--save-on-start ()
+	      (save-some-buffers t t))))
 
 (use-package git-gutter
   :hook (elpaca-after-init .  global-git-gutter-mode)
@@ -2456,31 +2456,31 @@ The exact color values are taken from the active Ef theme."
 	(ef-themes-with-colors
       (setq hl-todo-keyword-faces
 			`(("HOLD" . ,yellow)
-              ("TODO" . ,red)
-              ("NEXT" . ,blue)
-              ("THEM" . ,magenta)
-              ("PROG" . ,cyan-warmer)
-              ("OKAY" . ,green-warmer)
-              ("DONT" . ,yellow-warmer)
-              ("FAIL" . ,red-warmer)
-              ("BUG" . ,red-warmer)
-              ("DONE" . ,green)
-              ("NOTE" . ,blue-warmer)
-              ("KLUDGE" . ,cyan)
-              ("HACK" . ,cyan)
-              ("TEMP" . ,red)
-              ("FIXME" . ,red-warmer)
-              ("XXX+" . ,red-warmer)
-              ("REVIEW" . ,red)
-              ("DEPRECATED" . ,yellow)))))
+	      ("TODO" . ,red)
+	      ("NEXT" . ,blue)
+	      ("THEM" . ,magenta)
+	      ("PROG" . ,cyan-warmer)
+	      ("OKAY" . ,green-warmer)
+	      ("DONT" . ,yellow-warmer)
+	      ("FAIL" . ,red-warmer)
+	      ("BUG" . ,red-warmer)
+	      ("DONE" . ,green)
+	      ("NOTE" . ,blue-warmer)
+	      ("KLUDGE" . ,cyan)
+	      ("HACK" . ,cyan)
+	      ("TEMP" . ,red)
+	      ("FIXME" . ,red-warmer)
+	      ("XXX+" . ,red-warmer)
+	      ("REVIEW" . ,red)
+	      ("DEPRECATED" . ,yellow)))))
   (my-ef-themes-hl-todo-faces))
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
       (use-package magit-pretty-graph
-        :ensure (:host github :repo "georgek/magit-pretty-graph")
-        :bind 
-        )
+	:ensure (:host github :repo "georgek/magit-pretty-graph")
+	:bind
+	)
 
 (use-package browse-at-remote
   :bind
@@ -2531,9 +2531,9 @@ The exact color values are taken from the active Ef theme."
 (use-package ligature
   :config
   (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
-                                       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
-                                       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
-                                       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
+				       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
+				       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
+				       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
   (global-ligature-mode t))
 
 (use-package makefile-runner
@@ -2686,8 +2686,8 @@ The exact color values are taken from the active Ef theme."
       (kill-buffer buffer)))
   ;; Set default directory and run the dev container command
   (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
-          (output-buffer "*Start Dev-Container Output*")
-          (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
+	  (output-buffer "*Start Dev-Container Output*")
+	  (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
     (if (= result 0)
 	  (project-switch-project "/docker:dev-container:/workspace/")
       (message "Error: Command failed. Check %s for details." output-buffer))))
@@ -2696,13 +2696,13 @@ The exact color values are taken from the active Ef theme."
   "Select a .pub key from ~/.ssh/ and copy its contents to the kill ring."
   (interactive)
   (let* ((ssh-dir (expand-file-name "~/.ssh/"))
-         (keys (when (file-exists-p ssh-dir)
-                 (directory-files ssh-dir t "\\.pub$")))
-         (key-name (completing-read "Select SSH public key: " keys nil t)))
+	 (keys (when (file-exists-p ssh-dir)
+		 (directory-files ssh-dir t "\\.pub$")))
+	 (key-name (completing-read "Select SSH public key: " keys nil t)))
     (when key-name
       (with-temp-buffer
-        (insert-file-contents key-name)
-        (kill-new (buffer-string)))
+	(insert-file-contents key-name)
+	(kill-new (buffer-string)))
       (message "Copied %s to kill ring" key-name))))
 
 (defun sn/copy-path ()
@@ -2711,21 +2711,21 @@ If the buffer is part of a project, copy the relative path from the project root
 Otherwise, copy the absolute file path. Appends the line number at the end."
   (interactive)
   (let* ((file-name (buffer-file-name))
-         (line-number (line-number-at-pos))
-         (project (project-current nil))
-         (project-root (and project (project-root project)))
-         (relative-file-name (and project-root
-                                  file-name
-                                  (file-relative-name file-name project-root))))
+	 (line-number (line-number-at-pos))
+	 (project (project-current nil))
+	 (project-root (and project (project-root project)))
+	 (relative-file-name (and project-root
+				  file-name
+				  (file-relative-name file-name project-root))))
     (if (and project-root relative-file-name)
-        (progn
-          (kill-new (format "%s:%d" relative-file-name line-number))
-          (message "Copied relative file path: %s:%d" relative-file-name line-number))
+	(progn
+	  (kill-new (format "%s:%d" relative-file-name line-number))
+	  (message "Copied relative file path: %s:%d" relative-file-name line-number))
       (if file-name
-          (progn
-            (kill-new (format "%s:%d" file-name line-number))
-            (message "Copied file path: %s:%d" file-name line-number))
-        (message "Buffer is not visiting a file")))))
+	  (progn
+	    (kill-new (format "%s:%d" file-name line-number))
+	    (message "Copied file path: %s:%d" file-name line-number))
+	(message "Buffer is not visiting a file")))))
 
 (use-package mu4e
   :ensure nil
@@ -2733,8 +2733,8 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   ;; :load-path "/usr/share/emacs/site-lisp/mu4e/"
   :init
   (setq smtpmail-smtp-server "smtp.fastmail.com"
-  		smtpmail-smtp-service 465
-  		smtpmail-stream-type 'ssl)
+		smtpmail-smtp-service 465
+		smtpmail-stream-type 'ssl)
   :custom
   ;; This is set to 't' to avoid mail syncing issues when using mbsync
   (mu4e-change-filenames-when-moving t)
@@ -2748,11 +2748,11 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   (mu4e-trash-folder  "/[Gmail]/Trash")
   :config
   (setq mu4e-maildir-shortcuts
-  		'(("/Inbox"             . ?i)
-  		  ("/[Gmail]/Sent Mail" . ?s)
-  		  ("/[Gmail]/Trash"     . ?t)
-  		  ("/[Gmail]/Drafts"    . ?d)
-  		  ("/[Gmail]/All Mail"  . ?a))))
+		'(("/Inbox"             . ?i)
+		  ("/[Gmail]/Sent Mail" . ?s)
+		  ("/[Gmail]/Trash"     . ?t)
+		  ("/[Gmail]/Drafts"    . ?d)
+		  ("/[Gmail]/All Mail"  . ?a))))
 
 (use-package whisper
   :ensure (:host github :repo "natrys/whisper.el")
@@ -2768,7 +2768,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   :bind
   ("<f5>" . gptel-toggle-sidebar)
   (:map vterm-mode-map
- 	("<f5>" . gptel-toggle-sidebar))
+	("<f5>" . gptel-toggle-sidebar))
   ("C-<f5>" . gptel-menu)
   :hook
   (org-mode . gptel-activate-if-model-exists)
@@ -2788,78 +2788,78 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 	(org-with-wide-buffer
       (goto-char (point-min))
       (let ((found nil))
- 		(while (and (not found) (re-search-forward "^\\*+" nil t))
-          (when (org-entry-get (point) "GPTEL_MODEL")
- 			(setq found t)))
- 		(when found
-          (gptel-mode 1)))))
+		(while (and (not found) (re-search-forward "^\\*+" nil t))
+	  (when (org-entry-get (point) "GPTEL_MODEL")
+			(setq found t)))
+		(when found
+	  (gptel-mode 1)))))
   :config
   ;; (require 'gptel-integrations) mpc
   (add-hook 'gptel-post-response-functions 'gptel-end-of-response)
   (add-to-list 'gptel-tools
-             (gptel-make-tool
-              :name "read_url"
-              :function (lambda (url) 
-                         ;; function implementation
-                         )
-              :description "Fetch and read the contents of a URL"
-              :args (list '(:name "url"
-                            :type string
-                            :description "The URL to read"))
-              :category "web"))
+	     (gptel-make-tool
+	      :name "read_url"
+	      :function (lambda (url)
+			 ;; function implementation
+			 )
+	      :description "Fetch and read the contents of a URL"
+	      :args (list '(:name "url"
+			    :type string
+			    :description "The URL to read"))
+	      :category "web"))
 
   (defun gptel-toggle-sidebar ()
   "Toggle a custom sidebar for today's daily note, initializing with 'gptel-mode' if new."
   (interactive)
   (let* ((buffer (or (get-buffer (format-time-string "%Y-%m-%d.org"))
-                     (save-window-excursion
-                       (org-roam-dailies-goto-today)
-                       (current-buffer))))
-         (width (+ (or fill-column 80) 2)))  ;; Default fallback to 82 if fill-column is not set.
+		     (save-window-excursion
+		       (org-roam-dailies-goto-today)
+		       (current-buffer))))
+	 (width (+ (or fill-column 80) 2)))  ;; Default fallback to 82 if fill-column is not set.
     (if-let* ((window (get-buffer-window buffer)))
-        ;; If the sidebar is already open, close it.
-        (delete-window window)
+	;; If the sidebar is already open, close it.
+	(delete-window window)
       ;; Otherwise, set up the sidebar buffer and open window.
       (progn
-        (let* ((window (display-buffer
-                        buffer
-                        `((display-buffer-in-side-window
-                           display-buffer-same-window)
-                          (side . right)
-                          (window-width . ,width)
-                          (slot . 0)))))
-          (with-current-buffer buffer
-            (progn
-              (goto-char (point-min
+	(let* ((window (display-buffer
+			buffer
+			`((display-buffer-in-side-window
+			   display-buffer-same-window)
+			  (side . right)
+			  (window-width . ,width)
+			  (slot . 0)))))
+	  (with-current-buffer buffer
+	    (progn
+	      (goto-char (point-min
 ))
-              (if (org-find-exact-headline-in-buffer "Chuck Chats")
-                  (goto-char (org-find-exact-headline-in-buffer "Chuck Chats"))
-                (progn
-                  (goto-char (1- (point-max)))
-                  (insert "\n* Chuck Chats\n")
-                  (gptel-mode)
-                  (gptel-org-set-properties (point))))))
-          (when window
-            (set-window-dedicated-p window t)
-            (set-window-parameter window 'no-other-window t)
-            (with-selected-window window
-              (setq mode-line-format nil))
-            (select-window window)))))))
+	      (if (org-find-exact-headline-in-buffer "Chuck Chats")
+		  (goto-char (org-find-exact-headline-in-buffer "Chuck Chats"))
+		(progn
+		  (goto-char (1- (point-max)))
+		  (insert "\n* Chuck Chats\n")
+		  (gptel-mode)
+		  (gptel-org-set-properties (point))))))
+	  (when window
+	    (set-window-dedicated-p window t)
+	    (set-window-parameter window 'no-other-window t)
+	    (with-selected-window window
+	      (setq mode-line-format nil))
+	    (select-window window)))))))
   (defun gptel-close-headers (from to)
 	"Fold all org headers in the current buffer, except for the last response."
 	(when (eq major-mode 'org-mode)
- 	  (progn
+	  (progn
 		(condition-case nil
       (progn
-    	(org-cycle-global 0)
-    	(goto-char from)
-    	(while (outline-invisible-p (line-end-position))
- 		  (progn
- 			(outline-show-subtree)
- 			(outline-next-visible-heading 1))))
+	(org-cycle-global 0)
+	(goto-char from)
+	(while (outline-invisible-p (line-end-position))
+		  (progn
+			(outline-show-subtree)
+			(outline-next-visible-heading 1))))
       (error (message "gptel-close-headers error: %s" (error-message-string err))))
- 		(outline-show-subtree) ; not sure why but sometimes needs this
- 		(org-end-of-line))))
+		(outline-show-subtree) ; not sure why but sometimes needs this
+		(org-end-of-line))))
   (add-to-list 'gptel-post-response-functions #'gptel-close-headers)
   (defun gptel-save-if-file (to from)
 	"Save the current buffer if it is associated with a file."
@@ -2874,7 +2874,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
    (codeium-log-buffer nil)
    :config
    (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
-   
+
    ;; You can overwrite all the codeium configs!
    ;; for example, we recommend limiting the string sent to codeium for better performance
    (defun my-codeium/document/text ()
