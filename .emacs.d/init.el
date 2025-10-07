@@ -83,7 +83,10 @@
 	'((agenda-date 1)
 	   (agenda-structure variable-pitch light 1.8)
 	   (t variable-pitch)))
-  :preface
+  :init
+  (ef-themes-take-over-modus-themes-mode 1)
+  ;; (modus-themes-include-derivatives-mode 1)
+  :config
   (defun my-rgb-to-hex (r g b)
 	"Convert RGB to hex color format."
 	(format "#%02x%02x%02x" r g b))
@@ -100,7 +103,7 @@
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
 	(interactive)
-    (ef-themes-with-colors
+    (modus-themes-with-colors
 	  (let ((darker (my-darken-color bg-main 0.7))
 			 (custom-file "/dev/null"))
 		(custom-set-faces
@@ -126,17 +129,16 @@
 		  `(vertico-posframe ((,c :inherit default :background ,darker)))
 		  `(vertico-posframe-border ((,c (:background ,bg-dim))))
 		  `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
-		  `(mode-line ((,c :family "Iosevka Aile" :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
-		  `(mode-line-active ((,c :background ,bg-mode-line :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
+		  `(mode-line ((,c :family "Iosevka Aile"  :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
+		  `(mode-line-active ((,c :foreground ,fg-main  :box (:line-width 3 :color ,darker ))))
 		  `(mode-line-inactive ((,c :height 120 :box (:line-width 3 :color ,darker))))
 		  `(eldoc-box-border ((,c :background ,fg-alt)))
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker :height 0.8)))
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))
 		  ))))
-  ;; load theme
-  (add-hook 'ef-themes-post-load-hook #'my-ef-themes-mod)
-  (ef-themes-select 'ef-melissa-dark))
+  (add-hook 'modus-themes-post-load-hook #'my-ef-themes-mod)
+  (modus-themes-load-theme 'ef-melissa-dark))
 
 (use-package prot-modeline
   :ensure (:host gitlab
@@ -1666,7 +1668,7 @@ Otherwise, it centers the posframe in the frame."
 	("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
-  (org-mode . org-latex-preview-auto-mode)
+;;  (org-mode . org-latex-preview-auto-mode) 
   (org-mode . sn/org-mode-hook)
   :custom
   (org-latex-preview-live t)
@@ -2448,14 +2450,14 @@ Otherwise, it centers the posframe in the frame."
 (use-package hl-todo
   :ensure (hl-todo :depth nil)
   :init (global-hl-todo-mode t)
-  :hook (ef-themes-post-load . my-ef-themes-hl-todo-faces)
+  :after ef-themes
   :config
   (defun my-ef-themes-hl-todo-faces ()
 	"Configure `hl-todo-keyword-faces' with Ef themes colors.
 The exact color values are taken from the active Ef theme."
-	(ef-themes-with-colors
+	(modus-themes-with-colors
       (setq hl-todo-keyword-faces
-			`(("HOLD" . ,yellow)
+			`(("HOLD" . ,yellow-warmer)
 	      ("TODO" . ,red)
 	      ("NEXT" . ,blue)
 	      ("THEM" . ,magenta)
@@ -2472,8 +2474,8 @@ The exact color values are taken from the active Ef theme."
 	      ("FIXME" . ,red-warmer)
 	      ("XXX+" . ,red-warmer)
 	      ("REVIEW" . ,red)
-	      ("DEPRECATED" . ,yellow)))))
-  (my-ef-themes-hl-todo-faces))
+	      ("DEPRECATED" . ,yellow-warmer)))))
+  (add-hook 'modus-themes-post-load  #'my-ef-themes-hl-todo-faces))
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
