@@ -201,34 +201,14 @@
 ;; (line-number-mode -1)
 ;; (column-number-mode -1)
 
-(use-package tab-bar
-  :ensure nil
-  :after breadcrumb
-  :custom
-  (tab-bar-show t)
-  (tab-bar-format-tabs nil)
-  (tab-bar-close-button-show nil)
-  (tab-bar-tab-name-function #'sn/tab-bar-tab-name-function)
-  (tab-bar-format '(tab-bar-format-tabs
-					 tab-bar-format-align-right
-					 breadcrumb-project-crumbs
-					 (lambda() "    ")))
-  (project-switch-commands #'sn/project-find-dir)
-  :config
-  (defun sn/tab-bar-tab-name-function ()
-	(let ((project (project-current)))
-      (if project
-		(project-root project)
-		(tab-bar-tab-name-current))))
-  (defun sn/project-find-dir ()
-  "Start Dired in a directory inside the current project root."
-  (interactive)
-  (tab-bar-new-tab)
-	(let* ((project (project-current t))
-			(default-directory (project-root project))
-			(dir "./"))
-      (dired dir)
-	  (delete-other-windows))))
+(use-package modern-tab-bar
+  :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
+  :init
+  (setq tab-bar-show t
+        tab-bar-new-button nil
+        tab-bar-close-button-show nil)
+
+  (modern-tab-bar-mode))
 
 (use-package breadcrumb
   :ensure (:host github :repo "joaotavora/breadcrumb"))
@@ -1198,7 +1178,6 @@ Otherwise, it centers the posframe in the frame."
   ("C-c i" . consult-info)
   ([remap Info-search] . consult-info)
   ("C-x M-:" . consult-complex-command)
-  ("C-x b" . consult-buffer)
   ("C-x f" . consult-buffer-other-window)
   ("C-x 5 b" . consult-buffer-other-frame)
   ("C-x t b" . consult-buffer-other-tab)
@@ -1261,48 +1240,54 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'consult-buffer-filter "shell*")
   ;; show my dots in find file
   ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
-  (defun vc-modified-file ()
-	"Use completion to go to a modified file in the Git repository."
-	(interactive)
-	(let* ((default-directory (vc-root-dir))  ;; Ensures we're in the root of the project
-			(git-cmd "git status --porcelain=v1 --untracked-files=no")  ;; Git command to get modified files
-			(files (split-string (shell-command-to-string git-cmd) "\n" t))
-			(modified-files (mapcar (lambda (line)
-									  (string-trim (substring line 3))) files))
-			;; Use completing-read to select the file
-			(selected-file (completing-read "Goto vc file: " modified-files nil t)))
-	  (when selected-file
-		(find-file selected-file))))
-  (defvar consult--source-vc-modified-file
-	`(:name     "VC Modified File"
-	   :narrow   ?g
-	   :category file
-	   :face     consult-file
-	   :history  file-name-history
-	   :state    ,#'consult--file-state
-	   :new
-	   ,(lambda (file)
-		  (consult--file-action
-			(expand-file-name file (vc-root-dir))))
-	   :enabled
-	   ,(lambda ()
-		  (vc-root-dir))
-	   :items
-	   ,(lambda ()
-		  (when-let (root (vc-root-dir))
-			(let ((len (length root))
-				   (ht (consult--buffer-file-hash))
-				   items)
-			  (dolist (file (vc-modified-files) (nreverse items))
-				(unless (eq (aref file 0) ?/)
-				  (let (file-name-handler-alist) ;; No Tramp slowdown please.
-					(setq file (expand-file-name file))))
-				(when (and (not (gethash file ht)) (string-prefix-p root file))
-				  (let ((part (substring file len)))
-					(when (equal part "") (setq part "./"))
-					(put-text-property 0 1 'multi-category `(file . ,file) part)
-					(push part items))))))))
-	"VC modified file candidate source for `consult-buffer'.")
+  
+ (defun vc-modified-files ()
+  "Return list of modified files in the current VC repository."
+  (when-let* ((default-directory (vc-root-dir)))
+	(let* ((git-cmd "git status --porcelain=v1 --untracked-files=no")
+		   (files (split-string (shell-command-to-string git-cmd) "\n" t)))
+	  (mapcar (lambda (line)
+				(string-trim (substring line 3)))
+			  files))))
+
+(defun vc-modified-file ()
+  "Use completion to go to a modified file in the Git repository."
+  (interactive)
+  (let* ((default-directory (vc-root-dir))
+		 (modified-files (vc-modified-files))
+		 (selected-file (completing-read "Goto vc file: " modified-files nil t)))
+	(when selected-file
+	  (find-file selected-file))))
+(defun vc-consult-enabled-p ()
+  "Check if consult VC source should be enabled."
+  (vc-root-dir))
+
+(defun vc-consult-get-modified-items ()
+  "Get modified file items for consult VC source."
+  (when-let* ((root (vc-root-dir)))
+	(let ((len (length root))
+		  (ht (consult--buffer-file-hash))
+		  items)
+	  (dolist (relative-file (vc-modified-files) (nreverse items))
+		(let* (file-name-handler-alist
+			   (file (expand-file-name relative-file root)))
+		  (when (and (not (gethash file ht)) (string-prefix-p root file))
+			(let ((part (substring file len)))
+			  (when (equal part "") (setq part "./"))
+			  (put-text-property 0 1 'multi-category `(file . ,file) part)
+			  (push part items))))))))
+
+(defvar consult--source-vc-modified-file
+  `(:name     "VC Modified File"
+	:narrow   ?g
+	:category file
+	:face     consult-file
+	:history  file-name-history
+	:state    ,#'consult--file-state
+	:enabled  vc-consult-enabled-p
+	:items    vc-consult-get-modified-items)
+  "VC modified file candidate source for `consult-buffer'.")
+
   (defvar consult--source-org
 	(list :name     "Org"
 	  :category 'buffer
@@ -1394,6 +1379,7 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
+  :demand t
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
@@ -1668,7 +1654,7 @@ Otherwise, it centers the posframe in the frame."
 	("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
-;;  (org-mode . org-latex-preview-auto-mode) 
+  ;; (org-mode . org-latex-preview-auto-mode)
   (org-mode . sn/org-mode-hook)
   :custom
   (org-latex-preview-live t)
@@ -2890,16 +2876,9 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
    (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset)
    )
 
-(use-package aidermacs
-  :ensure (:host github :repo "MatthewZMD/aidermacs")
-  :bind (("M-SPC a" . aidermacs-transient-menu))
-  :config
-  ; Enable minor mode for Aider files
-  (aidermacs-setup-minor-mode)
-  :custom
-  ; See the Configuration section below
-  (aidermacs-use-architect-mode t)
-  (aidermacs-default-model "sonnet"))
+(use-package claude-code
+  :ensure (:host github :repo "yuya373/claude-code-emacs")
+  :bind ("M-SPC a" . claude-code-transient))
 
 (use-package google-this
   :bind ("M-s w" . google-this))

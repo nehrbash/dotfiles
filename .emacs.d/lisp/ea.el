@@ -27,7 +27,6 @@
   (add-hook 'delete-frame-functions 'ea-on-delete nil t)
   (org-mode)
   (gptel-mode)
-  (toggle-mode-line)
   (local-set-key (kbd "M-RET") 'ea-commit)
   (local-set-key (kbd "M-DEL") 'ea-abort))
 

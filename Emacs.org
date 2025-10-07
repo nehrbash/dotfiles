@@ -333,6 +333,17 @@
 ** Tab bar
 
 #+begin_src emacs-lisp
+(use-package modern-tab-bar
+  :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
+  :init
+  (setq tab-bar-show t
+        tab-bar-new-button nil
+        tab-bar-close-button-show nil)
+
+  (modern-tab-bar-mode))
+#+end_src
+
+#+begin_src emacs-lisp :tangle no
 (use-package tab-bar
   :ensure nil
   :after breadcrumb
@@ -1620,7 +1631,6 @@ Otherwise, it centers the posframe in the frame."
   ("C-c i" . consult-info)
   ([remap Info-search] . consult-info)
   ("C-x M-:" . consult-complex-command)
-  ("C-x b" . consult-buffer)
   ("C-x f" . consult-buffer-other-window)
   ("C-x 5 b" . consult-buffer-other-frame)
   ("C-x t b" . consult-buffer-other-tab)
@@ -1683,48 +1693,54 @@ Otherwise, it centers the posframe in the frame."
   (add-to-list 'consult-buffer-filter "shell*")
   ;; show my dots in find file
   ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
-  (defun vc-modified-file ()
-	"Use completion to go to a modified file in the Git repository."
-	(interactive)
-	(let* ((default-directory (vc-root-dir))  ;; Ensures we're in the root of the project
-			(git-cmd "git status --porcelain=v1 --untracked-files=no")  ;; Git command to get modified files
-			(files (split-string (shell-command-to-string git-cmd) "\n" t))
-			(modified-files (mapcar (lambda (line)
-									  (string-trim (substring line 3))) files))
-			;; Use completing-read to select the file
-			(selected-file (completing-read "Goto vc file: " modified-files nil t)))
-	  (when selected-file
-		(find-file selected-file))))
-  (defvar consult--source-vc-modified-file
-	`(:name     "VC Modified File"
-	   :narrow   ?g
-	   :category file
-	   :face     consult-file
-	   :history  file-name-history
-	   :state    ,#'consult--file-state
-	   :new
-	   ,(lambda (file)
-		  (consult--file-action
-			(expand-file-name file (vc-root-dir))))
-	   :enabled
-	   ,(lambda ()
-		  (vc-root-dir))
-	   :items
-	   ,(lambda ()
-		  (when-let (root (vc-root-dir))
-			(let ((len (length root))
-				   (ht (consult--buffer-file-hash))
-				   items)
-			  (dolist (file (vc-modified-files) (nreverse items))
-				(unless (eq (aref file 0) ?/)
-				  (let (file-name-handler-alist) ;; No Tramp slowdown please.
-					(setq file (expand-file-name file))))
-				(when (and (not (gethash file ht)) (string-prefix-p root file))
-				  (let ((part (substring file len)))
-					(when (equal part "") (setq part "./"))
-					(put-text-property 0 1 'multi-category `(file . ,file) part)
-					(push part items))))))))
-	"VC modified file candidate source for `consult-buffer'.")
+  
+ (defun vc-modified-files ()
+  "Return list of modified files in the current VC repository."
+  (when-let* ((default-directory (vc-root-dir)))
+	(let* ((git-cmd "git status --porcelain=v1 --untracked-files=no")
+		   (files (split-string (shell-command-to-string git-cmd) "\n" t)))
+	  (mapcar (lambda (line)
+				(string-trim (substring line 3)))
+			  files))))
+
+(defun vc-modified-file ()
+  "Use completion to go to a modified file in the Git repository."
+  (interactive)
+  (let* ((default-directory (vc-root-dir))
+		 (modified-files (vc-modified-files))
+		 (selected-file (completing-read "Goto vc file: " modified-files nil t)))
+	(when selected-file
+	  (find-file selected-file))))
+(defun vc-consult-enabled-p ()
+  "Check if consult VC source should be enabled."
+  (vc-root-dir))
+
+(defun vc-consult-get-modified-items ()
+  "Get modified file items for consult VC source."
+  (when-let* ((root (vc-root-dir)))
+	(let ((len (length root))
+		  (ht (consult--buffer-file-hash))
+		  items)
+	  (dolist (relative-file (vc-modified-files) (nreverse items))
+		(let* (file-name-handler-alist
+			   (file (expand-file-name relative-file root)))
+		  (when (and (not (gethash file ht)) (string-prefix-p root file))
+			(let ((part (substring file len)))
+			  (when (equal part "") (setq part "./"))
+			  (put-text-property 0 1 'multi-category `(file . ,file) part)
+			  (push part items))))))))
+
+(defvar consult--source-vc-modified-file
+  `(:name     "VC Modified File"
+	:narrow   ?g
+	:category file
+	:face     consult-file
+	:history  file-name-history
+	:state    ,#'consult--file-state
+	:enabled  vc-consult-enabled-p
+	:items    vc-consult-get-modified-items)
+  "VC modified file candidate source for `consult-buffer'.")
+
   (defvar consult--source-org
 	(list :name     "Org"
 	  :category 'buffer
@@ -1881,6 +1897,7 @@ Otherwise, it centers the posframe in the frame."
 #+begin_src emacs-lisp :tangel no
 (use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
+  :demand t
   :custom (protogg-minibuffer-toggle-key "M-g")
   :bind (("M-SPC c" . protogg-compile)
 		 ([remap dired] . protogg-dired) ;; C-x d
@@ -3174,7 +3191,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 	("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
-;;  (org-mode . org-latex-preview-auto-mode) 
+  ;; (org-mode . org-latex-preview-auto-mode)
   (org-mode . sn/org-mode-hook)
   :custom
   (org-latex-preview-live t)
@@ -4705,6 +4722,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 #+end_src
 
 ** AI
+   
 *** GPT
 
     This section contains an Emacs Lisp function that reads a text file containing an OpenAI key and a configuration for the GPT Emacs package. The package is installed using the =use-package= macro and configured to use the =gpt-3.5-turbo= model with Emacs' =org-mode= as the default mode for text editing. The =gptel= package is also bound to the =<f5>= and =C-<f5>= keys for quick access to the GPT language generation functionality.
@@ -4835,7 +4853,6 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   :hook (after-init . mcp-hub-start-all-server))
     #+end_src
 
-
 *** Codeium
 
  #+begin_src emacs-lisp
@@ -4865,10 +4882,10 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 
     Key are defined in .env files
 
-#+begin_src emacs-lisp
+#+begin_src emacs-lisp :tangle no
 (use-package aidermacs
   :ensure (:host github :repo "MatthewZMD/aidermacs")
-  :bind (("M-SPC a" . aidermacs-transient-menu))
+  :bind ("M-SPC a" . aidermacs-transient-menu)
   :config
   ; Enable minor mode for Aider files
   (aidermacs-setup-minor-mode)
@@ -4877,6 +4894,15 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   (aidermacs-use-architect-mode t)
   (aidermacs-default-model "sonnet"))
 #+end_src
+
+*** Claude
+
+    #+begin_src emacs-lisp
+(use-package claude-code
+  :ensure (:host github :repo "yuya373/claude-code-emacs")
+  :bind ("M-SPC a" . claude-code-transient))
+    #+end_src
+
 
 ** Google This
 

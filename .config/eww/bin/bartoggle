@@ -43,7 +43,7 @@ fi
 
 
 # Based on the counter value, decide which command to run
-if [ $COUNTER -eq 1 ]; then
+if [ "$COUNTER" -eq 1 ]; then
 
     if command -v swaync-client &> /dev/null; then
         swaync-client -df
@@ -51,14 +51,11 @@ if [ $COUNTER -eq 1 ]; then
     if command -v hyprctl &> /dev/null; then
         hyprctl reload
     fi
-    hyprpm enable hyprbars | true
     eww open-many bar leftbar corner-ul corner-ur corner-bl corner-br
 	if [ "$monitors_length" -gt 1 ]; then
 		eww open-many bar2 leftbar2  corner2-ul corner2-ur corner2-bl corner2-br
 	fi
-elif [ $COUNTER -eq 2 ]; then
-	# hyprpm disable hyprbars
-	# sleep 2
+elif [ "$COUNTER" -eq 2 ]; then
     hyprctl --batch "keyword animations:enabled 0;\
             keyword decoration:drop_shadow 0;\
             keyword general:gaps_in 0;\
@@ -72,7 +69,7 @@ elif [ $COUNTER -eq 2 ]; then
 		eww close corner2-ul corner2-ur corner2-bl corner2-br
 	fi
 	set -e
-elif [ $COUNTER -eq 3 ]; then
+elif [ "$COUNTER" -eq 3 ]; then
     if command -v swaync-client &> /dev/null; then
 		swaync-client -dn
     fi
@@ -80,7 +77,7 @@ elif [ $COUNTER -eq 3 ]; then
 fi
 
 # Increment the counter, and if it's 4, reset it back to 1
-if [ $COUNTER -eq 3 ]; then
+if [ "$COUNTER" -eq 3 ]; then
     COUNTER=1
 else
     COUNTER=$((COUNTER + 1))
