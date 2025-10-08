@@ -626,11 +626,13 @@ This is useful when followed by an immediate kill."
 		 ("C-c m a" . mc/edit-beginnings-of-lines)))
 
 (use-package whitespace-cleanup-mode
-  :demand t
   :hook (whitespace-cleanup-mode . sn/show-trailing-whitespace)
+  :init
+  (global-whitespace-cleanup-mode 1)
   :config
-  (global-whitespace-cleanup-mode t)
-  (push 'markdown-mode whitespace-cleanup-mode-ignore-modes)
+  (setq whitespace-cleanup-mode-ignore-modes
+	(append '(markdown-mode org-mode vterm-mode)
+	  whitespace-cleanup-mode-ignore-modes))
   (defun sn/show-trailing-whitespace ()
 	"Enable display of trailing whitespace in this buffer."
 	(setq-local show-trailing-whitespace t)))
@@ -1641,11 +1643,9 @@ Otherwise, it centers the posframe in the frame."
 	"Docker candiadate source for `consult-dir'.")
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
+(use-package org-contrib :after org)
 (use-package org
-  :defer
-  :ensure `(org :repo "https://code.tecosaur.net/tec/org-mode.git/"
-		:branch "dev")
-  :ensure nil
+  :ensure `(org :repo "https://code.tecosaur.net/tec/org-mode.git/" :branch "dev")
   :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
@@ -1654,7 +1654,6 @@ Otherwise, it centers the posframe in the frame."
 	("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
-  ;; (org-mode . org-latex-preview-auto-mode)
   (org-mode . sn/org-mode-hook)
   :custom
   (org-latex-preview-live t)
@@ -1779,7 +1778,6 @@ Otherwise, it centers the posframe in the frame."
 	  (variable-pitch-mode -1)
 	  (visual-line-mode -1)
 	  (olivetti-mode -1))))
-(use-package org-contrib :after org)
 
 (use-package ob-mermaid
   :after org
@@ -2480,20 +2478,37 @@ The exact color values are taken from the active Ef theme."
   :hook (vterm-mode . sn/setup-vterm)
   :init
   (defun sn/setup-vterm ()
-				  (set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
-				  (buffer-face-mode t)
-				  (setq-local left-margin-width 3
-							  right-margin-width 3
-							  cursor-type 'bar)
-				  (face-remap-add-relative
-				   'default
-				   :background "#281d12")
-				  (face-remap-set-base
-				   'default
-				   :background "#281d12")
-				  (face-remap-add-relative
-				   'fringe
-				   :background "#281d12")))
+	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
+	(buffer-face-mode t)
+	(setq-local left-margin-width 3
+	  right-margin-width 3
+	  cursor-type 'bar)
+	(face-remap-add-relative
+	  'default
+	  :background "#281d12")
+	(face-remap-set-base
+	  'default
+	  :background "#281d12")
+	(face-remap-add-relative
+	  'fringe
+	  :background "#281d12"))
+  :config
+  (defun old-version-of-vterm--get-color (index &rest args)
+	"This is the old version before it was broken by commit
+https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+	(cond
+      ((and (>= index 0) (< index 16))
+		(face-foreground
+		  (elt vterm-color-palette index)
+		  nil 'default))
+      ((= index -11)
+		(face-foreground 'vterm-color-underline nil 'default))
+      ((= index -12)
+		(face-background 'vterm-color-inverse-video nil 'default))
+      (t
+		nil)))
+  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color))
 (use-package vterm-tabs
   :load-path "~/.emacs.d/lisp/vterm-tabs"
   :bind
