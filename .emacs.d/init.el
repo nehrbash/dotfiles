@@ -1060,16 +1060,16 @@ Call a second time to restore the original window configuration."
 	("<backtab>" . minibuffer-force-complete))
   :custom
   (enable-recursive-minibuffers t)
-  (minibuffer-eldef-shorten-default t)
-  (read-minibuffer-restore-windows nil) ;; don't revert to original layout after cancel.
+    ;; don't revert to original layout after cancel. doesn't alway work but helps
+  (read-minibuffer-restore-windows nil)
   (resize-mini-windows t)
+  (resize-mini-frames t)
   (minibuffer-prompt-properties
 	'(read-only t cursor-intangible t face minibuffer-prompt))
-  :hook
-  (minibuffer-setup . cursor-intangible-mode)
+  :hook (minibuffer-setup . cursor-intangible-mode)
   :config
-  (minibuffer-depth-indicate-mode)
-  (minibuffer-electric-default-mode)
+  (minibuffer-electric-default-mode 1)
+  (minibuffer-depth-indicate-mode 1)
   (defun sn/minibuffer-fetch-symbol-at-point ()
 	"Fetch the current or next symbol at point in the current buffer while in minibuffer."
 	(interactive)
@@ -1086,22 +1086,24 @@ Call a second time to restore the original window configuration."
   (:map vertico-map
 	("M-j" . vertico-quick-insert)
 	("C-q" . vertico-quick-exit))
-  :custom
-  (vertico-multiform-commands
+  :init
+  (vertico-mode 1)
+  (vertico-posframe-mode 1)
+  (vertico-multiform-mode 1)
+  :config
+  (setq
+	vertico-multiform-commands
     '((consult-imenu buffer indexed)
 	   (corfu-move-to-minibuffer reverse indexed (:not posframe))
 	   (consult-line reverse (:not posframe))
 	   (jinx-correct-nearest grid (vertico-grid-annotate . 30))
 	   (project-switch-project posframe
 	 (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
-       (t posframe)))
-  (vertico-multiform-categories
+       (t posframe))
+	vertico-multiform-categories
     '((file grid)
-	   (embark-keybinding grid)
        (consult-grep reverse)))
-  :init
-  (vertico-mode 1)
-  (vertico-multiform-mode 1))
+  )
 
 (use-package marginalia
   :bind (:map minibuffer-local-map
@@ -1114,7 +1116,6 @@ Call a second time to restore the original window configuration."
   :config (all-the-icons-completion-mode))
 
 (use-package vertico-posframe
-  :after vertico
   :custom
   (vertico-posframe-width 120)
   (vertico-posframe-vertico-multiform-key "M-m")
@@ -1125,7 +1126,6 @@ Call a second time to restore the original window configuration."
 	(face-attribute 'vertico-posframe-border
 	  :background nil t))
   (advice-add 'vertico-posframe--get-border-color :override #'my-vertico-posframe-get-border-color-advice)
-  (vertico-posframe-mode 1)
   (defun sn/posframe-poshandler-window-or-frame-center (info)
   "Position handler that centers the posframe in the window if the window width is at least 120 columns.
 Otherwise, it centers the posframe in the frame."
@@ -2529,7 +2529,15 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (global-vterm-tabs-mode 1))
 
 (use-package direnv
-  :config (direnv-mode))
+  :custom (direnv-always-show-summary nil)
+  :config
+  (direnv-mode)
+  (defun my-direnv-allow-on-save ()
+    "Run `direnv allow` when saving `.envrc` or `.env` files."
+    (when (and buffer-file-name
+               (string-match-p "\\.envrc\\|\\.env$" buffer-file-name))
+      (direnv-update-environment)))
+  (add-hook 'after-save-hook 'my-direnv-allow-on-save))
 
 (use-package ligature
   :config
@@ -2557,7 +2565,19 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (flymake-show-diagnostics-at-end-of-line 'fancy)
   :bind
   ("M-g f" . consult-flymake)
-  ("M-SPC p" . flymake-show-project-diagnostics))
+  ("M-SPC p" . flymake-show-project-diagnostics)
+  ("M-SPC M-p" . toggle-flymake-show-diagnostics-at-end-of-line)
+  :config
+  (defun toggle-flymake-show-diagnostics-at-end-of-line ()
+  "Toggle 'flymake-show-diagnostics-at-end-of-line' between 'fancy and nil."
+  (interactive)
+  (setq flymake-show-diagnostics-at-end-of-line
+        (if (eq flymake-show-diagnostics-at-end-of-line 'fancy)
+            nil
+          'fancy))
+  (flymake-start)
+  (message "flymake-show-diagnostics-at-end-of-line is now %s"
+           flymake-show-diagnostics-at-end-of-line)))
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load
   ;; :custom (sh-shellcheck-arguments '("--exclude=SC1090"))
@@ -2657,7 +2677,8 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
 
 (use-package lisp-mode
   :ensure nil
-  :custom (lisp-indent-offset 2))
+  :custom (lisp-indent-offset 2)
+  (elisp-fontify-semantically t))
 
 (use-package yuck-mode
   :mode ("\\.yuck\\'" . yuck-mode)
