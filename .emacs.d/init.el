@@ -68,10 +68,21 @@
       (write-region "" nil lock-file))))
 
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
+
+(defun kill-all-internal-buffers ()
+  "Kill all buffers whose names start with a space, except *scratch*."
+  (interactive)
+  (dolist (buf (buffer-list))
+    (let ((name (buffer-name buf)))
+      (when (and (string-prefix-p " " name)
+                 (not (string-equal name "*scratch*")))
+        (kill-buffer buf)))))
+
 (defun sn/elpacha-hook ()
   "Settup after elpaca finishes"
   (progn
-	(load custom-file 'noerror)))
+	(load custom-file 'noerror)
+	(kill-all-internal-buffers)))
 (add-hook 'elpaca-after-init-hook 'sn/elpacha-hook)
 
 (use-package ef-themes
@@ -103,9 +114,9 @@
   (defun my-ef-themes-mod ()
 	"Tweak the style of the ef theme."
 	(interactive)
+	(kill-all-internal-buffers) ;; kill minibuffer buffers so that vertico posframe color is applied
     (modus-themes-with-colors
-	  (let ((darker (my-darken-color bg-main 0.7))
-			 (custom-file "/dev/null"))
+	  (let ((darker (my-darken-color bg-main 0.7)))
 		(custom-set-faces
 		  `(default ((,c :family "Iosevka" )))
 		  `(org-table ((,c :family "Iosevka")))
@@ -118,15 +129,15 @@
 		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-		  `(tab-line              ((,c :family "Iosevka Aile" :background ,bg-dim :foreground ,bg-dim :height 110 :box nil)))
-		  `(tab-line-tab-group    ((,c :inherit 'tab-line)))
-		  `(tab-line-tab          ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
-		  `(tab-line-tab-current  ((,c  :inherit 'tab-line-tab :background nil :box nil)))
+		  `(tab-line ((,c :family "Iosevka Aile" :background ,bg-dim :foreground ,bg-dim :height 110 :box nil)))
+		  `(tab-line-tab-group ((,c :inherit 'tab-line)))
+		  `(tab-line-tab ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
+		  `(tab-line-tab-current ((,c  :inherit 'tab-line-tab :background nil :box nil)))
 		  `(tab-line-tab-inactive ((,c  :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
 		  `(tab-line-tab-inactive-alternate ((,c :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
 		  `(tab-line-highlight ((,c :inherit nil :background nil :foreground nil :box nil)))
 		  `(line-number ((,c :background ,darker)))
-		  `(vertico-posframe ((,c :inherit default :background ,darker)))
+		  `(vertico-posframe ((,c :background ,darker))) ;; does not take affect if hidden buffers are created
 		  `(vertico-posframe-border ((,c (:background ,bg-dim))))
 		  `(scroll-bar ((,c :foreground ,fg-alt :background ,darker)))
 		  `(mode-line ((,c :family "Iosevka Aile"  :foreground ,fg-main  :box (:line-width 3 :color ,darker))))
@@ -135,10 +146,14 @@
 		  `(eldoc-box-border ((,c :background ,fg-alt)))
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker :height 0.8)))
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
-		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))
-		  ))))
+		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))))))
   (add-hook 'modus-themes-post-load-hook #'my-ef-themes-mod)
-  (modus-themes-load-theme 'ef-melissa-dark))
+  (modus-themes-load-theme 'ef-melissa-dark)
+  (defun my-apply-theme-to-frame (frame)
+	"Reapply theme modifications to newly created FRAME."
+	(with-selected-frame frame
+      (my-ef-themes-mod)))
+  (add-hook 'after-make-frame-functions #'my-apply-theme-to-frame))
 
 (use-package prot-modeline
   :ensure (:host gitlab
@@ -1122,7 +1137,7 @@ Call a second time to restore the original window configuration."
   :config
   ;; don't change colors
   (defun my-vertico-posframe-get-border-color-advice (&rest _args)
-  "Always return the color of `vertico-posframe-border`."
+	"Always return the color of `vertico-posframe-border`."
 	(face-attribute 'vertico-posframe-border
 	  :background nil t))
   (advice-add 'vertico-posframe--get-border-color :override #'my-vertico-posframe-get-border-color-advice)
@@ -1403,6 +1418,7 @@ Otherwise, it centers the posframe in the frame."
   :hook (((prog-mode conf-mode yaml-mode) . sn/corfu-basic))
   :bind (:map corfu-map
 		  ("M-SPC" . corfu-insert-separator)
+		  ("M-/" . corfu-insert)
 		  ("TAB" . corfu-next)
 		  ([tab] . corfu-next)
 		  ("S-TAB" . corfu-previous)
@@ -1421,20 +1437,20 @@ Otherwise, it centers the posframe in the frame."
   (completion-cycle-threshold nil)
   :init
   (global-corfu-mode t)
-  ;; (global-completion-preview-mode t)
   :config
-  ;; (setq completion-preview-minimum-symbol-length 1)
+  (global-completion-preview-mode t)
+  (setq completion-preview-minimum-symbol-length 1)
   ;; ;; Non-standard commands to that should show the preview:
   ;; ;; Org mode has a custom `self-insert-command'
-  ;; (push 'org-self-insert-command completion-preview-commands)
+  (push 'org-self-insert-command completion-preview-commands)
   ;; ;; Paredit has a custom `delete-backward-char' command
-  ;; (push 'paredit-backward-delete completion-preview-commands)
+  (push 'paredit-backward-delete completion-preview-commands)
   ;; ;; Bindings that take effect when the preview is shown:
   ;; ;; Cycle the completion candidate that the preview shows
-  ;; (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
-  ;; (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
-  ;; ;; Convenient alternative to C-i after typing one of the above
-  ;; (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
+  (keymap-set completion-preview-active-mode-map "M-n" #'completion-preview-next-candidate)
+  (keymap-set completion-preview-active-mode-map "M-p" #'completion-preview-prev-candidate)
+  ;; Convenient alternative to C-i after typing one of the above
+  (keymap-set completion-preview-active-mode-map "M-i" #'completion-preview-insert)
   ;; fast completion
   (defun orderless-fast-dispatch (word index total)
 	(and (= index 0) (= total 1) (length< word 4)
@@ -1470,7 +1486,8 @@ Otherwise, it centers the posframe in the frame."
 (use-package cape
   :bind
   ("M-/" . completion-at-point) ;; overwrite dabbrev-completion binding with capf
-  ("C-c /" . sn/cape)
+  ("C-M-/" . sn/codeium-capf) ;; overwirte dabbrev-expand
+  ("C-M-?" . sn/cape)
   :hook
   (eglot-managed-mode . sn/code-completion)
   :custom
@@ -1484,33 +1501,25 @@ Otherwise, it centers the posframe in the frame."
 	   #'cape-abbrev))
   (defun sn/codeium-capf ()
 	(interactive)
-	(cape-wrap-nonexclusive #'codeium-completion-at-point))
-  (defun sn/cape-in-string ()
-	(cape-wrap-inside-string
-	  (cape-capf-super
-		#'cape-file
-		#'cape-dabbrev
-		#'cape-dict)))
-  (defun sn/cape-in-comment ()
-	(cape-wrap-inside-comment
-	  (cape-capf-super
-		#'cape-dabbrev
-		#'cape-dict
-		#'cape-file)))
-  (defun sn/cape-in-code ()
-	(cape-wrap-nonexclusive
-	  (cape-capf-inside-code
-		(cape-capf-super
-		  #'eglot-completion-at-point))))
+	(cape-interactive #'codeium-completion-at-point))
   (defun sn/code-completion ()
-	(setq-local
-	  completion-at-point-functions
-	  (list
-	#'sn/cape-in-code
-	#'sn/cape-in-string
-	#'sn/cape-in-comment
-		#'sn/codeium-capf
-		#'cape-dabbrev)))
+    (setq-local
+      completion-at-point-functions
+      (list
+		(cape-capf-inside-code
+          (cape-capf-super
+			#'eglot-completion-at-point))
+		(cape-capf-inside-string
+		  (cape-capf-super
+			#'cape-file
+			#'cape-dict))
+		(cape-capf-inside-comment
+		  (cape-capf-super
+			#'cape-dict
+			#'cape-file))
+		#'cape-dabbrev
+		(cape-capf-nonexclusive #'codeium-completion-at-point)
+		))) 
   (transient-define-prefix sn/cape ()
 	"explicit Completion type"
 	[[("d" "Dabbrev" cape-dabbrev)
@@ -2508,7 +2517,25 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
 		(face-background 'vterm-color-inverse-video nil 'default))
       (t
 		nil)))
-  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color))
+  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
+  (defun my/vterm-standalone ()
+  "Create a standalone vterm frame without modeline and minibuffer."
+  (interactive)
+  (let ((frame (make-frame '((name . "vterm-standalone")
+                             (minibuffer . nil)))))
+    (select-frame frame)
+    (vterm)
+    ;; (set-window-fringes nil 0 0)
+    ;; (set-window-margins nil 0 0)
+	))
+
+(defun my/vterm-clean ()
+  "Open vterm in current frame with no modeline."
+  (interactive)
+  (vterm)
+  (setq mode-line-format nil)
+  (set-window-fringes nil 0 0)
+  (set-window-margins nil 0 0)))
 (use-package vterm-tabs
   :load-path "~/.emacs.d/lisp/vterm-tabs"
   :bind
@@ -2562,7 +2589,7 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 2)
   (flymake-fringe-indicator-position 'right-fringe)
-  (flymake-show-diagnostics-at-end-of-line 'fancy)
+  (flymake-show-diagnostics-at-end-of-line nil)
   :bind
   ("M-g f" . consult-flymake)
   ("M-SPC p" . flymake-show-project-diagnostics)
@@ -2575,7 +2602,8 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
         (if (eq flymake-show-diagnostics-at-end-of-line 'fancy)
             nil
           'fancy))
-  (flymake-start)
+  (flymake-mode 0)
+  (flymake-mode 1)
   (message "flymake-show-diagnostics-at-end-of-line is now %s"
            flymake-show-diagnostics-at-end-of-line)))
 (use-package flymake-shellcheck
@@ -2893,24 +2921,13 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 
  (use-package codeium
    :ensure (:host github :repo "Exafunction/codeium.el")
-   :after cape
    :custom
    (codeium-log-buffer nil)
    :config
-   (advice-add 'codeium-completion-at-point :around #'cape-wrap-buster)
-
-   ;; You can overwrite all the codeium configs!
-   ;; for example, we recommend limiting the string sent to codeium for better performance
-   (defun my-codeium/document/text ()
-     (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (min (+ (point) 1000) (point-max))))
-   ;; if you change the text, you should also change the cursor_offset
-   ;; warning: this is measured by UTF-8 encoded bytes
-   (defun my-codeium/document/cursor_offset ()
-     (codeium-utf8-byte-length
-       (buffer-substring-no-properties (max (- (point) 3000) (point-min)) (point))))
-   (setq codeium/document/text 'my-codeium/document/text)
-   (setq codeium/document/cursor_offset 'my-codeium/document/cursor_offset)
-   )
+   ;; modeline
+   (setq codeium-mode-line-enable
+     (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+   (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
 
 (use-package claude-code
   :ensure (:host github :repo "yuya373/claude-code-emacs")
