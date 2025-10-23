@@ -1665,6 +1665,10 @@ Otherwise, it centers the posframe in the frame."
   (org-mode . wr-mode)
   (org-mode . sn/org-mode-hook)
   :custom
+  (org-latex-packages-alist
+      '(("" "xcolor")))
+  (org-latex-todo-keyword-format
+    "\\colorbox{%s!30}{\\textbf{%s}}")
   (org-latex-preview-live t)
   (org-latex-preview-numbered t)
   (org-latex-preview-live-debounce 0.25)
@@ -1786,7 +1790,14 @@ Otherwise, it centers the posframe in the frame."
 	  (buffer-face-mode -1)
 	  (variable-pitch-mode -1)
 	  (visual-line-mode -1)
-	  (olivetti-mode -1))))
+	  (olivetti-mode -1)))
+  (require 'ox-latex)
+  (add-to-list 'org-latex-packages-alist '("" "minted"))
+  (setq org-latex-listings 'minted)
+  (setq org-latex-pdf-process
+    '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
+       "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+  )
 
 (use-package ob-mermaid
   :after org
@@ -2145,8 +2156,6 @@ Otherwise, it centers the posframe in the frame."
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   (pdf-annot-activate-created-annotations t)
-  :magic ("%PDF" . pdf-view-mode)
-  :init (setq-default pdf-view-roll-minor-mode t)
   :config
   (require 'pdf-tools)
   (require 'pdf-view)
