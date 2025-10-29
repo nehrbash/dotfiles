@@ -2,8 +2,8 @@
 # Any customization should be done in ~/.gtkrc-2.0.mine instead.
 
 include "/home/nehrbash/.gtkrc-2.0.mine"
-gtk-theme-name="Orchis"
-gtk-icon-theme-name="Adwaita"
+gtk-theme-name="Orchis-Dracula"
+gtk-icon-theme-name="Dracula"
 gtk-font-name="Iosevka Aile 12"
 gtk-cursor-theme-name="Bibata-Modern-Amber"
 gtk-cursor-theme-size=24

@@ -13,6 +13,7 @@
   - [[#modeline][Modeline]]
   - [[#tab-bar][Tab bar]]
   - [[#general][General]]
+  - [[#terminal-mods][Terminal mods]]
 - [[#general-settings][General Settings]]
   - [[#display-windows][Display windows]]
   - [[#track-recent-files][Track Recent Files]]
@@ -46,6 +47,7 @@
   - [[#corfu][Corfu]]
   - [[#cape---completion-at-point-extensions][cape - Completion At Point Extensions]]
   - [[#spelling][Spelling]]
+- [[#open-pdfs][Open pdfs]]
 - [[#dired][Dired]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
@@ -273,12 +275,14 @@
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))))))
   (add-hook 'modus-themes-post-load-hook #'my-ef-themes-mod)
   (modus-themes-load-theme 'ef-melissa-dark)
+  ;; this may cause flashes but fixes a lot of issues like 1. scroll bar colors, 2. terminal theme
   (defun my-apply-theme-to-frame (frame)
 	"Reapply theme modifications to newly created FRAME."
 	(with-selected-frame frame
-      (my-ef-themes-mod)))
+	  (modus-themes-load-theme 'ef-melissa-dark)))
   (add-hook 'after-make-frame-functions #'my-apply-theme-to-frame))
 #+end_src
+
 
 ** Modeline
 
@@ -298,30 +302,20 @@
   (defun custom-sloth-image-segment ()
 	"Return an image segment with a specified height."
 	(let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory))
-	   (img-height custom-mode-line-height))
+		   (img-height custom-mode-line-height))
       (when (file-exists-p img-file)
 		(propertize " "
-	  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
-  (defun custom-branch-left-cap ()
-  "Return a left branch SVG cap for the modeline."
-  (let ((svg-file (expand-file-name "img/left-branch.svg" user-emacs-directory)))
-    (when (file-exists-p svg-file)
-      (propertize " "
-	'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
-(defun custom-branch-right-cap ()
-  "Return a right branch SVG cap for the modeline."
-  (let ((svg-file (expand-file-name "img/right-branch.svg" user-emacs-directory)))
-    (when (file-exists-p svg-file)
-      (propertize " "
-	'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
-
+		  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
   (setq-default mode-line-format
     '("%e"
-	   ;; (:eval (custom-branch-left-cap))
 	   (:eval (custom-sloth-image-segment))
        prot-modeline-kbd-macro
        prot-modeline-narrow
-       prot-modeline-buffer-status
+       (:eval
+		 (let ((remote (file-remote-p default-directory 'host)))
+		   (when remote
+			 (propertize (format " @%s " remote)
+               'face 'prot-modeline-indicator-red-bg))))
        prot-modeline-window-dedicated-status
        prot-modeline-input-method
 	   (:eval (meow--update-indicator))
@@ -338,11 +332,7 @@
        prot-modeline-flymake
 	   "  "
 	   prot-modeline-vc-branch
-	   ;; (:eval (custom-branch-right-cap))
        "  ")))
-
-;; (line-number-mode -1)
-;; (column-number-mode -1)
    #+end_src
 
 ** Tab bar
@@ -561,6 +551,27 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 	      (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 #+end_src
 
+** Terminal mods
+
+*** posframe borders
+
+            #+begin_src emacs-lisp
+(defun sn/change-window-divider ()
+  "Change the window divider to have connected characters."
+  (let* ((display-table (or buffer-display-table standard-display-table)))
+    (set-display-table-slot display-table 'vertical-border ?│)
+	(set-display-table-slot display-table 'box-vertical ?┃)
+	(set-display-table-slot display-table 'box-horizontal ?━)
+    (set-display-table-slot display-table 'box-down-right ?┏)
+    (set-display-table-slot display-table 'box-down-left  ?┓)
+    (set-display-table-slot display-table 'box-up-right   ?┗)
+    (set-display-table-slot display-table 'box-up-left    ?┛)
+    (set-window-display-table (selected-window) display-table)))
+(add-hook 'window-configuration-change-hook 'sn/change-window-divider)
+
+    #+end_src
+
+
 * General Settings
 
   Slowly organizing these.
@@ -713,18 +724,16 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 
 **  Auto Save
 
-  ;; (auto-save-visited-interval 30)
-  ;; (remote-file-name-inhibit-auto-save-visited t)
-
+   I have format on save hooks so keep long interval.
 
 #+begin_src emacs-lisp
 (use-package files
   :ensure nil
   :hook (elpaca-after-init . auto-save-visited-mode)
-  :config
-  (auto-save-visited-mode +1)
   :custom
-  (auto-save-default nil))
+  (auto-save-visited-interval 30)
+  (remote-file-name-inhibit-auto-save-visited t)
+  (auto-save-default nil)) 
 #+end_src
 
 ** Auto update file
@@ -1481,6 +1490,13 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 (with-suppressed-message (save-buffer))
 #+end_src
 
+*** show keybinds
+
+    #+begin_src emacs-lisp
+(use-package which-key
+  :ensure nil
+  :hook (elpaca-after-init . which-key-mode))
+    #+end_src
 
 * Mini-buffer / Completion Framework
 
@@ -1711,52 +1727,54 @@ Otherwise, it centers the posframe in the frame."
   ;; show my dots in find file
   ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
   
- (defun vc-modified-files ()
-  "Return list of modified files in the current VC repository."
-  (when-let* ((default-directory (vc-root-dir)))
-	(let* ((git-cmd "git status --porcelain=v1 --untracked-files=no")
-		   (files (split-string (shell-command-to-string git-cmd) "\n" t)))
-	  (mapcar (lambda (line)
-				(string-trim (substring line 3)))
-			  files))))
+  (defun vc-modified-files ()
+	"Return list of modified files in the current VC repository."
+	(when-let* ((default-directory (vc-root-dir)))
+	  (let* ((git-cmd "git status --porcelain=v1 --untracked-files=no")
+			  (files (split-string (shell-command-to-string git-cmd) "\n" t)))
+		(mapcar (lambda (line)
+				  (string-trim (substring line 3)))
+		  files))))
 
-(defun vc-modified-file ()
-  "Use completion to go to a modified file in the Git repository."
-  (interactive)
-  (let* ((default-directory (vc-root-dir))
-		 (modified-files (vc-modified-files))
-		 (selected-file (completing-read "Goto vc file: " modified-files nil t)))
-	(when selected-file
-	  (find-file selected-file))))
-(defun vc-consult-enabled-p ()
-  "Check if consult VC source should be enabled."
-  (vc-root-dir))
+  (defun vc-modified-file ()
+	"Use completion to go to a modified file in the Git repository."
+	(interactive)
+	(let* ((default-directory (vc-root-dir))
+			(modified-files (vc-modified-files))
+			(selected-file (completing-read "Goto vc file: " modified-files nil t)))
+	  (when selected-file
+		(find-file selected-file))))
+  (defun vc-consult-enabled-p ()
+	"Check if consult VC source should be enabled."
+	(vc-root-dir))
 
-(defun vc-consult-get-modified-items ()
+  (defun vc-consult-get-modified-items ()
   "Get modified file items for consult VC source."
-  (when-let* ((root (vc-root-dir)))
-	(let ((len (length root))
-		  (ht (consult--buffer-file-hash))
-		  items)
-	  (dolist (relative-file (vc-modified-files) (nreverse items))
-		(let* (file-name-handler-alist
-			   (file (expand-file-name relative-file root)))
-		  (when (and (not (gethash file ht)) (string-prefix-p root file))
-			(let ((part (substring file len)))
-			  (when (equal part "") (setq part "./"))
-			  (put-text-property 0 1 'multi-category `(file . ,file) part)
-			  (push part items))))))))
+  (when-let* ((root (expand-file-name (vc-root-dir))))  ; Expand the tilde!
+    (let ((len (length root))
+          (ht (consult--buffer-file-hash))
+          (items nil))
+      (dolist (relative-file (vc-modified-files))
+        (let* (file-name-handler-alist
+               (file (expand-file-name relative-file root)))
+          (when (and (not (gethash file ht)) (string-prefix-p root file))
+            (let ((part (substring file len)))
+              (when (equal part "") (setq part "./"))
+              (put-text-property 0 1 'multi-category `(file . ,file) part)
+              (push part items)))))
+      items)))
 
-(defvar consult--source-vc-modified-file
-  `(:name     "VC Modified File"
-	:narrow   ?g
-	:category file
-	:face     consult-file
-	:history  file-name-history
-	:state    ,#'consult--file-state
-	:enabled  vc-consult-enabled-p
-	:items    vc-consult-get-modified-items)
-  "VC modified file candidate source for `consult-buffer'.")
+  (defvar consult--source-vc-modified-file
+	(list
+	  :name     "VC Modified File"
+	  :narrow   ?g
+	  :category 'file
+	  :face     'consult-file
+	  :history  'file-name-history
+	  :state    #'consult--file-state
+	  :enabled  #'vc-consult-enabled-p
+	  :items    #'vc-consult-get-modified-items)
+	"VC modified file candidate source for `consult-buffer'.")
 
   (defvar consult--source-org
 	(list :name     "Org"
@@ -1964,7 +1982,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   (global-corfu-mode t)
   :config
   (global-completion-preview-mode t)
-  (setq completion-preview-minimum-symbol-length 1)
+  (setq completion-preview-minimum-symbol-length 0)
   ;; ;; Non-standard commands to that should show the preview:
   ;; ;; Org mode has a custom `self-insert-command'
   (push 'org-self-insert-command completion-preview-commands)
@@ -2001,17 +2019,6 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   (keymap-set corfu-map "M-m" #'corfu-move-to-minibuffer)
   (add-to-list 'corfu-continue-commands #'corfu-move-to-minibuffer))
 #+end_src
-
-*** More terminal support
-
-	Enable if ever
-
-#+begin_src emacs-lisp :tangle no
-(use-package corfu-terminal
-  :after corfu
-  :ensure (:host codeberg :repo "akib/emacs-corfu-terminal"))
-#+end_src
-
 *** Icons for list
 
 #+begin_src emacs-lisp
@@ -2038,12 +2045,18 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   (cape-dabbrev-min-length 2)
+  (completion-at-point-functions
+	`(,(cape-capf-super
+		 #'cape-dict
+		 #'cape-dabbrev
+		 #'cape-file)
+	   cape-abbrev))
   :config
-  (setq completion-at-point-functions
-	'(#'cape-dict
-	   #'cape-dabbrev
-	   #'cape-file
-	   #'cape-abbrev))
+  (defun my-completion-preview-use-codeium (orig-fun)
+	"Advice to make completion-preview only use codeium."
+	(let* ((completion-at-point-functions '(codeium-completion-at-point)))
+      (funcall orig-fun)))
+  (advice-add 'completion-preview--update :around #'my-completion-preview-use-codeium)
   (defun sn/codeium-capf ()
 	(interactive)
 	(cape-interactive #'codeium-completion-at-point))
@@ -2062,9 +2075,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
 		  (cape-capf-super
 			#'cape-dict
 			#'cape-file))
-		#'cape-dabbrev
-		(cape-capf-nonexclusive #'codeium-completion-at-point)
-		))) 
+		#'cape-dabbrev))) 
   (transient-define-prefix sn/cape ()
 	"explicit Completion type"
 	[[("d" "Dabbrev" cape-dabbrev)
@@ -3092,6 +3103,15 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 
 
 
+* Open pdfs
+
+    #+begin_src emacs-lisp
+(use-package openwith
+  :custom (openwith-associations '(("\\.pdf\\'" "evince" (file))))
+  :config (openwith-mode t))
+#+end_src
+  
+
 * Dired
 
   Built in.
@@ -3334,6 +3354,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (setq org-latex-pdf-process
     '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+  (eval-after-load "org" '(require 'ox-md nil t)) ;; md exporter
   )
 #+end_src
 
@@ -4388,7 +4409,7 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 2)
   (flymake-fringe-indicator-position 'right-fringe)
-  (flymake-show-diagnostics-at-end-of-line nil)
+  (flymake-show-diagnostics-at-end-of-line 'fancy)
   :bind
   ("M-g f" . consult-flymake)
   ("M-SPC p" . flymake-show-project-diagnostics)
@@ -4401,36 +4422,21 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
         (if (eq flymake-show-diagnostics-at-end-of-line 'fancy)
             nil
           'fancy))
+	;; hacky turn off on
   (flymake-mode 0)
   (flymake-mode 1)
   (message "flymake-show-diagnostics-at-end-of-line is now %s"
            flymake-show-diagnostics-at-end-of-line)))
+#+end_src
+
+**** non lsp server error checking
+     
+          #+begin_src emacs-lisp
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load
-  ;; :custom (sh-shellcheck-arguments '("--exclude=SC1090"))
+  :custom (flymake-shellcheck-args '("--exclude=SC1090"))
   :hook (bash-ts-mode . flymake-shellcheck-load))
-#+end_src
-
-***** Display error in-line
-
-#+begin_src emacs-lisp :tangle no
-(use-package flycheck)
-(use-package flyover
-  :after flycheck
-  :bind ("M-SPC s" . flyover-toggle)
-  :ensure (:host github :repo "konrad1977/flyover")
-  :hook (flymake-mode . flyover-mode)
-  :custom
-  ;; (flyover-checkers '(flymake))
-  ;; (flyover-debug nil)
-  ;; (flyover-debounce-interval 0.2)
-  (flyover-levels '(error warning info))
-  ;; (flyover-use-theme-colors t)
-  (flyover-wrap-messages t)
-  ;; (flyover-max-line-length 80))
-  )
-#+end_src
-
+     #+end_src
 
 
 *** Folding

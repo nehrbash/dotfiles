@@ -149,10 +149,11 @@
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))))))
   (add-hook 'modus-themes-post-load-hook #'my-ef-themes-mod)
   (modus-themes-load-theme 'ef-melissa-dark)
+  ;; this may cause flashes but fixes a lot of issues like 1. scroll bar colors, 2. terminal theme
   (defun my-apply-theme-to-frame (frame)
 	"Reapply theme modifications to newly created FRAME."
 	(with-selected-frame frame
-      (my-ef-themes-mod)))
+	  (modus-themes-load-theme 'ef-melissa-dark)))
   (add-hook 'after-make-frame-functions #'my-apply-theme-to-frame))
 
 (use-package prot-modeline
@@ -170,30 +171,20 @@
   (defun custom-sloth-image-segment ()
 	"Return an image segment with a specified height."
 	(let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory))
-	   (img-height custom-mode-line-height))
+		   (img-height custom-mode-line-height))
       (when (file-exists-p img-file)
 		(propertize " "
-	  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
-  (defun custom-branch-left-cap ()
-  "Return a left branch SVG cap for the modeline."
-  (let ((svg-file (expand-file-name "img/left-branch.svg" user-emacs-directory)))
-    (when (file-exists-p svg-file)
-      (propertize " "
-	'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
-(defun custom-branch-right-cap ()
-  "Return a right branch SVG cap for the modeline."
-  (let ((svg-file (expand-file-name "img/right-branch.svg" user-emacs-directory)))
-    (when (file-exists-p svg-file)
-      (propertize " "
-	'display (create-image svg-file 'svg nil :height custom-mode-line-height :ascent 'center)))))
-
+		  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
   (setq-default mode-line-format
     '("%e"
-	   ;; (:eval (custom-branch-left-cap))
 	   (:eval (custom-sloth-image-segment))
        prot-modeline-kbd-macro
        prot-modeline-narrow
-       prot-modeline-buffer-status
+       (:eval
+		 (let ((remote (file-remote-p default-directory 'host)))
+		   (when remote
+			 (propertize (format " @%s " remote)
+               'face 'prot-modeline-indicator-red-bg))))
        prot-modeline-window-dedicated-status
        prot-modeline-input-method
 	   (:eval (meow--update-indicator))
@@ -210,11 +201,7 @@
        prot-modeline-flymake
 	   "  "
 	   prot-modeline-vc-branch
-	   ;; (:eval (custom-branch-right-cap))
        "  ")))
-
-;; (line-number-mode -1)
-;; (column-number-mode -1)
 
 (use-package modern-tab-bar
   :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
@@ -354,6 +341,19 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 (setq-default fringe-indicator-alist
 	      (delq (assq 'continuation fringe-indicator-alist) fringe-indicator-alist))
 
+(defun sn/change-window-divider ()
+  "Change the window divider to have connected characters."
+  (let* ((display-table (or buffer-display-table standard-display-table)))
+    (set-display-table-slot display-table 'vertical-border ?│)
+	(set-display-table-slot display-table 'box-vertical ?┃)
+	(set-display-table-slot display-table 'box-horizontal ?━)
+    (set-display-table-slot display-table 'box-down-right ?┏)
+    (set-display-table-slot display-table 'box-down-left  ?┓)
+    (set-display-table-slot display-table 'box-up-right   ?┗)
+    (set-display-table-slot display-table 'box-up-left    ?┛)
+    (set-window-display-table (selected-window) display-table)))
+(add-hook 'window-configuration-change-hook 'sn/change-window-divider)
+
 (setq-default
   fill-column 100
   blink-cursor-interval 0.4
@@ -490,9 +490,9 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 (use-package files
   :ensure nil
   :hook (elpaca-after-init . auto-save-visited-mode)
-  :config
-  (auto-save-visited-mode +1)
   :custom
+  (auto-save-visited-interval 30)
+  (remote-file-name-inhibit-auto-save-visited t)
   (auto-save-default nil))
 
 (use-package autorevert
@@ -1067,6 +1067,10 @@ Call a second time to restore the original window configuration."
     `(with-temp-message (or (current-message) "") ,@body)))
 (with-suppressed-message (save-buffer))
 
+(use-package which-key
+  :ensure nil
+  :hook (elpaca-after-init . which-key-mode))
+
 (use-package minibuffer
   :ensure nil
   :bind
@@ -1258,52 +1262,54 @@ Otherwise, it centers the posframe in the frame."
   ;; show my dots in find file
   ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
   
- (defun vc-modified-files ()
-  "Return list of modified files in the current VC repository."
-  (when-let* ((default-directory (vc-root-dir)))
-	(let* ((git-cmd "git status --porcelain=v1 --untracked-files=no")
-		   (files (split-string (shell-command-to-string git-cmd) "\n" t)))
-	  (mapcar (lambda (line)
-				(string-trim (substring line 3)))
-			  files))))
+  (defun vc-modified-files ()
+	"Return list of modified files in the current VC repository."
+	(when-let* ((default-directory (vc-root-dir)))
+	  (let* ((git-cmd "git status --porcelain=v1 --untracked-files=no")
+			  (files (split-string (shell-command-to-string git-cmd) "\n" t)))
+		(mapcar (lambda (line)
+				  (string-trim (substring line 3)))
+		  files))))
 
-(defun vc-modified-file ()
-  "Use completion to go to a modified file in the Git repository."
-  (interactive)
-  (let* ((default-directory (vc-root-dir))
-		 (modified-files (vc-modified-files))
-		 (selected-file (completing-read "Goto vc file: " modified-files nil t)))
-	(when selected-file
-	  (find-file selected-file))))
-(defun vc-consult-enabled-p ()
-  "Check if consult VC source should be enabled."
-  (vc-root-dir))
+  (defun vc-modified-file ()
+	"Use completion to go to a modified file in the Git repository."
+	(interactive)
+	(let* ((default-directory (vc-root-dir))
+			(modified-files (vc-modified-files))
+			(selected-file (completing-read "Goto vc file: " modified-files nil t)))
+	  (when selected-file
+		(find-file selected-file))))
+  (defun vc-consult-enabled-p ()
+	"Check if consult VC source should be enabled."
+	(vc-root-dir))
 
-(defun vc-consult-get-modified-items ()
+  (defun vc-consult-get-modified-items ()
   "Get modified file items for consult VC source."
-  (when-let* ((root (vc-root-dir)))
-	(let ((len (length root))
-		  (ht (consult--buffer-file-hash))
-		  items)
-	  (dolist (relative-file (vc-modified-files) (nreverse items))
-		(let* (file-name-handler-alist
-			   (file (expand-file-name relative-file root)))
-		  (when (and (not (gethash file ht)) (string-prefix-p root file))
-			(let ((part (substring file len)))
-			  (when (equal part "") (setq part "./"))
-			  (put-text-property 0 1 'multi-category `(file . ,file) part)
-			  (push part items))))))))
+  (when-let* ((root (expand-file-name (vc-root-dir))))  ; Expand the tilde!
+    (let ((len (length root))
+          (ht (consult--buffer-file-hash))
+          (items nil))
+      (dolist (relative-file (vc-modified-files))
+        (let* (file-name-handler-alist
+               (file (expand-file-name relative-file root)))
+          (when (and (not (gethash file ht)) (string-prefix-p root file))
+            (let ((part (substring file len)))
+              (when (equal part "") (setq part "./"))
+              (put-text-property 0 1 'multi-category `(file . ,file) part)
+              (push part items)))))
+      items)))
 
-(defvar consult--source-vc-modified-file
-  `(:name     "VC Modified File"
-	:narrow   ?g
-	:category file
-	:face     consult-file
-	:history  file-name-history
-	:state    ,#'consult--file-state
-	:enabled  vc-consult-enabled-p
-	:items    vc-consult-get-modified-items)
-  "VC modified file candidate source for `consult-buffer'.")
+  (defvar consult--source-vc-modified-file
+	(list
+	  :name     "VC Modified File"
+	  :narrow   ?g
+	  :category 'file
+	  :face     'consult-file
+	  :history  'file-name-history
+	  :state    #'consult--file-state
+	  :enabled  #'vc-consult-enabled-p
+	  :items    #'vc-consult-get-modified-items)
+	"VC modified file candidate source for `consult-buffer'.")
 
   (defvar consult--source-org
 	(list :name     "Org"
@@ -1439,7 +1445,7 @@ Otherwise, it centers the posframe in the frame."
   (global-corfu-mode t)
   :config
   (global-completion-preview-mode t)
-  (setq completion-preview-minimum-symbol-length 1)
+  (setq completion-preview-minimum-symbol-length 0)
   ;; ;; Non-standard commands to that should show the preview:
   ;; ;; Org mode has a custom `self-insert-command'
   (push 'org-self-insert-command completion-preview-commands)
@@ -1493,12 +1499,18 @@ Otherwise, it centers the posframe in the frame."
   :custom
   (dabbrev-ignored-buffer-regexps '("\\.\\(?:pdf\\|jpe?g\\|png\\)\\'"))
   (cape-dabbrev-min-length 2)
+  (completion-at-point-functions
+	`(,(cape-capf-super
+		 #'cape-dict
+		 #'cape-dabbrev
+		 #'cape-file)
+	   cape-abbrev))
   :config
-  (setq completion-at-point-functions
-	'(#'cape-dict
-	   #'cape-dabbrev
-	   #'cape-file
-	   #'cape-abbrev))
+  (defun my-completion-preview-use-codeium (orig-fun)
+	"Advice to make completion-preview only use codeium."
+	(let* ((completion-at-point-functions '(codeium-completion-at-point)))
+      (funcall orig-fun)))
+  (advice-add 'completion-preview--update :around #'my-completion-preview-use-codeium)
   (defun sn/codeium-capf ()
 	(interactive)
 	(cape-interactive #'codeium-completion-at-point))
@@ -1517,9 +1529,7 @@ Otherwise, it centers the posframe in the frame."
 		  (cape-capf-super
 			#'cape-dict
 			#'cape-file))
-		#'cape-dabbrev
-		(cape-capf-nonexclusive #'codeium-completion-at-point)
-		))) 
+		#'cape-dabbrev))) 
   (transient-define-prefix sn/cape ()
 	"explicit Completion type"
 	[[("d" "Dabbrev" cape-dabbrev)
@@ -1571,6 +1581,10 @@ Otherwise, it centers the posframe in the frame."
 (use-package define-word
   :commands (define-word)
   :bind ("M-s D" . define-word-at-point))
+
+(use-package openwith
+  :custom (openwith-associations '(("\\.pdf\\'" "evince" (file))))
+  :config (openwith-mode t))
 
 (use-package dired
   :ensure nil
@@ -1797,6 +1811,7 @@ Otherwise, it centers the posframe in the frame."
   (setq org-latex-pdf-process
     '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
+  (eval-after-load "org" '(require 'ox-md nil t)) ;; md exporter
   )
 
 (use-package ob-mermaid
@@ -2598,7 +2613,7 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (flymake-wrap-around t)
   (flymake-no-changes-timeout 2)
   (flymake-fringe-indicator-position 'right-fringe)
-  (flymake-show-diagnostics-at-end-of-line nil)
+  (flymake-show-diagnostics-at-end-of-line 'fancy)
   :bind
   ("M-g f" . consult-flymake)
   ("M-SPC p" . flymake-show-project-diagnostics)
@@ -2611,13 +2626,15 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
         (if (eq flymake-show-diagnostics-at-end-of-line 'fancy)
             nil
           'fancy))
+	;; hacky turn off on
   (flymake-mode 0)
   (flymake-mode 1)
   (message "flymake-show-diagnostics-at-end-of-line is now %s"
            flymake-show-diagnostics-at-end-of-line)))
+
 (use-package flymake-shellcheck
   :commands flymake-shellcheck-load
-  ;; :custom (sh-shellcheck-arguments '("--exclude=SC1090"))
+  :custom (flymake-shellcheck-args '("--exclude=SC1090"))
   :hook (bash-ts-mode . flymake-shellcheck-load))
 
 (use-package treesit-fold
