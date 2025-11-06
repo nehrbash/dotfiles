@@ -63,3 +63,5 @@ source /usr/share/autojump/autojump.zsh 2>/dev/null
 
 # Load direnv
 [ -f "$(which direnv)" ] && eval "$(direnv hook zsh)"
+export PATH=~/.npm-global/bin:$PATH
+source /usr/share/nvm/init-nvm.sh
