@@ -498,7 +498,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 (use-package autorevert
   :ensure nil
   :custom
-  (auto-revert-use-notify nil)
+  (auto-revert-remote-files t) ;; TODO: do this only for docker
   (auto-revert-verbose nil)
   :init (global-auto-revert-mode 1))
 
@@ -1115,24 +1115,23 @@ Call a second time to restore the original window configuration."
     '((consult-imenu buffer indexed)
 	   (corfu-move-to-minibuffer reverse indexed (:not posframe))
 	   (consult-line reverse (:not posframe))
-	   (jinx-correct-nearest grid (vertico-grid-annotate . 30))
-	   (project-switch-project posframe
-	 (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
+	   (consult-ripgrep reverse (:not posframe))
+	   (jinx-correct-nearest posframe (vertico-posframe-poshandler . posframe-poshandler-point-top-left-corner))
+	   (jinx-correct posframe (vertico-posframe-poshandler . posframe-poshandler-point-top-left-corner))
+	   (project-switch-project posframe (vertico-posframe-poshandler . posframe-poshandler-frame-top-center))
        (t posframe))
 	vertico-multiform-categories
     '((file grid)
-       (consult-grep reverse)))
-  )
+       (consult-grep reverse))))
 
 (use-package marginalia
   :bind (:map minibuffer-local-map
 		  ("M-a" . marginalia-cycle))
   :custom (marginalia-align 'right)
-  :init (marginalia-mode 1))
+  :hook (elpaca-after-init . marginalia-mode))
 
 (use-package all-the-icons-completion
-  :after marginalia
-  :config (all-the-icons-completion-mode))
+  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
 
 (use-package vertico-posframe
   :custom
@@ -1383,7 +1382,8 @@ Otherwise, it centers the posframe in the frame."
 	("M-SPC" . embark-act))
   (:map embark-region-map
 	("w" . google-this)
-	("g" . gptel))
+	("g" . gptel)
+	("r" . gptel-rewrite))
   :custom
   (embark-mixed-indicator-delay 0.6)
   (prefix-help-command #'embark-prefix-help-command)
@@ -1510,7 +1510,7 @@ Otherwise, it centers the posframe in the frame."
 	"Advice to make completion-preview only use codeium."
 	(let* ((completion-at-point-functions '(codeium-completion-at-point)))
       (funcall orig-fun)))
-  (advice-add 'completion-preview--update :around #'my-completion-preview-use-codeium)
+  ;; (advice-add 'completion-preview--update :around #'my-completion-preview-use-codeium)
   (defun sn/codeium-capf ()
 	(interactive)
 	(cape-interactive #'codeium-completion-at-point))
@@ -1562,12 +1562,12 @@ Otherwise, it centers the posframe in the frame."
   :after yasnippet)
 
 (use-package jinx
+  :hook (elpaca-after-init .  global-jinx-mode)
   :bind
   ([remap ispell-word] . jinx-correct-nearest)
   (:map jinx-overlay-map
 		("C-M-$" . #'jinx-correct-all))
   :config
-  (global-jinx-mode 1)
   (defun jinx-save-corrected-word ()
 	"Save corrected word to a file."
 	(interactive)
@@ -1666,34 +1666,33 @@ Otherwise, it centers the posframe in the frame."
 	"Docker candiadate source for `consult-dir'.")
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-docker t))
 
-(use-package org-contrib :after org)
 (use-package org
-  :ensure `(org :repo "https://code.tecosaur.net/tec/org-mode.git/" :branch "dev")
+  :ensure nil
   :bind
   ("C-c a" .  gtd)
   ("C-c c" . org-capture)
   (:map org-mode-map
-	( "C-M-<up>" . org-up-element)
-	("C-c v" . wr-mode))
+    ( "C-M-<up>" . org-up-element)
+    ("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
   (org-mode . sn/org-mode-hook)
   :custom
   (org-latex-packages-alist
-      '(("" "xcolor")))
+    '(("" "xcolor")))
   (org-latex-todo-keyword-format
     "\\colorbox{%s!30}{\\textbf{%s}}")
   (org-latex-preview-live t)
   (org-latex-preview-numbered t)
   (org-latex-preview-live-debounce 0.25)
   (org-todo-keywords
-	(quote ((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
-			 (sequence "PROJECT(p)" "|" "DONE(d!/!)")
-			 (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)")))
-	org-todo-repeat-to-state "NEXT")
+      '((sequence "TODO(t)" "NEXT(n)" "INPROGRESS(i)" "|" "DONE(d!)")
+        (sequence "PROJECT(p)" "|" "DONE(d!)")
+        (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "DELEGATED(e@)" "CANCELLED(c@)")))
+  (org-todo-repeat-to-state "NEXT")
   (org-todo-keyword-faces
-	(quote (("NEXT" :inherit warning)
-			 ("PROJECT" :inherit font-lock-string-face))))
+    (quote (("NEXT" :inherit warning)
+     		 ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
   (org-auto-align-tags nil)
   (org-tags-column 0)
@@ -1704,8 +1703,6 @@ Otherwise, it centers the posframe in the frame."
   (org-hide-emphasis-markers t)
   (org-image-actual-width nil)
   (org-insert-heading-respect-content t)
-  (org-log-done 'time)
-  (org-pretty-entities t)
   (org-return-follows-link  t)
   (org-special-ctrl-a/e t)
   (org-src-fontify-natively t)
@@ -1719,100 +1716,96 @@ Otherwise, it centers the posframe in the frame."
   (org-directory "~/doc")
   (org-default-notes-file (concat org-directory "/notes.org"))
   (org-agenda-files
-	(cl-remove-if-not #'file-exists-p
-	  '("~/doc/inbox.org"
-		 "~/doc/projects.org"
-		 "~/doc/gcal.org"
-		 "~/doc/repeater.org")))
+    (cl-remove-if-not #'file-exists-p
+      '("~/doc/inbox.org"
+     	 "~/doc/projects.org"
+     	 "~/doc/gcal.org"
+     	 "~/doc/repeater.org")))
   (org-capture-templates
-	`(("t" "Tasks")
-	   ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
-		 "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
-	   ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
-		 "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
-	   ("p" "New Project")
-	   ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
-		 "* PROJECT %?\n" :clock-keep t)
-	   ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
-		 "* PROJECT %?\n" :clock-keep t :clock-in t)
-	   ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
-		 "* PROJECT %?\n" :clock-keep t)
-	   ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
-		 "* PROJECT %?\n" :clock-keep t :clock-in t)
-	   ("c" "Current task" checkitem (clock))
-	   ("r" "Roam")
-	   ("rt" "Go to today's daily note" entry (function (lambda ()
-														  (org-roam-dailies-goto-today)
-														  (org-capture-finalize))))
-	   ("rf" "Find or create an Org-roam node" entry (function (lambda ()
-																 (org-roam-node-find)
-																 (org-capture-finalize))))
-	   ("rv" "Open Roam UI in browser" entry (function (lambda ()
-														 (org-roam-ui-open)
-														 (org-capture-finalize))))))
+    `(("t" "Tasks")
+       ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
+     	 "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
+       ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
+     	 "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
+       ("p" "New Project")
+       ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+     	 "* PROJECT %?\n" :clock-keep t)
+       ("pP" "Personal Project (clock-in)" entry (file+headline "~/doc/projects.org" "Things I Want Done")
+     	 "* PROJECT %?\n" :clock-keep t :clock-in t)
+       ("pw" "Work Project" entry (file+headline "~/doc/projects.org" "Work")
+     	 "* PROJECT %?\n" :clock-keep t)
+       ("pW" "Work Project (clock-in)" entry (file+headline "~/doc/projects.org" "Work")
+     	 "* PROJECT %?\n" :clock-keep t :clock-in t)
+       ("c" "Current task" checkitem (clock))
+       ("r" "Roam")
+       ("rt" "Go to today's daily note" entry (function (lambda ()
+     													  (org-roam-dailies-goto-today)
+     													  (org-capture-finalize))))
+       ("rf" "Find or create an Org-roam node" entry (function (lambda ()
+     															 (org-roam-node-find)
+     															 (org-capture-finalize))))
+       ("rv" "Open Roam UI in browser" entry (function (lambda ()
+     													 (org-roam-ui-open)
+     													 (org-capture-finalize))))))
   :config
+  ;;       (require 'org-contr)		
   (defun sn/org-mode-hook ()
-	(add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
-	  'run-at-end 'only-in-org-mode))
+    (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
+      'run-at-end 'only-in-org-mode))
   (defun sn/org-babel-tangle-dont-ask ()
-	"Tangle Org file without asking for confirmation."
-	(let ((org-confirm-babel-evaluate nil))
-	  (org-babel-tangle)))
+    "Tangle Org file without asking for confirmation."
+    (let ((org-confirm-babel-evaluate nil))
+      (org-babel-tangle)))
   (org-babel-do-load-languages
-	'org-babel-load-languages
-	`((dot . t)
-	   (emacs-lisp . t)
-	   (gnuplot . t)
-	   (latex . t)
-	   (python . t)
-	   (,(if (locate-library "ob-sh") 'sh 'shell) . t)
-	   (sql . t)
-	   (sqlite . t)))
-  (defun sn/org-clock-in-if-inprogress ()
-	"Clock in when the task state is changed to INPROGRESS."
-	(when (string= org-state "INPROGRESS")
-	  (org-clock-in)))
-  (add-hook 'org-after-todo-state-change-hook 'sn/org-clock-in-if-inprogress)
+    'org-babel-load-languages
+    `((dot . t)
+       (emacs-lisp . t)
+       (gnuplot . t)
+       (latex . t)
+       (python . t)
+       (,(if (locate-library "ob-sh") 'sh 'shell) . t)
+       (sql . t)
+       (sqlite . t)))
   (define-minor-mode wr-mode
-	"Set up a buffer for word editing.
-   This enables or modifies a number of settings so that the
-   experience of word processing is a little more like that of a
-   typical word processor."
-	:interactive t " Writing" nil
-	(if wr-mode
-	  (progn
-		(setq
-		  word-wrap t
-		  cursor-type 'bar)
-		(when (eq major-mode 'org)
-		  (kill-local-variable 'buffer-face-mode-face))
-		(buffer-face-mode 1)
-		(setq-local
-		  blink-cursor-interval 0.8
-		  show-trailing-whitespace nil
-		  line-spacing 0.2
-		  electric-pair-mode nil)
-		(olivetti-mode 1)
-		(variable-pitch-mode 1)
-		(visual-line-mode 1))
-	  (kill-local-variable 'word-wrap)
-	  (kill-local-variable 'cursor-type)
-	  (kill-local-variable 'blink-cursor-interval)
-	  (kill-local-variable 'show-trailing-whitespace)
-	  (kill-local-variable 'line-spacing)
-	  (kill-local-variable 'electric-pair-mode)
-	  (buffer-face-mode -1)
-	  (variable-pitch-mode -1)
-	  (visual-line-mode -1)
-	  (olivetti-mode -1)))
+    "Set up a buffer for word editing.
+        This enables or modifies a number of settings so that the
+        experience of word processing is a little more like that of a
+        typical word processor."
+    :interactive t " Writing" nil
+    (if wr-mode
+      (progn
+     	(setq
+     	  word-wrap t
+     	  cursor-type 'bar)
+     	(when (eq major-mode 'org)
+     	  (kill-local-variable 'buffer-face-mode-face))
+     	(buffer-face-mode 1)
+     	(setq-local
+     	  blink-cursor-interval 0.8
+     	  show-trailing-whitespace nil
+     	  line-spacing 0.2
+     	  electric-pair-mode nil)
+     	(olivetti-mode 1)
+     	(variable-pitch-mode 1)
+     	(visual-line-mode 1))
+      (kill-local-variable 'word-wrap)
+      (kill-local-variable 'cursor-type)
+      (kill-local-variable 'blink-cursor-interval)
+      (kill-local-variable 'show-trailing-whitespace)
+      (kill-local-variable 'line-spacing)
+      (kill-local-variable 'electric-pair-mode)
+      (buffer-face-mode -1)
+      (variable-pitch-mode -1)
+      (visual-line-mode -1)
+      (olivetti-mode -1)))
   (require 'ox-latex)
   (add-to-list 'org-latex-packages-alist '("" "minted"))
   (setq org-latex-listings 'minted)
   (setq org-latex-pdf-process
     '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
-  (eval-after-load "org" '(require 'ox-md nil t)) ;; md exporter
   )
+(eval-after-load "org" '(require 'ox-md nil t))
 
 (use-package ob-mermaid
   :after org
@@ -1847,138 +1840,141 @@ Otherwise, it centers the posframe in the frame."
    :hook (org-mode . org-fragtog-mode))
 
 (use-package org-clock
-  :ensure nil  ;; built in
+  :ensure nil
+  :after (org consult)
+  :demand t
+  :custom
+  (org-clock-in-resume t)
+  (org-clock-persist t)
+  (org-clock-into-drawer t)
+  (org-log-into-drawer "LOGBOOK")
+  (org-log-done 'time)
+  (org-log-states-order-reversed t)
+  (org-pretty-entities t)
+  (org-clock-clocked-in-display nil)
+  (org-clock-idle-time 25)
+  (org-clock-auto-clockout-timer )
+  (org-clock-auto-clock-resolution 'always)
+  (org-clock-report-include-clocking-task t)
+  (org-clock-out-remove-zero-time-clocks t)
+  (org-pretty-entities t)
+  (org-clock-resolve-expert t)
+  :hook (org-after-todo-state-change . sn/org-clock-in-if-inprogress)
+  :init
+  (defvar org-clock-map (make-sparse-keymap)
+    "Keymap for org-clock commands.")
+  (defun sn/org-clock-in-if-inprogress ()
+	"Handle clocking and archiving based on the task state.
+Clock in if state is INPROGRESS, clock out and archive if DONE.
+Only clock in/out when needed, and always save all Org buffers."
+	(pcase org-state
+      ("INPROGRESS"
+		(unless (and (org-clock-is-active)
+                  (equal (org-clock-marker) (point-marker)))
+		  (org-clock-in))
+		(type-break-mode 1))
+      ((or "DONE" "DELEGATED" "CANCELLED")
+		(when (and (org-clock-is-active)
+                (equal (org-clock-marker) (point-marker)))
+		  (org-clock-out))
+		(org-archive-subtree)))
+	;; Always save all Org buffers regardless of state
+	(org-save-all-org-buffers))
+
+  (defun sn/org-clock-in-set-state ()
+  "Switch task to INPROGRESS when clocking in."
+  (unless (string= (org-get-todo-state) "INPROGRESS")
+    (org-todo "INPROGRESS")))
+
+(defun sn/org-clock-out-set-state ()
+  "Switch task to NEXT when clocking out, unless the task is DONE."
+  (unless (string= (org-get-todo-state) "DONE")
+    (org-todo "NEXT")))
+
+(add-hook 'org-clock-in-hook  #'sn/org-clock-in-set-state)
+(add-hook 'org-clock-out-hook #'sn/org-clock-out-set-state)
+
+  :bind-keymap ("C-o" . org-clock-map)
+  :bind (:map org-clock-map
+          ("j" . org-clock-goto)
+          ("l" . org-clock-in-last)
+          ("r" . org-resolve-clocks)
+          ("i" . consult-clock-in)
+          ("o" . org-clock-out))
   :config
   (defun consult-clock-in ()
-	"Clock into an Org agenda heading."
-	(interactive)
-	(save-window-excursion
+    "Clock into an Org agenda heading."
+    (interactive)
+    (save-window-excursion
       (consult-org-agenda)
       (org-clock-in)))
+  
   (consult-customize consult-clock-in
     :prompt "Clock in: "
     :preview-key "M-.")
-  :init
-  (defvar org-clock-map
-    (let ((map (make-sparse-keymap)))
-      (define-key map (kbd "j") 'org-clock-goto)
-      (define-key map (kbd "l") 'org-clock-in-last)
-      (define-key map (kbd "i") 'consult-clock-in)
-      (define-key map (kbd "o") 'org-clock-out)
-      map)
-    "Keymap for org-clock commands.")
-  (global-set-key (kbd "C-o") org-clock-map)
-  (defun sn/clock-in ()
-	(org-todo "INPROGRESS")
-	(type-break-mode 1)
-	(org-save-all-org-buffers))
-  (defun sn/clock-out ()
-	(type-break-mode -1)
-	(unless (string-equal (org-get-todo-state) "DONE")
-	  (org-todo "NEXT")
-	  (setq org-clock-heading "")
-	  (org-save-all-org-buffers)))
-  :hook
-  (org-clock-out . sn/clock-out)
-  (org-clock-in . sn/clock-in)
-  :custom
-  (org-clock-in-resume t)
-  (org-clock-persist 'history)
-  ;; Save clock data and notes in the LOGBOOK drawer
-  (org-clock-into-drawer t)
-  ;; Save state changes in the LOGBOOK drawer
-  (org-log-into-drawer t)
-  ;; Removes clocked tasks with 0:00 duration
-  (org-clock-out-remove-zero-time-clocks t)
-  ;; dont' show clock in bar because we use system bar
-  (org-clock-clocked-in-display nil)
-  ;; Enable auto clock resolution for finding open clocks
-  (org-clock-auto-clock-resolution (quote when-no-clock-is-running))
-  ;; Include current clocking task in clock reports
-  (org-clock-report-include-clocking-task t)
-  ;; use pretty things for the clocktable
-  (org-pretty-entities t)
-  (org-clock-resolve-expert t)
-  :config
+  
   (org-clock-persistence-insinuate)
-  (org-resolve-clocks))
+  (org-clock-auto-clockout-insinuate))
 
-  (use-package type-break
-	:ensure nil
-	:custom
-	(org-clock-ask-before-exiting nil)
-	(type-break-interval (* 25 60)) ;; 25 mins
-	(type-break-good-rest-interval (* 5 60)) ;; 5 mins
-	(type-break-good-break-interval (* 5 60)) ;; 5 mins
-	(type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
-	(type-break-demo-boring-stats t)
-	(type-break-file-name nil) ;; don't save across sessions file is annoying
-	(type-break-query-mode t)
-	(type-break-warning-repeat nil)
-	;; This will stop the warnings before it's time to take a break
-	(type-break-time-warning-intervals '())
-	(type-break-keystroke-warning-intervals '())
-	(type-break-query-function 'sn/type-break-query)
-	(type-break-mode-line-message-mode nil)
-	(type-break-demo-functions '(type-break-demo-boring))
-	:init
-	(defun sn/org-mark-current-done ()
-	  "Clock out of the current task and mark it as DONE."
-	  (interactive)
-	  (let ((org-clock-out-switch-to-state "DONE"))
-		(org-clock-out)
-		(setq org-clock-heading "")
-		(org-save-all-org-buffers)))
-	(defun sn/type-break-toggle ()
-	  (interactive)
-	  (if type-break-mode
-		  (type-break-mode -1)
-		(type-break-mode 1)))
-	(defun sn/type-break-query (a &rest b)
-	  "Auto say yes and ask to quit type break."
-	  (if (>= (type-break-time-difference
-								   type-break-interval-start
-								   type-break-time-last-break) 0)
-		  (y-or-n-p "Do you want to continue type-break? ")
-		t))
-	(defun org-clock-in-to-task-by-title (task-title)
-	  "Clock into an Org Agenda task by its title within a custom agenda command."
-	  (interactive "sEnter the title of the task: ")
-	  (save-window-excursion
-		(org-agenda nil "t")
-		(with-current-buffer "*Org Agenda(t)*"
-		  (goto-char (point-min))
-		  (if (search-forward task-title nil t)
-			  (progn
-				(org-agenda-goto)
-				(org-clock-in))
-			(message "Task with title \"%s\" not found in the custom agenda view." task-title)))))
-	(defun format-seconds-to-mm-ss (seconds)
-	  "Formats time to MM:SS."
-	  (let* ((minutes (floor (/ seconds 60)))
-			 (remaining-seconds (- seconds (* minutes 60))))
-		(format "%02d:%02d" minutes remaining-seconds)))
-	(defun type-break-json-data ()
-	  "Prints type break data used in eww bar."
-	  (let* ((time-difference  (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
-			 (formatted-time (if time-difference (format-seconds-to-mm-ss time-difference)
-							   "00:00"))
-			 (percent (if type-break-mode
-						  (number-to-string (/ (* 100.0 time-difference)
-											   type-break-interval))
-						"0"))
-			 (json-data `(:percent ,percent
-								   :time ,formatted-time
-								   :task ,(if (string-empty-p org-clock-heading)
-											  "No Active Task"
-											org-clock-heading)
-								   :summary ,(concat (if (or (not org-clock-heading) (string= org-clock-heading ""))
-														 "No Active Task"
-													   org-clock-heading)
-													 " " formatted-time)
-								   :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
-								   :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
-		(json-encode json-data))))
+(use-package type-break
+  :ensure nil
+  :custom
+  (type-break-interval (* 25 60)) ;; 25 mins
+  (type-break-good-rest-interval (* 5 60)) ;; 5 mins
+  (type-break-good-break-interval (* 5 60)) ;; 5 mins
+  (type-break-keystroke-threshold '(nil . 3000)) ;; 500 words is 3,000
+  (type-break-warning-repeat nil)
+  (type-break-time-warning-intervals '())
+  (type-break-keystroke-warning-intervals '())
+  (type-break-mode-line-message-mode nil)
+  (type-break-query-mode t)
+  (type-break-query-function 'sn/type-break-query)
+  (type-break-demo-functions '(type-break-demo-boring))
+  (type-break-demo-boring-stats t)
+  :init
+  (defun sn/type-break-toggle ()
+	(interactive)
+	(if type-break-mode
+	  (type-break-mode -1)
+	  (type-break-mode 1)))
+  (defun sn/type-break-query (a &rest b)
+	"Auto say yes and ask to quit type break."
+	(if (>= (type-break-time-difference
+			  type-break-interval-start
+			  type-break-time-last-break) 0)
+	  (y-or-n-p "Do you want to continue type-break? ")
+	  t))
+  (defun type-break-json-data ()
+	"Prints type break data used in eww bar."
+	(let* ((time-difference
+			 (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
+			(break-time-difference
+			  (when type-break-mode (type-break-time-difference type-break-time-last-break nil)))
+			(on-break (and type-break-mode
+						break-time-difference
+						(< break-time-difference type-break-good-break-interval)))
+			(formatted-time
+			  (cond
+				(on-break (format-seconds "%02m:%02s" (- type-break-good-break-interval break-time-difference)))
+				(time-difference (format-seconds "%02m:%02s" time-difference))
+				(t "00:00")))
+			(percent
+			  (if type-break-mode
+				(number-to-string (/ (* 100.0 time-difference) type-break-interval))
+				"0"))
+			(task-text
+			  (cond
+				(on-break "Take a break - relax your hands")
+				((string-empty-p org-clock-heading) "No Active Task")
+				(t org-clock-heading)))
+			(json-data
+			  `(:percent ,percent
+				 :time ,formatted-time
+				 :task ,task-text
+				 :summary ,(concat task-text " " formatted-time)
+				 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
+				 :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
+      (json-encode json-data))))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -2954,10 +2950,6 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
    (setq codeium-mode-line-enable
      (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
    (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
-
-(use-package claude-code
-  :ensure (:host github :repo "yuya373/claude-code-emacs")
-  :bind ("M-SPC a" . claude-code-transient))
 
 (use-package google-this
   :bind ("M-s w" . google-this))
