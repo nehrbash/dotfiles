@@ -156,52 +156,156 @@
 	  (modus-themes-load-theme 'ef-melissa-dark)))
   (add-hook 'after-make-frame-functions #'my-apply-theme-to-frame))
 
-(use-package prot-modeline
-  :ensure (:host gitlab
-			:repo "protesilaos/dotfiles"
-			:files ("emacs/.emacs.d/prot-lisp/prot-modeline.el"
-					 "emacs/.emacs.d/prot-lisp/prot-common.el")
-			:main "emacs/.emacs.d/prot-lisp/prot-modeline.el")
-  :custom (prot-modeline-string-truncate-length 30)
-  :config
-  (setq mode-line-compact nil) ; Emacs 28
-  (setq mode-line-right-align-edge 'right-margin) ; Emacs 30
-  (defvar custom-mode-line-height 32
-	"Height of the mode line image.")
-  (defun custom-sloth-image-segment ()
-	"Return an image segment with a specified height."
-	(let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory))
-		   (img-height custom-mode-line-height))
-      (when (file-exists-p img-file)
-		(propertize " "
-		  'display (create-image img-file nil nil :height img-height :ascent 'center)))))
-  (setq-default mode-line-format
-    '("%e"
-	   (:eval (custom-sloth-image-segment))
-       prot-modeline-kbd-macro
-       prot-modeline-narrow
-       (:eval
-		 (let ((remote (file-remote-p default-directory 'host)))
-		   (when remote
-			 (propertize (format " @%s " remote)
-               'face 'prot-modeline-indicator-red-bg))))
-       prot-modeline-window-dedicated-status
-       prot-modeline-input-method
-	   (:eval (meow--update-indicator))
-       "  "
-       prot-modeline-buffer-identification
-       "  "
-       prot-modeline-process
-	   " "
-	   (:eval (breadcrumb-imenu-crumbs))
-       mode-line-format-right-align
-	   "  "
-       prot-modeline-eglot
-       "  "
-       prot-modeline-flymake
-	   "  "
-	   prot-modeline-vc-branch
-       "  ")))
+;;; Minimal Modeline Configuration
+;;; Only shows information when relevant
+
+;; Mode line settings
+(setq mode-line-compact nil)
+(setq mode-line-right-align-edge 'right-margin)
+
+;; Custom modeline height for sloth image
+(defvar custom-mode-line-height 32
+  "Height of the mode line image.")
+
+;;; Customize Flymake mode-line appearance (prettier than default brackets)
+(with-eval-after-load 'flymake
+  ;; Customize the counter format to use prettier symbols
+  (setq flymake-mode-line-counter-format
+        '(" "
+          flymake-mode-line-error-counter
+          flymake-mode-line-warning-counter
+          flymake-mode-line-note-counter))
+  
+  ;; Override the main format to be more minimal
+  (setq flymake-mode-line-format
+        '(" "
+          flymake-mode-line-exception
+          flymake-mode-line-counters)))
+
+;;; Customize Eglot mode-line appearance (prettier than default brackets)
+(with-eval-after-load 'eglot
+  ;; Use a simpler string instead of [eglot:project]
+  (setq eglot-mode-line-format
+        '(:eval (when (eglot-current-server)
+                  (let* ((server (eglot-current-server))
+                         (nick (eglot-project-nickname server))
+                         (pending (hash-table-count (jsonrpc--request-continuations server)))
+                         (last-error (jsonrpc-last-error server)))
+                    (cond
+                     (last-error
+                      (propertize " ⚠ LSP" 'face 'error))
+                     ((> pending 0)
+                      (propertize (format " ⟳%d" pending) 'face 'warning))
+                     (t
+                      (propertize (format " ✓ %s" nick) 'face 'success))))))))
+
+;;; Modeline segments - each only displays when relevant
+
+(defun my-modeline-sloth-image ()
+  "Return sloth image segment if file exists."
+  (let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory)))
+    (when (file-exists-p img-file)
+      (propertize " "
+                  'display (create-image img-file nil nil
+                                        :height custom-mode-line-height
+                                        :ascent 'center)))))
+
+(defun my-modeline-kbd-macro ()
+  "Display kbd macro indicator when defining or executing macro."
+  (when (or defining-kbd-macro executing-kbd-macro)
+    (propertize (if defining-kbd-macro " REC " " MACRO ")
+                'face 'mode-line-emphasis)))
+
+(defun my-modeline-narrow ()
+  "Display narrow indicator when buffer is narrowed."
+  (when (buffer-narrowed-p)
+    (propertize " Narrow "
+                'face 'warning)))
+
+(defun my-modeline-remote ()
+  "Display remote host when on remote connection."
+  (when-let ((remote (file-remote-p default-directory 'host)))
+    (propertize (format " @%s " remote)
+                'face 'error)))
+
+(defun my-modeline-dedicated ()
+  "Display indicator when window is dedicated."
+  (when (window-dedicated-p)
+    (propertize " [D] "
+                'face 'mode-line-highlight)))
+
+(defun my-modeline-input-method ()
+  "Display current input method when active."
+  (when current-input-method
+    (propertize (format " [%s] " current-input-method-title)
+                'face 'success)))
+
+(defun my-modeline-meow ()
+  "Display meow indicator if meow-mode is active."
+  (when (bound-and-true-p meow-mode)
+    (meow--update-indicator)))
+
+(defun my-modeline-buffer-name ()
+  "Display buffer name with modified indicator."
+  (let* ((modified (if (buffer-modified-p) "*" ""))
+         (read-only (if buffer-read-only "%" ""))
+         (name (buffer-name)))
+    (propertize (format "%s%s%s" modified read-only name)
+                'face 'mode-line-buffer-id)))
+
+(defun my-modeline-process ()
+  "Display process indicator when process is running."
+  (when mode-line-process
+    (format-mode-line mode-line-process)))
+
+(defun my-modeline-breadcrumb ()
+  "Display breadcrumb imenu when available."
+  (when (bound-and-true-p breadcrumb-mode)
+    (breadcrumb-imenu-crumbs)))
+
+(defun my-modeline-vc ()
+  "Display VC branch when in version control."
+  (when vc-mode
+    (let* ((backend (vc-backend buffer-file-name))
+           (branch (when backend
+                    (substring-no-properties vc-mode
+                                            (+ 2 (length (symbol-name backend)))))))
+      (when branch
+        (propertize (format " %s" branch)
+                    'face '(:foreground "magenta" :weight bold))))))
+
+;;; Assemble the mode line
+(defvar-local my-modeline-format
+    '((:eval (my-modeline-sloth-image))
+      (:eval (my-modeline-kbd-macro))
+      (:eval (my-modeline-narrow))
+      (:eval (my-modeline-remote))
+      (:eval (my-modeline-dedicated))
+      (:eval (my-modeline-input-method))
+      (:eval (my-modeline-meow))
+      "  "
+      (:eval (my-modeline-buffer-name))
+      "  "
+      (:eval (my-modeline-process))
+      " "
+      (:eval (my-modeline-breadcrumb))
+      mode-line-format-right-align
+      "  "
+      ;; Eglot with custom formatting (no brackets)
+      eglot--mode-line-format
+      "  "
+      ;; Flymake with custom formatting (no brackets)
+      (:eval (when (bound-and-true-p flymake-mode)
+               flymake--mode-line-format))
+      "  "
+      (:eval (my-modeline-vc))
+      "  "))
+
+;; Set it as default
+(setq-default mode-line-format my-modeline-format)
+
+;; Force update
+(force-mode-line-update t)
 
 (use-package modern-tab-bar
   :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
@@ -354,6 +458,14 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
     (set-window-display-table (selected-window) display-table)))
 (add-hook 'window-configuration-change-hook 'sn/change-window-divider)
 
+(use-package ligature
+  :config
+  (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
+				       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
+				       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
+				       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
+  (global-ligature-mode t))
+
 (setq-default
   fill-column 100
   blink-cursor-interval 0.4
@@ -398,6 +510,22 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 (with-eval-after-load 'browse-url
   (setq browse-url-browser-function #'browse-url-zen))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
+
+(defvar my/simple-mouse-menu
+  (easy-menu-create-menu
+   "Edit"
+   '(["Copy"   kill-ring-save :active (use-region-p)]
+     ["Paste"  yank           :active t]
+     ["Cut"    kill-region    :active (use-region-p)])))
+
+(defun my/popup-simple-edit-menu (event)
+  "Popup a simple Copy/Paste menu at mouse EVENT."
+  (interactive "e")
+  (mouse-set-point event)
+  (popup-menu my/simple-mouse-menu))
+
+;; Bind right-click
+(global-set-key [mouse-3] #'my/popup-simple-edit-menu)
 
 (use-package prot-window
   :ensure (:host gitlab
@@ -516,12 +644,10 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
   (add-to-list 'tramp-connection-properties
 			   (list (regexp-quote "/ssh:ag-nehrbash:")
-					 ;; "remote-shell" "/usr/bin/bash"
 					 "direct-async-process" t
 					 "tramp-direct-async" t))
   (add-to-list 'tramp-connection-properties
 			   (list (regexp-quote "/docker:")
-					 "remote-shell" "/usr/bin/bash"
 					 "direct-async-process" t
 					 "tramp-direct-async" t)))
 
@@ -1131,6 +1257,8 @@ Call a second time to restore the original window configuration."
   :hook (elpaca-after-init . marginalia-mode))
 
 (use-package all-the-icons-completion
+  :custom
+  (all-the-icons-scale-factor 0.96)
   :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
 
 (use-package vertico-posframe
@@ -1298,19 +1426,19 @@ Otherwise, it centers the posframe in the frame."
               (push part items)))))
       items)))
 
-  (defvar consult--source-vc-modified-file
+  (defvar consult-source-vc-modified-file
 	(list
 	  :name     "VC Modified File"
 	  :narrow   ?g
 	  :category 'file
 	  :face     'consult-file
 	  :history  'file-name-history
-	  :state    #'consult--file-state
+	  :state    #'consult-file-state
 	  :enabled  #'vc-consult-enabled-p
 	  :items    #'vc-consult-get-modified-items)
 	"VC modified file candidate source for `consult-buffer'.")
 
-  (defvar consult--source-org
+  (defvar consult-source-org
 	(list :name     "Org"
 	  :category 'buffer
 	  :narrow   ?o
@@ -1322,7 +1450,7 @@ Otherwise, it centers the posframe in the frame."
 		(with-current-buffer (get-buffer-create name)
 		  (insert "#+title: " name "\n\n")
 		  (org-mode)
-		  (consult--buffer-action (current-buffer))))
+		  (consult-buffer-action (current-buffer))))
 	  :items
 	  (lambda ()
 		(mapcar #'buffer-name
@@ -1330,7 +1458,7 @@ Otherwise, it centers the posframe in the frame."
 			(lambda (x)
 			  (eq (buffer-local-value 'major-mode x) 'org-mode))
 			(buffer-list))))))
-  (defvar consult--source-vterm
+  (defvar consult-source-vterm
 	(list :name     "Term"
 	  :category 'buffer
 	  :narrow   ?v
@@ -1351,22 +1479,22 @@ Otherwise, it centers the posframe in the frame."
 	(consult-buffer '(consult--source-vterm)))
   ;; reorder, mainly to move recent-file down and  org
   (setq consult-buffer-sources
-	'(consult--source-hidden-buffer
-	   consult--source-modified-buffer
-	   consult--source-buffer
-	   consult--source-org
-	   consult--source-vterm
-	   consult--source-bookmark
-	   consult--source-project-root
-	   consult--source-recent-file
-	   consult--source-file-register
-	   consult--source-project-buffer-hidden
-	   consult--source-project-recent-file-hidden))
+	'(consult-source-hidden-buffer
+	   consult-source-modified-buffer
+	   consult-source-buffer
+	   consult-source-org
+	   consult-source-vterm
+	   consult-source-bookmark
+	   consult-source-project-root
+	   consult-source-recent-file
+	   consult-source-file-register
+	   consult-source-project-buffer-hidden
+	   consult-source-project-recent-file-hidden))
   (setq consult-project-buffer-sources
-	'(consult--source-project-buffer
-	   consult--source-vc-modified-file
-	   consult--source-vterm
-	   consult--source-project-recent-file)))
+	'(consult-source-project-buffer
+	   consult-source-vc-modified-file
+	   consult-source-vterm
+	   consult-source-project-recent-file)))
 
     (use-package consult-xref-stack
       :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
@@ -1398,7 +1526,7 @@ Otherwise, it centers the posframe in the frame."
 (use-package project
   :ensure nil
   :bind-keymap ("C-c p". project-prefix-map)
-  :custom (project-vc-extra-root-markers '(".project")))
+  :custom (project-vc-extra-root-markers '("go.mod")))
 
 (use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
@@ -1484,9 +1612,10 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package kind-icon
   :after corfu
-  :custom ((kind-icon-default-face 'corfu-default))
+  :custom 
+  (kind-icon-blend-background t)
+  (kind-icon-default-face 'corfu-default)
   :config
-  (plist-put kind-icon-default-style :height 0.9)
   (add-to-list 'corfu-margin-formatters #'kind-icon-margin-formatter))
 
 (use-package cape
@@ -1614,7 +1743,6 @@ Otherwise, it centers the posframe in the frame."
 		  ("m" . dired-ranger-move)
 		  ("H" . dired-omit-mode)
 		  ("y" . dired-ranger-paste)))
-(use-package all-the-icons)
 (use-package dired-subtree
   :after dired
   :bind (:map dired-mode-map
@@ -2189,7 +2317,7 @@ Only clock in/out when needed, and always save all Org buffers."
 	"Open today's daily note non-interactively and return the buffer name as a string."
 	(interactive)
 	(org-roam-dailies-goto-today)
-	(get-buffer (format-time-string "%Y-%m-%d.org")           ))
+	(get-buffer (format-time-string "%Y-%m-%d.org")))
   (unless (> (length command-line-args) 1)
 	(setq initial-buffer-choice #'sn/org-roam-dailies-goto-today))
   :config
@@ -2502,97 +2630,70 @@ The exact color values are taken from the active Ef theme."
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
-(use-package svg-tag-mode)
-(use-package vterm
-  :hook (vterm-mode . sn/setup-vterm)
-  :init
-  (defun sn/setup-vterm ()
-	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
-	(buffer-face-mode t)
-	(setq-local left-margin-width 3
-	  right-margin-width 3
-	  cursor-type 'bar)
-	(face-remap-add-relative
-	  'default
-	  :background "#281d12")
-	(face-remap-set-base
-	  'default
-	  :background "#281d12")
-	(face-remap-add-relative
-	  'fringe
-	  :background "#281d12"))
-  :config
-  (defun old-version-of-vterm--get-color (index &rest args)
-	"This is the old version before it was broken by commit
-https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-	(cond
-      ((and (>= index 0) (< index 16))
-		(face-foreground
-		  (elt vterm-color-palette index)
-		  nil 'default))
-      ((= index -11)
-		(face-foreground 'vterm-color-underline nil 'default))
-      ((= index -12)
-		(face-background 'vterm-color-inverse-video nil 'default))
-      (t
-		nil)))
-  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
-  (defun my/vterm-standalone ()
-  "Create a standalone vterm frame without modeline and minibuffer."
-  (interactive)
-  (let ((frame (make-frame '((name . "vterm-standalone")
-                             (minibuffer . nil)))))
-    (select-frame frame)
-    (vterm)
-    ;; (set-window-fringes nil 0 0)
-    ;; (set-window-margins nil 0 0)
-	))
-
-(defun my/vterm-clean ()
-  "Open vterm in current frame with no modeline."
-  (interactive)
-  (vterm)
-  (setq mode-line-format nil)
-  (set-window-fringes nil 0 0)
-  (set-window-margins nil 0 0)))
-(use-package vterm-tabs
-  :load-path "~/.emacs.d/lisp/vterm-tabs"
-  :bind
-  (("<f6>" . vterm-tabs-toggle)
-	:map vterm-mode-map
-	("C-M-s" . consult-term)
-	("M-w" . copy-region-as-kill)
-	("C-y" . vterm-yank))
-  :custom
-  (vterm-buffer-maximum-size 800)
-  (vterm-tramp-shells
-	'(("ssh" "/bin/bash")
-	   ("docker" "/bin/bash")
-	   ("sudo" "/bin/bash")))
-  (vterm-always-compile-module t)
-  :config
-  (require 'svg-tabs)
-  (global-vterm-tabs-mode 1))
-
-(use-package direnv
-  :custom (direnv-always-show-summary nil)
-  :config
-  (direnv-mode)
-  (defun my-direnv-allow-on-save ()
-    "Run `direnv allow` when saving `.envrc` or `.env` files."
-    (when (and buffer-file-name
-               (string-match-p "\\.envrc\\|\\.env$" buffer-file-name))
-      (direnv-update-environment)))
-  (add-hook 'after-save-hook 'my-direnv-allow-on-save))
-
-(use-package ligature
-  :config
-  (ligature-set-ligatures 'prog-mode '("<---" "<--"  "<<-" "<-" "->" "-->" "--->" "<->" "<-->" "<--->" "<---->" "<!--"
-				       "<==" "<===" "<=" "=>" "=>>" "==>" "===>" ">=" "<=>" "<==>" "<===>" "<====>" "<!---"
-				       "<~~" "<~" "~>" "~~>" "::" ":::" "==" "!=" "===" "!=="
-				       ":=" ":-" ":+" "<*" "<*>" "*>" "<|" "<|>" "|>" "+:" "-:" "=:" "<******>" "++" "+++"))
-  (global-ligature-mode t))
+  (use-package svg-tag-mode)
+  (use-package vterm
+    :hook (vterm-mode . sn/setup-vterm)
+    :init
+    (defun sn/setup-vterm ()
+  	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
+  	(buffer-face-mode t)
+  	(setq-local left-margin-width 3
+  	  right-margin-width 3
+  	  cursor-type 'bar)
+  	(face-remap-add-relative
+  	  'default
+  	  :background "#281d12")
+  	(face-remap-set-base
+  	  'default
+  	  :background "#281d12")
+  	(face-remap-add-relative
+  	  'fringe
+  	  :background "#281d12"))
+    :config
+    (defun old-version-of-vterm--get-color (index &rest args)
+  	"This is the old version before it was broken by commit
+  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+  	(cond
+        ((and (>= index 0) (< index 16))
+  		(face-foreground
+  		  (elt vterm-color-palette index)
+  		  nil 'default))
+        ((= index -11)
+  		(face-foreground 'vterm-color-underline nil 'default))
+        ((= index -12)
+  		(face-background 'vterm-color-inverse-video nil 'default))
+        (t
+  		nil)))
+    (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
+    (defun my/vterm-standalone ()
+  	"Create a standalone vterm frame without modeline and minibuffer."
+  	(interactive)
+  	(let ((frame (make-frame '((name . "vterm-standalone")
+  								(minibuffer . nil)))))
+        (select-frame frame)
+        (let ((display-buffer-alist nil))
+  		(vterm))
+  	  (setq mode-line-format nil)))
+    )
+  (use-package vterm-tabs
+    :load-path "~/.emacs.d/lisp/vterm-tabs"
+    :bind
+    (("<f6>" . vterm-tabs-toggle)
+  	:map vterm-mode-map
+  	("C-M-s" . consult-term)
+  	("M-w" . copy-region-as-kill)
+  	("C-y" . vterm-yank))
+    :custom
+    (vterm-buffer-maximum-size 800)
+    (vterm-tramp-shells
+  	'(("ssh" "/bin/bash")
+  	   ("docker" "/bin/bash")
+  	   ("sudo" "/bin/bash")))
+    (vterm-always-compile-module t)
+    :config
+    (require 'svg-tabs)
+    (global-vterm-tabs-mode 1))
 
 (use-package makefile-runner
   :ensure (:host github :repo "danamlund/emacs-makefile-runner"))
@@ -2756,14 +2857,14 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   (interactive)
   ;; Close all buffers in ~/src/analytics-hub/
   (dolist (buffer (buffer-list))
-    (when (string-prefix-p (expand-file-name "~/src/analytics-hub/") (or (buffer-file-name buffer) ""))
+    (when (string-prefix-p (expand-file-name "~/src/gateway/") (or (buffer-file-name buffer) ""))
       (kill-buffer buffer)))
   ;; Set default directory and run the dev container command
-  (let* ((default-directory (expand-file-name "~/src/analytics-hub/"))
+  (let* ((default-directory (expand-file-name "~/src/gateway/gateway/"))
 	  (output-buffer "*Start Dev-Container Output*")
 	  (result (call-process-shell-command "devcontainer up --workspace-folder ." nil output-buffer t)))
     (if (= result 0)
-	  (project-switch-project "/docker:dev-container:/workspace/")
+	  (dired "/docker:mise-container:/workspace/gateway")
       (message "Error: Command failed. Check %s for details." output-buffer))))
 
 (defun sn/ssh-pub-key ()

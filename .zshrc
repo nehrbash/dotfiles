@@ -61,7 +61,7 @@ source /usr/share/autojump/autojump.zsh 2>/dev/null
 # Load emacs functions
 [ -f "$HOME/.zsh/emacs_functions" ] && source "$HOME/.zsh/emacs_functions"
 
-# Load direnv
-[ -f "$(which direnv)" ] && eval "$(direnv hook zsh)"
+[ -f "$(which mise)" ] && eval "$(mise activate zsh)"
+
 export PATH=~/.npm-global/bin:$PATH
 source /usr/share/nvm/init-nvm.sh
