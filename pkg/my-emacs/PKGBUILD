@@ -1,0 +1,83 @@
+# Maintainer: Stephen Nehrbass <stephen.nehrbass@gmail.com>
+pkgname=emacs-git
+pkgver=31.0.50.180814
+pkgrel=1
+pkgdesc="GNU Emacs master branch — optimized for Wayland (PGTK), Clang + LTO, native-comp, and Tree-sitter"
+arch=('x86_64')
+url="https://www.gnu.org/software/emacs/"
+license=('GPL-3.0-or-later')
+depends=(
+  'gnutls' 'libxml2' 'jansson' 'harfbuzz'
+  'libotf' 'libjpeg-turbo' 'libpng' 'giflib' 'libtiff' 'libxpm'
+  'lcms2' 'librsvg' 'libxi' 'alsa-lib' 'tree-sitter'
+  'libgccjit' 'sqlite' 'dbus' 'gtk3'
+)
+makedepends=('git' 'clang' 'lld' 'llvm' 'texinfo')
+provides=('emacs')
+conflicts=('emacs')
+source=("emacs-git::git+https://git.savannah.gnu.org/git/emacs.git")
+sha256sums=('SKIP')
+options=(!strip)
+
+pkgver() {
+  cd "$srcdir/emacs-git"
+  printf "%s.%s" \
+    "$(grep AC_INIT configure.ac | awk -F',' '{gsub("[ \\[\\]]","",$2);print $2}')" \
+    "$(git rev-list --count HEAD)"
+}
+
+prepare() {
+  cd "$srcdir/emacs-git"
+  [[ -x configure ]] || ( ./autogen.sh git && ./autogen.sh autoconf )
+}
+
+build() {
+  cd "$srcdir/emacs-git"
+  
+  export CC=clang
+  export CXX=clang++
+  export LD=lld
+  export AR=llvm-ar
+  export CFLAGS+=' -fuse-ld=lld'
+  export CXXFLAGS+=' -fuse-ld=lld'
+  
+  ./configure \
+    --prefix=/usr \
+    --sysconfdir=/etc \
+    --libexecdir=/usr/lib \
+    --localstatedir=/var \
+    --mandir=/usr/share/man \
+    --with-gameuser=:games \
+    --with-pgtk \
+    --with-tree-sitter \
+    --with-native-compilation=yes \
+    --with-json \
+    --with-modules \
+    --with-harfbuzz \
+    --with-xinput2 \
+    --with-sound=alsa \
+    --without-compress-install \
+    --without-gconf \
+    --without-gsettings \
+    --without-xwidgets \
+    --enable-link-time-optimization \
+    --enable-autodepend \
+    --program-transform-name='s/\([ec]tags\)/\1.emacs/'
+  
+  make -j"$(nproc)"
+}
+
+package() {
+  cd "$srcdir/emacs-git"
+  make DESTDIR="$pkgdir/" install
+  
+  # Fix permissions
+  find "$pkgdir"/usr/share/emacs/ -type f -exec chmod 644 {} \;
+  find "$pkgdir"/usr/share/emacs/ -type d -exec chmod 755 {} \;
+  
+  # Fix /var/games permissions
+  mkdir -p "$pkgdir"/var/games/emacs
+  chmod 775 "$pkgdir"/var/games
+  chmod 775 "$pkgdir"/var/games/emacs
+  chown -R root:games "$pkgdir"/var/games
+}

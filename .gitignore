@@ -70,3 +70,7 @@
 /.local/bin/roamui
 .aider*
 *.eld
+*.zst
+/pkg/my-emacs/pkg/
+/pkg/my-emacs/src/
+/pkg/my-emacs/emacs-git/
