@@ -1926,7 +1926,7 @@ Otherwise, it centers the posframe in the frame."
 	  :category 'file
 	  :face     'consult-file
 	  :history  'file-name-history
-	  :state    #'consult-file-state
+	  :state    #'consult--file-state
 	  :enabled  #'vc-consult-enabled-p
 	  :items    #'vc-consult-get-modified-items)
 	"VC modified file candidate source for `consult-buffer'.")

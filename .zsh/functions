@@ -50,7 +50,7 @@ update-tokens() {
     [[ -z "$REMOTE" ]] && { echo "Error: REMOTE not set" >&2; return 1; }
 
     local remote_token dev_token envrc_file
-    envrc_file="$HOME/src/analytics-hub/.env"
+    envrc_file="$HOME/src/gateway/.envrc"
 
     [[ ! -f "$envrc_file" ]] && { echo "Error: .env not found" >&2; return 1; }
 
@@ -70,7 +70,5 @@ update-tokens() {
         -e "s/^export REMOTE_TOKEN=.*/export REMOTE_TOKEN=\"$remote_token\"/" \
         -e "s/^export AG_DEV_TOKEN=.*/export AG_DEV_TOKEN=\"$dev_token\"/" \
         "$envrc_file"
-    
-    echo "Updated tokens in .env"
-	direnv allow
 }
+
