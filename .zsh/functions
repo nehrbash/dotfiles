@@ -50,7 +50,7 @@ update-tokens() {
     [[ -z "$REMOTE" ]] && { echo "Error: REMOTE not set" >&2; return 1; }
 
     local remote_token dev_token envrc_file
-    envrc_file="$HOME/src/gateway/.envrc"
+    envrc_file="$HOME/src/gateway/.env"
 
     [[ ! -f "$envrc_file" ]] && { echo "Error: .env not found" >&2; return 1; }
 
@@ -67,8 +67,8 @@ update-tokens() {
     [[ -z "$remote_token" ]] && { echo "Error: Empty REMOTE token" >&2; return 1; }
     [[ -z "$dev_token" ]] && { echo "Error: Empty AG_DEV token" >&2; return 1; }
     sed -i.bak \
-        -e "s/^export REMOTE_TOKEN=.*/export REMOTE_TOKEN=\"$remote_token\"/" \
-        -e "s/^export AG_DEV_TOKEN=.*/export AG_DEV_TOKEN=\"$dev_token\"/" \
+        -e "s/^REMOTE_TOKEN=.*/REMOTE_TOKEN=\"$remote_token\"/" \
+        -e "s/^AG_DEV_TOKEN=.*/AG_DEV_TOKEN=\"$dev_token\"/" \
         "$envrc_file"
 }
 
