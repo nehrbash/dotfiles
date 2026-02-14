@@ -2861,7 +2861,8 @@ Only clock in/out when needed, and always save all Org buffers."
   :ensure (:host github :repo "vedang/pdf-tools")
   :mode ("\\.pdf\\'" . pdf-view-mode)
   :magic ("%PDF" . pdf-view-mode)
-  :hook (pdf-tools-enabled . pdf-view-midnight-minor-mode)
+  :hook ((pdf-tools-enabled . pdf-view-midnight-minor-mode)
+         (pdf-view-mode . (lambda () (setq-local cursor-type nil))))
   :custom
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
