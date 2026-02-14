@@ -874,7 +874,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 (use-package autorevert
   :ensure nil
   :custom
-  (auto-revert-remote-files t) ;; TODO: do this only for docker
+  (auto-revert-remote-files t)
   (auto-revert-verbose nil)
   :init (global-auto-revert-mode 1))
 #+end_src
@@ -2876,6 +2876,8 @@ Only clock in/out when needed, and always save all Org buffers."
   (pdf-annot-activate-created-annotations t)
   :config
   (pdf-tools-install :no-query)
+  ;; Required for continuous-scroll branch
+  (require 'pdf-roll nil t)
   )
 #+end_src
 
