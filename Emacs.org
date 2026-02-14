@@ -51,7 +51,6 @@
   - [[#corfu][Corfu]]
   - [[#cape---completion-at-point-extensions][cape - Completion At Point Extensions]]
   - [[#spelling][Spelling]]
-- [[#open-pdfs][Open pdfs]]
 - [[#dired][Dired]]
 - [[#org-mode][Org Mode]]
   - [[#general-configure][General Configure]]
@@ -2206,14 +2205,6 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
 #+end_src
 
 This config block sets up the =define-word= package and =flyspell-correct= package in Emacs. The =define-word= package provides a command for looking up definitions of words, while the =flyspell-correct= package adds a keybinding to correct spelling mistakes when using =flyspell= mode.
-
-* Open pdfs
-
-    #+begin_src emacs-lisp
-(use-package openwith
-  :custom (openwith-associations '(("\\.pdf\\'" "evince" (file))))
-  :config (openwith-mode t))
-#+end_src
   
 * Dired
 
@@ -2868,6 +2859,8 @@ Only clock in/out when needed, and always save all Org buffers."
 #+begin_src emacs-lisp
 (use-package pdf-tools
   :ensure (:host github :repo "vedang/pdf-tools")
+  :mode ("\\.pdf\\'" . pdf-view-mode)
+  :magic ("%PDF" . pdf-view-mode)
   :hook (pdf-tools-enabled . pdf-view-midnight-minor-mode)
   :custom
   (pdf-view-display-size 'fit-width)
