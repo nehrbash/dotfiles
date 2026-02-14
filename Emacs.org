@@ -867,8 +867,6 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
     :custom
     (recentf-auto-cleanup 300)
     (recentf-max-saved-items 100)
-    (setq backup-directory-alist
-	`((".*" . ,temporary-file-directory)))
     (recentf-exclude
 	'(
 	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
@@ -920,7 +918,6 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   (tramp-use-connection-share nil)
   (tramp-use-ssh-controlmaster-options nil)
   :config
-  (setq tramp-verbose 0)
   (add-to-list 'backup-directory-alist
 	     (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -3515,7 +3512,7 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
     '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
   )
-(eval-after-load "org" '(require 'ox-md nil t))
+(with-eval-after-load 'org (require 'ox-md nil t))
 #+end_src
 
 ** Mermaid
@@ -3972,17 +3969,6 @@ Only clock in/out when needed, and always save all Org buffers."
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   (pdf-annot-activate-created-annotations t)
   :config
-  (require 'pdf-tools)
-  (require 'pdf-view)
-  (require 'pdf-misc)
-  (require 'pdf-occur)
-  (require 'pdf-util)
-  (require 'pdf-annot)
-  (require 'pdf-info)
-  (require 'pdf-isearch)
-  (require 'pdf-history)
-  (require 'pdf-links)
-  (require 'pdf-roll)
   (pdf-tools-install :no-query)
   )
 #+end_src
