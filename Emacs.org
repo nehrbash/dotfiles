@@ -2862,7 +2862,11 @@ Only clock in/out when needed, and always save all Org buffers."
   :mode ("\\.pdf\\'" . pdf-view-mode)
   :magic ("%PDF" . pdf-view-mode)
   :hook ((pdf-tools-enabled . pdf-view-midnight-minor-mode)
-         (pdf-view-mode . (lambda () (setq-local cursor-type nil))))
+         (pdf-view-mode . (lambda ()
+                            (setq-local cursor-type nil)
+                            (blink-cursor-mode -1)
+                            (when (bound-and-true-p hl-line-mode)
+                              (hl-line-mode -1)))))
   :custom
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
