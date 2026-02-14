@@ -422,6 +422,10 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   (add-hook 'transient-exit-hook #'pmx--no-herky-jerk-exit)
   (setopt transient-hide-during-minibuffer-read t)))
 
+(use-package ansi-color
+  :ensure nil
+  :hook (compilation-filter . ansi-color-compilation-filter))
+
 (use-package page-break-lines
   :init (global-page-break-lines-mode))
 
@@ -708,9 +712,8 @@ This is useful when followed by an immediate kill."
   "Move to end of line, enter a newline, and reindent."
   (interactive)
   (move-end-of-line 1)
-  (newline-and-indent))
+  (newline))
 
-(global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
 
 (use-package display-line-numbers
@@ -778,6 +781,7 @@ This is useful when followed by an immediate kill."
 	"Enable display of trailing whitespace in this buffer."
 	(setq-local show-trailing-whitespace t)))
 
+(electric-indent-mode t)
 (electric-pair-mode t)
 (use-package paren ; highight matching paren
   :ensure nil
@@ -2770,7 +2774,8 @@ The exact color values are taken from the active Ef theme."
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
   :config
-  (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
+  ;; (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer")))
+  )
 (use-package cargo-jump-xref
   :after toml-mode
   :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")

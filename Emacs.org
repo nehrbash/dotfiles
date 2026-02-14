@@ -28,6 +28,7 @@
   - [[#i-search][I-Search]]
   - [[#ibuffer][Ibuffer]]
   - [[#newline-behavior][Newline Behavior]]
+  - [[#line-numbers][Line Numbers]]
   - [[#expand-region][Expand Region]]
   - [[#symbol-overlay][symbol-overlay]]
   - [[#kill-backwards][kill backwards]]
@@ -499,7 +500,7 @@
 (global-prettify-symbols-mode t)
 #+end_src
 
-*** Scolling
+*** Scrolling
 
 	~C-v~ and ~M-v~ are scroll commands.
 
@@ -606,8 +607,20 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 #+end_src
 
 
-*** Page Break Lines render
+*** compile buffer
 
+    When output is designed for shell you get a lot of coloring text and it looks bad. Instead of fighting tools that do this we can just apply the ANSI coloring.
+    
+#+begin_src emacs-lisp
+(use-package ansi-color
+  :ensure nil
+  :hook (compilation-filter . ansi-color-compilation-filter))
+#+end_src
+
+*** Page Break Lines Render 
+
+    To insert a page break 
+    
 #+begin_src emacs-lisp
 (use-package page-break-lines
   :init (global-page-break-lines-mode))
@@ -1003,11 +1016,14 @@ This is useful when followed by an immediate kill."
   "Move to end of line, enter a newline, and reindent."
   (interactive)
   (move-end-of-line 1)
-  (newline-and-indent))
+  (newline))
 
-(global-set-key (kbd "RET") 'newline-and-indent)
 (global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
+#+end_src
 
+** Line Numbers
+
+   #+begin_src emacs-lisp
 (use-package display-line-numbers
   :ensure nil
   :custom
@@ -1016,8 +1032,9 @@ This is useful when followed by an immediate kill."
   :hook ((prog-mode web-mode conf-mode yaml-mode) . display-line-numbers-mode)
   (display-line-numbers-mode . (lambda ()
 								 (face-remap-add-relative
-								  'fringe :background "#281d12"))))
-#+end_src
+								  'fringe :background "#281d12"))))  
+   #+end_src
+
 
 ** Expand Region
 
@@ -1105,6 +1122,7 @@ This is useful when followed by an immediate kill."
    Was using much more complicated packages like paredit/smartparens but was not using there features.
 
 #+begin_src emacs-lisp
+(electric-indent-mode t)
 (electric-pair-mode t)
 (use-package paren ; highight matching paren
   :ensure nil
@@ -4598,7 +4616,8 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
   :hook (rust-ts-mode . (lambda ()
 						  (setq-local compile-command "cargo run")))
   :config
-  (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer"))))
+  ;; (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer")))
+  )
 (use-package cargo-jump-xref
   :after toml-mode
   :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")

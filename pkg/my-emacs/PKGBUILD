@@ -1,6 +1,6 @@
 # Maintainer: Stephen Nehrbass <stephen.nehrbass@gmail.com>
 pkgname=emacs-git
-pkgver=31.0.50.180977
+pkgver=31.0.50.181065
 pkgrel=1
 pkgdesc="GNU Emacs master branch — optimized for Wayland (PGTK), Clang + LTO, native-comp, and Tree-sitter"
 arch=('x86_64')
