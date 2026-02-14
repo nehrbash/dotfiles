@@ -39,30 +39,12 @@ if [[ "$choice" == "yes" ]]; then
 	sudo cp -r greetd/ /etc/greetd/ 
 	sudo systemctl enable greetd.service
 else
-    echo "Skipping Spicetify update."
+    echo "Skipping greetd install."
 fi
 
 systemctl --user enable swaync.service
 
-read -p "Do you want install/rebuild Eww? (yes/no): " choice
-if [[ "$choice" == "yes" ]]; then
-    mkdir -p ~/src
-    cd ~/src/ || exit
-    if [ -d "eww" ]; then
-        echo "Eww directory exists. Pulling latest updates."
-        cd eww || exit
-        git pull
-    else
-        echo "Eww directory does not exist. Cloning repo."
-        git clone https://github.com/nehrbash/eww.git
-        cd eww || exit
-    fi
-	go install github.com/nehrbash/hyprshell@latest
-    cargo build --release --no-default-features --features=wayland && cargo build --release --no-default-features --features=wayland
-    cd ~
-else
-    echo "Skipping Eww 😲."
-fi
+go install github.com/nehrbash/hyprshell@latest
 
 if [[ "$SHELL" == *"/zsh" ]]; then
     echo "The current shell is already zsh. Skipping shell change."
@@ -70,7 +52,7 @@ else
     read -p "Do you want to change the shell to zsh? (yes/no): " choice
 
     if [[ "$choice" == "yes" ]]; then
-        chsh -s $(which zsh)
+        chsh -s "$(which zsh)"
         echo "Shell changed to zsh."
     else
         echo "Skipping shell change."
@@ -99,20 +81,8 @@ fi
 
 read -p "Do you want install/rebuild Emacs? (yes/no): " choice
 if [[ "$choice" == "yes" ]]; then
-    mkdir -p ~/src
-    cd ~/src/ || exit
-    if [ -d "emacs-git" ]; then
-        echo "Emacs-git directory exists. Pulling latest updates."
-        cd emacs-git || exit
-        git pull || true
-    else
-        echo "Emacs-git directory does not exist. Cloning repo."
-        git clone https://aur.archlinux.org/emacs-git.git
-        cd emacs-git || exit
-    fi
-	git reset --hard HEAD
-    git apply < ~/.dotfiles/emacs_build.patch && makepkg -si
+    cd ~/.dotfiles/pkg/my-emacs && makepkg -si
     cd ~ || exit
 else
-    echo "Skipping Emacs 😞."
+    echo "Skipping Emacs build."
 fi

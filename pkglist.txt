@@ -8,6 +8,7 @@ light
 brightnessctl
 wget
 nwg-displays
+nwg-look
 wlr-randr
 grim
 hyprland
@@ -16,14 +17,14 @@ xdg-desktop-portal-hyprland
 xdg-desktop-portal-gtk
 wl-clipboard
 swayidle
-nwg-look
-jq
-jaq
+playerctl
 easyeffects
 pavucontrol
 blueberry
 iwgtk
-playerctl
+eww
+jq
+jaq
 go
 rustup
 ttf-iosevka

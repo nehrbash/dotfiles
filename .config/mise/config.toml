@@ -1,3 +1,2 @@
-# Global mise settings
 [settings]
-trusted_config_paths = ["~/src"]
+experimental = true

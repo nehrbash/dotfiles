@@ -55,3 +55,4 @@ bindings = [
 
 [general]
 import = ["/home/nehrbash/.config/alacritty/ef.toml"]
+
