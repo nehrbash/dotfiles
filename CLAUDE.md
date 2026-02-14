@@ -41,8 +41,12 @@ There is no test suite or linter — configs are validated at runtime.
 
 **Custom scripts**: `.local/bin/` contains user scripts (screenshot, spotify toggle, org2pdf, etc.).
 
+See `~/doc/projects/dotfiles/index.org` for detailed project documentation.
+
 ## Conventions
 
+- `.stow-local-ignore` uses **Perl regex** — use `^/` to anchor patterns to repo root (e.g. `^/config` to avoid matching `.config`)
+- When adding top-level directories not meant to be stowed, update `.stow-local-ignore`
 - NVIDIA-specific env vars are set in `hypr/env.conf` and `.zshenv`
 - Eww widget bar uses Go (`hyprshell`) for Hyprland IPC integration
 - Firefox CSS lives in `.config/chrome/` and gets symlinked into the Firefox profile by `install.sh`

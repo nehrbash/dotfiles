@@ -8,3 +8,7 @@ pkglist.txt
 full-pkg-list.txt
 greetd
 ltximg
+CLAUDE.md
+^/icons
+^/config
+^/pkg
