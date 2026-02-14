@@ -96,13 +96,12 @@
 	   (t variable-pitch)))
   :init
   (ef-themes-take-over-modus-themes-mode 1)
-  ;; (modus-themes-include-derivatives-mode 1)
   :config
-  (defun my-rgb-to-hex (r g b)
+  (defun sn-rgb-to-hex (r g b)
 	"Convert RGB to hex color format."
 	(format "#%02x%02x%02x" r g b))
 
-  (defun my-darken-color (hex-color factor)
+  (defun sn-darken-color (hex-color factor)
 	"Darken HEX-COLOR by factor (a float between 0 and 1)."
 	(let* ((r (string-to-number (substring hex-color 1 3) 16))
 			(g (string-to-number (substring hex-color 3 5) 16))
@@ -110,13 +109,13 @@
 			(r-dark (max 0 (floor (* r factor))))
 			(g-dark (max 0 (floor (* g factor))))
 			(b-dark (max 0 (floor (* b factor)))))
-      (my-rgb-to-hex r-dark g-dark b-dark)))
-  (defun my-ef-themes-mod ()
+      (sn-rgb-to-hex r-dark g-dark b-dark)))
+  (defun sn-ef-themes-mod ()
 	"Tweak the style of the ef theme."
 	(interactive)
 	(kill-all-internal-buffers) ;; kill minibuffer buffers so that vertico posframe color is applied
     (modus-themes-with-colors
-	  (let ((darker (my-darken-color bg-main 0.7)))
+	  (let ((darker (sn-darken-color bg-main 0.7)))
 		(custom-set-faces
 		  `(default ((,c :family "Iosevka" )))
 		  `(org-table ((,c :family "Iosevka")))
@@ -147,14 +146,14 @@
 		  `(eldoc-box-body ((,c :family "Iosevka Aile" :background ,darker :height 0.8)))
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))))))
-  (add-hook 'modus-themes-post-load-hook #'my-ef-themes-mod)
+  (add-hook 'modus-themes-post-load-hook #'sn-ef-themes-mod)
   (modus-themes-load-theme 'ef-melissa-dark)
   ;; this may cause flashes but fixes a lot of issues like 1. scroll bar colors, 2. terminal theme
-  (defun my-apply-theme-to-frame (frame)
+  (defun sn-apply-theme-to-frame (frame)
 	"Reapply theme modifications to newly created FRAME."
 	(with-selected-frame frame
 	  (modus-themes-load-theme 'ef-melissa-dark)))
-  (add-hook 'after-make-frame-functions #'my-apply-theme-to-frame))
+  (add-hook 'after-make-frame-functions #'sn-apply-theme-to-frame))
 
 ;;; Minimal Modeline Configuration
 ;;; Only shows information when relevant
@@ -201,7 +200,7 @@
 
 ;;; Modeline segments - each only displays when relevant
 
-(defun my-modeline-sloth-image ()
+(defun sn-modeline-sloth-image ()
   "Return sloth image segment if file exists."
   (let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory)))
     (when (file-exists-p img-file)
@@ -210,42 +209,42 @@
                                         :height custom-mode-line-height
                                         :ascent 'center)))))
 
-(defun my-modeline-kbd-macro ()
+(defun sn-modeline-kbd-macro ()
   "Display kbd macro indicator when defining or executing macro."
   (when (or defining-kbd-macro executing-kbd-macro)
     (propertize (if defining-kbd-macro " REC " " MACRO ")
                 'face 'mode-line-emphasis)))
 
-(defun my-modeline-narrow ()
+(defun sn-modeline-narrow ()
   "Display narrow indicator when buffer is narrowed."
   (when (buffer-narrowed-p)
     (propertize " Narrow "
                 'face 'warning)))
 
-(defun my-modeline-remote ()
+(defun sn-modeline-remote ()
   "Display remote host when on remote connection."
   (when-let ((remote (file-remote-p default-directory 'host)))
     (propertize (format " @%s " remote)
                 'face 'error)))
 
-(defun my-modeline-dedicated ()
+(defun sn-modeline-dedicated ()
   "Display indicator when window is dedicated."
   (when (window-dedicated-p)
     (propertize " [D] "
                 'face 'mode-line-highlight)))
 
-(defun my-modeline-input-method ()
+(defun sn-modeline-input-method ()
   "Display current input method when active."
   (when current-input-method
     (propertize (format " [%s] " current-input-method-title)
                 'face 'success)))
 
-(defun my-modeline-meow ()
+(defun sn-modeline-meow ()
   "Display meow indicator if meow-mode is active."
   (when (bound-and-true-p meow-mode)
     (meow--update-indicator)))
 
-(defun my-modeline-buffer-name ()
+(defun sn-modeline-buffer-name ()
   "Display buffer name with modified indicator."
   (let* ((modified (if (buffer-modified-p) "*" ""))
          (read-only (if buffer-read-only "%" ""))
@@ -253,17 +252,17 @@
     (propertize (format "%s%s%s" modified read-only name)
                 'face 'mode-line-buffer-id)))
 
-(defun my-modeline-process ()
+(defun sn-modeline-process ()
   "Display process indicator when process is running."
   (when mode-line-process
     (format-mode-line mode-line-process)))
 
-(defun my-modeline-breadcrumb ()
+(defun sn-modeline-breadcrumb ()
   "Display breadcrumb imenu when available."
   (when (bound-and-true-p breadcrumb-mode)
     (breadcrumb-imenu-crumbs)))
 
-(defun my-modeline-vc ()
+(defun sn-modeline-vc ()
   "Display VC branch when in version control."
   (when vc-mode
     (let* ((backend (vc-backend buffer-file-name))
@@ -275,20 +274,20 @@
                     'face '(:foreground "magenta" :weight bold))))))
 
 ;;; Assemble the mode line
-(defvar-local my-modeline-format
-    '((:eval (my-modeline-sloth-image))
-      (:eval (my-modeline-kbd-macro))
-      (:eval (my-modeline-narrow))
-      (:eval (my-modeline-remote))
-      (:eval (my-modeline-dedicated))
-      (:eval (my-modeline-input-method))
-      (:eval (my-modeline-meow))
+(defvar-local sn-modeline-format
+    '((:eval (sn-modeline-sloth-image))
+      (:eval (sn-modeline-kbd-macro))
+      (:eval (sn-modeline-narrow))
+      (:eval (sn-modeline-remote))
+      (:eval (sn-modeline-dedicated))
+      (:eval (sn-modeline-input-method))
+      (:eval (sn-modeline-meow))
       "  "
-      (:eval (my-modeline-buffer-name))
+      (:eval (sn-modeline-buffer-name))
       "  "
-      (:eval (my-modeline-process))
+      (:eval (sn-modeline-process))
       " "
-      (:eval (my-modeline-breadcrumb))
+      (:eval (sn-modeline-breadcrumb))
       mode-line-format-right-align
       "  "
       ;; Eglot with custom formatting (no brackets)
@@ -298,11 +297,11 @@
       (:eval (when (bound-and-true-p flymake-mode)
                flymake--mode-line-format))
       "  "
-      (:eval (my-modeline-vc))
+      (:eval (sn-modeline-vc))
       "  "))
 
 ;; Set it as default
-(setq-default mode-line-format my-modeline-format)
+(setq-default mode-line-format sn-modeline-format)
 
 ;; Force update
 (force-mode-line-update t)
@@ -606,8 +605,6 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
     :custom
     (recentf-auto-cleanup 300)
     (recentf-max-saved-items 100)
-    (setq backup-directory-alist
-	`((".*" . ,temporary-file-directory)))
     (recentf-exclude
 	'(
 	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
@@ -630,7 +627,7 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 (use-package autorevert
   :ensure nil
   :custom
-  (auto-revert-remote-files t) ;; TODO: do this only for docker
+  (auto-revert-remote-files t)
   (auto-revert-verbose nil)
   :init (global-auto-revert-mode 1))
 
@@ -642,7 +639,6 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   (tramp-use-connection-share nil)
   (tramp-use-ssh-controlmaster-options nil)
   :config
-  (setq tramp-verbose 0)
   (add-to-list 'backup-directory-alist
 	     (cons tramp-file-name-regexp nil))
   (add-to-list 'tramp-remote-path 'tramp-own-remote-path)
@@ -670,13 +666,13 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
   :custom
   (anzu-mode-lighter "")
   :config
-  (defun sanityinc/isearch-exit-other-end ()
+  (defun sn-isearch-exit-other-end ()
 	"Exit isearch, but at the other end of the search string.
 This is useful when followed by an immediate kill."
 	(interactive)
 	(isearch-exit)
 	(goto-char isearch-other-end))
-  (define-key isearch-mode-map [(control return)] 'sanityinc/isearch-exit-other-end)
+  (define-key isearch-mode-map [(control return)] 'sn-isearch-exit-other-end)
   ;; Search back/forth for the symbol at point
   ;; See http://www.emacswiki.org/emacs/SearchAtPoint
   (defun isearch-yank-symbol ()
@@ -708,13 +704,13 @@ This is useful when followed by an immediate kill."
   :hook (ibuffer . sn/ibuffer-preferred-filters))
 
 (setq ad-redefinition-action 'accept)
-(defun sanityinc/newline-at-end-of-line ()
+(defun sn-newline-at-end-of-line ()
   "Move to end of line, enter a newline, and reindent."
   (interactive)
   (move-end-of-line 1)
   (newline))
 
-(global-set-key (kbd "C-<return>") 'sanityinc/newline-at-end-of-line)
+(global-set-key (kbd "C-<return>") 'sn-newline-at-end-of-line)
 
 (use-package display-line-numbers
   :ensure nil
@@ -748,15 +744,15 @@ This is useful when followed by an immediate kill."
 
 (global-set-key (kbd "C-M-<backspace>") 'kill-back-to-indentation)
 
-(defun sanityinc/backward-up-sexp (arg)
+(defun sn-backward-up-sexp (arg)
   "Jump up to the start of the ARG'th enclosing sexp."
   (interactive "p")
   (let ((ppss (syntax-ppss)))
 	(cond ((elt ppss 3)
 		   (goto-char (elt ppss 8))
-		   (sanityinc/backward-up-sexp (1- arg)))
+		   (sn-backward-up-sexp (1- arg)))
 		  ((backward-up-list arg)))))
-(global-set-key [remap backward-up-list] 'sanityinc/backward-up-sexp) ; C-M-u, C-M-up
+(global-set-key [remap backward-up-list] 'sn-backward-up-sexp) ; C-M-u, C-M-up
 
 (use-package multiple-cursors
   :bind (("C-<" . mc/mark-previous-like-this)
@@ -792,11 +788,11 @@ This is useful when followed by an immediate kill."
   :init (winner-mode 1)
   :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
 		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
-		 ("C-x 1" . sanityinc/toggle-delete-other-windows)
+		 ("C-x 1" . sn-toggle-delete-other-windows)
 		 ("C-x |" . split-window-horizontally-instead)
 		 ("C-x _" . split-window-vertically-instead)
-		 ("<f7>" . sanityinc/split-window)
-		 ("C-c <down>" . sanityinc/toggle-current-window-dedication))
+		 ("<f7>" . sn-split-window)
+		 ("C-c <down>" . sn-toggle-current-window-dedication))
   :config
   (defun split-window-func-with-other-buffer-vertically ()
 	"Split this window vertically and switch to the new window."
@@ -814,7 +810,7 @@ This is useful when followed by an immediate kill."
 	  (set-window-buffer target-window (other-buffer))
 	  (select-window target-window)))
 
-  (defun sanityinc/toggle-delete-other-windows ()
+  (defun sn-toggle-delete-other-windows ()
 	"Delete other windows in frame if any, or restore previous window config."
 	(interactive)
 	(if (and (bound-and-true-p winner-mode)
@@ -840,18 +836,18 @@ This is useful when followed by an immediate kill."
 	  (when other-buffer
 		(set-window-buffer (next-window) other-buffer))))
 
-  (defun sanityinc/split-window ()
+  (defun sn-split-window ()
 	"Split the window to see the most recent buffer in the other window.
 Call a second time to restore the original window configuration."
 	(interactive)
-	(if (eq last-command 'sanityinc/split-window)
+	(if (eq last-command 'sn-split-window)
 		(progn
-		  (jump-to-register :sanityinc/split-window)
-		  (setq this-command 'sanityinc/unsplit-window))
-	  (window-configuration-to-register :sanityinc/split-window)
+		  (jump-to-register :sn-split-window)
+		  (setq this-command 'sn-unsplit-window))
+	  (window-configuration-to-register :sn-split-window)
 	  (switch-to-buffer-other-window nil)))
 
-  (defun sanityinc/toggle-current-window-dedication ()
+  (defun sn-toggle-current-window-dedication ()
 	"Toggle whether the current window is dedicated to its current buffer."
 	(interactive)
 	(let* ((window (selected-window))
@@ -1102,29 +1098,6 @@ Call a second time to restore the original window configuration."
 	  ("o" "occur"
 	   isearch-occur :transient nil)]]))
 
- (defun delete-this-file ()
-   "Delete the current file, and kill the buffer."
-   (interactive)
-   (unless (buffer-file-name)
-	 (error "No file is currently being edited"))
-   (when (yes-or-no-p (format "Really delete '%s'?"
-							  (file-name-nondirectory buffer-file-name)))
-	 (delete-file (buffer-file-name))
-	 (kill-this-buffer)))
-
- (defun rename-this-file-and-buffer (new-name)
-   "Renames both current buffer and file it's visiting to NEW-NAME."
-   (interactive "sNew name: ")
-   (let ((name (buffer-name))
-		 (filename (buffer-file-name)))
-	 (unless filename
-	   (error "Buffer '%s' is not visiting a file!" name))
-	 (progn
-	   (when (file-exists-p filename)
-		 (rename-file filename new-name 1))
-	   (set-visited-file-name new-name)
-	   (rename-buffer new-name))))
-
 (transient-mark-mode t)
 (delete-selection-mode t)
 (defun sn/add-mark-before (func &rest args)
@@ -1271,11 +1244,11 @@ Call a second time to restore the original window configuration."
   (vertico-posframe-vertico-multiform-key "M-m")
   :config
   ;; don't change colors
-  (defun my-vertico-posframe-get-border-color-advice (&rest _args)
+  (defun sn-vertico-posframe-get-border-color-advice (&rest _args)
 	"Always return the color of `vertico-posframe-border`."
 	(face-attribute 'vertico-posframe-border
 	  :background nil t))
-  (advice-add 'vertico-posframe--get-border-color :override #'my-vertico-posframe-get-border-color-advice)
+  (advice-add 'vertico-posframe--get-border-color :override #'sn-vertico-posframe-get-border-color-advice)
   (defun sn/posframe-poshandler-window-or-frame-center (info)
   "Position handler that centers the posframe in the window if the window width is at least 120 columns.
 Otherwise, it centers the posframe in the frame."
@@ -1378,21 +1351,14 @@ Otherwise, it centers the posframe in the frame."
   (consult-narrow-key "<")
   (consult-preview-key '("M-," :debounce 0 any))
   :config
-  (add-to-list 'consult-preview-allowed-hooks 'hl-todo-mode)
-  (add-to-list 'consult-preview-allowed-hooks 'elide-head-mode)
-  ;; enabled global modes
-  (add-to-list 'consult-preview-allowed-hooks 'wr-mode) ;; my writtting mode
-  (add-to-list 'consult-preview-allowed-hooks 'global-org-modern-mode)
-  (add-to-list 'consult-preview-allowed-hooks 'global-hl-todo-mode)
-  ;; hide more files
-  (add-to-list 'consult-buffer-filter "^\\*")
-  (add-to-list 'consult-buffer-filter "^magit*")
-  (add-to-list 'consult-buffer-filter "Compile")
-  (add-to-list 'consult-buffer-filter "[\\.]org$")
-  (add-to-list 'consult-buffer-filter "shell*")
-  ;; show my dots in find file
-  ;; (setq consult-ripgrep-args (concat consult-ripgrep-args " --hidden -g '!.git/'"))
-  
+  (setq consult-preview-allowed-hooks
+		(append consult-preview-allowed-hooks
+				'(hl-todo-mode elide-head-mode wr-mode
+				  global-org-modern-mode global-hl-todo-mode)))
+  (setq consult-buffer-filter
+		(append consult-buffer-filter
+				'("^\\*" "^magit*" "Compile" "[\\.]org$" "shell*")))
+
   (defun vc-modified-files ()
 	"Return list of modified files in the current VC repository."
 	(when-let* ((default-directory (vc-root-dir)))
@@ -1639,11 +1605,11 @@ Otherwise, it centers the posframe in the frame."
 		 #'cape-file)
 	   cape-abbrev))
   :config
-  (defun my-completion-preview-use-codeium (orig-fun)
+  (defun sn-completion-preview-use-codeium (orig-fun)
 	"Advice to make completion-preview only use codeium."
 	(let* ((completion-at-point-functions '(codeium-completion-at-point)))
       (funcall orig-fun)))
-  ;; (advice-add 'completion-preview--update :around #'my-completion-preview-use-codeium)
+  ;; (advice-add 'completion-preview--update :around #'sn-completion-preview-use-codeium)
   (defun sn/codeium-capf ()
 	(interactive)
 	(cape-interactive #'codeium-completion-at-point))
@@ -1714,10 +1680,6 @@ Otherwise, it centers the posframe in the frame."
 (use-package define-word
   :commands (define-word)
   :bind ("M-s D" . define-word-at-point))
-
-(use-package openwith
-  :custom (openwith-associations '(("\\.pdf\\'" "evince" (file))))
-  :config (openwith-mode t))
 
 (use-package dired
   :ensure nil
@@ -1880,7 +1842,6 @@ Otherwise, it centers the posframe in the frame."
      													 (org-roam-ui-open)
      													 (org-capture-finalize))))))
   :config
-  ;;       (require 'org-contr)		
   (defun sn/org-mode-hook ()
     (add-hook 'after-save-hook #'sn/org-babel-tangle-dont-ask
       'run-at-end 'only-in-org-mode))
@@ -1937,7 +1898,7 @@ Otherwise, it centers the posframe in the frame."
     '("xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"
        "xelatex -shell-escape -interaction nonstopmode -output-directory %o %f"))
   )
-(eval-after-load "org" '(require 'ox-md nil t))
+(with-eval-after-load 'org (require 'ox-md nil t))
 
 (use-package ob-mermaid
   :after org
@@ -2261,23 +2222,22 @@ Only clock in/out when needed, and always save all Org buffers."
   (add-to-list 'org-agenda-after-show-hook 'org-show-entry))
 (advice-add 'org-refile :after (lambda (&rest _) (org-save-all-org-buffers)))
 ;; Exclude DONE state tasks from refile targets
-(defun sanityinc/verify-refile-target ()
+(defun sn-verify-refile-target ()
   "Exclude todo keywords with a done state from refile targets."
   (not (member (nth 2 (org-heading-components)) org-done-keywords)))
-(setq org-refile-target-verify-function 'sanityinc/verify-refile-target)
-(defun sanityinc/org-refile-anywhere (&optional goto default-buffer rfloc msg)
+(setq org-refile-target-verify-function 'sn-verify-refile-target)
+(defun sn-org-refile-anywhere (&optional goto default-buffer rfloc msg)
   "A version of `org-refile' which allows refiling to any subtree."
   (interactive "P")
   (let ((org-refile-target-verify-function))
 	(org-refile goto default-buffer rfloc msg)))
-(defun sanityinc/org-agenda-refile-anywhere (&optional goto rfloc no-update)
+(defun sn-org-agenda-refile-anywhere (&optional goto rfloc no-update)
   "A version of `org-agenda-refile' which allows refiling to any subtree."
   (interactive "P")
   (let ((org-refile-target-verify-function))
 	(org-agenda-refile goto rfloc no-update)))
 
 ;; Targets start with the file name - allows creating level 1 tasks
-;;(setq org-refile-use-outline-path (quote file))
 (setq org-refile-use-outline-path t)
 (setq org-outline-path-complete-in-steps nil)
 
@@ -2292,26 +2252,23 @@ Only clock in/out when needed, and always save all Org buffers."
   (add-hook 'markdown-mode-hook 'toc-org-mode))
 
 (use-package pdf-tools
-  :ensure (:host github :repo "aikrahguzar/pdf-tools"
-			:branch "continuous-scroll")
-  :hook (pdf-tools-enabled . pdf-view-midnight-minor-mode)
+  :ensure (:host github :repo "vedang/pdf-tools")
+  :mode ("\\.pdf\\'" . pdf-view-mode)
+  :magic ("%PDF" . pdf-view-mode)
+  :hook ((pdf-tools-enabled . pdf-view-midnight-minor-mode)
+         (pdf-view-mode . (lambda ()
+                            (setq-local cursor-type nil)
+                            (blink-cursor-mode -1)
+                            (when (bound-and-true-p hl-line-mode)
+                              (hl-line-mode -1)))))
   :custom
   (pdf-view-display-size 'fit-width)
   (pdf-view-midnight-colors '("#e8e4b1" . "#352718" ))
   (pdf-annot-activate-created-annotations t)
   :config
-  (require 'pdf-tools)
-  (require 'pdf-view)
-  (require 'pdf-misc)
-  (require 'pdf-occur)
-  (require 'pdf-util)
-  (require 'pdf-annot)
-  (require 'pdf-info)
-  (require 'pdf-isearch)
-  (require 'pdf-history)
-  (require 'pdf-links)
-  (require 'pdf-roll)
   (pdf-tools-install :no-query)
+  ;; Required for continuous-scroll branch
+  (require 'pdf-roll nil t)
   )
 
 (use-package org-roam
@@ -2597,7 +2554,7 @@ Only clock in/out when needed, and always save all Org buffers."
   :init (global-hl-todo-mode t)
   :after ef-themes
   :config
-  (defun my-ef-themes-hl-todo-faces ()
+  (defun sn-ef-themes-hl-todo-faces ()
 	"Configure `hl-todo-keyword-faces' with Ef themes colors.
 The exact color values are taken from the active Ef theme."
 	(modus-themes-with-colors
@@ -2620,7 +2577,7 @@ The exact color values are taken from the active Ef theme."
 	      ("XXX+" . ,red-warmer)
 	      ("REVIEW" . ,red)
 	      ("DEPRECATED" . ,yellow-warmer)))))
-  (add-hook 'modus-themes-post-load  #'my-ef-themes-hl-todo-faces))
+  (add-hook 'modus-themes-post-load  #'sn-ef-themes-hl-todo-faces))
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
@@ -2772,10 +2729,7 @@ The exact color values are taken from the active Ef theme."
   :ensure nil
   :mode ("\\.rs\\'" . rust-ts-mode)
   :hook (rust-ts-mode . (lambda ()
-						  (setq-local compile-command "cargo run")))
-  :config
-  ;; (add-to-list 'eglot-server-programs '((rust-ts-mode rust-mode) . ("rustup" "run" "stable" "rust-analyzer")))
-  )
+						  (setq-local compile-command "cargo run"))))
 (use-package cargo-jump-xref
   :after toml-mode
   :ensure (:host github :repo "eval-exec/cargo-jump-xref.el")
