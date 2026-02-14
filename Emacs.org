@@ -2867,8 +2867,7 @@ Only clock in/out when needed, and always save all Org buffers."
 
 #+begin_src emacs-lisp
 (use-package pdf-tools
-  :ensure (:host github :repo "aikrahguzar/pdf-tools"
-			:branch "continuous-scroll")
+  :ensure (:host github :repo "vedang/pdf-tools")
   :hook (pdf-tools-enabled . pdf-view-midnight-minor-mode)
   :custom
   (pdf-view-display-size 'fit-width)
