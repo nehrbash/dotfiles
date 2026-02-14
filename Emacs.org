@@ -469,6 +469,11 @@
 #+end_src
 
 *** Scrolling
+:PROPERTIES:
+:CUSTOM_ID: scrolling
+:COMPLEXITY: high
+:LINES: 106
+:END:
 
 	~C-v~ and ~M-v~ are scroll commands.
 
