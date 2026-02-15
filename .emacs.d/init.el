@@ -128,13 +128,15 @@
 		  `(window-divider ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-first-pixel ((,c :background ,bg-main :foreground ,bg-main)))
 		  `(window-divider-last-pixel ((,c :background ,bg-main :foreground ,bg-main)))
-		  `(tab-line ((,c :family "Iosevka Aile" :background ,bg-dim :foreground ,bg-dim :height 110 :box nil)))
+		  `(tab-line ((,c :family "Iosevka Aile" :background ,bg-dim :foreground ,fg-dim :height 110 :box nil)))
 		  `(tab-line-tab-group ((,c :inherit 'tab-line)))
-		  `(tab-line-tab ((,c :inherit 'tab-line :background nil  :forground nil :box nil)))
-		  `(tab-line-tab-current ((,c  :inherit 'tab-line-tab :background nil :box nil)))
-		  `(tab-line-tab-inactive ((,c  :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
-		  `(tab-line-tab-inactive-alternate ((,c :inherit 'tab-line-tab :background ,bg-dim :forground ,bg-dim :box nil)))
-		  `(tab-line-highlight ((,c :inherit nil :background nil :foreground nil :box nil)))
+		  `(tab-line-tab ((,c :inherit 'tab-line :background unspecified :foreground ,fg-main :box nil)))
+		  `(tab-line-tab-current ((,c :inherit 'tab-line-tab :background ,bg-main :box nil)))
+		  `(tab-line-tab-inactive ((,c :inherit 'tab-line-tab :background ,bg-dim :foreground ,fg-dim :box nil)))
+		  `(tab-line-tab-inactive-alternate ((,c :inherit 'tab-line-tab :background ,bg-dim :foreground ,fg-dim :box nil)))
+		  `(tab-line-highlight ((,c :inherit unspecified :background unspecified :foreground unspecified :box nil)))
+		  `(svg-tabs-active ((,c :foreground ,fg-main :background ,bg-main)))
+		  `(svg-tabs-inactive ((,c :foreground ,fg-dim :background ,bg-dim)))
 		  `(line-number ((,c :background ,darker)))
 		  `(vertico-posframe ((,c :background ,darker))) ;; does not take affect if hidden buffers are created
 		  `(vertico-posframe-border ((,c (:background ,bg-dim))))
@@ -155,156 +157,13 @@
 	  (modus-themes-load-theme 'ef-melissa-dark)))
   (add-hook 'after-make-frame-functions #'sn-apply-theme-to-frame))
 
-;;; Minimal Modeline Configuration
-;;; Only shows information when relevant
+(setopt mode-line-compact nil
+        mode-line-right-align-edge 'right-margin)
 
-;; Mode line settings
-(setq mode-line-compact nil)
-(setq mode-line-right-align-edge 'right-margin)
-
-;; Custom modeline height for sloth image
-(defvar custom-mode-line-height 32
-  "Height of the mode line image.")
-
-;;; Customize Flymake mode-line appearance (prettier than default brackets)
-(with-eval-after-load 'flymake
-  ;; Customize the counter format to use prettier symbols
-  (setq flymake-mode-line-counter-format
-        '(" "
-          flymake-mode-line-error-counter
-          flymake-mode-line-warning-counter
-          flymake-mode-line-note-counter))
-  
-  ;; Override the main format to be more minimal
-  (setq flymake-mode-line-format
-        '(" "
-          flymake-mode-line-exception
-          flymake-mode-line-counters)))
-
-;;; Customize Eglot mode-line appearance (prettier than default brackets)
-(with-eval-after-load 'eglot
-  ;; Use a simpler string instead of [eglot:project]
-  (setq eglot-mode-line-format
-        '(:eval (when (eglot-current-server)
-                  (let* ((server (eglot-current-server))
-                         (nick (eglot-project-nickname server))
-                         (pending (hash-table-count (jsonrpc--request-continuations server)))
-                         (last-error (jsonrpc-last-error server)))
-                    (cond
-                     (last-error
-                      (propertize " ⚠ LSP" 'face 'error))
-                     ((> pending 0)
-                      (propertize (format " ⟳%d" pending) 'face 'warning))
-                     (t
-                      (propertize (format " ✓ %s" nick) 'face 'success))))))))
-
-;;; Modeline segments - each only displays when relevant
-
-(defun sn-modeline-sloth-image ()
-  "Return sloth image segment if file exists."
-  (let ((img-file (expand-file-name "img/sloth-head.jpg" user-emacs-directory)))
-    (when (file-exists-p img-file)
-      (propertize " "
-                  'display (create-image img-file nil nil
-                                        :height custom-mode-line-height
-                                        :ascent 'center)))))
-
-(defun sn-modeline-kbd-macro ()
-  "Display kbd macro indicator when defining or executing macro."
-  (when (or defining-kbd-macro executing-kbd-macro)
-    (propertize (if defining-kbd-macro " REC " " MACRO ")
-                'face 'mode-line-emphasis)))
-
-(defun sn-modeline-narrow ()
-  "Display narrow indicator when buffer is narrowed."
-  (when (buffer-narrowed-p)
-    (propertize " Narrow "
-                'face 'warning)))
-
-(defun sn-modeline-remote ()
-  "Display remote host when on remote connection."
-  (when-let ((remote (file-remote-p default-directory 'host)))
-    (propertize (format " @%s " remote)
-                'face 'error)))
-
-(defun sn-modeline-dedicated ()
-  "Display indicator when window is dedicated."
-  (when (window-dedicated-p)
-    (propertize " [D] "
-                'face 'mode-line-highlight)))
-
-(defun sn-modeline-input-method ()
-  "Display current input method when active."
-  (when current-input-method
-    (propertize (format " [%s] " current-input-method-title)
-                'face 'success)))
-
-(defun sn-modeline-meow ()
-  "Display meow indicator if meow-mode is active."
-  (when (bound-and-true-p meow-mode)
-    (meow--update-indicator)))
-
-(defun sn-modeline-buffer-name ()
-  "Display buffer name with modified indicator."
-  (let* ((modified (if (buffer-modified-p) "*" ""))
-         (read-only (if buffer-read-only "%" ""))
-         (name (buffer-name)))
-    (propertize (format "%s%s%s" modified read-only name)
-                'face 'mode-line-buffer-id)))
-
-(defun sn-modeline-process ()
-  "Display process indicator when process is running."
-  (when mode-line-process
-    (format-mode-line mode-line-process)))
-
-(defun sn-modeline-breadcrumb ()
-  "Display breadcrumb imenu when available."
-  (when (bound-and-true-p breadcrumb-mode)
-    (breadcrumb-imenu-crumbs)))
-
-(defun sn-modeline-vc ()
-  "Display VC branch when in version control."
-  (when vc-mode
-    (let* ((backend (vc-backend buffer-file-name))
-           (branch (when backend
-                    (substring-no-properties vc-mode
-                                            (+ 2 (length (symbol-name backend)))))))
-      (when branch
-        (propertize (format " %s" branch)
-                    'face '(:foreground "magenta" :weight bold))))))
-
-;;; Assemble the mode line
-(defvar-local sn-modeline-format
-    '((:eval (sn-modeline-sloth-image))
-      (:eval (sn-modeline-kbd-macro))
-      (:eval (sn-modeline-narrow))
-      (:eval (sn-modeline-remote))
-      (:eval (sn-modeline-dedicated))
-      (:eval (sn-modeline-input-method))
-      (:eval (sn-modeline-meow))
-      "  "
-      (:eval (sn-modeline-buffer-name))
-      "  "
-      (:eval (sn-modeline-process))
-      " "
-      (:eval (sn-modeline-breadcrumb))
-      mode-line-format-right-align
-      "  "
-      ;; Eglot with custom formatting (no brackets)
-      eglot--mode-line-format
-      "  "
-      ;; Flymake with custom formatting (no brackets)
-      (:eval (when (bound-and-true-p flymake-mode)
-               flymake--mode-line-format))
-      "  "
-      (:eval (sn-modeline-vc))
-      "  "))
-
-;; Set it as default
-(setq-default mode-line-format sn-modeline-format)
-
-;; Force update
-(force-mode-line-update t)
+(use-package sn-modeline
+  :load-path "~/.emacs.d/lisp"
+  :config
+  (sn-modeline-mode 1))
 
 (use-package modern-tab-bar
   :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
@@ -321,105 +180,18 @@
 (set-display-table-slot standard-display-table 'truncation ?\s) ;; remove the $ on wrap lines.
 (global-prettify-symbols-mode t)
 
-(use-package ultra-scroll
-   :ensure (:host github :repo "jdtsmith/ultra-scroll")
-  :custom (scroll-conservatively 3)
-  :config
-  (ultra-scroll-mode)
-  (add-hook 'ultra-scroll-hide-functions 'hl-line-mode)
-  ;; provide scroll-margin without fucking up buffers and smooth scrolling
-  ;; Eliminate stupid window movements caused by minibuffer or transient opening
-;; and closing.
-(defcustom pmx-no-herky-jerk-margin 12
-  "Number of lines to protect from incidental scrolling.
-A good value is the maximum height of your minibuffer, such as
-configured by `ivy-height' and similar variables that configure packages
-like `vertico' and `helm'."
-  :type 'integer
-  :group 'scrolling)
-
-;; You would think we need multiple restore points.  However, there seems to be
-;; a behavior where window points in non-selected windows are restored all the
-;; time.  This was only apparent after moving them.
-(defvar pmx--no-herky-jerk-restore nil
-  "Where to restore selected buffer point.
-List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
-
-;; Counting line height would be more correct.  In general, lines are taller but
-;; not shorter than the default, so this is a conservative approximation that
-;; treats all lines as the default height.
-(defun pmx--no-herky-jerk-enter (&rest _)
-  "Adjust window points to prevent implicit scrolling."
-  (unless (> (minibuffer-depth) 1)
-    (let ((windows (window-at-side-list
-		    (window-frame (selected-window))
-		    'bottom))
-	  ;; height of default lines
-	  (frame-char-height (frame-char-height
-			      (window-frame (selected-window)))))
-      (while-let ((w (pop windows)))
-	(with-current-buffer (window-buffer w)
-	  (let* ((current-line (line-number-at-pos (window-point w)))
-		 (end-line (line-number-at-pos (window-end w)))
-		 (window-pixel-height (window-pixel-height w))
-		 (window-used-height (cdr (window-text-pixel-size
-					   w (window-start w) (window-end w))))
-		 (margin-height (* frame-char-height pmx-no-herky-jerk-margin))
-		 (unsafe-height (- window-used-height
-				   (- window-pixel-height margin-height)))
-		 (unsafe-lines (+ 2 (ceiling (/ unsafe-height frame-char-height))))
-		 (exceeded-lines (- unsafe-lines (- end-line current-line))))
-	    (when (> exceeded-lines 0)
-	      ;;  save value for restore
-	      (let* ((buffer (window-buffer w))
-		     (restore-marker (let ((marker (make-marker)))
-				       ;; XXX this may error?
-				       (set-marker marker (window-point w)
-						   buffer)))
-		     (safe-point (progn
-				   (goto-char restore-marker)
-				   ;; XXX goes up too many lines when skipping
-				   ;; wrapped lines
-				   (ignore-error '(beginning-of-buffer
-						   end-of-buffer)
-				     (previous-line exceeded-lines t))
-				   (end-of-line)
-				   (point))))
-		(set-window-point w safe-point)
-		(when (eq w (minibuffer-selected-window))
-		  (let ((safe-marker (make-marker)))
-		    (set-marker safe-marker safe-point buffer)
-		    (setq pmx--no-herky-jerk-restore
-			  (list buffer w safe-marker restore-marker))))
-		(goto-char (marker-position restore-marker))))))))))
-
-(defun pmx--no-herky-jerk-exit ()
-  "Restore window points that were rescued from implicit scrolling."
-  (when (and pmx--no-herky-jerk-restore
-	     (= (minibuffer-depth) 1)
-	     (null (transient-active-prefix)))
-    (when-let* ((restore pmx--no-herky-jerk-restore)
-		(buffer (pop restore))
-		(w (pop restore))
-		(safe-marker (pop restore))
-		(restore-marker (pop restore)))
-      (when (and (window-live-p w)
-		 (eq (window-buffer w) buffer)
-		 (= (window-point w) (marker-position safe-marker)))
-	(goto-char restore-marker)
-	(set-window-point w restore-marker))
-      (set-marker restore-marker nil)
-      (set-marker safe-marker nil)
-      (setq pmx--no-herky-jerk-restore nil))))
-
-(add-hook 'minibuffer-setup-hook #'pmx--no-herky-jerk-enter)
-(add-hook 'minibuffer-exit-hook #'pmx--no-herky-jerk-exit)
-
-;; Add the same for transient
-(with-eval-after-load 'transient
-  (advice-add 'transient-setup :before #'pmx--no-herky-jerk-enter)
-  (add-hook 'transient-exit-hook #'pmx--no-herky-jerk-exit)
-  (setopt transient-hide-during-minibuffer-read t)))
+(use-package pixel-scroll
+  :ensure nil
+  :bind
+  ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
+  ([remap scroll-down-command] . pixel-scroll-interpolate-up)
+  :custom
+  (scroll-margin 6)
+  (scroll-conservatively 101) 
+  (scroll-preserve-screen-position t)
+  (pixel-scroll-precision-interpolate-page t)
+  :init
+  (pixel-scroll-precision-mode 1))
 
 (use-package ansi-color
   :ensure nil
@@ -556,7 +328,6 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 	 (window-parameters . ((mode-line-format . none)
 								(no-other-window . t))))
 	   ((or (derived-mode . dired-mode)
-	  (derived-mode . vterm-mode)
 	  (derived-mode . eat-mode))
 		 (display-buffer-same-window)
 	 (body-function . hide-modeline-in-buffer))
@@ -586,7 +357,6 @@ List of BUFFER WINDOW SAFE-MARKER and RESTORE-MARKER.")
 		"\\*\\(|Buffer List\\|Occur\\|vc-change-log\\|eldoc.*\\).*"
 		"\\*\\vc-\\(incoming\\|outgoing\\|git : \\).*"
 		prot-window-shell-or-term-p
-		;; ,world-clock-buffer-name
 		))
 	 (prot-window-display-buffer-below-or-pop)
 	 (body-function . prot-window-select-fit-size))
@@ -1274,16 +1044,27 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package orderless
   :custom
-  (orderless-matching-styles '(orderless-regexp orderless-literal))
-  (orderless-component-separator #'orderless-escapable-split-on-space)
+  (completion-styles '(orderless basic))
+  (completion-category-overrides
+   '((file (styles orderless basic))
+     (buffer (styles orderless basic))))
   (read-file-name-completion-ignore-case t)
   (read-buffer-completion-ignore-case t)
   (completion-ignore-case t)
-  (completion-lazy-hilit t)
-  (completion-flex-nospace t)
-  (completion-category-defaults nil)
-  (completion-styles '(orderless basic))
-  (completion-category-overrides '((file (styles basic partial-completion)))))
+  (completion-lazy-highlight t)
+  (orderless-matching-styles '(orderless-regexp orderless-literal))
+  (orderless-component-separator #'orderless-escapable-split-on-space)
+
+  :config
+  (defun my/orderless-fuzzy-dispatcher (pattern _index _total &rest metadata)
+    "Return `orderless-flex' for file and buffer completions only."
+    (when (and (stringp pattern)
+               (not (string-empty-p pattern))
+               (memq (plist-get metadata :category) '(file buffer)))
+      'orderless-flex))
+
+  (setq orderless-style-dispatchers
+        '(my/orderless-fuzzy-dispatcher)))
 
 (use-package wgrep
   :custom
@@ -1461,9 +1242,11 @@ Otherwise, it centers the posframe in the frame."
 	   consult-source-project-buffer-hidden
 	   consult-source-project-recent-file-hidden))
   (setq consult-project-buffer-sources
-	'(consult-source-project-buffer
+	'(consult-source-hidden-buffer
+	   consult-source-project-buffer
 	   consult-source-vc-modified-file
 	   consult-source-vterm
+	   consult-source-bookmark
 	   consult-source-project-recent-file)))
 
     (use-package consult-xref-stack
@@ -2257,7 +2040,8 @@ Only clock in/out when needed, and always save all Org buffers."
   :magic ("%PDF" . pdf-view-mode)
   :hook ((pdf-tools-enabled . pdf-view-midnight-minor-mode)
          (pdf-view-mode . (lambda ()
-                            (setq-local cursor-type nil)
+                            (setq-local cursor-type nil
+							  mode-line-format nil)
                             (blink-cursor-mode -1)
                             (when (bound-and-true-p hl-line-mode)
                               (hl-line-mode -1)))))
@@ -2398,6 +2182,23 @@ Only clock in/out when needed, and always save all Org buffers."
   :ensure (:host github :repo "mickeynp/combobulate" :branch "development")
   :custom (combobulate-key-prefix "C-c j")
   :hook (prog-mode . combobulate-mode))
+
+(use-package inheritenv
+  :demand t)
+
+(use-package mise
+  :ensure (:host github :repo "eki3z/mise.el")
+  :after inheritenv
+  :demand t
+  :hook (after-init . global-mise-mode)
+  :custom
+  ;; Automatically refresh environment when navigating in eshell
+  (mise-update-on-eshell-directory-change t)
+  :config
+  ;; Fix for vterm not inheriting mise PATH (github.com/eki3z/mise.el/issues/20)
+  (add-to-list 'mise-auto-propagate-commands 'vterm)
+  (add-to-list 'mise-auto-propagate-commands 'claude-code-ide--detect-cli)
+  (add-to-list 'mise-auto-propagate-commands 'claude-code-ide-check-status))
 
 (use-package eglot
   :ensure nil
@@ -2595,22 +2396,35 @@ The exact color values are taken from the active Ef theme."
   (use-package vterm
     :hook (vterm-mode . sn/setup-vterm)
     :init
+    (defun sn/vterm-apply-theme ()
+  	"Apply current theme colors to vterm buffer."
+  	(modus-themes-with-colors
+  	  (let ((darker (sn-darken-color bg-main 0.7)))
+  		(face-remap-add-relative
+  		  'default
+  		  :background darker)
+  		(face-remap-set-base
+  		  'default
+  		  :background darker)
+  		(face-remap-add-relative
+  		  'fringe
+  		  :background darker))))
     (defun sn/setup-vterm ()
+  	"Setup vterm buffer with custom font and theme colors."
   	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
   	(buffer-face-mode t)
   	(setq-local left-margin-width 3
   	  right-margin-width 3
   	  cursor-type 'bar)
-  	(face-remap-add-relative
-  	  'default
-  	  :background "#281d12")
-  	(face-remap-set-base
-  	  'default
-  	  :background "#281d12")
-  	(face-remap-add-relative
-  	  'fringe
-  	  :background "#281d12"))
+  	(sn/vterm-apply-theme))
+    (defun sn/vterm-update-all-themes ()
+  	"Update theme colors in all vterm buffers."
+  	(dolist (buffer (buffer-list))
+  	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
+  		(with-current-buffer buffer
+  		  (sn/vterm-apply-theme)))))
     :config
+    (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
     (defun old-version-of-vterm--get-color (index &rest args)
   	"This is the old version before it was broken by commit
   https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
@@ -2637,8 +2451,12 @@ The exact color values are taken from the active Ef theme."
   		(vterm))
   	  (setq mode-line-format nil)))
     )
+  (use-package svg-lib :ensure t)
+  (use-package svg-tabs
+    :load-path "~/.emacs.d/lisp"
+    :after svg-lib)
   (use-package vterm-tabs
-    :load-path "~/.emacs.d/lisp/vterm-tabs"
+    :load-path "~/.emacs.d/lisp"
     :bind
     (("<f6>" . vterm-tabs-toggle)
   	:map vterm-mode-map
@@ -2653,7 +2471,6 @@ The exact color values are taken from the active Ef theme."
   	   ("sudo" "/bin/bash")))
     (vterm-always-compile-module t)
     :config
-    (require 'svg-tabs)
     (global-vterm-tabs-mode 1))
 
 (use-package makefile-runner

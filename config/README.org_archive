@@ -1,0 +1,24 @@
+#    -*- mode: org -*-
+
+
+Archived entries from file /home/nehrbash/.dotfiles/config/README.org
+
+
+* Archive
+
+** DONE Bug Fixes
+   CLOSED: [2026-02-15 Sun 13:40]
+   :PROPERTIES:
+   :ARCHIVE_TIME: 2026-02-15 Sun 13:40
+   :ARCHIVE_FILE: ~/.dotfiles/config/README.org
+   :ARCHIVE_OLPATH: Phase 1 — Fix Existing Config & Expand Guix Home (on Arch)
+   :ARCHIVE_CATEGORY: README
+   :ARCHIVE_TODO: DONE
+   :END:
+   :LOGBOOK:
+   - State "DONE"       from "INPROGRESS" [2026-02-15 Sun 13:40]
+   :END:
+
+- [X] Remove duplicate ~(use-service-modules ...)~ on line 13 of =redfish.scm=
+- [X] Fix alias paths in =.zsh/aliasrc=: =~/dotfiles= → =~/.dotfiles=
+

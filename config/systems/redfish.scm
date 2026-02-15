@@ -1,60 +1,81 @@
 (define-module (config systems redfish)
   #:use-modules (gnu)
+  #:use-modules (gnu system)
   #:use-modules (guix)
-  #:use-modules (gnu home services ssh)
+  #:use-modules (guix gexp)
   #:use-modules (gnu services desktop)
   #:use-modules (gnu services xorg)
+  #:use-modules (gnu services linux)
+  #:use-modules (gnu services sddm)
+  #:use-modules (gnu packages wm)
   #:use-modules (nongnu packages nvidia)
   #:use-modules (nongnu services nvidia)
   #:use-modules (nongnu packages linux)
   #:use-modules (nongnu system linux-initrd)
   #:use-modules (config systems base-system))
-(use-service-modules cups desktop networking ssh xorg)
-e(use-service-modules cups desktop networking ssh xorg)
+
+(use-service-modules desktop networking)
+
 (operating-system
   (kernel linux)
   (initrd microcode-initrd)
   (firmware (list linux-firmware))
   (kernel-arguments '("modprobe.blacklist=nouveau"
-		      ;; wayland
-		      "nvidia_drm.modeset=1"))
+                      "nvidia_drm.modeset=1"))
+  (kernel-loadable-modules (list nvidia-driver))
+
   (locale "en_US.utf8")
   (timezone "America/New_York")
   (keyboard-layout (keyboard-layout "us"))
   (host-name "home-cin")
 
-  ;; The list of user accounts ('root' is implicit).
   (users (cons* (user-account
                   (name "nehrbash")
                   (comment "Stephen Nehrbass")
                   (group "users")
                   (home-directory "/home/nehrbash")
-                  (supplementary-groups '("wheel" "netdev" "audio" "video")))
+                  (supplementary-groups '("wheel" "netdev" "audio" "video"
+                                          "input" "seat")))
                 %base-user-accounts))
 
-  ;; The list of system services.
+  (packages (append %base-packages-extra
+                    %base-packages))
+
   (services
-   (append (list (service nvidia-service-type)
-                 (service gnome-desktop-service-type)
-                 (service openssh-service-type)
-                 (service cups-service-type)
-                 (set-xorg-configuration
-                  (xorg-configuration
-                   (drivers '("nvidia"))
-                   (modules (cons nvda %default-xorg-modules))
-                   (keyboard-layout keyboard-layout))))
-           %desktop-services))
-  
+   (append
+    %base-services-extra
+    (list
+     ;; NVIDIA
+     (service nvidia-service-type)
+
+     ;; greetd — launches Hyprland (replaces GNOME)
+     (service greetd-service-type
+              (greetd-configuration
+               (greeter-supplementary-groups '("video" "input"))
+               (terminals
+                (list (greetd-terminal-configuration
+                       (terminal-vt "1")
+                       (terminal-switch #t)
+                       (default-session-command
+                         (greetd-agreety-session
+                          (command (file-append hyprland "/bin/Hyprland")))))))))
+
+     ;; Flatpak for proprietary apps (Spotify, Slack, etc.)
+     (service flatpak-service-type))
+
+    ;; Filter out gdm from %desktop-services since we use greetd
+    (modify-services %desktop-services
+      (delete gdm-service-type))))
 
   (bootloader (bootloader-configuration
                 (bootloader grub-efi-bootloader)
                 (targets (list "/boot/efi"))
                 (keyboard-layout keyboard-layout)))
+
   (swap-devices (list (swap-space
                         (target (uuid
                                  "bb835dfe-725f-4fc9-834c-35d1a88ffd68")))))
 
-  ;; File system mount configuration
   (file-systems (cons* (file-system
                          (mount-point "/boot/efi")
                          (device (uuid "8002-04B5"
@@ -67,4 +88,3 @@ e(use-service-modules cups desktop networking ssh xorg)
                                   'ext4))
                          (type "ext4"))
                        %base-file-systems)))
-
