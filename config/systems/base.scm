@@ -10,8 +10,24 @@
   #:use-modules (gnu services linux)
   #:use-modules (gnu packages shells)
   #:use-modules (guix gexp)
+  #:use-modules (guix channels)
+  #:use-modules (gnu services base)
   #:export (%base-packages-extra
-            %base-services-extra))
+            %base-services-extra
+            %substitute-urls
+            %authorized-keys))
+
+;; Substitute servers (official + NonGuix)
+(define %substitute-urls
+  '("https://bordeaux.guix.gnu.org"
+    "https://ci.guix.gnu.org"
+    "https://substitutes.nonguix.org"))
+
+;; Authorized substitute signing keys
+(define %authorized-keys
+  (append %default-authorized-guix-keys
+          (list (plain-file "nonguix.pub"
+                            "(public-key (ecc (curve Ed25519) (q #C1FD53E5D4CE971933EC50C9F307AE2171A2D3B52C804642A7A35F84F3A4EA98#)))"))))
 
 ;; Common packages for all systems
 (define %base-packages-extra

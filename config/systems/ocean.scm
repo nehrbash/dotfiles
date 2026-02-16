@@ -1,4 +1,4 @@
-(define-module (config systems redfish)
+(define-module (config systems ocean)
   #:use-modules (gnu)
   #:use-modules (gnu system)
   #:use-modules (guix)
@@ -60,12 +60,17 @@
                          (greetd-agreety-session
                           (command (file-append hyprland "/bin/Hyprland")))))))))
 
-     ;; Flatpak for proprietary apps (Spotify, Slack, etc.)
+     ;; Flatpak for proprietary apps (Zen Browser, Spotify, Slack, etc.)
      (service flatpak-service-type))
 
     ;; Filter out gdm from %desktop-services since we use greetd
     (modify-services %desktop-services
-      (delete gdm-service-type))))
+      (delete gdm-service-type)
+      (guix-service-type config =>
+                         (guix-configuration
+                          (inherit config)
+                          (substitute-urls %substitute-urls)
+                          (authorized-keys %authorized-keys))))))
 
   (bootloader (bootloader-configuration
                 (bootloader grub-efi-bootloader)
