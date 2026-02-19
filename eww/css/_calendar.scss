@@ -1,0 +1,32 @@
+
+.calendar_box {
+  @include rounding;
+  margin: 5px;
+  padding: 15px;
+  margin-bottom: 20px;
+  background-color: $bg-dim;
+}
+
+calendar {
+  background-color: $bg-dim;
+  :selected {
+    color: $mauve;
+  }
+
+  .header {
+    color: $subtext1;
+  }
+
+  .highlight {
+    color: $yellow-faint;
+    font-weight: bold;
+  }
+
+  .button {
+    color: $blue-cooler;
+  }
+
+  :indeterminate {
+    color: $overlay0;
+  }
+}

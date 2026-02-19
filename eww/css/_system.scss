@@ -1,0 +1,208 @@
+.membar {
+  color: $yellow-warmer;
+}
+
+.cpubar {
+  color: $blue;
+}
+
+.batbar {
+  color: $green;
+}
+
+.membar,
+.cpubar,
+.batbar {
+  background-color: $bg-dim;
+}
+
+.sys-icon {
+    color: $red;
+}
+
+.iconmem {
+  color: $yellow-warmer;
+}
+
+.iconcpu {
+  color: $blue;
+}
+
+.icon-text {
+  font-size: 3rem;
+  padding: .7rem;
+}
+
+.profile {
+  @include rounding;
+  background-position: center;
+  background-size: cover;
+  margin: 4px 5px 4px 0;
+  min-height: 48px;
+  min-width: 48px;
+  border-radius: 100%;
+  border: 4px solid $yellow-faint;
+}
+
+
+
+.sys-text-mem,
+.sys-text-cpu {
+  font-size: 1rem;
+  font-weight: bold;
+}
+
+.sys-icon-mem,
+.sys-icon-cpu {
+  font-size: 1.5rem;
+  margin: 1.5rem;
+}
+
+.system-info-box {
+  @include rounding;
+  background-color: $surface0;
+  margin: .5rem 1rem;
+  padding: .5rem;
+}
+
+.sys-mem,
+.sys-cpu {
+  background-color: $bg;
+}
+
+.sys-icon-mem,
+.sys-text-mem,
+.sys-mem {
+  color: $yellow-warmer;
+}
+
+.sys-icon-cpu,
+.sys-text-cpu,
+.sys-cpu {
+  color: $blue;
+}
+
+.sys-box {
+  margin: .3em;
+
+  box { margin-left: 1rem; }
+}
+
+.date {
+  background: $bg;
+  color: $red-warmer;
+
+  label {
+	font-size: 1.2rem;
+  }
+}
+
+.top-row {
+  margin: 1rem 1.5rem 0;
+
+  .time {
+	  font-size: 2rem;
+	  margin-left: 10px;
+  }
+
+  .date-box {
+	margin: 0 1rem;
+
+	label { font-size: 1.1rem; }
+
+	.date {
+	  background: unset;
+	  margin: 0 .5rem 0 0;
+	  padding: 0;
+	}
+  }
+}
+
+.system-menu-box {
+  @include window;
+  background-color: $bg;
+  border: 1px solid $border;
+}
+
+.separator {
+  font-size: 1rem;
+}
+
+.system-row {
+  margin: .5rem .7rem;
+
+  .airplane-box button {
+	padding: 1rem 3rem;
+  }
+
+  label {
+	font-size: 1rem;
+	margin: 0 .1rem;
+  }
+}
+
+.element {
+  @include rounding;
+  background: $surface0;
+  margin: .3rem;
+
+  button {
+	@include rounding;
+	padding: 1rem;
+
+	label {
+	  font-size: 1.5rem;
+	}
+
+	&:hover {
+	  background: $overlay0;
+	}
+  }
+}
+
+.sliders {
+  @include rounding;
+  background-color: $surface0;
+  margin: .5rem 1rem;
+  padding: .6rem 1rem;
+
+  scale {
+	margin-right: -1rem;
+	min-width: 21.5rem;
+  }
+
+  box { margin: .2rem 0; }
+
+  label { font-size: 1.2rem; }
+}
+
+.volume-bar highlight {
+  @include rounding;
+  background-image: linear-gradient(to right, $green-cooler 30%, $cyan 100%);
+}
+
+.brightness-slider-box scale highlight {
+  @include rounding;
+  background-image: linear-gradient(to right, $yellow 30%, $yellow-warmer 100%);
+}
+
+.bottom-row {
+  margin: .5rem 1rem;
+
+  button {
+	background-color: $surface0;
+	border-radius: 50%;
+	margin-bottom: .1rem;
+	padding: 0 .5rem;
+
+	label { font-size: 1.5rem; }
+	&:hover { background: $overlay0; }
+  }
+}
+.power-button, .settings-button {
+	min-height: 2.2em;
+	margin-left: .8em;
+}
+
+.settings-button {
+}

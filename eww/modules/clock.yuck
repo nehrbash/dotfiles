@@ -1,0 +1,15 @@
+(defwidget clock_module []
+  (eventbox
+    :class "clock"
+    :onclick "bin/centereww toggle"
+    (box
+      :class "module"
+      :space-evenly false
+      (label
+        :text "${time.day} ")
+      (label
+        :text {time.hour})
+      (label
+        :text ":")
+      (label
+        :text "${time.minute}"))))

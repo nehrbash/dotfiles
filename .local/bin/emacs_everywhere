@@ -1,9 +1,0 @@
-#!/usr/bin/env bash
-
-echo -n '' > /tmp/.emacs_everywhere_clipboard
-
-emacsclient -a '' -c -F'(quote (name . "*Emacs Everywhere*"))' -e "(emacs-everywhere)"
-
-clipboard="$( cat /tmp/.emacs_everywhere_clipboard | tr \\n \\r | sed s/\\r*\$// )"
-
-wtype -d 1 "$clipboard"

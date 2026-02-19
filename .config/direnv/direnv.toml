@@ -1,4 +1,0 @@
-[global]
-log_format = "-"
-[whitelist]
-prefix = [ "~/src" ]

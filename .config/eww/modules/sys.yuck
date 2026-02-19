@@ -1,9 +1,0 @@
-(defwidget sys []
-  (box
-    :class "icon"
-    (eventbox
-      :onclick "${EWW_CMD} open --toggle system-menu-closer --screen '${monitor.model}'; ${EWW_CMD} open --toggle  system-menu --screen '${monitor.model}'"
-      :class "module"
-      (label
-        :class "module sys-icon"
-        :text ""))))

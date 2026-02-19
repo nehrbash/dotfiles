@@ -1,0 +1,96 @@
+(defwidget music []
+  (box
+	:class "ct_box"
+	:space-evenly false
+	:style "background-color: ${music.color1}; border: 1px solid ${music.color2};"
+	(box
+	  :class "music-cover-art"
+	  :style "background-image: url(\"${music.cover}\");")
+	(box
+	  :orientation "v"
+	  :class "music-box"
+	  (label
+		:class "music-title"
+		:wrap true
+		:text {music.title})
+	  (label
+		:class "music-artist"
+		:wrap true
+		:limit-width 20
+		:text {music.artist})
+	  (centerbox
+		:halign "center"
+		:class "music-button-box icon"
+		(button :class "music-button" :onclick "playerctl previous" "")
+		(button :class "music-button" :onclick "playerctl play-pause -p spotify" {music.status})
+		(button :class "music-button" :onclick "playerctl next" ""))
+	  (box
+		:orientation "v"
+		(box
+		  (label
+			:xalign 0
+			:class "music-time"
+			:text {music.position_time})
+		  (label
+			:xalign 1
+			:class "music-time"
+			:text {music.length}))
+		(box
+		  :class "music-bar"
+		  (scale
+			; doesn't work, looking for other ways
+			; :style "background: linear-gradient(to right, ${music.color1}, ${music.color2});"
+			:onchange "playerctl position `bc <<< \"{} * $(playerctl metadata mpris:length) / 1000000 / 100\"`"
+			:value {music.position}))))))
+
+(defwidget music-module []
+  (box
+    :space-evenly false
+    (box
+      :class "spotify-left"
+      (box
+        :class "spotify-left-in"
+        :width 15 ))
+    (box
+      :class "spotify-left-transition"
+      (box
+        :class "spotify-left-transition-in"
+        :width 15 ))
+    (eventbox
+      :class "spotify"
+      :onhover "${EWW_CMD} update music_reveal=true"
+      :onhoverlost "${EWW_CMD} update music_reveal=false"
+      (box
+        :class "mr-15"
+        :space-evenly false
+		(button :onclick "spotify_toggle"
+		  (label
+		  :class "spotify-icon"
+          :text " "))
+        (revealer
+          :transition "slideright"
+          :reveal music_reveal
+          :duration "350ms"
+          (box
+            :class "spotify-icon"
+            (button :onclick "playerctl previous"
+			  (label
+				:class "spotify-icon"
+				:text ""))
+            (button :onclick "playerctl play-pause -p spotify"
+			  (label
+				:class "spotify-icon"
+				:text {music.status}))
+            (button :onclick "playerctl next"
+			  (label
+				:class "spotify-icon"
+				:text ""))))
+        (label
+		  :class "spotify-label"
+		  :limit-width 80
+          :text {music.title})))
+    (box
+      :class "spotify-left"
+      (box
+        :class "spotify-right-in"
+        :width 15 ))))

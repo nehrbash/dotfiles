@@ -1,76 +1,59 @@
-/.zsh/history
+# Leftover stow dirs (no longer used)
+/.emacs.d/
+/.zsh/
+
+# Emacs generated/state files
+/emacs/eln-cache/
+/emacs/*.elc
 *.elc
-/.emacs.d/elpa/
-/.emacs.d/straight/
-/.emacs.d/var/
-/.zsh/zsh-syntax-highlighting/
-/.emacs.d/eln-cache/
-/.config/alacritty/catppuccin/
-/.emacs.d/oauth2-auto.plist
-/.emacs.d/.org-generic-id-locations
-/.config/eww/scripts/eww-weather
-/.config/eww/scripts/submap
-/.config/eww/pkg/eww-weather/eww-weather
-*.ics
-/doc/*.org_archive
-*.org
-/.emacs.d/lisp/init-gcal.el
-/.config/systemd/user/default.target.wants/
-*.wants/
-/.config/systemd/user/pipewire-session-manager.service
-/.emacs.d/.cask/
-/doc/pdfs/
-/.emacs.d/tree-sitter/
-/.emacs.d/org-clock-save.el
-/.emacs.d/etc/
-/Pictures/
-/.emacs.d/codeium/
-/.config/hypr/monitors.conf
-/.config/sptlrx/config.yaml
 
-.config/hypr/monitors.conf
+# Zsh history
+/zsh/history
+
+# Machine-specific Hyprland config
+/hypr/monitors.conf
+
+# Sptlrx config (contains personal tokens)
+/sptlrx/config.yaml
+
+# LaTeX cache
 /ltximg/
-/.emacs.d/tramp
-/.emacs.d/transient/
-/.emacs.d/type-break
-/.emacs.d/recentf
-/.emacs.d/projects
-/.emacs.d/places
-/.emacs.d/package-quickstart.el
-/.emacs.d/org-roam.db
-/.emacs.d/history
-/.emacs.d/forge-database.sqlite
-/.emacs.d/auto-save-list/
-/.emacs.d/multisession/
-/.emacs.d/eshell/
-/.emacs.d/.cache/
-/.local/bin/emacs-lsp-booster
-/.emacs.d/bookmarks
-/.emacs.d/persist/
-/.emacs.d/.org-id-locations
-*/custom.el
-/.emacs.d/jinx_corrections
-/.emacs.d/forge-database-v11-20240130-1145.sqlite
-/.emacs.d/elpaca/
-/.emacs.d/url/
-/.emacs.d/speed-type/
-/.emacs.d/*.desktop
-/.emacs.d/customs.el
-*.lock
-/.emacs.d/.mc-lists.el
-*.desktop
-/.emacs.d/*.sqlite
 
+# Org archives
+*.org_archive
 
-# Added by cargo
-
-/target
-/.local/bin/aider
-/.emacs.d/lisp/hotfuzz-module.so
-/.local/bin/roamui
-.aider*
-*.eld
-*.zst
+# Misc generated/ephemeral
 /pkg/my-emacs/pkg/
 /pkg/my-emacs/src/
 /pkg/my-emacs/emacs-git/
+/last_try
+/test.org
+*.lock
+*.eld
+*.ics
+*.zst
+
+# Scripts/binaries not checked in
+/scripts/aider
+/scripts/roamui
+/scripts/eww-install
+
+# Eww generated/runtime
+/eww/scripts/eww-weather
+/eww/scripts/submap
+/eww/pkg/eww-weather/eww-weather
+
+# Systemd generated links
+/systemd/user/default.target.wants/
+*.wants/
+/systemd/user/pipewire-session-manager.service
+
+# Cargo
+/target
+
+# Aider
+.aider*
+
+# Custom Emacs module secrets
+/emacs/lisp/init-gcal.el
+/emacs/lisp/hotfuzz-module.so

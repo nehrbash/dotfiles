@@ -1,0 +1,3 @@
+[submodule "nyxt/extensions/invader"]
+	path = nyxt/extensions/invader
+	url = https://github.com/atlas-engineer/nx-invader.git

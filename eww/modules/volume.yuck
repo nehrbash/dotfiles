@@ -1,0 +1,13 @@
+(defwidget volume-module []
+  (box
+    :class "icon"
+    (eventbox
+      :onscroll "echo {} | sed -e 's/up/-/g' -e 's/down/+/g' | xargs -I% wpctl set-volume @DEFAULT_AUDIO_SINK@ 0.005%"
+      :onclick "scripts/cmd-toggle 'pavucontrol -t 3'"
+      :onmiddleclick "scripts/cmd-toggle 'easyeffects' 'easyeffects -w' \"hyprctl clients -j | jaq -r '.[] | select(.title == \\\"Easy Effects\\\") | .monitor'\""
+      :onrightclick "scripts/volume mute SINK"
+      :class "module"
+      (label
+        :class "vol-icon module"
+        :tooltip "volume ${volume.percent}%"
+        :text {volume.icon}))))

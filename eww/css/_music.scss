@@ -1,0 +1,100 @@
+.song-cover-art {
+  @include rounding;
+  background-position: center;
+  background-size: cover;
+  margin: 4px 5px 4px 0;
+  min-height: 24px;
+  min-width: 24px;
+}
+
+.music-window {
+  @include window;
+  background-color: $bg;
+  border: 1px solid $border;
+  color: $fg;
+}
+
+.music-cover-art {
+  background-position: center;
+  background-size: cover;
+  border-radius: 8px;
+  margin: 1em;
+  min-height: 170px;
+  min-width: 170px;
+}
+
+.music-box {
+  margin: 1rem 1rem 1rem 0;
+}
+
+.music-title {
+  font-weight: bold;
+  font-size: 1.1rem;
+}
+
+.music-artist {
+  color: $subtext1;
+}
+
+.spotify-icon {
+	color: $bg;
+}
+
+.spotify-label {
+	color: $bg;
+}
+
+.music-button label {
+  color: $subtext1;
+  font-size: 2rem;
+}
+
+.music-time {
+  color: $subtext1;
+  margin: 0 1rem;
+}
+
+.music-bar scale {
+  highlight {
+    background-image: linear-gradient(to right, $green-cooler 30%, $cyan 100%);
+    border-radius: 24px;
+  }
+
+  trough {
+    background-color: $bg-dim;
+    border-radius: 24px;
+    margin-top: 0;
+    min-height: 10px;
+    min-width: 170px;
+  }
+}
+
+.spotify {
+    background-color: $green;
+    color: $bg;
+    border-bottom-right-radius: 15px;
+}
+
+.spotify-left {
+	color: $bg;
+    background-color: $green;
+}
+
+.spotify-left-in {
+    background-color: $red;
+    border-top-right-radius: 15px;
+}
+
+.spotify-right-in {
+    background-color: $bg;
+    border-top-left-radius: 15px;
+}
+
+.spotify-left-transition {
+    background-color: $red;
+}
+.spotify-left-transition-in {
+    background-color: $green;
+    border-bottom-left-radius: 15px;
+
+}

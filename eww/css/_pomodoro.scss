@@ -1,0 +1,74 @@
+.pomo {
+    background-color: $cyan;
+    color: $bg;
+    padding-left: 15px;
+    padding-right: 15px;
+    border-bottom-left-radius: 15px;
+    border-bottom-right-radius: 15px;
+	font-style: italic;
+}
+
+.pomo-left {
+    background-color: $cyan;
+}
+
+.pomo-left-in {
+    background-color: $bg;
+    border-top-right-radius: 15px;
+}
+
+.pomo-right {
+    background-color: $cyan;
+}
+
+.pomo-right-in {
+    background-color: $bg;
+    border-top-left-radius: 15px;
+}
+
+
+.pomo_circle {
+    color: $yellow-faint;
+    background-color: $bg-dim;
+    font-size: 16px;
+    padding: 20px;
+}
+
+.pomo_icon {
+    background-position: center;
+    background-size: cover;
+    min-height: 84px;
+    min-width: 84px;
+    padding: 15px;
+}
+
+.pomo_time {
+   font-size: 60px;
+   padding: 10px;
+   min-width: 200px;
+   font-family: monospace;
+}
+
+.pomo_task {
+    padding-top: 10px;
+    color: $yellow-warmer;
+    font-size: 26px;
+}
+
+
+.pomo_break {
+    background-color: rgba(0,0,0, 0.7);
+}
+
+.pomo_break_icon {
+    background-image: url('images/tomatoe3.png');
+
+}
+
+.pomo_break_in {
+    font-size: 3rem;
+    background-color: rgba(0,0,0, 0.5);
+    background: radial-gradient($bg 30%, transparent 0%, $bg-dim 0%);
+
+
+}

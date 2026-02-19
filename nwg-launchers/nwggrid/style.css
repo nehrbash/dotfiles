@@ -1,0 +1,153 @@
+@define-color bg-main #352718;
+@define-color fg-main #e8e4b1;
+@define-color bg-dim #483426;
+@define-color fg-dim #90918a;
+@define-color bg-alt #59463f;
+@define-color fg-alt #a2c080;
+@define-color bg-active #79665f;
+@define-color bg-inactive #3d2e1f;
+@define-color red #ff7f7f;
+@define-color red-warmer #ff7f4f;
+@define-color red-cooler #ff8f98;
+@define-color red-faint #e89a88;
+@define-color green #6fd560;
+@define-color green-warmer #a0d13a;
+@define-color green-cooler #65d590;
+@define-color green-faint #a0d26f;
+@define-color yellow #e4b53f;
+@define-color yellow-warmer #ffa21f;
+@define-color yellow-cooler #e7a06f;
+@define-color yellow-faint #eac29f;
+@define-color blue #57aff6;
+@define-color blue-warmer #98bfff;
+@define-color blue-cooler #62cfef;
+@define-color blue-faint #6ab4ef;
+@define-color magenta #f0aac5;
+@define-color magenta-warmer #fa90aa;
+@define-color magenta-cooler #c6a2fe;
+@define-color magenta-faint #dfcfe0;
+@define-color cyan #6fcad0;
+@define-color cyan-warmer #7fc5df;
+@define-color cyan-cooler #70e0cf;
+@define-color cyan-faint #99bfcf;
+@define-color bg-red-intense #b02930;
+@define-color bg-green-intense #4a7100;
+@define-color bg-yellow-intense #8f5040;
+@define-color bg-blue-intense #4648d0;
+@define-color bg-magenta-intense #a04fc5;
+@define-color bg-cyan-intense #2270cf;
+@define-color bg-red-subtle #72002a;
+@define-color bg-green-subtle #00422a;
+@define-color bg-yellow-subtle #603000;
+@define-color bg-blue-subtle #242679;
+@define-color bg-magenta-subtle #501f72;
+@define-color bg-cyan-subtle #004065;
+@define-color bg-added #2f491f;
+@define-color bg-added-faint #2f3b0f;
+@define-color bg-added-refine #3f6234;
+@define-color fg-added #a0e0a0;
+@define-color bg-changed #544a0f;
+@define-color bg-changed-faint #43350f;
+@define-color bg-changed-refine #615f1f;
+@define-color fg-changed #dada90;
+@define-color bg-removed #622a1f;
+@define-color bg-removed-faint #4b240a;
+@define-color bg-removed-refine #7f3325;
+@define-color fg-removed #ffbfbf;
+@define-color bg-graph-red-0 #b52c2c;
+@define-color bg-graph-red-1 #702020;
+@define-color bg-graph-green-0 #0fed00;
+@define-color bg-graph-green-1 #007800;
+@define-color bg-graph-yellow-0 #f1e00a;
+@define-color bg-graph-yellow-1 #b08940;
+@define-color bg-graph-blue-0 #2fafef;
+@define-color bg-graph-blue-1 #1f2f8f;
+@define-color bg-graph-magenta-0 #bf94fe;
+@define-color bg-graph-magenta-1 #5f509f;
+@define-color bg-graph-cyan-0 #47dfea;
+@define-color bg-graph-cyan-1 #00808f;
+@define-color bg-mode-line #704f00;
+@define-color fg-mode-line #f8efd8;
+@define-color bg-completion #66421f;
+@define-color bg-hover #60518f;
+@define-color bg-hover-secondary #5a661f;
+@define-color bg-hl-line #4f311f;
+@define-color bg-paren #5f6f1f;
+@define-color bg-err #571a05;
+@define-color bg-warning #4e4310;
+@define-color bg-info #2f4302;
+@define-color border #6f5f58;
+@define-color cursor #f9cf7a;
+@define-color fg-intense #ffffff;
+@define-color modeline-err #ffbfbf;
+@define-color modeline-warning #dfd443;
+@define-color modeline-info #7fefff;
+@define-color underline-err #df2f2f;
+@define-color underline-warning #c0b000;
+@define-color underline-info #22b022;
+@define-color bg-char-0 #0050af;
+@define-color bg-char-1 #7f1f7f;
+@define-color bg-char-2 #6f6600;
+@define-color bg-region #443a4f;
+
+@define-color bg @bg-main;
+@define-color fg @fg-main;
+@define-color border @bg-alt;
+@define-color shadow @bg-dim;
+
+* {
+    font-family: Iosevka, Material Icons Outlined;
+    font-size: 18px;
+    color: @fg;
+}
+
+window > box {
+    background-color: rgba(89, 70, 63, 0.5)
+}
+
+button {
+	background: @bg-inactive;
+}
+
+label, image {
+	background: transparent;
+}
+
+image {
+	color: transparent;
+}
+
+label {
+	padding: 5px;
+}
+button {
+	padding: 10px;
+	margin: 25px;
+	border-radius: 15px;
+}
+
+
+button:hover, button:focus, button:checked {
+	background: @bg-active;
+    box-shadow: 0 0 10px;
+}
+
+#searchbox {
+    font-size: 28px;
+    background: @bg-dim;
+    border: 3px solid @border;
+    margin-top: 90px;
+    margin-bottom: 20px;
+    padding-right: 28px;
+    padding-left: 28px;
+    border-radius: 28px;
+    min-width: 400px;
+}
+
+#separator {
+	background: @red;
+}
+
+#description {
+    margin-bottom: -200px;
+}

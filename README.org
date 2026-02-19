@@ -2,104 +2,59 @@
 - [[https://pixabay.com/vectors/mountains-panorama-forest-mountain-1412683/?download][Wallpaper]]
 - [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
 - [[https://github.com/hyprwm/Hyprland][Hyprland]]
-- [[https://archlinux.org/][Arch Linux]]
+- [[https://guix.gnu.org/][GNU Guix System]]
 - nwg-shell (monitors, settings)
 - Bar: eww
 - pipe wire, easy effects
 - File Manager: Gnome Files, Dired (Emacs)
 - PDF Viewer: pdf-tools (Emacs)
 - Theme: ef-melissa-dark
-- cursor theme: Dracula
+- Cursor theme: Bibata-Modern-Amber
 
 * Table Of Contents :TOC:
-- [[#arch-install-script][Arch Install script]]
-  - [[#bootstrap][Bootstrap]]
-  - [[#install-packages][Install Packages]]
+- [[#setup][Setup]]
+  - [[#clone--bootstrap][Clone & Bootstrap]]
+  - [[#system-reconfigure][System Reconfigure]]
+  - [[#home-reconfigure][Home Reconfigure]]
+  - [[#what-gets-automated][What Gets Automated]]
 - [[#keyboard][Keyboard]]
-- [[#login][Login]]
-  - [[#packages][Packages]]
-- [[#wm-hyprland][WM Hyprland]]
-  - [[#audio][Audio]]
-  - [[#connectivity][Connectivity]]
-  - [[#services][Services]]
-  - [[#eww][Eww]]
-  - [[#dev-tools][Dev Tools]]
-- [[#fonts][Fonts]]
-- [[#personal-software][Personal Software]]
-  - [[#terminal][Terminal]]
-  - [[#firefox][Firefox]]
-  - [[#spicetify][Spicetify]]
-  - [[#slack][Slack]]
-  - [[#emacs][Emacs]]
+- [[#eww][Eww]]
+  - [[#color-palette][Color palette]]
+- [[#spicetify][Spicetify]]
+- [[#slack][Slack]]
+- [[#emacs][Emacs]]
 - [[#references][References]]
-  - [[#list-of-all-packages-on-my-system][List of all packages on my System]]
 
-* Arch Install script
+* Setup
 
-  *Note*: Not really intended to be shared. I don't do clean install often and I set NVIDIA Specific Environment variables.
-  
-  1. set up os, install correct graphics driver, internet. pipewire ect...
-  2. run install script.
+  [[https://guix.gnu.org/][GNU Guix System]] with Hyprland (Wayland) on NVIDIA (RTX 3070 Ti). Home environment at =config/home/redfish.scm= — dotfiles are deployed via =guix home reconfigure=.
+
+** Clone & Bootstrap
 
 #+begin_src sh :tangle no
-./install.sh
-#+end_src
-
-** Bootstrap
-   
-*** Stow & Git
-
-	GNU Stow is a software installation manager for Unix-like operating systems which helps manage the installation, removal, and maintenance of software packages. It works by creating symlinks to files within package directories, allowing you to easily enable or disable specific software versions. This helps keep software organized in a clean, centralized manner and prevents conflicts between different versions of the same software.
-
-
-#+begin_src sh :tangle install.sh
-#! /bin/bash
-set -e
-set -x
 cd ~
-if [ -d ".dotfiles" ]; then
-    echo ".dotfiles directory exists. Pulling latest updates."
-    cd .dotfiles
-    git pull || true
-    git submodule update --init --recursive
-else
-	cd .dotfiles
-    echo ".dotfiles directory does not exist. Cloning repo."
-    git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
-fi
-stow .
-cd -
-#+end_src
-		
-*** Paru
-	
-	Paru is an Arch Linux package manager written in Rust. It is a community-driven project aiming to be a feature-rich and user-friendly alternative to the default package manager, Pacman. Paru allows users to install, upgrade, and remove packages from the Arch User Repository (AUR) as well as from the official Arch Linux repositories. It provides additional functionality like dependency resolution, parallel downloads, and automatic conflict resolution.
-
-#+begin_src sh :tangle install.sh
-sudo pacman -S --needed base-devel
-if ! command -v paru &> /dev/null; then
-    git clone https://aur.archlinux.org/paru.git
-    cd paru
-    makepkg -si
-    cd -
-    rm -r paru
-fi
+git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
+cd .dotfiles
+guix pull -C config/channels.scm
 #+end_src
 
-** Install Packages
+** System Reconfigure
 
-   Installed Required packages + optional ones.
-
-#+begin_src sh :tangle install.sh
-read -p "Do you want to update packages? (yes/no): " choice
-
-if [[ "$choice" == "yes" ]]; then
-	paru -Syu
-    paru --needed -S - < ~/.dotfiles/pkglist.txt
-else
-    echo "Skipping package update."
-fi
+#+begin_src sh :tangle no
+sudo guix system reconfigure config/systems/ocean.scm
 #+end_src
+
+** Home Reconfigure
+
+#+begin_src sh :tangle no
+guix home reconfigure config/home/redfish.scm
+#+end_src
+
+** What Gets Automated
+
+   On =guix home reconfigure=, the activation service handles:
+   - Flatpak: adds Flathub remote, installs Zen Browser / Spotify / Slack
+   - Eww/hyprshell: builds via =go install= into =~/.config/eww/bin/=
 
 * Keyboard
 
@@ -108,90 +63,19 @@ fi
   - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
   - [[https://github.com/manna-harbour/miryoku][Layout]]
 
-* Login
+* Eww
 
-  I used greetd with Hyprland and regreet. Manually copy =greetd= to =/etc/greetd= make sure the greetd user can read files.
+  Widget bar using Yuck markup, SCSS, and a Go program (=hyprshell=) for Hyprland IPC integration. Manual build required; binary added to PATH via =home-environment-variables-service-type=.
 
-#+begin_src sh :tangle install.sh
-read -p "Do you want to install greetd.service? (yes/no): " choice
-if [[ "$choice" == "yes" ]]; then
-	cd ~/.dotfiles/ || exit
-	sudo cp -r greetd/ /etc/greetd/ 
-	sudo systemctl enable greetd.service
-else
-    echo "Skipping greetd install."
-fi
-#+end_src
-
-** Packages
-
-   #+begin_src txt :tangle pkglist.txt :padline no
-greetd
-greetd-regreet
-#+end_src
-
-* WM Hyprland
-
-  The best Wayland Window Manager.
-	
-#+begin_src txt :tangle pkglist.txt :padline no
-swaync
-nwg-launchers-git
-swww
-waypaper-engine
-light
-brightnessctl
-wget
-nwg-displays
-nwg-look
-wlr-randr
-grim
-hyprland
-hyprlang
-xdg-desktop-portal-hyprland
-xdg-desktop-portal-gtk
-wl-clipboard
-swayidle
-playerctl
-#+end_src
-
-** Audio
-
-#+begin_src txt :tangle pkglist.txt :padline no
-easyeffects
-pavucontrol
-#+end_src
-
-** Connectivity
-
-#+begin_src txt :tangle pkglist.txt :padline no
-blueberry
-iwgtk
-#+end_src
-
-** Services
-
-#+begin_src sh :tangle install.sh
-systemctl --user enable swaync.service
-#+end_src
-
-** Eww
-
-  Widget bar using Yuck markup, SCSS, and a Go program (=hyprshell=) for Hyprland IPC integration.
-
-#+begin_src txt :tangle pkglist.txt :padline no
-eww
-#+end_src
-
-#+begin_src sh :tangle install.sh
+#+begin_src sh :tangle no
 go install github.com/nehrbash/hyprshell@latest
 #+end_src
 
-*** Color palette
+** Color palette
 
 	Using my Emacs theme =ef-melissa-dark=. generated with this func.
 
-#+begin_src emacs-lisp :tangle no 
+#+begin_src emacs-lisp :tangle no
 (defun export-palette-to-scss (palette tgt-file)
   "Export a color palette to SCSS format."
   (with-temp-buffer
@@ -206,123 +90,16 @@ go install github.com/nehrbash/hyprshell@latest
 (export-palette-to-scss ef-melissa-dark-palette "~/.config/eww/css/_colors.scss")
 #+end_src
 
-** Dev Tools
+* Spicetify
 
-#+begin_src txt :tangle pkglist.txt :padline no
-jq
-jaq
-go
-rustup
+#+begin_src sh :tangle no
+spicetify config current_theme Onepunch color_scheme light
+spicetify restore backup
+spicetify backup
+spicetify apply
 #+end_src
 
-* Fonts
-
-  Fonts used across my config 
-   - Iosevka, Iosevka Aile => normal text
-   - Material Icons => most icons
-   - Weather Icons => used in eww center widget
-   - font awesome => just for spotify icon
-
-#+begin_src txt :tangle pkglist.txt :padline no
-ttf-iosevka
-ttf-iosevka-aile
-ttf-material-icons-git
-ttf-font-awesome
-#+end_src
-
-* Personal Software
-
-   Packages on my system and their configuration.
-
-#+begin_src txt :tangle pkglist.txt :padline no
-vlc
-downgrade
-android-messages-desktop-bin
-firefox-bin
-slack-desktop
-#+end_src
-
-** Terminal
-
-   I like a simple zsh prompt. set shell to zsh
-
-#+begin_src sh :tangle install.sh
-if [[ "$SHELL" == *"/zsh" ]]; then
-    echo "The current shell is already zsh. Skipping shell change."
-else
-    read -p "Do you want to change the shell to zsh? (yes/no): " choice
-
-    if [[ "$choice" == "yes" ]]; then
-        chsh -s "$(which zsh)"
-        echo "Shell changed to zsh."
-    else
-        echo "Skipping shell change."
-    fi
-fi
-#+end_src
-
-*** Terminal Packages
-	
-#+begin_src txt :tangle pkglist.txt :padline no
-alacritty
-zsh
-zsh-autosuggestions
-zsh-completions
-zsh-history-substring-search
-zsh-syntax-highlighting
-exa
-#+end_src
-
-** Firefox
-
-Get the active profile from profiles.ini and symlink chrome folder into place. Required extensions are installed via my firefox account after login.
-1. go to ~about:config~ and set ~toolkit.legacyUserProfileCustomizations.stylesheets~ to true.
-2. restart firefox fully.
-
-3. import sidebery data and customize bar to remove refresh buttons.
-4. set font to Product Sans
-
-#+begin_src sh :tangle install.sh
-read -p "Do you want to update Firefox CSS? (yes/no): " choice
-
-if [[ "$choice" == "yes" ]]; then
-	PROFILE=$(awk -F= -v section="$install_section" '$1 == "Default" && found {print $2; exit} $1 == section {found=1}' ~/.mozilla/firefox/profiles.ini)
-	# Create the symlink
-	ln -sfn ~/.dotfiles/.config/chrome/ ~/.mozilla/firefox/${PROFILE}/
-else
-    echo "Skipping Firefox CSS update."
-fi
-#+end_src
-
-*** Extensions
-   - Sidebery
-   - Infinity New Tabs
-   - Ad blocker
-   - Password manager
-
-** Spicetify
-
-#+begin_src txt :tangle pkglist.txt :padline no
-spicetify-cli
-spicetify-themes-git
-spotify-launcher
-sptlrx-bin
-cava
-#+end_src
-
-#+begin_src sh :tangle install.sh
-read -p "Do you want to update Spicetify? (yes/no): " choice
-if [[ "$choice" == "yes" ]]; then
-	spicetify config current_theme Onepunch color_scheme light
-	spicetify restore backup
-	spicetify backup
-	spicetify apply
-else
-    echo "Skipping Spicetify update."
-fi
-#+end_src
-
-** Slack
+* Slack
 
    Set the theme to dark and paste values.
 
@@ -332,51 +109,13 @@ fi
 #3C3836,#1A0404,#3C3836,#D5C4A1,#665C54,#EBDBB2,#FB4934,#D5C4A1,#D5C4A1,#282828
 #+end_src
 
-** Emacs
+* Emacs
 
-   My Emacs config can be found [[file:Emacs.org][here]]. I build GNU Emacs 31 from a custom PKGBUILD at =pkg/my-emacs/= with Wayland and native-comp enabled.
+   My Emacs config can be found [[file:Emacs.org][here]]. =emacs-next-pgtk= is installed via =redfish.scm= with pgtk and native-comp.
 
-   Building takes a while. Also run =M-x package-upgrade-all= to finish installing packages.
-
-#+begin_src sh :tangle install.sh
-read -p "Do you want install/rebuild Emacs? (yes/no): " choice
-if [[ "$choice" == "yes" ]]; then
-    cd ~/.dotfiles/pkg/my-emacs && makepkg -si
-    cd ~ || exit
-else
-    echo "Skipping Emacs build."
-fi
-#+end_src
-
-#+begin_src txt :tangle pkglist.txt :padline no
-words
-aspell
-aspell-en
-hspell
-nuspell
-libvoikko
-ripgrep
-isync
-enchant
-texlive
-bash-language-server
-curl
-shellcheck
-rust-analyzer
-sshfs
-#+end_src
+   Run =M-x package-upgrade-all= after first launch to finish installing packages.
 
 * References
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
 - https://github.com/saimoomedits/eww-widgets
-** List of all packages on my System
-
-   All installed packages on my system.
-
-#+begin_src sh :tangle no :results output file :file full-pkg-list.txt
-paru -Qqen
-#+end_src
-
-#+RESULTS:
-[[file:full-pkg-list.txt]]

@@ -1,0 +1,44 @@
+#! /bin/bash
+
+if type eza > /dev/null 2>&1; then
+    alias l='eza -lh --icons'
+    alias ll='eza -l --icons'
+    alias ls='eza --icons'
+    alias la='eza -lha --icons'
+    alias lr='eza -tRh --icons'
+    alias tree='eza --tree'
+    alias lt='eza --tree --icons -l'
+    alias ldot='eza -ld .* --icons'
+fi
+alias t='tail -f'
+alias -g H='| head'
+alias -g T='| tail'
+alias -g G='| grep'
+alias -g L="| less"
+alias -g M="| most"
+alias -g LL="2>&1 | less"
+alias -g CA="2>&1 | cat -A"
+alias -g NE="2> /dev/null"
+alias -g NUL="> /dev/null 2>&1"
+alias -g P="2>&1| pygmentize -l pytb"
+alias dud='du -d 1 -h'
+alias duf='du -sh *'
+alias fd='find . -type d -name'
+alias ff='find . -type f -name'
+alias h='history'
+alias hgrep="fc -El 0 | grep"
+alias p='ps -f'
+alias sortnr='sort -n -r'
+alias unexport='unset'
+alias open='xdg-open 2>/dev/null'
+alias rm='rm -I'
+alias cp='cp -i'
+alias mv='mv -i'
+alias clock='tty-clock -c  -n -D'
+alias ..='cd ..'
+alias ...='cd ../../../'
+alias ....='cd ../../../../'
+alias .....='cd ../../../../'
+
+alias update-system="sudo -E guix system reconfigure --substitute-urls=https://ci.guix.gnu.org ~/dotfiles/config/systems/\$(hostname).scm"
+alias update-home="guix home reconfigure --allow-downgrades --substitute-urls=https://ci.guix.gnu.org ~/dotfiles/config/home/redfish.scm"

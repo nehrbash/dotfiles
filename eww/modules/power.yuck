@@ -1,0 +1,47 @@
+(defwidget power []
+  (eventbox
+    :onhover "eww update power=true"
+    :onhoverlost "eww update power=false"
+    (box
+      :orientation "h"
+      :space-evenly false
+      :vexpand "false"
+      :class "powermenu"
+      (revealer
+        :transition "slideleft"
+        :reveal power
+        :duration "550ms"
+        (box :orientation "h"
+          :space-evenly "true"
+          :spacing "5"
+          :style "padding-right: 5px;"
+          (button
+            :tooltip "Suspend"
+            :onclick "systemctl suspend"
+            :height 38
+            :width 38
+            "")
+
+          (button
+            :tooltip "Reboot"
+            :onclick "systemctl reboot"
+            :height 38
+            :width 38
+            "")
+
+          (button
+            :tooltip "Logout"
+            :onclick "loginctl terminate-user $USER"
+            "")
+
+          (button
+            :tooltip "Lock Screen"
+            :onclick "swaylock-fancy"
+            "")))
+      (button
+        :tooltip "Shutdown"
+        :onclick "systemctl poweroff"
+        :height 38
+        :width 38
+        ""))))
+;;  

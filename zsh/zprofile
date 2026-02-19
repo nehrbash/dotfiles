@@ -1,0 +1,9 @@
+# NVIDIA / Wayland environment — set for tty login shells so
+# start-hyprland picks them up when launched from a VT.
+export LD_LIBRARY_PATH=/run/current-system/profile/lib
+export __EGL_VENDOR_LIBRARY_DIRS=/run/current-system/profile/share/glvnd/egl_vendor.d
+export GBM_BACKENDS_PATH=/run/current-system/profile/lib/gbm
+export LIBGL_DRIVERS_PATH=/run/current-system/profile/lib/dri
+export GBM_BACKEND=nvidia-drm
+export __GLX_VENDOR_LIBRARY_NAME=nvidia
+export LIBVA_DRIVER_NAME=nvidia

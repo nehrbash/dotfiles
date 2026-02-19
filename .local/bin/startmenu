@@ -1,9 +1,0 @@
-#!/bin/bash
-
-nwg-menu -ml 10\
-         -va top\
-         -mt 5\
-         -isl 28\
-         -iss 18\
-         -slen 60\
-         -d

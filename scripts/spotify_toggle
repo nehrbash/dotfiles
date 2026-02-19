@@ -1,0 +1,41 @@
+#!/usr/bin/env bash
+
+set -e
+
+focus() {
+	hyprctl 'dispatch togglespecialworkspace spot'
+}
+
+active() {
+	output=$(hyprctl workspaces -j | jq -r '.[] | select(.name == "special:spot")')
+
+	if [[ -z "$output" ]]; then
+		return 1 # If no output or output is empty, return false (1).
+	else
+		return 0 # If there is some output, return true (0).
+	fi
+}
+
+setup() {
+	hyprctl --batch "dispatch exec [workspace special:spot] spotify-launcher; dispatch layoutmsg preselect l"
+	sleep 2
+	hyprctl --batch "dispatch exec [workspace special:spot] alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf;"
+	sleep 0.2
+	hyprctl --batch "dispatch resizeactive -60% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r; dispatch exec [workspace special:spot] alacritty -o font.size=6 -e cava -p ~/.config/cava/right.conf;"
+	sleep 0.2
+	hyprctl --batch "dispatch resizeactive 45% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d; dispatch exec [workspace special:spot] alacritty -o font.size=18 -e sptlrx"
+	sleep 0.2
+	hyprctl --batch "dispatch resizeactive 0 50%"
+}
+
+# if not active run setup
+if ! active; then
+	setup
+	exit 0
+fi
+
+# if active then run focus
+if active; then
+	focus
+	exit 0
+fi

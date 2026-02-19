@@ -1,0 +1,17 @@
+[Unit]
+Description=Swaync notification daemon
+Documentation=https://github.com/ErikReider/SwayNotificationCenter
+PartOf=graphical-session.target
+After=graphical-session.target
+# ConditionEnvironment requires systemd v247 to work correctly
+ConditionEnvironment=WAYLAND_DISPLAY
+
+[Service]
+Type=dbus
+BusName=org.freedesktop.Notifications
+ExecStart=/usr/bin/swaync
+ExecReload=/usr/bin/swaync-client --reload-config ; /usr/bin/swaync-client --reload-css
+Restart=on-failure
+
+[Install]
+WantedBy=graphical-session.target

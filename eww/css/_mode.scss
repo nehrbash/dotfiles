@@ -1,0 +1,17 @@
+.mode {
+    padding-left: 15px;
+    background-color: $red;
+    border-bottom-left-radius: 15px;
+    color: $bg;
+}
+
+.mode-left {
+	margin-left:  15px; // can look a little weird too close to corner.
+    background-color: $red;
+}
+
+.mode-left-in {
+	padding-left: 40px;
+    background-color: $bg;
+    border-top-right-radius: 15px;
+}

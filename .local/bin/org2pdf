@@ -1,7 +1,0 @@
-#! /bin/bash
-
-# tangle org doc func
-tangle () {
-    emacs --batch --eval "(require 'org)" --eval "(org-babel-tangle-file \"$1\")"
-}
-tangle "$1"
