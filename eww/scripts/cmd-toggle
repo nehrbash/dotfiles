@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 # toggle arbitrary command
 # args: $1 $2[optional] $3[optional]
 # $1 the command to start the process

@@ -1,4 +1,4 @@
-(define-module (config packages zsh-pure-prompt)
+(define-module (packages zsh-pure-prompt)
   #:use-module (guix packages)
   #:use-module (guix git-download)
   #:use-module (guix build-system copy)

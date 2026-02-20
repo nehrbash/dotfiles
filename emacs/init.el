@@ -39,6 +39,7 @@
     (elpaca-generate-autoloads "elpaca" repo)
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
+(setq elpaca-order-defaults (list :protocol 'https :inherit t :depth 1))
 (elpaca `(,@elpaca-order))
   (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
@@ -166,7 +167,7 @@
   (sn-modeline-mode 1))
 
 (use-package modern-tab-bar
-  :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
+  :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar")
   :init
   (setq tab-bar-show t
         tab-bar-new-button nil
@@ -207,9 +208,9 @@
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
-    (use-package display-fill-column-indicator
-      :ensure nil
-      :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
+(use-package display-fill-column-indicator
+  :ensure nil
+  :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
@@ -369,13 +370,13 @@
 		"\\*\\(Man\\|woman\\).*"))
 	 (display-buffer-same-window)))))
 
-  (use-package recentf
-    :ensure nil
+(use-package recentf
+  :ensure nil
 	:hook (elpaca-after-init . recentf-mode)
-    :custom
-    (recentf-auto-cleanup 300)
-    (recentf-max-saved-items 100)
-    (recentf-exclude
+  :custom
+  (recentf-auto-cleanup 300)
+  (recentf-max-saved-items 100)
+  (recentf-exclude
 	'(
 	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
 	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
@@ -384,7 +385,7 @@
 	   ))
 	:config
 	(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory))))
+    `((".*" . ,temporary-file-directory))))
 
 (use-package files
   :ensure nil
@@ -427,7 +428,7 @@
   :config
   (setq history-length 25))
 
- (save-place-mode 1)
+(save-place-mode 1)
 
 (use-package anzu
   :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
@@ -875,40 +876,40 @@ Call a second time to restore the original window configuration."
   (push-mark (point) t nil)
   (apply func args))
 
- (use-package move-dup
-   :bind(("M-<up>" . move-dup-move-lines-up)
+(use-package move-dup
+  :bind(("M-<up>" . move-dup-move-lines-up)
 		 ("M-<down>" . move-dup-move-lines-down)
 		 ("C-c d" . move-dup-duplicate-down)
 		 ("C-c u" . move-dup-duplicate-up)))
 
- (use-package whole-line-or-region
-   :config (whole-line-or-region-global-mode t))
+(use-package whole-line-or-region
+  :config (whole-line-or-region-global-mode t))
 
- (defun smarter-move-beginning-of-line (arg)
-   "Move point back to indentation of beginning of line.
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
 
- Move point to the first non-whitespace character on this line.
- If point is already there, move to the beginning of the line.
- Effectively toggle between the first non-whitespace character and
- the beginning of the line.
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
 
- If ARG is not nil or 1, move forward ARG - 1 lines first.  If
- point reaches the beginning or end of the buffer, stop there."
-   (interactive "^p")
-   (setq arg (or arg 1))
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
 
-   ;; Move lines first
-   (when (/= arg 1)
+  ;; Move lines first
+  (when (/= arg 1)
 	 (let ((line-move-visual nil))
 	   (forward-line (1- arg))))
 
-   (let ((orig-point (point)))
+  (let ((orig-point (point)))
 	 (back-to-indentation)
 	 (when (= orig-point (point))
 	   (move-beginning-of-line 1))))
 
- ;; remap C-a to `smarter-move-beginning-of-line'
- (global-set-key [remap move-beginning-of-line]
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
 				 'smarter-move-beginning-of-line)
 
 (use-package ace-window
@@ -917,13 +918,13 @@ Call a second time to restore the original window configuration."
   (aw-ignore-current t)
   :bind ("M-o" . ace-window))
 
- (use-package windswap
-   :config
-   (windmove-default-keybindings 'control)
-   (windswap-default-keybindings 'shift 'control))
+(use-package windswap
+  :config
+  (windmove-default-keybindings 'control)
+  (windswap-default-keybindings 'shift 'control))
 
- (use-package sudo-edit
-   :commands (sudo-edit))
+(use-package sudo-edit
+  :commands (sudo-edit))
 
 (defun revert-all-buffers-no-confirm ()
   "Revert all buffers without confirmation."
@@ -1249,10 +1250,10 @@ Otherwise, it centers the posframe in the frame."
 	   consult-source-bookmark
 	   consult-source-project-recent-file)))
 
-    (use-package consult-xref-stack
-      :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
-      :bind
-      ("C-," . consult-xref-stack-backward))
+(use-package consult-xref-stack
+  :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
+  :bind
+  ("C-," . consult-xref-stack-backward))
 
 (use-package embark
   :bind
@@ -1444,6 +1445,7 @@ Otherwise, it centers the posframe in the frame."
   :after yasnippet)
 
 (use-package jinx
+  :ensure t
   :hook (elpaca-after-init .  global-jinx-mode)
   :bind
   ([remap ispell-word] . jinx-correct-nearest)
@@ -1685,7 +1687,6 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package ob-mermaid
   :after org
-  :ensure-system-package (mmdc . "paru -S --needed --noconfirm mermaid-cli")
   :config
   (add-to-list 'org-babel-load-languages '(mermaid . t)))
 
@@ -1708,12 +1709,12 @@ Otherwise, it centers the posframe in the frame."
 (use-package org-modern
   :config (global-org-modern-mode t))
 
-   (use-package org-appear
-     :ensure (:host github :repo "awth13/org-appear")
-     :hook (org-mode . org-appear-mode))
+(use-package org-appear
+  :ensure (:host github :repo "awth13/org-appear")
+  :hook (org-mode . org-appear-mode))
 
- (use-package org-fragtog
-   :hook (org-mode . org-fragtog-mode))
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
 
 (use-package org-clock
   :ensure nil
@@ -2127,39 +2128,6 @@ Only clock in/out when needed, and always save all Org buffers."
   :ensure nil
   :mode ("\\.tsx\\'" . tsx-ts-mode)
   :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-	     ;; Note the version numbers. These are the versions that
-	     ;; are known to work with Combobulate *and* Emacs.
-	     '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
-	       (go . ("https://github.com/tree-sitter/tree-sitter-go"))
-			   (gomod . ("https://github.com/camdencheek/tree-sitter-go-mod"))
-	       (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-	       (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-	       (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-	       (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
-	       (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-	       (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
-	       (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
-	       (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-	       (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-	       (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-			   ))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-	(treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
-  ;; non-ts-modes.
-
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
   (dolist (mapping
 	   '((python-mode . python-ts-mode)
 	     (css-mode . css-ts-mode)
@@ -2173,8 +2141,6 @@ Only clock in/out when needed, and always save all Org buffers."
 	     (json-mode . json-ts-mode)
 	     (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars)
   :custom
   (treesit-font-lock-level 4))
 
@@ -2382,7 +2348,7 @@ The exact color values are taken from the active Ef theme."
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
-      (use-package magit-pretty-graph
+(use-package magit-pretty-graph
 	:ensure (:host github :repo "georgek/magit-pretty-graph")
 	:bind
 	)
@@ -2392,86 +2358,86 @@ The exact color values are taken from the active Ef theme."
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
-  (use-package svg-tag-mode)
-  (use-package vterm
-    :hook (vterm-mode . sn/setup-vterm)
-    :init
-    (defun sn/vterm-apply-theme ()
-  	"Apply current theme colors to vterm buffer."
-  	(modus-themes-with-colors
-  	  (let ((darker (sn-darken-color bg-main 0.7)))
-  		(face-remap-add-relative
-  		  'default
-  		  :background darker)
-  		(face-remap-set-base
-  		  'default
-  		  :background darker)
-  		(face-remap-add-relative
-  		  'fringe
-  		  :background darker))))
-    (defun sn/setup-vterm ()
-  	"Setup vterm buffer with custom font and theme colors."
-  	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
-  	(buffer-face-mode t)
-  	(setq-local left-margin-width 3
-  	  right-margin-width 3
-  	  cursor-type 'bar)
-  	(sn/vterm-apply-theme))
-    (defun sn/vterm-update-all-themes ()
-  	"Update theme colors in all vterm buffers."
-  	(dolist (buffer (buffer-list))
-  	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
-  		(with-current-buffer buffer
-  		  (sn/vterm-apply-theme)))))
-    :config
-    (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
-    (defun old-version-of-vterm--get-color (index &rest args)
-  	"This is the old version before it was broken by commit
-  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-  	(cond
-        ((and (>= index 0) (< index 16))
-  		(face-foreground
-  		  (elt vterm-color-palette index)
-  		  nil 'default))
-        ((= index -11)
-  		(face-foreground 'vterm-color-underline nil 'default))
-        ((= index -12)
-  		(face-background 'vterm-color-inverse-video nil 'default))
-        (t
-  		nil)))
-    (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
-    (defun my/vterm-standalone ()
-  	"Create a standalone vterm frame without modeline and minibuffer."
-  	(interactive)
-  	(let ((frame (make-frame '((name . "vterm-standalone")
-  								(minibuffer . nil)))))
-        (select-frame frame)
-        (let ((display-buffer-alist nil))
-  		(vterm))
-  	  (setq mode-line-format nil)))
-    )
-  (use-package svg-lib :ensure t)
-  (use-package svg-tabs
-    :load-path "~/.emacs.d/lisp"
-    :after svg-lib)
-  (use-package vterm-tabs
-    :load-path "~/.emacs.d/lisp"
-    :bind
-    (("<f6>" . vterm-tabs-toggle)
-  	:map vterm-mode-map
-  	("C-M-s" . consult-term)
-  	("M-w" . copy-region-as-kill)
-  	("C-y" . vterm-yank))
-    :custom
-    (vterm-buffer-maximum-size 800)
-    (vterm-tramp-shells
-  	'(("ssh" "/bin/bash")
-  	   ("docker" "/bin/bash")
-  	   ("sudo" "/bin/bash")))
-    (vterm-always-compile-module t)
-    :config
-    (global-vterm-tabs-mode 1))
+(use-package svg-tag-mode)
+(use-package vterm
+  :hook (vterm-mode . sn/setup-vterm)
+  :init
+  (defun sn/vterm-apply-theme ()
+	"Apply current theme colors to vterm buffer."
+	(modus-themes-with-colors
+	  (let ((darker (sn-darken-color bg-main 0.7)))
+		(face-remap-add-relative
+		  'default
+		  :background darker)
+		(face-remap-set-base
+		  'default
+		  :background darker)
+		(face-remap-add-relative
+		  'fringe
+		  :background darker))))
+  (defun sn/setup-vterm ()
+	"Setup vterm buffer with custom font and theme colors."
+	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
+	(buffer-face-mode t)
+	(setq-local left-margin-width 3
+	  right-margin-width 3
+	  cursor-type 'bar)
+	(sn/vterm-apply-theme))
+  (defun sn/vterm-update-all-themes ()
+	"Update theme colors in all vterm buffers."
+	(dolist (buffer (buffer-list))
+	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
+		(with-current-buffer buffer
+		  (sn/vterm-apply-theme)))))
+  :config
+  (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
+  (defun old-version-of-vterm--get-color (index &rest args)
+	"This is the old version before it was broken by commit
+https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+	(cond
+      ((and (>= index 0) (< index 16))
+		(face-foreground
+		  (elt vterm-color-palette index)
+		  nil 'default))
+      ((= index -11)
+		(face-foreground 'vterm-color-underline nil 'default))
+      ((= index -12)
+		(face-background 'vterm-color-inverse-video nil 'default))
+      (t
+		nil)))
+  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
+  (defun my/vterm-standalone ()
+	"Create a standalone vterm frame without modeline and minibuffer."
+	(interactive)
+	(let ((frame (make-frame '((name . "vterm-standalone")
+								(minibuffer . nil)))))
+      (select-frame frame)
+      (let ((display-buffer-alist nil))
+		(vterm))
+	  (setq mode-line-format nil)))
+  )
+(use-package svg-lib :ensure t)
+(use-package svg-tabs
+  :load-path "~/.emacs.d/lisp"
+  :after svg-lib)
+(use-package vterm-tabs
+  :load-path "~/.emacs.d/lisp"
+  :bind
+  (("<f6>" . vterm-tabs-toggle)
+	:map vterm-mode-map
+	("C-M-s" . consult-term)
+	("M-w" . copy-region-as-kill)
+	("C-y" . vterm-yank))
+  :custom
+  (vterm-buffer-maximum-size 800)
+  (vterm-tramp-shells
+	'(("ssh" "/bin/bash")
+	   ("docker" "/bin/bash")
+	   ("sudo" "/bin/bash")))
+  (vterm-always-compile-module t)
+  :config
+  (global-vterm-tabs-mode 1))
 
 (use-package makefile-runner
   :ensure (:host github :repo "danamlund/emacs-makefile-runner"))
@@ -2520,21 +2486,14 @@ The exact color values are taken from the active Ef theme."
   (global-treesit-fold-mode))
 
 (use-package go-mode
-  :ensure-system-package
-  ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-   (gofumpt . "go install mvdan.cc/gofumpt@latest")
-   (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(subword-mode 1)
 						(setq-local go-ts-mode-indent-offset 4))))
 (use-package go-tag
-  :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
   :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
 (use-package go-impl
-  :ensure-system-package (impl . "go install github.com/josharian/impl@latest")
   :bind (:map go-ts-mode-map ("C-c C-i" . go-impl)))
 (use-package go-gen-test
-  :ensure-system-package (gotests . "go install github.com/cweill/gotests/gotests@latest")
   :bind (:map go-ts-mode-map ("C-c t g" . go-gen-test-dwim)))
 (use-package gotest
   :bind
@@ -2583,16 +2542,11 @@ The exact color values are taken from the active Ef theme."
   :hook (yaml-ts-mode . goto-address-prog-mode))
 
 (use-package docker
-  :ensure-system-package
-  (docker . "paru -S docker")
-  (docker-compose . "paru -S docker-compose")
-  (devcontainer . "npm install -g @devcontainers/cli")
   :bind ("M-SPC d" . docker))
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 
 (use-package sqlformat
-  :ensure-system-package (pgformatter)
   :hook (sql-mode . sqlformat-on-save-mode)
   :custom
   (sqlformat-command 'pgformatter)
@@ -2818,15 +2772,15 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
       (save-buffer)))
   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file))
 
- (use-package codeium
-   :ensure (:host github :repo "Exafunction/codeium.el")
-   :custom
-   (codeium-log-buffer nil)
-   :config
-   ;; modeline
-   (setq codeium-mode-line-enable
-     (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-   (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
+(use-package codeium
+  :ensure (:host github :repo "Exafunction/codeium.el")
+  :custom
+  (codeium-log-buffer nil)
+  :config
+  ;; modeline
+  (setq codeium-mode-line-enable
+    (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
 
 (use-package google-this
   :bind ("M-s w" . google-this))

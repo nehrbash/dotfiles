@@ -1,3 +1,6 @@
+(define-module (channels))
+(use-modules (guix channels))
+
 (list (channel
        (name 'guix)
        (url "https://codeberg.org/guix/guix.git")

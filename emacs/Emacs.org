@@ -1,4 +1,4 @@
-#+PROPERTY: header-args:emacs-lisp :tangle ~/.emacs.d/init.el
+#+PROPERTY: header-args:emacs-lisp :tangle init.el
 #+TITLE:Emacs Configuration
 * Table of Contents :TOC:
   :PROPERTIES:
@@ -144,6 +144,7 @@
     (elpaca-generate-autoloads "elpaca" repo)
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
+(setq elpaca-order-defaults (list :protocol 'https :inherit t :depth 1))
 (elpaca `(,@elpaca-order))
   (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
@@ -303,7 +304,7 @@
 
 #+begin_src emacs-lisp
 (use-package modern-tab-bar
-  :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar" :protocol ssh)
+  :ensure (modern-tab-bar :host github :repo "aaronjensen/emacs-modern-tab-bar")
   :init
   (setq tab-bar-show t
         tab-bar-new-button nil
@@ -1963,6 +1964,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
     
 #+begin_src emacs-lisp
 (use-package jinx
+  :ensure t
   :hook (elpaca-after-init .  global-jinx-mode)
   :bind
   ([remap ispell-word] . jinx-correct-nearest)
@@ -2232,7 +2234,6 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 #+begin_src emacs-lisp
 (use-package ob-mermaid
   :after org
-  :ensure-system-package (mmdc . "paru -S --needed --noconfirm mermaid-cli")
   :config
   (add-to-list 'org-babel-load-languages '(mermaid . t)))
 #+end_src
@@ -2771,39 +2772,6 @@ Only clock in/out when needed, and always save all Org buffers."
   :ensure nil
   :mode ("\\.tsx\\'" . tsx-ts-mode)
   :preface
-  (defun mp-setup-install-grammars ()
-    "Install Tree-sitter grammars if they are absent."
-    (interactive)
-    (dolist (grammar
-	     ;; Note the version numbers. These are the versions that
-	     ;; are known to work with Combobulate *and* Emacs.
-	     '((css . ("https://github.com/tree-sitter/tree-sitter-css"))
-	       (go . ("https://github.com/tree-sitter/tree-sitter-go"))
-			   (gomod . ("https://github.com/camdencheek/tree-sitter-go-mod"))
-	       (html . ("https://github.com/tree-sitter/tree-sitter-html"))
-	       (javascript . ("https://github.com/tree-sitter/tree-sitter-javascript" "v0.20.1" "src"))
-	       (json . ("https://github.com/tree-sitter/tree-sitter-json"))
-	       (markdown . ("https://github.com/ikatyang/tree-sitter-markdown"))
-	       (python . ("https://github.com/tree-sitter/tree-sitter-python"))
-	       (rust . ("https://github.com/tree-sitter/tree-sitter-rust"))
-	       (toml . ("https://github.com/tree-sitter/tree-sitter-toml"))
-	       (tsx . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "tsx/src"))
-	       (typescript . ("https://github.com/tree-sitter/tree-sitter-typescript" "v0.20.3" "typescript/src"))
-	       (yaml . ("https://github.com/ikatyang/tree-sitter-yaml" "v0.5.0"))
-			   ))
-      (add-to-list 'treesit-language-source-alist grammar)
-      ;; Only install `grammar' if we don't already have it
-      ;; installed. However, if you want to *update* a grammar then
-      ;; this obviously prevents that from happening.
-      (unless (treesit-language-available-p (car grammar))
-	(treesit-install-language-grammar (car grammar)))))
-
-  ;; Optional. Combobulate works in both xxxx-ts-modes and
-  ;; non-ts-modes.
-
-  ;; You can remap major modes with `major-mode-remap-alist'. Note
-  ;; that this does *not* extend to hooks! Make sure you migrate them
-  ;; also
   (dolist (mapping
 	   '((python-mode . python-ts-mode)
 	     (css-mode . css-ts-mode)
@@ -2817,8 +2785,6 @@ Only clock in/out when needed, and always save all Org buffers."
 	     (json-mode . json-ts-mode)
 	     (js-json-mode . json-ts-mode)))
     (add-to-list 'major-mode-remap-alist mapping))
-  :config
-  (mp-setup-install-grammars)
   :custom
   (treesit-font-lock-level 4))
 #+end_src
@@ -3258,21 +3224,14 @@ The exact color values are taken from the active Ef theme."
 
 #+begin_src emacs-lisp
 (use-package go-mode
-  :ensure-system-package
-  ((staticcheck . "go install honnef.co/go/tools/cmd/staticcheck@latest")
-   (gofumpt . "go install mvdan.cc/gofumpt@latest")
-   (gopls . "go install golang.org/x/tools/gopls@latest"))
   :hook (go-ts-mode . (lambda ()
 						(subword-mode 1)
 						(setq-local go-ts-mode-indent-offset 4))))
 (use-package go-tag
-  :ensure-system-package (gomodifytags . "go install github.com/fatih/gomodifytags@latest")
   :bind (:map go-ts-mode-map ("C-c C-t" . go-tag-add)))
 (use-package go-impl
-  :ensure-system-package (impl . "go install github.com/josharian/impl@latest")
   :bind (:map go-ts-mode-map ("C-c C-i" . go-impl)))
 (use-package go-gen-test
-  :ensure-system-package (gotests . "go install github.com/cweill/gotests/gotests@latest")
   :bind (:map go-ts-mode-map ("C-c t g" . go-gen-test-dwim)))
 (use-package gotest
   :bind
@@ -3357,10 +3316,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package docker
-  :ensure-system-package
-  (docker . "paru -S docker")
-  (docker-compose . "paru -S docker-compose")
-  (devcontainer . "npm install -g @devcontainers/cli")
   :bind ("M-SPC d" . docker))
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
@@ -3370,7 +3325,6 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package sqlformat
-  :ensure-system-package (pgformatter)
   :hook (sql-mode . sqlformat-on-save-mode)
   :custom
   (sqlformat-command 'pgformatter)

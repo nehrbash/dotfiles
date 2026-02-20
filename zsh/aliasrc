@@ -40,5 +40,8 @@ alias ...='cd ../../../'
 alias ....='cd ../../../../'
 alias .....='cd ../../../../'
 
-alias update-system="sudo -E guix system reconfigure --substitute-urls=https://ci.guix.gnu.org ~/dotfiles/config/systems/\$(hostname).scm"
-alias update-home="guix home reconfigure --allow-downgrades --substitute-urls=https://ci.guix.gnu.org ~/dotfiles/config/home/redfish.scm"
+alias update-system="sudo -E guix system reconfigure ~/dotfiles/config/systems/\$(hostname).scm"
+alias update-home="guix home reconfigure ~/dotfiles/config/home/redfish.scm"
+alias update-channels="guix pull -C ~/dotfiles/config/channels.scm"
+
+alias zen-browser='app.zen_browser.zen'

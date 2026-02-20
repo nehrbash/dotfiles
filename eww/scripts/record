@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 _CURRENT_MONITOR=$(hyprctl monitors -j | jaq -r '.[] | select(.focused == true) | .name')
 _OUTPUT_DIR="$HOME/Videos/ScreenRecords"

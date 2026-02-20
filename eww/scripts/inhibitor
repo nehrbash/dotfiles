@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 pid_file="/tmp/.inhibitor.pid"
 

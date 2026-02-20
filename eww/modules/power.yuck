@@ -17,14 +17,14 @@
           :style "padding-right: 5px;"
           (button
             :tooltip "Suspend"
-            :onclick "systemctl suspend"
+            :onclick "loginctl suspend"
             :height 38
             :width 38
             "")
 
           (button
             :tooltip "Reboot"
-            :onclick "systemctl reboot"
+            :onclick "loginctl reboot"
             :height 38
             :width 38
             "")
@@ -40,7 +40,7 @@
             "")))
       (button
         :tooltip "Shutdown"
-        :onclick "systemctl poweroff"
+        :onclick "loginctl poweroff"
         :height 38
         :width 38
         ""))))

@@ -36,7 +36,7 @@ elif pgrep -x "eww" > /dev/null; then
 	echo "Eww is already running."
 else
 	echo "Starting Eww daemon..."
-	/bin/zsh -l -c 'eww daemon'
+	eww daemon
 	sleep 1
 fi
 

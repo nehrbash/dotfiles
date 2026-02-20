@@ -1,4 +1,4 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
 # this file will store the last used filter
 FILTER_STORE=/tmp/emacs_lasttag

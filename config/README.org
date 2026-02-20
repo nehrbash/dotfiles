@@ -1,0 +1,111 @@
+#+TITLE: Guix Configuration
+#+AUTHOR: Stephen Nehrbass
+
+* Overview
+
+Declarative, reproducible system management via GNU Guix. All =.scm= files are edited directly (no literate tangling).
+
+* Module Structure
+
+#+begin_example
+config/
+├── README.org
+├── channels.scm            ← NonGuix channel
+├── home/
+│   └── redfish.scm         ← home-environment (packages, dotfiles, services)
+├── systems/
+│   ├── base.scm            ← shared OS base
+│   └── ocean.scm           ← desktop (NVIDIA, greetd, filesystems)
+└── packages/               ← custom package definitions
+#+end_example
+
+* Systems
+
+=ocean.scm= — machine-specific system config (hostname, NVIDIA, greetd with agreety, filesystems, bootloader). Imports shared base from =base.scm=.
+
+=base.scm= — exports =%base-packages-extra= and =%base-services-extra=: OpenSSH, CUPS, NetworkManager, NTP, Zsh.
+
+* Home
+
+=redfish.scm= — home environment:
+- Packages (~30: emacs-next-pgtk, alacritty, hyprland, fonts, dev tools, etc.)
+- =home-dotfiles-service-type= (replaces GNU Stow, ='stow= layout)
+- =home-xdg-configuration-files-service-type= for =hypr/= configs
+- Environment variables (consolidates =.zshenv=)
+- =home-zsh-service-type= (loads existing =.zshrc=)
+- Shepherd user services: Emacs daemon, ssh-agent
+
+* Channels
+
+=channels.scm= — default Guix + NonGuix (for NVIDIA driver, linux kernel).
+
+* Notes
+
+- NVIDIA env vars remain in =hypr/env.conf= (Hyprland-specific, loaded at session start)
+- Eww/hyprshell: manual build, added to PATH via =home-environment-variables-service-type=
+- Flatpak for proprietary apps (Spotify, Slack)
+- =%desktop-services= includes PipeWire — no extra config needed
+- =gdm-service-type= filtered out via =modify-services= (using greetd instead)
+
+* Installing Guix System
+
+Install to =nvme1n1p4= (ext4 root) with =nvme1n1p1= (EFI) and =nvme1n1p3= (swap).
+
+** Prerequisites
+
+- Booted Guix installer or existing Guix system
+- Target partitions already formatted:
+  - =nvme1n1p1= — FAT32 EFI (=D8EB-6158=)
+  - =nvme1n1p3= — swap (=f1a2747c-5559-44c2-8951-1f48840b00ce=)
+  - =nvme1n1p4= — ext4 root (=183ea0af-a5e2-4a04-bb79-6c94e36c7736=)
+
+** Mount and Init
+
+#+begin_src sh
+mount /dev/nvme1n1p4 /mnt
+mkdir -p /mnt/boot/efi
+mount /dev/nvme1n1p1 /mnt/boot/efi
+swapon /dev/nvme1n1p3
+
+# Clone dotfiles to get config
+git clone https://github.com/nehrbash/dotfiles /mnt/tmp/dotfiles
+
+# Install (pulls substitutes, takes a while)
+guix system init /mnt/tmp/dotfiles/config/systems/ocean.scm /mnt
+#+end_src
+
+** Add UEFI Boot Entry
+
+After =guix system init= completes, add a UEFI boot entry pointing to the GRUB EFI binary:
+
+#+begin_src sh
+efibootmgr --create --disk /dev/nvme1n1 --part 1 \
+  --label "Guix" --loader '\EFI\Guix\grubx64.efi'
+#+end_src
+
+** Post-Boot Setup
+
+#+begin_src sh
+# Set root and user passwords
+passwd
+passwd snehrbass
+
+# Clone dotfiles to final location
+git clone https://github.com/nehrbash/dotfiles ~/.dotfiles
+cd ~/.dotfiles
+git submodule update --init --recursive
+
+# Pull channels (includes NonGuix)
+guix pull -C config/channels.scm
+
+# Deploy home environment
+guix home reconfigure config/home/redfish.scm
+#+end_src
+
+* References
+
+- [[https://guix.gnu.org/manual/devel/en/html_node/Essential-Home-Services.html][Guix Home Services docs]]
+- [[https://wiki.systemcrafters.net/guix/nvidia/][NonGuix NVIDIA setup]]
+- [[https://guix.gnu.org/manual/devel/en/html_node/Shells-Home-Services.html][Guix Zsh home service]]
+- [[https://guix.gnu.org/en/blog/2020/gnu-shepherd-user-services/][Shepherd user services]]
+- [[https://guix.gnu.org/manual/devel/en/html_node/Essential-Home-Services.html][home-dotfiles-service-type]]

@@ -24,7 +24,7 @@ select-word-style bash
 # syntax highlighting loaded from guix profile below
 
 ## History file configuration
-[ -z "$HISTFILE" ] && HISTFILE="$HOME/.zsh/history"
+[ -z "$HISTFILE" ] && HISTFILE="${ZDOTDIR:-$HOME/.config/zsh}/history"
 [ "$HISTSIZE" -lt 50000 ] && HISTSIZE=50000
 [ "$SAVEHIST" -lt 10000 ] && SAVEHIST=10000
 

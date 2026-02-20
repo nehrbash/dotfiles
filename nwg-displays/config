@@ -4,5 +4,6 @@
   "indicator-timeout": 500,
   "custom-mode": [],
   "use-desc": false,
-  "confirm-timeout": 10
+  "confirm-timeout": 10,
+  "profile-bound-wallpapers": {}
 }
