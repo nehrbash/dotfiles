@@ -31,6 +31,7 @@ decorations = "None"
 dynamic_padding = true
 opacity = 1.0
 title = "Alacritty"
+dynamic_title = false
 
 [window.class]
 general = "Alacritty"

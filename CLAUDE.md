@@ -75,9 +75,20 @@ dotfiles/
 - `channels.scm` — Guix + NonGuix channels
 - `packages/` — custom package definitions
 
-**Wallpapers** are at `pictures/wallpaper/` and referenced via `$DOTFILES_DIR/pictures/wallpaper/` in hyprland configs (no symlink needed).
+**Caelestia desktop shell**: Quickshell-based shell replacing eww. Upstream at https://github.com/caelestia-dots/caelestia.
+- `files/caelestia/` — shell config (QML modules, `shell.json`)
+- `files/caelestia/shell.json` — main config: appearance, bar, launcher, wallpaper paths, services
+- `packages/caelestia-shell.scm` — QML C++ plugin package
+- `packages/caelestia-cli.scm` — CLI tool (`caelestia` command)
+- `packages/quickshell-git.scm` — Quickshell compositor package
+- Shell and resizer run as **Shepherd user services** (not exec-once in hyprland.conf) — see `home/services/shepherd.scm`
+- Layer rules in `files/hypr/hyprland.conf` must match upstream (only blur `caelestia-drawers`, not all layers)
+
+**Wallpapers** are at `pictures/wallpaper/` and referenced in `files/caelestia/shell.json` `paths.wallpaperDir`.
 
 **Custom scripts**: `scripts/` deployed to `~/.local/bin/`.
+
+**Shepherd user services** (`home/services/shepherd.scm`): emacs daemon, wayland-compositor sentinel, hyprpolkitagent, caelestia-shell, caelestia-resizer, podman-socket, ssh-agent. Services requiring Hyprland depend on the `wayland-compositor` sentinel service.
 
 See `~/doc/projects/dotfiles/index.org` for detailed project documentation.
 
@@ -86,6 +97,6 @@ See `~/doc/projects/dotfiles/index.org` for detailed project documentation.
 - Hyprland is launched by greetd (system config); no separate launcher script
 - NVIDIA-specific env vars are set in `home/redfish.scm` environment variables
 - `files/hypr/monitors.conf` is gitignored (machine-specific)
-- Eww widget bar uses Go (`hyprshell`) for Hyprland IPC integration
 - Spicetify theme: Onepunch/light
 - No stow — guix home manages all symlinks via `local-file` references
+- Desktop services (shell, resizer, polkit) are Shepherd services, not hyprland exec-once

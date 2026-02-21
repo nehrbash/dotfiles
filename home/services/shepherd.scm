@@ -5,12 +5,14 @@
   #:use-module (gnu packages ssh)
   #:use-module (gnu packages polkit)
   #:use-module (gnu packages wm)
+  #:use-module (gnu packages qt)
   #:use-module (gnu packages containers)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages xorg)
   #:use-module (guix gexp)
   #:use-module (packages quickshell-git)
   #:use-module (packages caelestia-shell)
+  #:use-module (packages caelestia-cli)
   #:export (%shepherd-services))
 
 (define %shepherd-services
@@ -81,7 +83,12 @@
                ((make-forkexec-constructor
                  (list #$(file-append hyprpolkitagent
                                       "/libexec/hyprpolkitagent"))
-                 #:environment-variables (environ)
+                 #:environment-variables
+                 (cons (string-append
+                        "QT_PLUGIN_PATH="
+                        #$(file-append qtwayland "/lib/qt6/plugins")
+                        ":" #$(file-append (specification->package "qtbase") "/lib/qt6/plugins"))
+                       (environ))
                  #:log-file
                  (string-append (getenv "XDG_STATE_HOME")
                                 "/log/hyprpolkitagent.log")))))
@@ -116,6 +123,24 @@
                  #:log-file
                  (string-append (getenv "XDG_STATE_HOME")
                                 "/log/caelestia-shell.log")))))
+    (stop #~(make-kill-destructor))
+    (respawn? #t)
+    (respawn-limit #~'(3 . 10))
+    (respawn-delay 5))
+
+   ;; Caelestia window resizer (auto resize/move for PiP etc.)
+   (shepherd-service
+    (provision '(caelestia-resizer))
+    (requirement '(wayland-compositor))
+    (documentation "Run caelestia resizer daemon for automatic window management.")
+    (start #~(lambda _
+               ((make-forkexec-constructor
+                 (list #$(file-append caelestia-cli "/bin/caelestia")
+                       "resizer" "-d")
+                 #:environment-variables (environ)
+                 #:log-file
+                 (string-append (getenv "XDG_STATE_HOME")
+                                "/log/caelestia-resizer.log")))))
     (stop #~(make-kill-destructor))
     (respawn? #t)
     (respawn-limit #~'(3 . 10))

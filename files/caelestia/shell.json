@@ -124,7 +124,7 @@
     }
   },
   "bar": {
-    "persistent": true,
+    "persistent": false,
     "showOnHover": true,
     "dragThreshold": 24,
     "scrollActions": {
@@ -567,7 +567,7 @@
     ]
   },
   "paths": {
-    "wallpaperDir": "/home/nehrbash/Pictures/Wallpapers",
+    "wallpaperDir": "/home/nehrbash/src/dotfiles/pictures/wallpaper",
     "sessionGif": "root:/assets/kurukuru.gif",
     "mediaGif": "root:/assets/bongocat.gif"
   }

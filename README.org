@@ -66,8 +66,6 @@ guix home reconfigure home/redfish.scm -L .
 
   Desktop shell built on [[https://quickshell.outfoxxed.me][Quickshell]]. Provides bar, dashboard, app launcher, session/lock screen, notifications, OSD, and media controls — all as Wayland layer surfaces.
 
-  Started via =exec-once = caelestia shell -d= in =hypr/hyprland.conf=.
-
 ** IPC Commands
 
    All commands use the form =caelestia shell <target> <function> [args...]=.
@@ -76,16 +74,16 @@ guix home reconfigure home/redfish.scm -L .
 
     Toggle UI panels on/off.
 
-    | Command                                          | Description         |
-    |--------------------------------------------------+---------------------|
-    | =caelestia shell drawers toggle bar=             | Toggle status bar   |
-    | =caelestia shell drawers toggle dashboard=       | Toggle dashboard    |
-    | =caelestia shell drawers toggle launcher=        | Toggle app launcher |
-    | =caelestia shell drawers toggle session=         | Toggle session menu |
-    | =caelestia shell drawers toggle utilities=       | Toggle utilities    |
-    | =caelestia shell drawers toggle sidebar=         | Toggle sidebar      |
-    | =caelestia shell drawers toggle osd=             | Toggle OSD          |
-    | =caelestia shell drawers list=                   | List all drawers    |
+    | Command                                  | Description         |
+    |------------------------------------------+---------------------|
+    | =caelestia shell drawers toggle bar=       | Toggle status bar   |
+    | =caelestia shell drawers toggle dashboard= | Toggle dashboard    |
+    | =caelestia shell drawers toggle launcher=  | Toggle app launcher |
+    | =caelestia shell drawers toggle session=   | Toggle session menu |
+    | =caelestia shell drawers toggle utilities= | Toggle utilities    |
+    | =caelestia shell drawers toggle sidebar= | Toggle sidebar      |
+    | =caelestia shell drawers toggle osd=       | Toggle OSD          |
+    | =caelestia shell drawers list=             | List all drawers    |
 
 *** Lock
 
