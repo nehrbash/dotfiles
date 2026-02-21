@@ -163,7 +163,7 @@
 
 #+begin_src emacs-lisp
 (defun run-commands-if-no-lock-file ()
-  (let ((lock-file "~/.emacs.d/install_lock"))
+  (let ((lock-file "~/.config/emacs/install_lock"))
     (unless (file-exists-p lock-file)
       (condition-case err
 	(all-the-icons-install-fonts)
@@ -295,7 +295,7 @@
         mode-line-right-align-edge 'right-margin)
 
 (use-package sn-modeline
-  :load-path "~/.emacs.d/lisp"
+  :load-path "~/.config/emacs/lisp"
   :config
   (sn-modeline-mode 1))
 #+end_src
@@ -344,7 +344,6 @@
   ([remap scroll-down-command] . pixel-scroll-interpolate-up)
   :custom
   (scroll-margin 6)
-  (scroll-conservatively 101) 
   (scroll-preserve-screen-position t)
   (pixel-scroll-precision-interpolate-page t)
   :init
@@ -616,7 +615,7 @@
 	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
 	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
 	   "/tmp/.*"           ;; matches any string that includes directory named tmp
-	   "/.emacs\\.d/.*"    ;; matches any string that includes directory .emacs.d
+	   "/\\.config/emacs/.*"    ;; matches any string that includes directory .config/emacs
 	   ))
 	:config
 	(setq backup-directory-alist
@@ -1950,7 +1949,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   :bind ("C-c s" . yas-insert-snippet)
   :custom
   (yas-verbosity 1)
-  (yas-snippet-dir "~/.emacs.d/snippets")
+  (yas-snippet-dir "~/.config/emacs/snippets")
   (yas-wrap-around-region t))
 (use-package yasnippet-snippets
   :after yasnippet)
@@ -2668,13 +2667,14 @@ Only clock in/out when needed, and always save all Org buffers."
 
 #+begin_src emacs-lisp
 (use-package org-roam
+  :after gptel
   :init
   (setq-default org-roam-v2-ack t)
+  (add-hook 'org-roam-dailies-find-file-hook #'gptel-mode)
   (defun sn/org-roam-dailies-goto-today ()
-	"Open today's daily note non-interactively and return the buffer name as a string."
-	(interactive)
+	"Open today's daily note and return the buffer."
 	(org-roam-dailies-goto-today)
-	(get-buffer (format-time-string "%Y-%m-%d.org")))
+	(current-buffer))
   (unless (> (length command-line-args) 1)
 	(setq initial-buffer-choice #'sn/org-roam-dailies-goto-today))
   :config
@@ -3125,10 +3125,10 @@ The exact color values are taken from the active Ef theme."
     )
   (use-package svg-lib :ensure t)
   (use-package svg-tabs
-    :load-path "~/.emacs.d/lisp"
+    :load-path "~/.config/emacs/lisp"
     :after svg-lib)
   (use-package vterm-tabs
-    :load-path "~/.emacs.d/lisp"
+    :load-path "~/.config/emacs/lisp"
     :bind
     (("<f6>" . vterm-tabs-toggle)
   	:map vterm-mode-map
@@ -3641,14 +3641,14 @@ bound to key ~$Mod n~q . modified version of https://github.com/psibi/emacs-ever
 
 #+begin_src emacs-lisp
 (use-package ea
-  :load-path "~/.emacs.d/lisp")
+  :load-path "~/.config/emacs/lisp")
 #+end_src
 
 ** Go Taskfile
 
 #+begin_src emacs-lisp
 (use-package consult-taskfile
-  :load-path "~/.emacs.d/lisp/consult-taskfile"
+  :load-path "~/.config/emacs/lisp/consult-taskfile"
   :bind
   ("M-SPC x" . consult-taskfile)
   ("M-SPC c" . taskfile))
