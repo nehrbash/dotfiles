@@ -52,6 +52,8 @@
              (gnu packages polkit)
              (gnu packages package-management)
              (gnu packages image)
+             (gnu packages base)
+             (gnu packages autotools)
              (gnu packages cmake)
              (gnu packages ninja)
              (gnu packages linux)
@@ -90,10 +92,14 @@
    (specification->package "bind")
    (specification->package "sqlite")
    (specification->package "gcc-toolchain")
+   pkg-config
+   libtool
    cmake
+   gnu-make
    ninja
 
    ;; Terminal & shell
+   libvterm
    alacritty
    eza
    zsh-pure-prompt
@@ -219,16 +225,6 @@
    (service home-files-service-type
             `((".gtkrc-2.0"
                ,(local-file "../files/gtk/gtkrc-2.0" "gtkrc-2.0"))
-              (".emacs.d/init.el"
-               ,(local-file "../files/emacs/init.el" "init.el"))
-              (".emacs.d/early-init.el"
-               ,(local-file "../files/emacs/early-init.el" "early-init.el"))
-              (".emacs.d/lisp"
-               ,(local-file "../files/emacs/lisp" #:recursive? #t))
-              (".emacs.d/snippets"
-               ,(local-file "../files/emacs/snippets" #:recursive? #t))
-              (".emacs.d/img"
-               ,(local-file "../files/emacs/img" #:recursive? #t))
               (".local/bin"
                ,(local-file "../scripts" #:recursive? #t))
               (".local/share/applications/emacsclient.desktop"
@@ -239,9 +235,21 @@
                ,(local-file "../files/emacs/img/sloth-head.jpg" "face"))
 ))
 
-   ;; XDG config files are symlinked directly from dotfiles in the
-   ;; activation gexp below (not via home-xdg-configuration-files-service-type)
-   ;; so edits take effect immediately without reconfigure.
+   ;; XDG config files (~/.config/)
+   (service home-xdg-configuration-files-service-type
+            `(("emacs/init.el"
+               ,(local-file "../files/emacs/init.el" "init.el"))
+              ("emacs/early-init.el"
+               ,(local-file "../files/emacs/early-init.el" "early-init.el"))
+              ("emacs/lisp"
+               ,(local-file "../files/emacs/lisp" #:recursive? #t))
+              ("emacs/snippets"
+               ,(local-file "../files/emacs/snippets" #:recursive? #t))
+              ("emacs/img"
+               ,(local-file "../files/emacs/img" #:recursive? #t))))
+
+   ;; Other XDG config files are symlinked directly from dotfiles in the
+   ;; activation gexp below so edits take effect immediately without reconfigure.
 
    ;; Environment variables (consolidates .zshenv)
    (simple-service 'my-env-vars
@@ -255,7 +263,9 @@
                      ("GOPATH" . "$HOME/.local/share/go")
                      ("NPM_CONFIG_PREFIX" . "$HOME/.local/share/npm")
                      ("SSH_AUTH_SOCK" . "$XDG_RUNTIME_DIR/ssh-agent.socket")
-                     ("PKG_CONFIG_PATH" . "/usr/lib/pkgconfig:$PKG_CONFIG_PATH")
+                     ("PKG_CONFIG_PATH" . "$HOME/.guix-home/profile/lib/pkgconfig:$PKG_CONFIG_PATH")
+                     ("C_INCLUDE_PATH" . "$HOME/.guix-home/profile/include")
+                     ("LIBRARY_PATH" . "$HOME/.guix-home/profile/lib")
                      ("XDG_DATA_DIRS" . "$HOME/.guix-home/profile/share:$XDG_DATA_DIRS:$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share")
                      ("EMACSLOADPATH" . "$HOME/.guix-home/profile/lib/emacs:")
                      ;; NVIDIA/Wayland — needed before start-hyprland runs

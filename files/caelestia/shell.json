@@ -149,6 +149,15 @@
       "occupiedLabel": "󰮯",
       "activeLabel": "󰮯",
       "capitalisation": "preserve",
+      "workspaceIcons": [
+        "root:/assets/sloth1.png",
+        "root:/assets/sloth2.png",
+        "root:/assets/sloth3.png",
+        "root:/assets/sloth4.png",
+        "root:/assets/sloth5.png",
+        "root:/assets/sloth6.png",
+        "root:/assets/sloth7.png"
+      ],
       "specialWorkspaceIcons": []
     },
     "tray": {
@@ -163,7 +172,7 @@
       "showKbLayout": false,
       "showNetwork": true,
       "showWifi": false,
-      "showBluetooth": true,
+      "showBluetooth": false,
       "showBattery": false,
       "showLockStatus": false
     },
@@ -226,12 +235,12 @@
     "showOnHover": true,
     "dragThreshold": 50,
     "performance": {
-      "showBattery": true,
-      "showGpu": true,
-      "showCpu": true,
-      "showMemory": true,
-      "showStorage": true,
-      "showNetwork": true
+      "showBattery": false,
+      "showGpu": false,
+      "showCpu": false,
+      "showMemory": false,
+      "showStorage": false,
+      "showNetwork": false
     },
     "sizes": {
       "tabIndicatorHeight": 3,

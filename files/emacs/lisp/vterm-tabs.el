@@ -51,7 +51,7 @@
   :type 'string
   :group 'vterm-tabs)
 
-(defcustom vterm-tabs-height 0.33
+(defcustom vterm-tabs-height 0.38
   "Initial window height as a fraction of the frame."
   :type 'float
   :group 'vterm-tabs)

@@ -2,30 +2,41 @@
 
 set -e
 
+WORKSPACE="special:spot"
+
 focus() {
 	hyprctl 'dispatch togglespecialworkspace spot'
 }
 
 active() {
-	output=$(hyprctl workspaces -j | jq -r '.[] | select(.name == "special:spot")')
+	hyprctl workspaces -j | jq -e '.[] | select(.name == "special:spot")' > /dev/null 2>&1
+}
 
-	if [[ -z "$output" ]]; then
-		return 1 # If no output or output is empty, return false (1).
-	else
-		return 0 # If there is some output, return true (0).
-	fi
+wait_for_windows() {
+	local class="$1" count="${2:-1}" timeout=10
+	for ((i = 0; i < timeout * 10; i++)); do
+		local n
+		n=$(hyprctl clients -j | jq "[.[] | select(.workspace.name == \"$WORKSPACE\" and .class == \"$class\")] | length")
+		if (( n >= count )); then
+			return 0
+		fi
+		sleep 0.1
+	done
+	echo "Timed out waiting for $count $class window(s)" >&2
+	return 1
 }
 
 setup() {
-	hyprctl --batch "dispatch exec [workspace special:spot] spotify-launcher; dispatch layoutmsg preselect l"
-	sleep 2
-	hyprctl --batch "dispatch exec [workspace special:spot] alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf;"
-	sleep 0.2
-	hyprctl --batch "dispatch resizeactive -60% 0 ; dispatch movefocus r; dispatch layoutmsg preselect r; dispatch exec [workspace special:spot] alacritty -o font.size=6 -e cava -p ~/.config/cava/right.conf;"
-	sleep 0.2
-	hyprctl --batch "dispatch resizeactive 45% 0 ; dispatch movefocus l; dispatch layoutmsg preselect d; dispatch exec [workspace special:spot] alacritty -o font.size=18 -e sptlrx"
-	sleep 0.2
-	hyprctl --batch "dispatch resizeactive 0 50%"
+	hyprctl --batch "dispatch exec [workspace $WORKSPACE] flatpak run com.spotify.Client; dispatch layoutmsg preselect l"
+	wait_for_windows "Spotify" 1
+
+	hyprctl dispatch exec "[workspace $WORKSPACE] alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf"
+	wait_for_windows "Alacritty" 1
+	hyprctl --batch "dispatch resizeactive -60% 0; dispatch movefocus r; dispatch layoutmsg preselect r"
+
+	hyprctl dispatch exec "[workspace $WORKSPACE] alacritty -o font.size=6 -e cava -p ~/.config/cava/right.conf"
+	wait_for_windows "Alacritty" 2
+	hyprctl dispatch resizeactive 45% 0
 }
 
 # if not active run setup

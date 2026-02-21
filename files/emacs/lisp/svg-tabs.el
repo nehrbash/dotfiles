@@ -33,12 +33,12 @@
 ;;; Faces
 
 (defface svg-tabs-active
-  '((t :inherit default))
+  '((t :foreground "#352718" :background "#e4b53f"))
   "Face for the selected tab in the vterm panel."
   :group 'vterm-tabs)
 
 (defface svg-tabs-inactive
-  '((t :inherit shadow))
+  '((t :foreground "#e8e4b1" :background "#59463f"))
   "Face for inactive tabs in the vterm panel."
   :group 'vterm-tabs)
 
@@ -68,7 +68,8 @@
                   (svg-lib-tag label face
                                :inverse current-p
                                :radius 6 :padding 1
-                               :height 1.1 :margin 0)))))
+                               :font-size 13
+                               :height 1.3 :margin 1)))))
 
 (provide 'svg-tabs)
 ;;; svg-tabs.el ends here

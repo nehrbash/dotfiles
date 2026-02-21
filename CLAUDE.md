@@ -36,7 +36,7 @@ dotfiles/
 │   ├── caelestia/     → ~/.config/caelestia/      (desktop shell config)
 │   ├── cava/          → ~/.config/cava/           (audio visualizer)
 │   ├── direnv/        → ~/.config/direnv/
-│   ├── emacs/         → ~/.emacs.d/ (config parts)(Emacs config)
+│   ├── emacs/         → ~/.config/emacs/ (config parts)(Emacs config)
 │   │   ├── Emacs.org                              (literate config, tangles to init.el)
 │   │   ├── early-init.el
 │   │   ├── init.el                                (generated from Emacs.org)
@@ -66,7 +66,7 @@ dotfiles/
 
 ## Architecture
 
-**Literate programming**: `files/emacs/Emacs.org` tangles to `~/.emacs.d/init.el`.
+**Literate programming**: `files/emacs/Emacs.org` tangles to `~/.config/emacs/init.el`.
 
 **Guix configs** (at repo root):
 - `systems/redfish.scm` — system config (NVIDIA, greetd, filesystems)
