@@ -1,0 +1,40 @@
+#!/usr/bin/env bash
+set -e
+
+DEST="$HOME/.config/quickshell/caelestia"
+REPO="https://github.com/caelestia-dots/shell.git"
+
+if [ ! -d "$DEST" ]; then
+    git clone "$REPO" "$DEST"
+fi
+
+# Find quickshell store path and get Qt6 deps from its closure
+QS_STORE=$(readlink -f ~/.guix-home/profile/bin/quickshell | sed 's|/bin/quickshell||')
+QT6_PATHS=$(guix gc --references "$QS_STORE" 2>/dev/null \
+    | grep -E 'qt(base|declarative|wayland|shadertools|svg)-6\.' \
+    | grep -v 'debug\|source\|\.drv' \
+    | tr '\n' ';' \
+    | sed 's/;$//')
+
+if [ -z "$QT6_PATHS" ]; then
+    echo "ERROR: could not find Qt6 in quickshell closure" >&2
+    exit 1
+fi
+
+BUILD_DIR="$DEST/build"
+rm -rf "$BUILD_DIR"
+
+cmake \
+    -S "$DEST" -B "$BUILD_DIR" \
+    -G Ninja \
+    -DCMAKE_BUILD_TYPE=Release \
+    -DCMAKE_INSTALL_PREFIX="$HOME/.local" \
+    -DINSTALL_QMLDIR=lib/qt6/qml \
+    -DENABLE_MODULES=plugin \
+    "-DCMAKE_PREFIX_PATH=$QT6_PATHS;$HOME/.guix-home/profile;/run/current-system/profile" \
+    -DVERSION=1.0 -DGIT_REVISION=main
+
+ninja -C "$BUILD_DIR"
+ninja -C "$BUILD_DIR" install
+
+echo "Caelestia plugin installed to $HOME/.local/lib/qt6/qml/"

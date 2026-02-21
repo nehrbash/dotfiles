@@ -1,0 +1,43 @@
+#compdef herd
+
+_herd_actions() {
+  local -a actions
+  actions=(
+    'start:Start a service'
+    'stop:Stop a service'
+    'restart:Restart a service'
+    'enable:Enable a service'
+    'disable:Disable a service'
+    'status:Show service status'
+    'log:Show service log'
+    'discover:Discover transient services'
+    'configuration:Show service configuration'
+    'schedule:Show shepherd schedule'
+  )
+  _describe 'action' actions
+}
+
+_herd_services() {
+  local -a services
+  services=(${(f)"$(herd status 2>/dev/null | grep '^ [+*-] ' | sed 's/^ [+*-] //')"})
+  _describe 'service' services
+}
+
+_herd() {
+  _arguments \
+    '--group=[run as GROUP]:group' \
+    '--user=[run as USER]:user' \
+    '-E[pass environment variable]:variable' \
+    '-d[working directory]:directory:_directories' \
+    '--log-file=[log to FILE]:file:_files' \
+    '-N[register under NAME]:name' \
+    '-n[log history lines]:number' \
+    '-s[socket FILE]:file:_files' \
+    '--help[display help]' \
+    '--version[display version]' \
+    '1:action:_herd_actions' \
+    '2:service:_herd_services' \
+    '*::arg:_files'
+}
+
+_herd "$@"

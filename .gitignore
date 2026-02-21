@@ -3,29 +3,24 @@
 /.zsh/
 
 # Emacs generated/state files
-/emacs/eln-cache/
-/emacs/*.elc
+/files/emacs/eln-cache/
+/files/emacs/*.elc
 *.elc
 
 # Zsh history
-/zsh/history
+/files/zsh/history
 
 # Machine-specific Hyprland config
-/hypr/monitors.conf
+/files/hypr/monitors.conf
+/files/hypr/scheme/
 
 # Sptlrx config (contains personal tokens)
-/sptlrx/config.yaml
-
-# LaTeX cache
-/ltximg/
+/files/sptlrx/config.yaml
 
 # Org archives
 *.org_archive
 
 # Misc generated/ephemeral
-/pkg/my-emacs/pkg/
-/pkg/my-emacs/src/
-/pkg/my-emacs/emacs-git/
 /last_try
 /test.org
 *.lock
@@ -39,14 +34,14 @@
 /scripts/eww-install
 
 # Eww generated/runtime
-/eww/scripts/eww-weather
-/eww/scripts/submap
-/eww/pkg/eww-weather/eww-weather
+/files/eww/scripts/eww-weather
+/files/eww/scripts/submap
+/files/eww/pkg/eww-weather/eww-weather
 
 # Systemd generated links
-/systemd/user/default.target.wants/
+/files/systemd/user/default.target.wants/
 *.wants/
-/systemd/user/pipewire-session-manager.service
+/files/systemd/user/pipewire-session-manager.service
 
 # Cargo
 /target
@@ -55,5 +50,8 @@
 .aider*
 
 # Custom Emacs module secrets
-/emacs/lisp/init-gcal.el
-/emacs/lisp/hotfuzz-module.so
+/files/emacs/lisp/init-gcal.el
+/files/emacs/lisp/hotfuzz-module.so
+
+# Caelestia QML shell (cloned repo, not part of dotfiles)
+/files/caelestia/quickshell/

@@ -3,9 +3,8 @@
 - [[file:Emacs.org::+TITLE:Emacs Configuration][Emacs]]
 - [[https://github.com/hyprwm/Hyprland][Hyprland]]
 - [[https://guix.gnu.org/][GNU Guix System]]
-- nwg-shell (monitors, settings)
-- Bar: eww
-- pipe wire, easy effects
+- Desktop shell: [[https://github.com/caelestia-dots/shell][Caelestia]] (Quickshell)
+- PipeWire, Easy Effects
 - File Manager: Gnome Files, Dired (Emacs)
 - PDF Viewer: pdf-tools (Emacs)
 - Theme: ef-melissa-dark
@@ -18,8 +17,8 @@
   - [[#home-reconfigure][Home Reconfigure]]
   - [[#what-gets-automated][What Gets Automated]]
 - [[#keyboard][Keyboard]]
-- [[#eww][Eww]]
-  - [[#color-palette][Color palette]]
+- [[#caelestia-shell][Caelestia Shell]]
+  - [[#ipc-commands][IPC Commands]]
 - [[#spicetify][Spicetify]]
 - [[#slack][Slack]]
 - [[#emacs][Emacs]]
@@ -27,7 +26,7 @@
 
 * Setup
 
-  [[https://guix.gnu.org/][GNU Guix System]] with Hyprland (Wayland) on NVIDIA (RTX 3070 Ti). Home environment at =config/home/redfish.scm= — dotfiles are deployed via =guix home reconfigure=.
+  [[https://guix.gnu.org/][GNU Guix System]] with Hyprland (Wayland) on NVIDIA (RTX 3070 Ti). Home environment at =home/redfish.scm= — dotfiles are deployed via =guix home reconfigure=.
 
 ** Clone & Bootstrap
 
@@ -35,26 +34,26 @@
 cd ~
 git clone https://github.com/snehrbass/dotfiles.git .dotfiles --recurse-submodules
 cd .dotfiles
-guix pull -C config/channels.scm
+guix pull -C channels.scm
 #+end_src
 
 ** System Reconfigure
 
 #+begin_src sh :tangle no
-sudo guix system reconfigure config/systems/ocean.scm
+sudo guix system reconfigure systems/redfish.scm
 #+end_src
 
 ** Home Reconfigure
 
 #+begin_src sh :tangle no
-guix home reconfigure config/home/redfish.scm
+guix home reconfigure home/redfish.scm -L .
 #+end_src
 
 ** What Gets Automated
 
    On =guix home reconfigure=, the activation service handles:
    - Flatpak: adds Flathub remote, installs Zen Browser / Spotify / Slack
-   - Eww/hyprshell: builds via =go install= into =~/.config/eww/bin/=
+   - Caelestia shell: clones QML config to =~/.config/quickshell/caelestia=
 
 * Keyboard
 
@@ -63,32 +62,105 @@ guix home reconfigure config/home/redfish.scm
   - [[Https://boardsource.xyz/store/5ecc0f81eee64242946c988f][CorneV3]]
   - [[https://github.com/manna-harbour/miryoku][Layout]]
 
-* Eww
+* Caelestia Shell
 
-  Widget bar using Yuck markup, SCSS, and a Go program (=hyprshell=) for Hyprland IPC integration. Manual build required; binary added to PATH via =home-environment-variables-service-type=.
+  Desktop shell built on [[https://quickshell.outfoxxed.me][Quickshell]]. Provides bar, dashboard, app launcher, session/lock screen, notifications, OSD, and media controls — all as Wayland layer surfaces.
 
-#+begin_src sh :tangle no
-go install github.com/nehrbash/hyprshell@latest
-#+end_src
+  Started via =exec-once = caelestia shell -d= in =hypr/hyprland.conf=.
 
-** Color palette
+** IPC Commands
 
-	Using my Emacs theme =ef-melissa-dark=. generated with this func.
+   All commands use the form =caelestia shell <target> <function> [args...]=.
 
-#+begin_src emacs-lisp :tangle no
-(defun export-palette-to-scss (palette tgt-file)
-  "Export a color palette to SCSS format."
-  (with-temp-buffer
-	(dolist (pair palette)
-	  (let ((name (car pair))
-			(value (cadr pair)))
-		(when (and (stringp value)  ; Check if value is a string
-				   (string-match-p "^#[0-9A-Fa-f]\\{6\\}$" value))
-		  (insert (format "$%s: %s;\n" name value)))))
-	(write-region (point-min) (point-max) tgt-file)))
+*** Drawers
 
-(export-palette-to-scss ef-melissa-dark-palette "~/.config/eww/css/_colors.scss")
-#+end_src
+    Toggle UI panels on/off.
+
+    | Command                                          | Description         |
+    |--------------------------------------------------+---------------------|
+    | =caelestia shell drawers toggle bar=             | Toggle status bar   |
+    | =caelestia shell drawers toggle dashboard=       | Toggle dashboard    |
+    | =caelestia shell drawers toggle launcher=        | Toggle app launcher |
+    | =caelestia shell drawers toggle session=         | Toggle session menu |
+    | =caelestia shell drawers toggle utilities=       | Toggle utilities    |
+    | =caelestia shell drawers toggle sidebar=         | Toggle sidebar      |
+    | =caelestia shell drawers toggle osd=             | Toggle OSD          |
+    | =caelestia shell drawers list=                   | List all drawers    |
+
+*** Lock
+
+    | Command                              | Description          |
+    |--------------------------------------+----------------------|
+    | =caelestia shell lock lock=          | Lock the screen      |
+    | =caelestia shell lock unlock=        | Unlock the screen    |
+    | =caelestia shell lock isLocked=      | Check lock state     |
+
+*** Media (mpris)
+
+    | Command                                          | Description            |
+    |--------------------------------------------------+------------------------|
+    | =caelestia shell mpris playPause=                | Toggle play/pause      |
+    | =caelestia shell mpris play=                     | Play                   |
+    | =caelestia shell mpris pause=                    | Pause                  |
+    | =caelestia shell mpris next=                     | Next track             |
+    | =caelestia shell mpris previous=                 | Previous track         |
+    | =caelestia shell mpris stop=                     | Stop                   |
+    | =caelestia shell mpris list=                     | List players           |
+    | =caelestia shell mpris getActive <prop>=         | Get active player prop |
+
+*** Wallpaper
+
+    | Command                                      | Description         |
+    |----------------------------------------------+---------------------|
+    | =caelestia shell wallpaper get=              | Get current path    |
+    | =caelestia shell wallpaper list=             | List available      |
+    | =caelestia shell wallpaper set <path>=       | Set wallpaper       |
+
+*** Brightness
+
+    | Command                                              | Description               |
+    |------------------------------------------------------+---------------------------|
+    | =caelestia shell brightness get=                     | Get brightness (0.0-1.0)  |
+    | =caelestia shell brightness set <value>=             | Set brightness            |
+    | =caelestia shell brightness getFor <query>=          | Get for specific display  |
+    | =caelestia shell brightness setFor <query> <value>=  | Set for specific display  |
+
+*** Notifications
+
+    | Command                                      | Description         |
+    |----------------------------------------------+---------------------|
+    | =caelestia shell notifs toggleDnd=            | Toggle Do Not Disturb |
+    | =caelestia shell notifs isDndEnabled=         | Check DND state     |
+    | =caelestia shell notifs clear=                | Clear notifications |
+
+*** Toaster
+
+    | Command                                                      | Description       |
+    |--------------------------------------------------------------+-------------------|
+    | =caelestia shell toaster info <title> <msg> <icon>=          | Info toast        |
+    | =caelestia shell toaster warn <title> <msg> <icon>=          | Warning toast     |
+    | =caelestia shell toaster error <title> <msg> <icon>=         | Error toast       |
+    | =caelestia shell toaster success <title> <msg> <icon>=       | Success toast     |
+
+*** Other
+
+    | Command                                                  | Description                    |
+    |----------------------------------------------------------+--------------------------------|
+    | =caelestia shell picker open=                            | Open color picker              |
+    | =caelestia shell controlCenter open=                     | Open control center            |
+    | =caelestia shell idleInhibitor toggle=                   | Toggle idle inhibitor          |
+    | =caelestia shell gameMode toggle=                        | Toggle game mode               |
+    | =caelestia shell hypr cycleSpecialWorkspace <direction>= | Cycle special workspaces       |
+    | =caelestia shell hypr refreshDevices=                    | Refresh input devices          |
+
+*** Shell Management
+
+    | Command                      | Description              |
+    |------------------------------+--------------------------|
+    | =caelestia shell -d=         | Start shell (daemon)     |
+    | =caelestia shell -k=         | Kill shell               |
+    | =caelestia shell -s=         | Show all IPC targets     |
+    | =caelestia shell -l=         | Show shell log           |
 
 * Spicetify
 
@@ -111,11 +183,11 @@ spicetify apply
 
 * Emacs
 
-   My Emacs config can be found [[file:Emacs.org][here]]. =emacs-next-pgtk= is installed via =redfish.scm= with pgtk and native-comp.
+   My Emacs config can be found [[file:files/emacs/Emacs.org][here]]. =emacs-next-pgtk= is installed via =redfish.scm= with pgtk and native-comp.
 
    Run =M-x package-upgrade-all= after first launch to finish installing packages.
 
 * References
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
-- https://github.com/saimoomedits/eww-widgets
+- https://github.com/caelestia-dots/shell

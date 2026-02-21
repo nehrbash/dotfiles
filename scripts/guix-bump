@@ -1,0 +1,133 @@
+#!/usr/bin/env -S guix repl --
+!#
+;;; guix-bump — update custom Guix package definitions to latest git HEAD
+;;;
+;;; Usage: guix-bump <pkg.scm> [pkg.scm ...]
+;;;
+;;; For each package file:
+;;;   1. Extracts the GitHub owner/repo from any URL in the file
+;;;   2. Gets the latest HEAD commit via git ls-remote (no clone)
+;;;   3. Fetches https://github.com/owner/repo/archive/<commit>.tar.gz
+;;;   4. Hashes it via `guix download`
+;;;   5. Updates (commit "..."), (version "..."), (base32 "...") in-place
+;;;
+;;; This implements AUR-style -git packages for Guix.
+;;; For tagged releases, use `guix refresh` instead.
+
+(use-modules (ice-9 popen)
+             (ice-9 rdelim)
+             (ice-9 regex)
+             (ice-9 textual-ports))
+
+;;; --- helpers ---------------------------------------------------------------
+
+(define (run cmd)
+  "Run CMD in a shell, return stdout+stderr as a trimmed string."
+  (let* ((port (open-input-pipe (string-append cmd " 2>&1")))
+         (out  (read-string port)))
+    (close-pipe port)
+    (string-trim-right out)))
+
+(define (die fmt . args)
+  (apply format (current-error-port) (string-append "guix-bump: " fmt "\n") args)
+  (exit 1))
+
+;;; --- git -------------------------------------------------------------------
+
+(define (git-head-commit repo-url)
+  "Return the HEAD commit SHA of REPO-URL, or #f on failure."
+  (let* ((out (run (string-append "git ls-remote -- " repo-url " HEAD")))
+         (lines (string-split out #\newline))
+         (first (and (not (null? lines)) (car lines))))
+    (and first
+         (not (string-null? first))
+         (car (string-split first #\tab)))))
+
+;;; --- GitHub ----------------------------------------------------------------
+
+(define (github-archive-url repo-url commit)
+  "Construct a GitHub archive tarball URL for REPO-URL at COMMIT."
+  (let* ((rx (make-regexp "github\\.com[:/]([^/]+)/([^/.]+)"))
+         (m  (regexp-exec rx repo-url)))
+    (unless m (die "not a GitHub URL: ~a" repo-url))
+    (format #f "https://github.com/~a/~a/archive/~a.tar.gz"
+            (match:substring m 1)
+            (match:substring m 2)
+            commit)))
+
+;;; --- hash ------------------------------------------------------------------
+
+(define %nix-base32-rx
+  ;; nix-base32 alphabet: 0-9 a-z minus e o t u — 32 chars, hash is 52 chars
+  (make-regexp "[0-9a-df-np-sv-z]{52}"))
+
+(define (guix-download-hash url)
+  "Download URL via `guix download` and return its nix-base32 sha256."
+  (let* ((out (run (string-append "guix download " url)))
+         (m   (regexp-exec %nix-base32-rx out)))
+    (unless m (die "could not extract hash from guix download output:\n~a" out))
+    (match:substring m 0)))
+
+;;; --- date ------------------------------------------------------------------
+
+(define (today-string)
+  (let ((t (localtime (current-time))))
+    (format #f "~a~2,'0d~2,'0d"
+            (+ 1900 (tm:year t))
+            (+ 1 (tm:mon t))
+            (tm:mday t))))
+
+;;; --- file extraction -------------------------------------------------------
+
+(define (extract-github-url content)
+  "Return the first GitHub URL found in CONTENT, or #f."
+  (let* ((rx (make-regexp "https://github\\.com/[A-Za-z0-9._-]+/[A-Za-z0-9._-]+"))
+         (m  (regexp-exec rx content)))
+    (and m (match:substring m 0))))
+
+;;; --- file update -----------------------------------------------------------
+
+(define (update-content content commit hash)
+  "Return CONTENT with commit, version, and base32 hash updated."
+  (let* (;; (commit "old") → (commit "new")
+         (c (regexp-substitute/global
+             #f "(commit \"[0-9a-f]+\")" content
+             'pre "(commit \"" commit "\")" 'post))
+         ;; (version "x.y.z-gitYYYYMMDD") or (version "0-gitYYYYMMDD")
+         (c (regexp-substitute/global
+             #f "(version \"[^\"]*-git[0-9]*\")" c
+             'pre "(version \"0-git" (today-string) "\")" 'post))
+         ;; (base32 "oldhash")
+         (c (regexp-substitute/global
+             #f "(base32 \"[0-9a-z]+\")" c
+             'pre "(base32 \"" hash "\")" 'post)))
+    c))
+
+(define (bump-file! path)
+  (format #t "~a\n" path)
+  (let* ((content  (call-with-input-file path read-string))
+         (repo-url (or (extract-github-url content)
+                       (die "no GitHub URL found in ~a" path)))
+         (_        (format #t "  repo:   ~a\n" repo-url))
+         (commit   (or (git-head-commit repo-url)
+                       (die "could not get HEAD commit for ~a" repo-url)))
+         (_        (format #t "  commit: ~a\n" commit))
+         (archive  (github-archive-url repo-url commit))
+         (_        (format #t "  fetch:  ~a\n" archive))
+         (hash     (guix-download-hash archive))
+         (_        (format #t "  hash:   ~a\n" hash))
+         (new      (update-content content commit hash)))
+    (if (string=? content new)
+        (format #t "  (no changes — add -git version/commit fields to package)\n")
+        (begin
+          (call-with-output-file path (lambda (p) (display new p)))
+          (format #t "  updated.\n")))))
+
+;;; --- main ------------------------------------------------------------------
+
+(let ((args (cdr (command-line))))
+  (when (null? args)
+    (format (current-error-port)
+            "usage: guix-bump <pkg.scm> [pkg.scm ...]\n")
+    (exit 1))
+  (for-each bump-file! args))
