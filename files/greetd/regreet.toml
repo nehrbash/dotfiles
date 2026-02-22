@@ -1,3 +1,0 @@
-[commands]
-reboot = [ "systemctl", "reboot" ]
-poweroff = [ "systemctl", "poweroff" ]

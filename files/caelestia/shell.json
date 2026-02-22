@@ -437,8 +437,11 @@
       },
       {
         "command": [
+          "qs",
+          "-c",
           "caelestia",
-          "shell",
+          "ipc",
+          "call",
           "controlCenter",
           "open"
         ],

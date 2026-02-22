@@ -49,6 +49,25 @@ corners, designed by Hubert and Fischer, Meir Sadan, Cyreal.")
 Code, including Powerline glyphs and developer icons.")
     (license license:silofl1.1)))
 
+(define-public font-iosevka-term-nf
+  (package
+    (name "font-iosevka-term-nf")
+    (version "3.4.0")
+    (source
+     (origin
+       (method url-fetch)
+       (uri (string-append
+             "https://github.com/ryanoasis/nerd-fonts/releases/download/v"
+             version "/IosevkaTerm.zip"))
+       (sha256
+        (base32 "0manr6z1vc4fqyv6710196sh0yvwdclmvig7cn73wqih8zz12rsi"))))
+    (build-system font-build-system)
+    (home-page "https://www.nerdfonts.com/")
+    (synopsis "IosevkaTerm Nerd Font — patched Iosevka Term with icons")
+    (description "IosevkaTerm is a Nerd Font patched version of Iosevka Term,
+including Powerline glyphs and developer icons for terminal use.")
+    (license license:silofl1.1)))
+
 (define-public font-material-symbols-rounded
   (package
     (name "font-material-symbols-rounded")

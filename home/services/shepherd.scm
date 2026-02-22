@@ -10,9 +10,8 @@
   #:use-module (gnu packages linux)
   #:use-module (gnu packages xorg)
   #:use-module (guix gexp)
-  #:use-module (packages quickshell-git)
   #:use-module (packages caelestia-shell)
-  #:use-module (packages caelestia-cli)
+  #:use-module (packages quickshell)
   #:export (%shepherd-services))
 
 (define %shepherd-services
@@ -104,13 +103,22 @@
     (documentation "Run caelestia shell (quickshell-based desktop shell).")
     (start #~(lambda _
                ((make-forkexec-constructor
-                 (list #$(file-append quickshell-git "/bin/qs")
+                 (list #$(file-append quickshell-git "/bin/.quickshell-real")
                        "-c" "caelestia" "-n")
                  #:environment-variables
                  (cons* (string-append
                          "QML_IMPORT_PATH="
-                         #$(file-append caelestia-shell "/lib/qt6/qml"))
+                         (getenv "HOME") "/.guix-home/profile/lib/qt6/qml"
+                         ":" #$(file-append qtdeclarative "/lib/qt6/qml")
+                         ":" #$(file-append qtwayland "/lib/qt6/qml"))
+                        (string-append
+                         "QT_PLUGIN_PATH="
+                         (getenv "HOME") "/.guix-home/profile/lib/qt6/plugins")
+                        "QT_QPA_PLATFORM=wayland"
                         "QS_ICON_THEME=Gruvbox-Plus-Dark"
+                        (string-append
+                         "WAYLAND_DISPLAY="
+                         (or (getenv "WAYLAND_DISPLAY") "wayland-1"))
                         (string-append
                          "PATH="
                          #$(file-append (specification->package "lm-sensors") "/bin")
@@ -119,28 +127,16 @@
                          "CAELESTIA_XKB_RULES_PATH="
                          #$(file-append (specification->package "xkeyboard-config")
                                         "/share/X11/xkb/rules/base.lst"))
-                        (environ))
+                        (filter (lambda (e)
+                                  (not (or (string-prefix? "QML_IMPORT_PATH=" e)
+                                           (string-prefix? "QT_PLUGIN_PATH=" e)
+                                           (string-prefix? "QT_QPA_PLATFORM=" e)
+                                           (string-prefix? "WAYLAND_DISPLAY=" e)
+                                           (string-prefix? "PATH=" e))))
+                                (environ)))
                  #:log-file
                  (string-append (getenv "XDG_STATE_HOME")
                                 "/log/caelestia-shell.log")))))
-    (stop #~(make-kill-destructor))
-    (respawn? #t)
-    (respawn-limit #~'(3 . 10))
-    (respawn-delay 5))
-
-   ;; Caelestia window resizer (auto resize/move for PiP etc.)
-   (shepherd-service
-    (provision '(caelestia-resizer))
-    (requirement '(wayland-compositor))
-    (documentation "Run caelestia resizer daemon for automatic window management.")
-    (start #~(lambda _
-               ((make-forkexec-constructor
-                 (list #$(file-append caelestia-cli "/bin/caelestia")
-                       "resizer" "-d")
-                 #:environment-variables (environ)
-                 #:log-file
-                 (string-append (getenv "XDG_STATE_HOME")
-                                "/log/caelestia-resizer.log")))))
     (stop #~(make-kill-destructor))
     (respawn? #t)
     (respawn-limit #~'(3 . 10))

@@ -61,20 +61,22 @@
              (gnu packages maths)
              (gnu packages hardware)
              (gnu packages xorg)
+             (gnu packages qt)
              (gnu packages containers)
              (gnu packages pulseaudio)
              (gnu home services desktop)
              (gnu home services sound)
              (guix gexp)
-             (packages zsh-pure-prompt)
              (packages gruvbox)
              (packages fonts)
-             (packages quickshell-git)
-             (packages caelestia-cli)
              (packages caelestia-shell)
+             (packages quickshell)
              (packages libcava)
              (packages slack)
              (packages vscode)
+             (packages emacs-gptel-git)
+             (packages emacs-gptel-agent)
+             (packages emacs-eca)
              (nongnu packages editors)
              (home services shepherd)
              (home services activation))
@@ -102,7 +104,7 @@
    libvterm
    alacritty
    eza
-   zsh-pure-prompt
+   starship
    zsh-autosuggestions
    zsh-syntax-highlighting
 
@@ -111,14 +113,19 @@
 
    ;; Editor
    emacs-next-pgtk
+   emacs-gptel-git
+   emacs-gptel-agent
+   emacs-eca
 
    ;; Fonts
    font-iosevka
    font-iosevka-aile
    font-awesome
    font-google-material-design-icons
+   font-google-noto-emoji
    font-rubik
    font-caskaydia-cove-nf
+   font-iosevka-term-nf
    font-material-symbols-rounded
 
    ;; Wayland / Hyprland
@@ -132,10 +139,10 @@
    brightnessctl
    swayidle
    wlr-randr
-   ;; Desktop shell
+   ;; Desktop shell (git version required for IdleInhibitor in Quickshell.Wayland)
    quickshell-git
-   caelestia-cli
    caelestia-shell
+   qtwayland
    ddcutil
 
    ;; Audio
@@ -229,8 +236,6 @@
                ,(local-file "../scripts" #:recursive? #t))
               (".local/share/applications/emacsclient.desktop"
                ,(local-file "../share/applications/emacsclient.desktop"))
-              (".npmrc"
-               ,(plain-file "npmrc" "prefix=~/.npm-global\n"))
               (".face"
                ,(local-file "../files/emacs/img/sloth-head.jpg" "face"))
 ))

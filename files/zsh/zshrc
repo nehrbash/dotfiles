@@ -11,11 +11,8 @@ autoload -U colors && colors
 
 export PS1="> "
 
-# Pure Prompt
-fpath+=$DOTFILES_DIR/zsh
-fpath+=$HOME/.guix-home/profile/share/zsh/site-functions
-autoload -U promptinit; promptinit
-prompt pure
+# Starship Prompt
+eval "$(starship init zsh)"
 
 # Bash-like navigation
 autoload -U select-word-style

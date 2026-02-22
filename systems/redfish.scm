@@ -40,6 +40,11 @@
                                          (count 65536))))))
    (service nvidia-service-type)
    (service power-profiles-daemon-service-type)
+   (extra-special-file "/etc/dbus-1/system.d/increase-limits.conf"
+                       (plain-file "increase-limits.conf"
+                                   "<busconfig>
+  <limit name=\"max_connections_per_user\">1024</limit>
+</busconfig>\n"))
     (service greetd-service-type
              (greetd-configuration
               (greeter-supplementary-groups '("video" "input"))

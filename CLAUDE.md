@@ -41,8 +41,7 @@ dotfiles/
 │   │   ├── early-init.el
 │   │   ├── init.el                                (generated from Emacs.org)
 │   │   └── lisp/                                  (custom elisp packages)
-│   ├── eww/           → ~/.config/eww/            (widget bar)
-│   ├── greetd/                                    (login manager, referenced by system config)
+│   ├── eww/           → ~/.config/eww/            (widget bar, migrating to caelestia)
 │   ├── gtk/           → ~/.gtkrc-2.0
 │   ├── hypr/          → ~/.config/hypr/           (Hyprland WM)
 │   ├── misc/          → ~/.config/ (single files) (electron-flags, mimeapps, spotify-launcher)
@@ -50,16 +49,14 @@ dotfiles/
 │   ├── music/                                     (sound files for notifications)
 │   ├── nyxt/          → ~/.config/nyxt/
 │   ├── paru/          → ~/.config/paru/
-│   ├── sptlrx/       → ~/.config/sptlrx/
 │   ├── swaync/        → ~/.config/swaync/
 │   ├── systemd/       → ~/.config/systemd/
-│   ├── thunar/        → ~/.config/Thunar/
 │   ├── xdg-desktop-portal/ → ~/.config/xdg-desktop-portal/
 │   └── zsh/           → ~/.config/zsh/ + zsh dotfiles
 ├── pictures/                                      (wallpapers, referenced by hyprland)
 ├── scripts/           → ~/.local/bin/             (user scripts)
 ├── share/             → ~/.local/share/           (desktop files, fonts)
-├── icons/                                         (SVG icons for Org/eww)
+├── icons/                                         (SVG icons for Org)
 ├── CLAUDE.md
 └── README.org
 ```
@@ -79,8 +76,6 @@ dotfiles/
 - `files/caelestia/` — shell config (QML modules, `shell.json`)
 - `files/caelestia/shell.json` — main config: appearance, bar, launcher, wallpaper paths, services
 - `packages/caelestia-shell.scm` — QML C++ plugin package
-- `packages/caelestia-cli.scm` — CLI tool (`caelestia` command)
-- `packages/quickshell-git.scm` — Quickshell compositor package
 - Shell and resizer run as **Shepherd user services** (not exec-once in hyprland.conf) — see `home/services/shepherd.scm`
 - Layer rules in `files/hypr/hyprland.conf` must match upstream (only blur `caelestia-drawers`, not all layers)
 
@@ -88,7 +83,7 @@ dotfiles/
 
 **Custom scripts**: `scripts/` deployed to `~/.local/bin/`.
 
-**Shepherd user services** (`home/services/shepherd.scm`): emacs daemon, wayland-compositor sentinel, hyprpolkitagent, caelestia-shell, caelestia-resizer, podman-socket, ssh-agent. Services requiring Hyprland depend on the `wayland-compositor` sentinel service.
+**Shepherd user services** (`home/services/shepherd.scm`): emacs daemon, wayland-compositor sentinel, hyprpolkitagent, caelestia-shell, podman-socket, ssh-agent. Services requiring Hyprland depend on the `wayland-compositor` sentinel service.
 
 See `~/doc/projects/dotfiles/index.org` for detailed project documentation.
 

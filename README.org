@@ -68,97 +68,97 @@ guix home reconfigure home/redfish.scm -L .
 
 ** IPC Commands
 
-   All commands use the form =caelestia shell <target> <function> [args...]=.
+   All commands use the form =qs -c caelestia ipc call <target> <function> [args...]=.
 
 *** Drawers
 
     Toggle UI panels on/off.
 
-    | Command                                  | Description         |
-    |------------------------------------------+---------------------|
-    | =caelestia shell drawers toggle bar=       | Toggle status bar   |
-    | =caelestia shell drawers toggle dashboard= | Toggle dashboard    |
-    | =caelestia shell drawers toggle launcher=  | Toggle app launcher |
-    | =caelestia shell drawers toggle session=   | Toggle session menu |
-    | =caelestia shell drawers toggle utilities= | Toggle utilities    |
-    | =caelestia shell drawers toggle sidebar= | Toggle sidebar      |
-    | =caelestia shell drawers toggle osd=       | Toggle OSD          |
-    | =caelestia shell drawers list=             | List all drawers    |
+    | Command                                                          | Description         |
+    |------------------------------------------------------------------+---------------------|
+    | =qs -c caelestia ipc call drawers toggle bar=                    | Toggle status bar   |
+    | =qs -c caelestia ipc call drawers toggle dashboard=              | Toggle dashboard    |
+    | =qs -c caelestia ipc call drawers toggle launcher=               | Toggle app launcher |
+    | =qs -c caelestia ipc call drawers toggle session=                | Toggle session menu |
+    | =qs -c caelestia ipc call drawers toggle utilities=              | Toggle utilities    |
+    | =qs -c caelestia ipc call drawers toggle sidebar=                | Toggle sidebar      |
+    | =qs -c caelestia ipc call drawers toggle osd=                    | Toggle OSD          |
+    | =qs -c caelestia ipc call drawers list=                          | List all drawers    |
 
 *** Lock
 
-    | Command                              | Description          |
-    |--------------------------------------+----------------------|
-    | =caelestia shell lock lock=          | Lock the screen      |
-    | =caelestia shell lock unlock=        | Unlock the screen    |
-    | =caelestia shell lock isLocked=      | Check lock state     |
+    | Command                                              | Description       |
+    |------------------------------------------------------+-------------------|
+    | =qs -c caelestia ipc call lock lock=                 | Lock the screen   |
+    | =qs -c caelestia ipc call lock unlock=               | Unlock the screen |
+    | =qs -c caelestia ipc call lock isLocked=             | Check lock state  |
 
 *** Media (mpris)
 
-    | Command                                          | Description            |
-    |--------------------------------------------------+------------------------|
-    | =caelestia shell mpris playPause=                | Toggle play/pause      |
-    | =caelestia shell mpris play=                     | Play                   |
-    | =caelestia shell mpris pause=                    | Pause                  |
-    | =caelestia shell mpris next=                     | Next track             |
-    | =caelestia shell mpris previous=                 | Previous track         |
-    | =caelestia shell mpris stop=                     | Stop                   |
-    | =caelestia shell mpris list=                     | List players           |
-    | =caelestia shell mpris getActive <prop>=         | Get active player prop |
+    | Command                                                          | Description            |
+    |------------------------------------------------------------------+------------------------|
+    | =qs -c caelestia ipc call mpris playPause=                       | Toggle play/pause      |
+    | =qs -c caelestia ipc call mpris play=                            | Play                   |
+    | =qs -c caelestia ipc call mpris pause=                           | Pause                  |
+    | =qs -c caelestia ipc call mpris next=                            | Next track             |
+    | =qs -c caelestia ipc call mpris previous=                        | Previous track         |
+    | =qs -c caelestia ipc call mpris stop=                            | Stop                   |
+    | =qs -c caelestia ipc call mpris list=                            | List players           |
+    | =qs -c caelestia ipc call mpris getActive <prop>=                | Get active player prop |
 
 *** Wallpaper
 
-    | Command                                      | Description         |
-    |----------------------------------------------+---------------------|
-    | =caelestia shell wallpaper get=              | Get current path    |
-    | =caelestia shell wallpaper list=             | List available      |
-    | =caelestia shell wallpaper set <path>=       | Set wallpaper       |
+    | Command                                                          | Description      |
+    |------------------------------------------------------------------+------------------|
+    | =qs -c caelestia ipc call wallpaper get=                         | Get current path |
+    | =qs -c caelestia ipc call wallpaper list=                        | List available   |
+    | =qs -c caelestia ipc call wallpaper set <path>=                  | Set wallpaper    |
 
 *** Brightness
 
-    | Command                                              | Description               |
-    |------------------------------------------------------+---------------------------|
-    | =caelestia shell brightness get=                     | Get brightness (0.0-1.0)  |
-    | =caelestia shell brightness set <value>=             | Set brightness            |
-    | =caelestia shell brightness getFor <query>=          | Get for specific display  |
-    | =caelestia shell brightness setFor <query> <value>=  | Set for specific display  |
+    | Command                                                                  | Description               |
+    |--------------------------------------------------------------------------+---------------------------|
+    | =qs -c caelestia ipc call brightness get=                                | Get brightness (0.0-1.0)  |
+    | =qs -c caelestia ipc call brightness set <value>=                        | Set brightness            |
+    | =qs -c caelestia ipc call brightness getFor <query>=                     | Get for specific display  |
+    | =qs -c caelestia ipc call brightness setFor <query> <value>=             | Set for specific display  |
 
 *** Notifications
 
-    | Command                                      | Description         |
-    |----------------------------------------------+---------------------|
-    | =caelestia shell notifs toggleDnd=            | Toggle Do Not Disturb |
-    | =caelestia shell notifs isDndEnabled=         | Check DND state     |
-    | =caelestia shell notifs clear=                | Clear notifications |
+    | Command                                                    | Description           |
+    |------------------------------------------------------------+-----------------------|
+    | =qs -c caelestia ipc call notifs toggleDnd=                | Toggle Do Not Disturb |
+    | =qs -c caelestia ipc call notifs isDndEnabled=             | Check DND state       |
+    | =qs -c caelestia ipc call notifs clear=                    | Clear notifications   |
 
 *** Toaster
 
-    | Command                                                      | Description       |
-    |--------------------------------------------------------------+-------------------|
-    | =caelestia shell toaster info <title> <msg> <icon>=          | Info toast        |
-    | =caelestia shell toaster warn <title> <msg> <icon>=          | Warning toast     |
-    | =caelestia shell toaster error <title> <msg> <icon>=         | Error toast       |
-    | =caelestia shell toaster success <title> <msg> <icon>=       | Success toast     |
+    | Command                                                                      | Description   |
+    |------------------------------------------------------------------------------+---------------|
+    | =qs -c caelestia ipc call toaster info <title> <msg> <icon>=                 | Info toast    |
+    | =qs -c caelestia ipc call toaster warn <title> <msg> <icon>=                 | Warning toast |
+    | =qs -c caelestia ipc call toaster error <title> <msg> <icon>=                | Error toast   |
+    | =qs -c caelestia ipc call toaster success <title> <msg> <icon>=              | Success toast |
 
 *** Other
 
-    | Command                                                  | Description                    |
-    |----------------------------------------------------------+--------------------------------|
-    | =caelestia shell picker open=                            | Open color picker              |
-    | =caelestia shell controlCenter open=                     | Open control center            |
-    | =caelestia shell idleInhibitor toggle=                   | Toggle idle inhibitor          |
-    | =caelestia shell gameMode toggle=                        | Toggle game mode               |
-    | =caelestia shell hypr cycleSpecialWorkspace <direction>= | Cycle special workspaces       |
-    | =caelestia shell hypr refreshDevices=                    | Refresh input devices          |
+    | Command                                                                      | Description              |
+    |------------------------------------------------------------------------------+--------------------------|
+    | =qs -c caelestia ipc call picker open=                                       | Open color picker        |
+    | =qs -c caelestia ipc call controlCenter open=                                | Open control center      |
+    | =qs -c caelestia ipc call idleInhibitor toggle=                              | Toggle idle inhibitor    |
+    | =qs -c caelestia ipc call gameMode toggle=                                   | Toggle game mode         |
+    | =qs -c caelestia ipc call hypr cycleSpecialWorkspace <direction>=            | Cycle special workspaces |
+    | =qs -c caelestia ipc call hypr refreshDevices=                               | Refresh input devices    |
 
 *** Shell Management
 
-    | Command                      | Description              |
-    |------------------------------+--------------------------|
-    | =caelestia shell -d=         | Start shell (daemon)     |
-    | =caelestia shell -k=         | Kill shell               |
-    | =caelestia shell -s=         | Show all IPC targets     |
-    | =caelestia shell -l=         | Show shell log           |
+    | Command                              | Description          |
+    |--------------------------------------+----------------------|
+    | =qs -c caelestia -n -d=              | Start shell (daemon) |
+    | =qs -c caelestia kill=               | Kill shell           |
+    | =qs -c caelestia ipc show=           | Show all IPC targets |
+    | =qs -c caelestia log=                | Show shell log       |
 
 * Spicetify
 

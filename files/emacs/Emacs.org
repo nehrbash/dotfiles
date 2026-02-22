@@ -2671,12 +2671,6 @@ Only clock in/out when needed, and always save all Org buffers."
   :init
   (setq-default org-roam-v2-ack t)
   (add-hook 'org-roam-dailies-find-file-hook #'gptel-mode)
-  (defun sn/org-roam-dailies-goto-today ()
-	"Open today's daily note and return the buffer."
-	(org-roam-dailies-goto-today)
-	(current-buffer))
-  (unless (> (length command-line-args) 1)
-	(setq initial-buffer-choice #'sn/org-roam-dailies-goto-today))
   :config
   (org-roam-db-autosync-mode)
   :custom
@@ -3515,7 +3509,6 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   ("C-<f5>" . gptel-menu)
   :hook
   (org-mode . gptel-activate-if-model-exists)
-  (gptel-post-stream . gptel-auto-scroll)
   :custom
   (gptel-model 'gpt-4o)
   (gptel-display-buffer-action
@@ -3537,7 +3530,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 		(when found
 	  (gptel-mode 1)))))
   :config
-  ;; (require 'gptel-integrations) mpc
+  (add-hook 'gptel-post-stream #'gptel-auto-scroll)
   (add-hook 'gptel-post-response-functions 'gptel-end-of-response)
   (add-to-list 'gptel-tools
 	     (gptel-make-tool
@@ -3610,6 +3603,15 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
       (save-buffer)))
   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file))
  #+end_src
+
+#+begin_src emacs-lisp
+(use-package gptel-agent
+  :after gptel)
+#+end_src
+
+#+begin_src emacs-lisp
+(use-package eca)
+#+end_src
 *** Codeium
 
  #+begin_src emacs-lisp
