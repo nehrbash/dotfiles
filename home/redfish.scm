@@ -72,6 +72,7 @@
              (packages caelestia-shell)
              (packages quickshell)
              (packages libcava)
+             (packages glab)
              (packages slack)
              (packages vscode)
              (packages emacs-gptel-git)
@@ -211,6 +212,8 @@
 
    ;; Dev tools
    shellcheck
+   glab
+   uv
 
    ;; SSH
    openssh
@@ -238,11 +241,15 @@
                ,(local-file "../share/applications/emacsclient.desktop"))
               (".face"
                ,(local-file "../files/emacs/img/sloth-head.jpg" "face"))
+              (".claude/skills"
+               ,(local-file "../files/claude-skills" #:recursive? #t))
 ))
 
    ;; XDG config files (~/.config/)
    (service home-xdg-configuration-files-service-type
-            `(("emacs/init.el"
+            `(("eca/config.json"
+               ,(local-file "../files/eca/config.json" "config.json"))
+              ("emacs/init.el"
                ,(local-file "../files/emacs/init.el" "init.el"))
               ("emacs/early-init.el"
                ,(local-file "../files/emacs/early-init.el" "early-init.el"))

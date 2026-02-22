@@ -1,0 +1,30 @@
+{
+  "skillsPath": [
+    "~/.claude/skills"
+  ],
+  "mcpServers": {
+    "duckduckgo-search": {
+      "command": "npx",
+      "args": ["-y", "duckduckgo-mcp-server"]
+    },
+    "fetch": {
+      "command": "uvx",
+      "args": ["mcp-server-fetch"],
+      "disabled": false
+    },
+    "git": {
+      "command": "uvx",
+      "args": ["mcp-server-git"],
+      "disabled": false
+    },
+    "memory": {
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-memory"]
+    },
+    "gitlab": {
+      "command": "glab",
+      "args": ["mcp", "serve"]
+    }
+  },
+  "mcpTimeoutSeconds": 120
+}
