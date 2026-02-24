@@ -18,8 +18,10 @@
    (file-like quickshell-git)
    "The quickshell package to use.")
   (config
-   (string "caelestia")
-   "Name of the quickshell configuration to launch (passed to @option{-c}).")
+   (string "")
+   "Name of the quickshell configuration to launch (passed to @option{-c}).
+Leave empty (the default) to use the default config at
+@file{~/.config/quickshell/shell.qml}.")
   (icon-theme
    (string "Gruvbox-Plus-Dark")
    "Value for the @env{QS_ICON_THEME} environment variable."))
@@ -34,15 +36,16 @@
         (icon-theme (home-quickshell-configuration-icon-theme config)))
     (list
      (shepherd-service
-      (provision (list (string->symbol (string-append cfg "-shell"))))
+      (provision '(quickshell))
       (requirement '(wayland-compositor))
-      (documentation
-       (string-append "Run the " cfg " quickshell desktop shell."))
+      (documentation "Run quickshell desktop shell.")
       (start
        #~(lambda _
            ((make-forkexec-constructor
-             (list #$(file-append qs "/bin/quickshell")
-                   "-c" #$cfg "-n")
+             (append
+              (list #$(file-append qs "/bin/quickshell"))
+              (if (string-null? #$cfg) '() (list "-c" #$cfg))
+              (list "-n"))
              #:environment-variables
              (cons*
               ;; Qt plugins from the Guix Home profile (e.g. qtwayland).
@@ -70,7 +73,7 @@
                       (environ)))
              #:log-file
              (string-append (getenv "XDG_STATE_HOME")
-                            "/log/" #$cfg "-shell.log")))))
+                            "/log/quickshell.log")))))
       (stop #~(make-kill-destructor))
       (respawn? #t)
       (respawn-limit #~'(3 . 10))

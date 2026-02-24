@@ -66,7 +66,7 @@
                            ("files/nyxt" . "nyxt")
                            ("files/paru" . "paru")
                            ("files/systemd" . "systemd")
-                           ("files/caelestia/quickshell" . "quickshell/caelestia")
+                           ("files/quickshell" . "quickshell")
                            ("files/xdg-desktop-portal" . "xdg-desktop-portal")))
                         ;; Wallpaper symlink for hyprpaper (doesn't expand env vars)
                         (ensure-symlink (string-append dots "/pictures/wallpaper")
@@ -82,7 +82,7 @@
                            ("files/zsh/aliasrc" . "zsh/aliasrc")
                            ("files/zsh/emacs_functions" . "zsh/emacs_functions")
                            ("files/zsh/functions" . "zsh/functions")
-                           ("files/caelestia/shell.json" . "caelestia/shell.json")))
+                           ("files/quickshell/shell.json" . "caelestia/shell.json")))
 
                         ;; SSH config — copied as a real file so bind-mounts
                         ;; into containers work (symlinks to the store don't

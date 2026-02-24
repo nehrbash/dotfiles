@@ -95,7 +95,7 @@ This is the git version built from a local clone.")
     (name "quickshell-caelestia-plugin")
     (version "1.5.0")
     (source
-     (local-file "../files/caelestia/quickshell"
+     (local-file "../files/quickshell"
                  "caelestia-shell-source"
                  #:recursive? #t))
     (build-system cmake-build-system)

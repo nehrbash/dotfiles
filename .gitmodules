@@ -1,3 +1,6 @@
 [submodule "nyxt/extensions/invader"]
 	path = files/nyxt/extensions/invader
 	url = https://github.com/atlas-engineer/nx-invader.git
+[submodule "files/quickshell"]
+	path = files/quickshell
+	url = git@github.com:nehrbash/shell.git
