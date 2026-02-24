@@ -3,6 +3,7 @@
   #:use-module (gnu packages)
   #:use-module (gnu packages node)
   #:use-module (gnu packages glib)
+  #:use-module (gnu packages curl)
   #:use-module (guix gexp)
   #:export (post-setup-activation-service))
 
@@ -108,6 +109,15 @@
                                   (string-append (getenv "HOME") "/.local/share/npm"))
                           (system* #$(file-append node "/bin/npm")
                                    "install" "-g" "@anthropic-ai/claude-code")))
+
+                      ;; spicetify: install via official script if missing
+                      (let ((bin (string-append (getenv "HOME") "/.local/bin/spicetify")))
+                        (unless (file-exists? bin)
+                          (system* #$(file-append curl "/bin/curl")
+                                   "-fsSL"
+                                   "https://raw.githubusercontent.com/spicetify/cli/main/install.sh"
+                                   "-o" "/tmp/spicetify-install.sh")
+                          (system* "sh" "/tmp/spicetify-install.sh")))
 
                       ;; Set GTK icon/theme via dconf (settings.ini is overridden by dconf)
                       (system* #$(file-append (specification->package "dconf") "/bin/dconf")
