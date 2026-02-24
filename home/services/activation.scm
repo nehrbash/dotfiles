@@ -32,7 +32,8 @@
                               (symlink target link))
                              ;; Nothing exists → create
                              ((not is-link)
-                              (symlink target link))))))
+                              (symlink target link)))
+                            (display (string-append target " => " link "\n")))))
 
                       ;; Flatpak: add remote + install apps
                       (system* "flatpak" "remote-add" "--user"
