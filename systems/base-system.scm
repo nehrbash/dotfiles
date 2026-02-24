@@ -16,7 +16,9 @@
             %authorized-keys))
 
 (define %substitute-urls
-  '("https://ci.guix.gnu.org"
+  '("https://bordeaux-us-east-mirror.cbaines.net"
+    "https://bordeaux.guix.gnu.org"
+    "https://ci.guix.gnu.org"
     "https://substitutes.nonguix.org"))
 
 ;; Authorized substitute signing keys

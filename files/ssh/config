@@ -1,0 +1,166 @@
+AddKeysToAgent yes
+
+Host *
+    # ControlMaster      auto
+    # ControlPath        /tmp/tramp.%C
+    # ControlPersist     yes
+    StrictHostKeyChecking no
+    # IdentityFile /dev/null
+
+# Only load YubiKey PKCS#11 on the host where the library exists.
+# Silently skipped inside devcontainers where ~/.guix-home is not mounted.
+Match exec "test -f %d/.guix-home/profile/lib/libykcs11.so"
+    PKCS11Provider ~/.guix-home/profile/lib/libykcs11.so
+
+Host ag-jack
+  ForwardAgent yes
+  HostName dev-jack.analyticsgateway.com
+  User agadmin
+
+Host ag-test
+  ForwardAgent yes
+  HostName test.analyticsgateway.com
+  User agadmin
+
+Host ag-kibble
+  ForwardAgent yes
+  HostName kibble.analyticsgateway.com
+  User agadmin
+
+Host ag-public
+  ForwardAgent yes
+  HostName public.analyticsgateway.com
+  User agadmin
+
+Host ag-nehrbash
+  ForwardAgent yes
+  HostName dev-nehrbash.analyticsgateway.com
+  User agadmin
+
+Host ag-nehrbash-me
+  ForwardAgent yes
+  HostName dev-nehrbash.analyticsgateway.com
+  User nehrbash
+
+Host ag-hpcmp-aws
+  ForwardAgent yes
+  HostName hpcmp-aws.analyticsgateway.com
+  User agadmin
+
+Host ag-afit-aws
+  ForwardAgent yes
+  HostName afit-msgateway.analyticsgateway.com
+  User agadmin
+
+Host ag-ms
+  ForwardAgent yes
+  HostName msgateway.analyticsgateway.com
+  User agadmin
+
+Host ag-hpcmp-azure
+  ForwardAgent yes
+  HostName hpcmp-azure.analyticsgateway.com
+  User agadmin
+
+Host ag-atrc
+  ForwardAgent yes
+  HostName atrc.analyticsgateway.com
+  User agadmin
+
+Host ag-ascend
+  ForwardAgent yes
+  HostName ascend.analyticsgateway.com
+  User agadmin
+
+Host ag-sdpe
+  ForwardAgent yes
+  HostName sdpe.analyticsgateway.com
+  User agadmin
+
+Host ag-ppo
+  ForwardAgent yes
+  HostName ppo.analyticsgateway.com
+  User agadmin
+
+Host ag-demo
+  ForwardAgent yes
+  HostName demo.analyticsgateway.com
+  User agadmin
+
+Host ag-desgin
+  ForwardAgent yes
+  HostName design-pickle.analyticsgateway.com
+  User agadmin
+
+Host ag-portal
+  ForwardAgent yes
+  HostName hpc-access-point.analyticsgateway.com
+  User agadmin
+
+Host ag-dev
+  ForwardAgent yes
+  HostName dev.analyticsgateway.com
+  User agadmin
+
+Host ag-aaco
+  ForwardAgent yes
+  HostName aaco.analyticsgateway.com
+  User agadmin
+
+Host ag-staging
+  ForwardAgent yes
+  HostName staging.analyticsgateway.com
+  User nehrbash
+
+Host office
+  ForwardAgent yes
+  HostName office.analyticsgateway.com
+  User nehrbash
+
+Host nuc1
+  User agadmin
+  HostName gitlab-linux-runner-nuc1.local
+  ProxyJump office
+  ForwardAgent yes
+
+Host nuc2
+  User agadmin
+  HostName gitlab-linux-runner-nuc2.local
+  ProxyJump office
+  ForwardAgent yes
+
+Host ag-office
+  ForwardAgent yes
+  HostName office.analyticsgateway.com
+  User agadmin
+
+Host nuc3
+  User agadmin
+  HostName 192.168.1.62
+  ProxyJump ag-office
+  ForwardAgent yes
+
+Host nuc4
+  User agadmin
+  HostName gitlab-linux-runner-nuc4.local
+  ProxyJump office
+  ForwardAgent yes
+
+Host it-gitlab gitlab.office.analyticsgateway.com
+  HostName gitlab
+  User git
+  ProxyJump office
+
+Host runner-linux gitlab-runner-linux
+  User gitlab-runner
+  HostName gitlab-runner-linux
+  ProxyJump office
+
+Host passwd
+  User ubuntu
+  HostName psono-passwd
+  ProxyJump office
+
+Host pi
+  User nehrbash
+  HostName pihole
