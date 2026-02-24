@@ -82,7 +82,7 @@
                            ("files/zsh/aliasrc" . "zsh/aliasrc")
                            ("files/zsh/emacs_functions" . "zsh/emacs_functions")
                            ("files/zsh/functions" . "zsh/functions")
-                           ("files/quickshell/shell.json" . "caelestia/shell.json")))
+                           ))
 
                         ;; SSH config — copied as a real file so bind-mounts
                         ;; into containers work (symlinks to the store don't
