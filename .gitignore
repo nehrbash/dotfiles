@@ -1,7 +1,3 @@
-# Leftover stow dirs (no longer used)
-/.emacs.d/
-/.zsh/
-
 # Emacs generated/state files
 /files/emacs/eln-cache/
 /files/emacs/*.elc

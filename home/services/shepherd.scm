@@ -9,9 +9,8 @@
   #:use-module (gnu packages containers)
   #:use-module (gnu packages linux)
   #:use-module (gnu packages xorg)
+  #:use-module (gnu packages gnome)
   #:use-module (guix gexp)
-  #:use-module (packages caelestia-shell)
-  #:use-module (packages quickshell)
   #:export (%shepherd-services))
 
 (define %shepherd-services
@@ -103,46 +102,6 @@
     (respawn-limit #~'(3 . 10))
     (respawn-delay 5))
 
-   ;; Caelestia desktop shell (quickshell)
-   (shepherd-service
-    (provision '(caelestia-shell))
-    (requirement '(wayland-compositor))
-    (documentation "Run caelestia shell (quickshell-based desktop shell).")
-    (start #~(lambda _
-               ((make-forkexec-constructor
-                 (list #$(file-append quickshell-git "/bin/quickshell")
-                       "-c" "caelestia" "-n")
-                 #:environment-variables
-                 (cons* (string-append
-                         "QT_PLUGIN_PATH="
-                         (getenv "HOME") "/.guix-home/profile/lib/qt6/plugins")
-                        "QT_QPA_PLATFORM=wayland"
-                        "QS_ICON_THEME=Gruvbox-Plus-Dark"
-                        (string-append
-                         "WAYLAND_DISPLAY="
-                         (or (getenv "WAYLAND_DISPLAY") "wayland-1"))
-                        (string-append
-                         "PATH="
-                         #$(file-append (specification->package "lm-sensors") "/bin")
-                         ":" (getenv "PATH"))
-                        (string-append
-                         "CAELESTIA_XKB_RULES_PATH="
-                         #$(file-append (specification->package "xkeyboard-config")
-                                        "/share/X11/xkb/rules/base.lst"))
-                        (filter (lambda (e)
-                                  (not (or (string-prefix? "QT_PLUGIN_PATH=" e)
-                                           (string-prefix? "QT_QPA_PLATFORM=" e)
-                                           (string-prefix? "WAYLAND_DISPLAY=" e)
-                                           (string-prefix? "PATH=" e))))
-                                (environ)))
-                 #:log-file
-                 (string-append (getenv "XDG_STATE_HOME")
-                                "/log/caelestia-shell.log")))))
-    (stop #~(make-kill-destructor))
-    (respawn? #t)
-    (respawn-limit #~'(3 . 10))
-    (respawn-delay 5))
-
    ;; Podman socket (Docker-compatible API for devcontainers)
    (shepherd-service
     (provision '(podman-socket))
@@ -164,7 +123,29 @@
     (stop #~(make-kill-destructor))
     (respawn? #t))
 
+   ;; GNOME Keyring daemon — exposes org.freedesktop.secrets D-Bus API
+   ;; Creates /run/user/1000/keyring/ socket used by VS Code, libsecret, etc.
+   (shepherd-service
+    (provision '(gnome-keyring))
+    (documentation "Run gnome-keyring-daemon (secrets component only).")
+    (start #~(make-forkexec-constructor
+              (list #$(file-append gnome-keyring "/bin/gnome-keyring-daemon")
+                    "--start"
+                    "--foreground"
+                    "--components=secrets")
+              #:log-file
+              (string-append (getenv "XDG_STATE_HOME")
+                             "/log/gnome-keyring.log")))
+    (stop #~(make-kill-destructor))
+    (respawn? #t)
+    (respawn-limit #~'(3 . 10))
+    (respawn-delay 5))
+
    ;; ssh-agent
+   ;; The -P flag whitelists PKCS#11 providers that ssh-agent will accept from
+   ;; `ssh-add -s`.  OpenSSH 8.9+ refuses any provider not matching the
+   ;; pattern; libykcs11.so lives in the Guix store (symlinked via
+   ;; ~/.guix-home/profile/lib/libykcs11.so) so we must allow that glob.
    (shepherd-service
     (provision '(ssh-agent))
     (documentation "Run ssh-agent.")
@@ -172,7 +153,8 @@
               (list #$(file-append openssh "/bin/ssh-agent")
                     "-D" "-a"
                     (string-append (getenv "XDG_RUNTIME_DIR")
-                                   "/ssh-agent.socket"))
+                                   "/ssh-agent.socket")
+                    "-P" "/gnu/store/*/lib/libykcs11.so*")
               #:log-file
               (string-append (getenv "XDG_STATE_HOME")
                              "/log/ssh-agent.log")))

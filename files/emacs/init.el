@@ -187,7 +187,6 @@
   ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
   ([remap scroll-down-command] . pixel-scroll-interpolate-up)
   :custom
-  (scroll-margin 6)
   (maximum-scroll-margin 0.25)
   (scroll-preserve-screen-position t)
   (pixel-scroll-precision-interpolate-page t)
@@ -2664,6 +2663,7 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 		whisper-translate nil))
 
 (use-package gptel
+  :ensure (:host github :repo "karthink/gptel")
   :after vterm
   :bind
   ("<f5>" . gptel-toggle-sidebar)
@@ -2767,9 +2767,11 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file))
 
 (use-package gptel-agent
+  :ensure (:host github :repo "karthink/gptel-agent")
   :after gptel)
 
-(use-package eca)
+(use-package eca
+  :bind ("M-SPC a" . eca-chat-toggle-window))
 
 (use-package mcp-server
   :ensure (:host github :repo "rhblind/emacs-mcp-server"

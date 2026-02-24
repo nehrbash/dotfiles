@@ -36,6 +36,7 @@
              (gnu packages xdisorg)
              (gnu packages glib)
              (gnu packages gtk)
+             (gnu packages gnome)
              (gnu packages gnome-xyz)
              (gnu packages pkg-config)
              (gnu packages music)
@@ -61,6 +62,7 @@
              (gnu packages audio)
              (gnu packages maths)
              (gnu packages hardware)
+             (gnu packages security-token)
              (gnu packages xorg)
              (gnu packages qt)
              (gnu packages containers)
@@ -70,16 +72,14 @@
              (guix gexp)
              (packages gruvbox)
              (packages fonts)
-             (packages caelestia-shell)
              (packages quickshell)
              (packages libcava)
              (packages glab)
              (packages slack)
              (packages vscode)
-             (packages emacs-gptel-git)
-             (packages emacs-gptel-agent)
              (packages emacs-eca)
              (nongnu packages editors)
+             (home services quickshell)
              (home services shepherd)
              (home services activation))
 
@@ -110,13 +110,8 @@
    zsh-autosuggestions
    zsh-syntax-highlighting
 
-   ;; Node.js
-   node
-
    ;; Editor
    emacs-next-pgtk
-   emacs-gptel-git
-   emacs-gptel-agent
    emacs-eca
 
    ;; Fonts
@@ -140,9 +135,7 @@
    playerctl
    brightnessctl
    wlr-randr
-   ;; Desktop shell (git version required for IdleInhibitor in Quickshell.Wayland)
-   quickshell-git
-   caelestia-shell
+   quickshell-caelestia-plugin
    qtwayland
    ddcutil
 
@@ -168,9 +161,10 @@
    texlive-scheme-full
 
    ;; Languages
-   go
+	go
    python
-   rust
+	rust
+	node
    (list rust "cargo")
 
    ;; Go tools
@@ -219,8 +213,9 @@
    glab
    uv
 
-   ;; SSH
+   ;; SSH / YubiKey
    openssh
+   yubico-piv-tool
 
    ;; Flatpak
    flatpak
@@ -230,7 +225,10 @@
 
    ;; GTK theme + icons
    gruvbox-dark-gtk
-   gruvbox-plus-icon-theme))
+   gruvbox-plus-icon-theme
+
+   ;; Keyring (secrets D-Bus API for VS Code, libsecret, devcontainers, etc.)
+   gnome-keyring))
 
  (services
   (list
@@ -281,6 +279,14 @@
                      ("GOPATH" . "$HOME/.local/share/go")
                      ("NPM_CONFIG_PREFIX" . "$HOME/.local/share/npm")
                      ("SSH_AUTH_SOCK" . "$XDG_RUNTIME_DIR/ssh-agent.socket")
+                     ;; gcr-ssh-askpass is used as a GUI fallback for passphrase
+                     ;; prompts when there is no controlling TTY (e.g. autostart).
+                     ;; SSH_ASKPASS_REQUIRE is intentionally omitted so that
+                     ;; ssh-add uses the terminal when one is available — this is
+                     ;; required for PKCS#11 PIN prompts (gcr-ssh-askpass cannot
+                     ;; handle them).
+                     ("SSH_ASKPASS" . "$HOME/.guix-home/profile/libexec/gcr-ssh-askpass")
+                     ("KEYRING_SOCK" . "$XDG_RUNTIME_DIR/keyring")
                      ("PKG_CONFIG_PATH" . "$HOME/.guix-home/profile/lib/pkgconfig:$PKG_CONFIG_PATH")
                      ("C_INCLUDE_PATH" . "$HOME/.guix-home/profile/include")
                      ("LIBRARY_PATH" . "$HOME/.guix-home/profile/lib")
@@ -346,6 +352,9 @@
 
    ;; Audio (PipeWire + WirePlumber + PulseAudio emulation)
    (service home-pipewire-service-type)
+
+   ;; Quickshell desktop shell (caelestia config)
+   (service home-quickshell-service-type)
 
    ;; Shepherd user services
    (service home-shepherd-service-type

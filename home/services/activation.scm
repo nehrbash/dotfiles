@@ -82,7 +82,23 @@
                            ("files/zsh/aliasrc" . "zsh/aliasrc")
                            ("files/zsh/emacs_functions" . "zsh/emacs_functions")
                            ("files/zsh/functions" . "zsh/functions")
-                           ("files/caelestia/shell.json" . "caelestia/shell.json"))))
+                           ("files/caelestia/shell.json" . "caelestia/shell.json")))
+
+                        ;; SSH config — copied as a real file so bind-mounts
+                        ;; into containers work (symlinks to the store don't
+                        ;; resolve inside the container).
+                        (let* ((ssh-dir (string-append home "/.ssh"))
+                               (target  (string-append ssh-dir "/config"))
+                               (source  (string-append dots "/files/ssh/config")))
+                          (unless (file-exists? ssh-dir)
+                            (mkdir ssh-dir)
+                            (chmod ssh-dir #o700))
+                          (when (or (file-exists? target)
+                                    (false-if-exception
+                                     (eq? 'symlink (stat:type (lstat target)))))
+                            (delete-file target))
+                          (copy-file source target)
+                          (chmod target #o600)))
 
                       ;; claude-code: install via npm if missing
                       (let ((bin (string-append (getenv "HOME") "/.local/share/npm/bin/claude")))

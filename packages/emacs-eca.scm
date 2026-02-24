@@ -10,16 +10,16 @@
 (define-public emacs-eca
   (package
     (name "emacs-eca")
-    (version "0.0.1-1.32943e6")
+    (version "0.0.1-1.625ddb5")
     (source
      (origin
        (method git-fetch)
        (uri (git-reference
              (url "https://github.com/editor-code-assistant/eca-emacs")
-             (commit "32943e61016b1ae6f205a1483e3a5853dd64e3f8")))
+             (commit "625ddb5b8f8fe6dd70f88f53c4174158021f23d9")))
        (file-name (git-file-name name version))
        (sha256
-        (base32 "145sj84msnnp5xz75695klycnpnisx3xs0lhlg772l4h18ygfk3j"))))
+        (base32 "022vw2hs41y1j6nvlbqhkzgfs45cj9h13l4l2pd75g0kjhkb48g8"))))
     (build-system emacs-build-system)
     (propagated-inputs
      (list emacs-dash

@@ -12,6 +12,7 @@
              (gnu services base)
              (gnu services containers)
              (gnu services pm)
+             (gnu services security-token)
              (gnu packages admin)
              (gnu packages wm)
              (gnu packages shells)
@@ -40,6 +41,7 @@
                                          (count 65536))))))
    (service nvidia-service-type)
    (service power-profiles-daemon-service-type)
+   (service pcscd-service-type)
    (extra-special-file "/etc/dbus-1/system.d/increase-limits.conf"
                        (plain-file "increase-limits.conf"
                                    "<busconfig>
@@ -105,6 +107,9 @@
 
   (privileged-programs %default-privileged-programs)
 
+  ;; WARNING: boot disk is nvme0n1, NOT nvme1n1. Do not change this.
+  ;; The root/boot filesystem lives on nvme0n1; nvme1n1 is a different
+  ;; physical disk — pointing GRUB there causes a cross-disk embed error.
   (bootloader (bootloader-configuration
                 (bootloader grub-bootloader)
                 (targets (list "/dev/nvme0n1"))

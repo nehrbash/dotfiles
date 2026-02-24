@@ -40,8 +40,11 @@ alias ...='cd ../../../'
 alias ....='cd ../../../../'
 alias .....='cd ../../../../'
 
-alias update-system="sudo -E guix system reconfigure \$DOTFILES_DIR/systems/\$(hostname).scm"
-alias update-home="guix home reconfigure \$DOTFILES_DIR/home/redfish.scm -L \$DOTFILES_DIR"
-alias update-channels="guix pull -C \$DOTFILES_DIR/channels.scm"
+alias update-system="make -C \$DOTFILES_DIR update-system"
+alias update-home="make -C \$DOTFILES_DIR update-home"
+alias update-channels="make -C \$DOTFILES_DIR update-channels"
+alias update-quickshell="make -C \$DOTFILES_DIR update-quickshell"
+alias update="make -C \$DOTFILES_DIR update"
+
 
 alias zen-browser='app.zen_browser.zen'

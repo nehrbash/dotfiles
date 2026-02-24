@@ -343,7 +343,6 @@
   ([remap scroll-up-command]   . pixel-scroll-interpolate-down)
   ([remap scroll-down-command] . pixel-scroll-interpolate-up)
   :custom
-  (scroll-margin 6)
   (maximum-scroll-margin 0.25)
   (scroll-preserve-screen-position t)
   (pixel-scroll-precision-interpolate-page t)
@@ -3611,7 +3610,8 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package eca)
+(use-package eca
+  :bind ("M-SPC a" . eca-chat-toggle-window))
 #+end_src
 
 #+begin_src emacs-lisp
