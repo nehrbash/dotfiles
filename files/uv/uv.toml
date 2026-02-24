@@ -1,0 +1,2 @@
+# Use system Python (e.g. Guix-managed) instead of uv-managed downloads
+python-preference = "only-system"

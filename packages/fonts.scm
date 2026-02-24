@@ -60,7 +60,7 @@ Code, including Powerline glyphs and developer icons.")
              "https://github.com/ryanoasis/nerd-fonts/releases/download/v"
              version "/IosevkaTerm.zip"))
        (sha256
-        (base32 "0manr6z1vc4fqyv6710196sh0yvwdclmvig7cn73wqih8zz12rsi"))))
+        (base32 "0hf278p1p26gk7sj6bsnz243flhzcz399i0g2s58jlwj8m3h40fl"))))
     (build-system font-build-system)
     (home-page "https://www.nerdfonts.com/")
     (synopsis "IosevkaTerm Nerd Font — patched Iosevka Term with icons")

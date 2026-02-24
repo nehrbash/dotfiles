@@ -15,7 +15,6 @@
             %substitute-urls
             %authorized-keys))
 
-;; Substitute servers (official + NonGuix)
 (define %substitute-urls
   '("https://ci.guix.gnu.org"
     "https://substitutes.nonguix.org"))

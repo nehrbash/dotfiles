@@ -150,12 +150,12 @@
 		  `(breadcrumb-face ((,c :foreground ,fg-alt)))
 		  `(breadcrumb-imenu-leaf-face ((,c :foreground ,fg-alt)))))))
   (add-hook 'modus-themes-post-load-hook #'sn-ef-themes-mod)
-  (modus-themes-load-theme 'ef-melissa-dark)
+  (modus-themes-load-theme 'ef-melissa-light)
   ;; this may cause flashes but fixes a lot of issues like 1. scroll bar colors, 2. terminal theme
   (defun sn-apply-theme-to-frame (frame)
 	"Reapply theme modifications to newly created FRAME."
 	(with-selected-frame frame
-	  (modus-themes-load-theme 'ef-melissa-dark)))
+	  (modus-themes-load-theme 'ef-melissa-light)))
   (add-hook 'after-make-frame-functions #'sn-apply-theme-to-frame))
 
 (setopt mode-line-compact nil
@@ -188,6 +188,7 @@
   ([remap scroll-down-command] . pixel-scroll-interpolate-up)
   :custom
   (scroll-margin 6)
+  (maximum-scroll-margin 0.25)
   (scroll-preserve-screen-position t)
   (pixel-scroll-precision-interpolate-page t)
   :init
@@ -2769,6 +2770,11 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   :after gptel)
 
 (use-package eca)
+
+(use-package mcp-server
+  :ensure (:host github :repo "rhblind/emacs-mcp-server"
+           :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh"))
+  :hook (emacs-startup . mcp-server-start-unix))
 
  (use-package codeium
    :ensure (:host github :repo "Exafunction/codeium.el")

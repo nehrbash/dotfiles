@@ -50,6 +50,7 @@
              (gnu packages node)
              (gnu packages freedesktop)
              (gnu packages polkit)
+             (gnu packages python)
              (gnu packages package-management)
              (gnu packages image)
              (gnu packages base)
@@ -138,7 +139,6 @@
    grim
    playerctl
    brightnessctl
-   swayidle
    wlr-randr
    ;; Desktop shell (git version required for IdleInhibitor in Quickshell.Wayland)
    quickshell-git
@@ -169,6 +169,7 @@
 
    ;; Languages
    go
+   python
    rust
    (list rust "cargo")
 
@@ -176,6 +177,9 @@
    gopls
    gofumpt
    go-staticcheck
+
+   ;; Rust tools
+   rust-analyzer
 
    ;; Tree-sitter grammars
    tree-sitter-css
@@ -258,7 +262,9 @@
               ("emacs/snippets"
                ,(local-file "../files/emacs/snippets" #:recursive? #t))
               ("emacs/img"
-               ,(local-file "../files/emacs/img" #:recursive? #t))))
+               ,(local-file "../files/emacs/img" #:recursive? #t))
+              ("uv/uv.toml"
+               ,(local-file "../files/uv/uv.toml" "uv.toml"))))
 
    ;; Other XDG config files are symlinked directly from dotfiles in the
    ;; activation gexp below so edits take effect immediately without reconfigure.

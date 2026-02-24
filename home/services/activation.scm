@@ -65,7 +65,6 @@
                            ("files/mise" . "mise")
                            ("files/nyxt" . "nyxt")
                            ("files/paru" . "paru")
-                           ("files/swaync" . "swaync")
                            ("files/systemd" . "systemd")
                            ("files/caelestia/quickshell" . "quickshell/caelestia")
                            ("files/xdg-desktop-portal" . "xdg-desktop-portal")))

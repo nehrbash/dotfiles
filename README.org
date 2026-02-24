@@ -22,6 +22,7 @@
 - [[#spicetify][Spicetify]]
 - [[#slack][Slack]]
 - [[#emacs][Emacs]]
+- [[#eca][ECA]]
 - [[#references][References]]
 
 * Setup
@@ -184,6 +185,32 @@ spicetify apply
    My Emacs config can be found [[file:files/emacs/Emacs.org][here]]. =emacs-next-pgtk= is installed via =redfish.scm= with pgtk and native-comp.
 
    Run =M-x package-upgrade-all= after first launch to finish installing packages.
+
+* ECA
+
+   [[https://eca.dev][ECA]] (Editor Code Assistant) is an AI-powered pair-programming client. It runs as an external server process and integrates with Emacs via the =emacs-eca= package (defined in =packages/emacs-eca.scm=).
+
+   Config is at =files/eca/config.json= → =~/.config/eca/config.json=.
+
+** MCP Servers
+
+   The following MCP (Model Context Protocol) servers are configured:
+
+   | Server              | Command                                   | Description                        |
+   |---------------------+-------------------------------------------+------------------------------------|
+   | =duckduckgo-search= | =npx -y duckduckgo-mcp-server=            | Web search via DuckDuckGo          |
+   | =fetch=             | =uvx mcp-server-fetch=                    | Fetch URLs / web content           |
+   | =git=               | =uvx mcp-server-git=                      | Git operations                     |
+   | =memory=            | =npx -y @modelcontextprotocol/server-memory= | Persistent memory / knowledge graph |
+   | =gitlab=            | =glab mcp serve= (disabled)              | GitLab integration                 |
+
+** Skills
+
+   Custom skills are loaded from =~/.claude/skills= (symlinked from =files/claude-skills/=).
+
+   | Skill   | Trigger                                                           | Description                                      |
+   |---------+-------------------------------------------------------------------+--------------------------------------------------|
+   | =guix=  | Guix home/system reconfigure, package definitions, channel updates | Guix workflow knowledge for this dotfiles project |
 
 * References
 - https://github.com/fufexan/dotfiles

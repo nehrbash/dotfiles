@@ -1,30 +1,56 @@
 {
-  "skillsPath": [
-    "~/.claude/skills"
-  ],
-  "mcpServers": {
-    "duckduckgo-search": {
-      "command": "npx",
-      "args": ["-y", "duckduckgo-mcp-server"]
-    },
-    "fetch": {
-      "command": "uvx",
-      "args": ["mcp-server-fetch"],
-      "disabled": false
-    },
-    "git": {
-      "command": "uvx",
-      "args": ["mcp-server-git"],
-      "disabled": false
-    },
-    "memory": {
-      "command": "npx",
-      "args": ["-y", "@modelcontextprotocol/server-memory"]
-    },
-    "gitlab": {
-      "command": "glab",
-      "args": ["mcp", "serve"]
-    }
-  },
-  "mcpTimeoutSeconds": 120
+	"skillsPath": [
+		"~/.claude/skills"
+	],
+	"disabledTools": [
+		"eca__grep",
+		"eca__directory_tree"
+	],
+	"toolCall": {
+		"outputTruncation": {
+			"maxLines": 500
+		}
+	},
+	"mcpServers": {
+		"duckduckgo-search": {
+			"command": "npx",
+			"args": ["-y", "duckduckgo-mcp-server"]
+		},
+		"fetch": {
+			"command": "uvx",
+			"args": ["mcp-server-fetch"],
+			"disabled": false
+		},
+		"git": {
+			"command": "uvx",
+			"args": ["mcp-server-git"],
+			"disabled": false
+		},
+		"memory": {
+			"command": "npx",
+			"args": ["-y", "@modelcontextprotocol/server-memory"],
+			"disabled": true
+		},
+		"gitlab": {
+			"command": "glab",
+			"args": ["mcp", "serve"],
+			"disabled": true
+		},
+		"filesystem": {
+			"command": "npx",
+			"args": ["-y", "@modelcontextprotocol/server-filesystem", "/home/nehrbash"],
+			"disabled": false
+		},
+		"lsp-gopls": {
+			"command": "mcp-language-server",
+			"args": ["--workspace", "/home/nehrbash/src", "--lsp", "gopls"],
+			"disabled": false
+		},
+		"lsp-rust-analyzer": {
+			"command": "mcp-language-server",
+			"args": ["--workspace", "/home/nehrbash/src", "--lsp", "rust-analyzer"],
+			"disabled": false
+		}
+	},
+	"mcpTimeoutSeconds": 120
 }
