@@ -79,6 +79,66 @@
                        (loop (+ n 1)))))))))
     (one-shot? #t))
 
+   ;; Caelestia window resizer (auto resize/move for PiP etc.)
+   ;; Uses the caelestia CLI installed via `uv tool install` in activation.scm.
+   (shepherd-service
+    (provision '(caelestia-resizer))
+    (requirement '(wayland-compositor))
+    (documentation "Run caelestia resizer daemon for automatic window management.")
+    (start #~(lambda _
+               ((make-forkexec-constructor
+                 (list (string-append (getenv "HOME")
+                                      "/.local/share/uv/bin/caelestia")
+                       "resizer" "-d")
+                 #:environment-variables (environ)
+                 #:log-file
+                 (string-append (getenv "XDG_STATE_HOME")
+                                "/log/caelestia-resizer.log")))))
+    (stop #~(make-kill-destructor))
+    (respawn? #t)
+    (respawn-limit #~'(3 . 10))
+    (respawn-delay 5))
+
+   ;; Spicetify color.ini watcher
+   ;; Watches ~/.config/spicetify/Themes/caelestia/color.ini using inotify.
+   ;; When caelestia writes a new color scheme, runs `spicetify refresh` so
+   ;; the running Spotify instance picks up the updated colors immediately.
+   (shepherd-service
+    (provision '(spicetify-watcher))
+    (requirement '(wayland-compositor))
+    (documentation "Watch caelestia color.ini and run spicetify refresh on changes.")
+    (start #~(lambda _
+               (let* ((home      (getenv "HOME"))
+                      (color-ini (string-append home
+                                   "/.config/spicetify/Themes/caelestia/color.ini"))
+                      (spice-bin (string-append home "/.spicetify/spicetify")))
+                 ;; The inotify loop runs in a background thread.
+                 (call-with-new-thread
+                  (lambda ()
+                    (use-modules (ice-9 inotify))
+                    (let* ((inotify (make-inotify))
+                           ;; Watch the parent directory so we catch atomic writes
+                           ;; (Python's shutil.move does a rename, not a close-write).
+                           (watch-dir (dirname color-ini))
+                           (_ (add-watch! inotify watch-dir
+                                          (list 'close-write 'moved-to))))
+                      (let loop ()
+                        (for-each
+                         (lambda (event)
+                           ;; Only react to events on color.ini itself.
+                           (when (and (inotify-event-name event)
+                                      (string=? (inotify-event-name event)
+                                                "color.ini"))
+                             (when (file-exists? spice-bin)
+                               (system* spice-bin "refresh"))))
+                         (read-inotify-event inotify))
+                        (loop)))))
+                 #t)))
+    (stop #~(lambda (pid) #t))
+    (respawn? #t)
+    (respawn-limit #~'(5 . 30))
+    (respawn-delay 5))
+
    ;; Polkit authentication agent
    (shepherd-service
     (provision '(hyprpolkitagent))

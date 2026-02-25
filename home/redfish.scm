@@ -202,7 +202,6 @@
    podman-compose
 
    ;; Editors (proprietary)
-   vscodium
    vscode
 
    ;; Chat
@@ -275,7 +274,7 @@
                           (cons "GUIX_PACKAGE_PATH" %dotfiles-dir))
                     '(("EDITOR" . "emacs -nw")
                      ("TERM" . "xterm-256color")
-                     ("PATH" . "$PATH:$HOME/.local/bin:$HOME/.cargo/bin:$HOME/.local/share/go/bin:$HOME/.local/share/npm/bin")
+                     ("PATH" . "$PATH:$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.cargo/bin:$HOME/.local/share/go/bin:$HOME/.local/share/npm/bin")
                      ("GOPATH" . "$HOME/.local/share/go")
                      ("NPM_CONFIG_PREFIX" . "$HOME/.local/share/npm")
                      ("SSH_AUTH_SOCK" . "$XDG_RUNTIME_DIR/ssh-agent.socket")
@@ -301,10 +300,6 @@
                      ("__EGL_VENDOR_LIBRARY_DIRS" . "/run/current-system/profile/share/glvnd/egl_vendor.d")
                      ("GBM_BACKENDS_PATH" . "/run/current-system/profile/lib/gbm")
                      ("LIBGL_DRIVERS_PATH" . "/run/current-system/profile/lib/dri")
-                     ;; VSCodium: use Microsoft marketplace (for Dev Containers etc.)
-                     ("VSCODE_GALLERY_SERVICE_URL" . "https://marketplace.visualstudio.com/_apis/public/gallery")
-                     ("VSCODE_GALLERY_CACHE_URL" . "https://vscode.blob.core.windows.net/gallery/index")
-                     ("VSCODE_GALLERY_ITEM_URL" . "https://marketplace.visualstudio.com/items")
                      ;; Dev Containers: point to rootless podman socket
                      ("DOCKER_HOST" . "unix://$XDG_RUNTIME_DIR/podman/podman.sock")
                      ("DOCKER_API_VERSION" . "1.41")
@@ -333,7 +328,6 @@
                      ("HYPRCURSOR_SIZE" . "24")
                      ;; Display scaling
                      ("GDK_SCALE" . "1")
-                     ("WLR_DRM_NO_ATOMIC" . "1")
                      ("NVD_BACKEND" . "direct"))))
 
    ;; Zsh

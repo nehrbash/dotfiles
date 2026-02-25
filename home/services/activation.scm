@@ -67,7 +67,6 @@
                            ("files/mise" . "mise")
                            ("files/nyxt" . "nyxt")
                            ("files/paru" . "paru")
-                           ("files/systemd" . "systemd")
                            ("files/quickshell" . "quickshell")
                            ("files/xdg-desktop-portal" . "xdg-desktop-portal")))
                         ;; Wallpaper symlink for hyprpaper (doesn't expand env vars)
@@ -109,6 +108,52 @@
                                   (string-append (getenv "HOME") "/.local/share/npm"))
                           (system* #$(file-append node "/bin/npm")
                                    "install" "-g" "@anthropic-ai/claude-code")))
+
+                      ;; caelestia-cli: install via uv tool if missing.
+                      ;; Requires Python >=3.13; uv uses its managed CPython download.
+                      ;; The uv-managed Python 3.13 binary needs its ELF interpreter
+                      ;; patched to point at the Guix store glibc (no /lib64 on Guix).
+                      (let* ((home     (getenv "HOME"))
+                             (uv-bin  #$(file-append (specification->package "uv") "/bin/uv"))
+                             (py313   (string-append home
+                                         "/.local/share/uv/python"
+                                         "/cpython-3.13.2-linux-x86_64-gnu"
+                                         "/bin/python3.13"))
+                             (caelestia-bin (string-append home
+                                               "/.local/share/uv/bin/caelestia")))
+                        ;; Patch Python 3.13 ELF interpreter once so it runs on Guix.
+                        ;; uv downloads a FHS Python that hardcodes /lib64/ld-linux-x86-64.so.2
+                        ;; which doesn't exist on Guix.  We redirect it to the Guix store glibc
+                        ;; by reading our own ELF interpreter path (we are Guile, already running).
+                        (when (file-exists? py313)
+                          (let* (;; Our own interpreter path is the right glibc ld.so.
+                                 (guile-exe (readlink "/proc/self/exe"))
+                                 (ld-cmd    (string-append
+                                             "readelf -l " guile-exe
+                                             " 2>/dev/null | grep 'interpreter'"
+                                             " | sed 's/.*\\[//;s/\\].*//'"))
+                                 (self-ld   (string-trim-right
+                                             (with-output-to-string
+                                               (lambda ()
+                                                 (system ld-cmd)))))
+                                 ;; Detect whether patching is needed.
+                                 (ok        (zero? (status:exit-val
+                                                    (system (string-append
+                                                             py313 " --version >/dev/null 2>&1"))))))
+                            (when (and (not ok)
+                                       (not (string-null? self-ld))
+                                       (file-exists? self-ld))
+                              (system* "guix" "shell" "patchelf" "--"
+                                       "patchelf" "--set-interpreter" self-ld py313))))
+                        ;; Install caelestia tool if not already installed.
+                        (unless (file-exists? caelestia-bin)
+                          (setenv "UV_PYTHON_PREFERENCE" "managed")
+                          (setenv "UV_TOOL_BIN_DIR"
+                                  (string-append home "/.local/share/uv/bin"))
+                          (system* uv-bin "tool" "install"
+                                   "--from"
+                                   "caelestia @ git+https://github.com/caelestia-dots/cli@25c473c18ee951f3bdc5928708b7a6608e473484"
+                                   "caelestia")))
 
                       ;; spicetify + spotify-app overlay
                       ;; 1. Install spicetify CLI if missing.
@@ -203,7 +248,7 @@
                               (call-with-output-file sentinel
                                 (lambda (p) (display new-ver p)))
 
-                              ;; --- 3. Apply spicetify patches to the writable copy ---
+                              ;; --- 3. Configure and apply spicetify ---
                               ;; The wrapper script (scripts/spotify) passes:
                               ;;   flatpak run --app-path=app-rw --filesystem=spot-rw
                               ;; so the patched files at spot-rw are visible inside
@@ -212,6 +257,7 @@
                                 (setenv "PATH"
                                         (string-append home "/.spicetify:"
                                                        (getenv "PATH")))
+                                ;; Paths
                                 (system* spice-bin "config"
                                          "spotify_path" spot-rw)
                                 (system* spice-bin "config"
@@ -219,6 +265,17 @@
                                          (string-append home
                                            "/.var/app/com.spotify.Client"
                                            "/config/spotify/prefs"))
+                                ;; caelestia theme — user.css lives in dotfiles,
+                                ;; color.ini is written dynamically by caelestia CLI
+                                (ensure-symlink
+                                 (string-append #$dotfiles-dir
+                                                "/files/spicetify/Themes/caelestia/user.css")
+                                 (string-append home
+                                                "/.config/spicetify/Themes/caelestia/user.css"))
+                                (system* spice-bin "config"
+                                         "current_theme" "caelestia")
+                                (system* spice-bin "config"
+                                         "color_scheme" "caelestia")
                                 (system* spice-bin "backup" "apply")
                                 (system* spice-bin "apply"))))))
 
