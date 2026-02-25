@@ -110,14 +110,117 @@
                           (system* #$(file-append node "/bin/npm")
                                    "install" "-g" "@anthropic-ai/claude-code")))
 
-                      ;; spicetify: install via official script if missing
-                      (let ((bin (string-append (getenv "HOME") "/.local/bin/spicetify")))
-                        (unless (file-exists? bin)
+                      ;; spicetify + spotify-app overlay
+                      ;; 1. Install spicetify CLI if missing.
+                      ;; 2. Build ~/.local/share/spotify-app/ — a symlink tree that
+                      ;;    mirrors the Flatpak /app but replaces extra/share/spotify
+                      ;;    with a writable copy so spicetify patches persist.
+                      ;; 3. Apply spicetify patches to the writable copy.
+                      (let* ((home      (getenv "HOME"))
+                             (spice-bin (string-append home "/.spicetify/spicetify"))
+                             ;; Flatpak read-only app root
+                             (app-ro    (string-append home
+                                          "/.local/share/flatpak/app/com.spotify.Client"
+                                          "/x86_64/stable/active/files"))
+                             ;; Writable overlay root (used as --app-path)
+                             (app-rw    (string-append home "/.local/share/spotify-app"))
+                             ;; Writable patched spotify data dir
+                             (spot-rw   (string-append home "/.local/share/spotify")))
+
+                        ;; --- 1. Install spicetify CLI ---
+                        (unless (file-exists? spice-bin)
                           (system* #$(file-append curl "/bin/curl")
                                    "-fsSL"
                                    "https://raw.githubusercontent.com/spicetify/cli/main/install.sh"
                                    "-o" "/tmp/spicetify-install.sh")
-                          (system* "sh" "/tmp/spicetify-install.sh")))
+                          (system* "sh" "/tmp/spicetify-install.sh"))
+
+                        ;; --- 2. Build spotify-app overlay ---
+                        ;; Only rebuild when the Flatpak app exists and our overlay is
+                        ;; stale (missing or pointing at a different commit).
+                        (when (file-exists? app-ro)
+                          (let* ((sentinel (string-append app-rw "/.guix-spotify-source"))
+                                 (current  (if (file-exists? sentinel)
+                                               (call-with-input-file sentinel read-line)
+                                               ""))
+                                 ;; Use the commit hash (readlink of 'active' symlink)
+                                 ;; as a version tag so we rebuild when Spotify updates.
+                                 (active-link (string-append
+                                               home
+                                               "/.local/share/flatpak/app/com.spotify.Client"
+                                               "/x86_64/stable/active"))
+                                 (new-ver  (if (false-if-exception
+                                                (eq? 'symlink (stat:type (lstat active-link))))
+                                               (readlink active-link)
+                                               "unknown")))
+                            (unless (string=? current new-ver)
+                              (display (string-append
+                                         "spotify-app: rebuilding overlay for " new-ver "\n"))
+
+                              ;; (re-)create writable spotify data dir by copying from store
+                              ;; (the store is read-only OSTree; we need a writable copy)
+                              (when (file-exists? spot-rw)
+                                (system* "rm" "-rf" spot-rw))
+                              (mkdir-p spot-rw)
+                              (system* "cp" "-a"
+                                       (string-append app-ro "/extra/share/spotify/.")
+                                       spot-rw)
+                              (system* "chmod" "-R" "a+wr" spot-rw)
+
+                              ;; Build the --app-path overlay: copy the small parts of /app
+                              ;; (~14 MB: bin, lib, share, manifest.json, extra/bin)
+                              ;; as real files, then symlink extra/share/spotify → spot-rw.
+                              ;; Symlinks alone don't work because --app-path mounts the dir
+                              ;; as /app inside bwrap, breaking absolute symlinks to the store.
+                              (when (file-exists? app-rw)
+                                (system* "rm" "-rf" app-rw))
+                              (mkdir-p app-rw)
+
+                              ;; Copy non-extra top-level entries
+                              (for-each
+                               (lambda (e)
+                                 (let ((src (string-append app-ro "/" e))
+                                       (dst (string-append app-rw "/" e)))
+                                   (when (file-exists? src)
+                                     (system* "cp" "-a" src dst))))
+                               '("bin" "lib" "share" "manifest.json"))
+
+                              ;; Copy extra/bin (the actual Spotify binary, ~5 MB)
+                              (let ((extra-ro (string-append app-ro "/extra"))
+                                    (extra-rw (string-append app-rw "/extra")))
+                                (mkdir-p (string-append extra-rw "/share"))
+                                (when (file-exists? (string-append extra-ro "/bin"))
+                                  (system* "cp" "-a"
+                                           (string-append extra-ro "/bin")
+                                           (string-append extra-rw "/bin")))
+                                ;; Point extra/share/spotify → writable patched copy.
+                                ;; flatpak run uses --filesystem=spot-rw so this absolute
+                                ;; symlink resolves correctly inside the bwrap sandbox.
+                                (symlink spot-rw
+                                         (string-append extra-rw "/share/spotify")))
+
+                              ;; Write sentinel
+                              (call-with-output-file sentinel
+                                (lambda (p) (display new-ver p)))
+
+                              ;; --- 3. Apply spicetify patches to the writable copy ---
+                              ;; The wrapper script (scripts/spotify) passes:
+                              ;;   flatpak run --app-path=app-rw --filesystem=spot-rw
+                              ;; so the patched files at spot-rw are visible inside
+                              ;; the bwrap sandbox at their host absolute path.
+                              (when (file-exists? spice-bin)
+                                (setenv "PATH"
+                                        (string-append home "/.spicetify:"
+                                                       (getenv "PATH")))
+                                (system* spice-bin "config"
+                                         "spotify_path" spot-rw)
+                                (system* spice-bin "config"
+                                         "prefs_path"
+                                         (string-append home
+                                           "/.var/app/com.spotify.Client"
+                                           "/config/spotify/prefs"))
+                                (system* spice-bin "backup" "apply")
+                                (system* spice-bin "apply"))))))
 
                       ;; Set GTK icon/theme via dconf (settings.ini is overridden by dconf)
                       (system* #$(file-append (specification->package "dconf") "/bin/dconf")
