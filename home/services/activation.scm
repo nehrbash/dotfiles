@@ -13,6 +13,9 @@
   (simple-service 'post-setup
                   home-activation-service-type
                   #~(begin
+                      (use-modules (ice-9 rdelim)     ; read-line
+                                   (ice-9 string-fun)) ; string-trim-right
+
                       ;; Symlink helper: ensure LINK points to TARGET.
                       ;; Updates stale symlinks, backs up non-symlink dirs, deletes non-symlink files.
                       (define (ensure-symlink target link)
