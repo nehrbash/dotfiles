@@ -40,6 +40,7 @@
              (gnu packages gnome)
              (gnu packages gnome-xyz)
              (gnu packages pkg-config)
+             (gnu packages music)
              (gnu packages mail)
              (gnu packages texlive)
              (gnu packages tex)
