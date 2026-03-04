@@ -153,6 +153,7 @@
    use-package-always-ensure t
    warning-minimum-level :emergency
    native-comp-jit-compilation t
+   native-comp-async-report-warnings-errors 'silent
    byte-compile-docstring-max-column 120
    native-compile-prune-cache t)
 #+end_src
@@ -485,21 +486,11 @@
   goto-address-mail-face 'link
   goto-address-mail-mouse-face 'highlight)
 (global-goto-address-mode 1)
-(setq browse-url-firefox-program "zen-browser")
-(defun browse-url-zen (url &optional new-window)
+(defun browse-url-zen (url &optional _new-window)
+  "Open URL in Zen Browser via Flatpak."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
-  (let* ((process-environment (browse-url-process-environment)))
-    (apply #'start-process
-      (concat "zen-browser " url) nil
-      browse-url-firefox-program
-      (append
-	browse-url-firefox-arguments
-	(if (browse-url-maybe-new-window new-window)
-		  (if browse-url-firefox-new-window-is-tab
-		    '("-new-tab")
-			'("-new-window")))
-	(list url)))))
+  (start-process "zen-browser" nil "flatpak" "run" "app.zen_browser.zen" url))
 (with-eval-after-load 'browse-url
   (setq browse-url-browser-function #'browse-url-zen))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
@@ -877,13 +868,6 @@ This is useful when followed by an immediate kill."
 (use-package winner
   :ensure nil
   :init (winner-mode 1)
-  :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
-		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
-		 ("C-x 1" . sn-toggle-delete-other-windows)
-		 ("C-x |" . split-window-horizontally-instead)
-		 ("C-x _" . split-window-vertically-instead)
-		 ("<f7>" . sn-split-window)
-		 ("C-c <down>" . sn-toggle-current-window-dedication))
   :config
   (defun split-window-func-with-other-buffer-vertically ()
 	"Split this window vertically and switch to the new window."
@@ -963,16 +947,206 @@ Call a second time to restore the original window configuration."
 
 *** Meow - Modal Editing
 
+Keypad prefix translations (SPC in normal mode enters keypad):
+
  | x | ~C-x~  |
  | h | ~C-h~  |
  | c | ~C-c~  |
  | m | ~M-~   |
  | g | ~C-M-~ |
 
+The leader map (~SPC SPC~) bypasses keypad translation entirely — bindings are direct with no ~C-c~ prepending.
+
+**** Leader Map (~SPC~)
+
+~SPC~ is bound directly in normal and motion state to ~my-leader-map~, bypassing keypad translation entirely.
+
+ | Key     | Command                     | Description           |
+ |---------+-----------------------------+-----------------------|
+ | ~SPC SPC~ | ~consult-buffer~          | Buffer switcher       |
+ | ~SPC /~ | ~consult-ripgrep~           | Ripgrep               |
+ | ~SPC j~ | ~meow-comment~              | Comment               |
+ | ~SPC a~ | ~agent-shell~               | AI chat               |
+ | ~SPC i~ | ~consult-imenu~             | Imenu                 |
+ | ~SPC y~ | ~consult-yank-pop~          | Yank ring             |
+ | ~SPC ?~ | ~meow-cheatsheet~           | Meow cheatsheet       |
+
+***** ~SPC s~ — Search
+
+ | Key     | Command                   | Description           |
+ |---------+---------------------------+-----------------------|
+ | ~s s~   | ~consult-line~            | Line search           |
+ | ~s S~   | ~consult-line-multi~      | Multi-buffer search   |
+ | ~s r~   | ~consult-ripgrep~         | Ripgrep               |
+ | ~s g~   | ~consult-grep~            | Grep                  |
+ | ~s G~   | ~consult-git-grep~        | Git grep              |
+ | ~s d~   | ~consult-find~            | Find file by name     |
+ | ~s c~   | ~consult-locate~          | Locate                |
+ | ~s k~   | ~consult-keep-lines~      | Keep matching lines   |
+ | ~s u~   | ~consult-focus-lines~     | Focus matching lines  |
+ | ~s e~   | ~consult-isearch-history~ | Isearch history       |
+ | ~s w~   | ~google-this~             | Web search            |
+ | ~s D~   | ~define-word-at-point~    | Define word           |
+
+***** ~SPC f~ — File
+
+ | Key     | Command               | Description        |
+ |---------+-----------------------+--------------------|
+ | ~f f~   | ~find-file~           | Find file          |
+ | ~f .~   | ~find-file-at-point~  | Open file at point |
+ | ~f r~   | ~consult-recent-file~ | Recent files       |
+ | ~f d~   | ~consult-dir~         | Directory jump     |
+ | ~f s~   | ~yas-insert-snippet~  | Insert snippet     |
+
+***** ~SPC b~ — Buffer / Bookmark
+
+ | Key     | Command                        | Description         |
+ |---------+--------------------------------+---------------------|
+ | ~b b~   | ~consult-buffer~               | Buffer list         |
+ | ~b o~   | ~consult-buffer-other-window~  | Other window        |
+ | ~b O~   | ~consult-buffer-other-frame~   | Other frame         |
+ | ~b t~   | ~consult-buffer-other-tab~     | Other tab           |
+ | ~b m~   | ~consult-bookmark~             | Bookmarks           |
+ | ~b i~   | ~ibuffer~                      | Ibuffer             |
+
+***** ~SPC g~ — Goto / Navigation
+
+ | Key     | Command                      | Description         |
+ |---------+------------------------------+---------------------|
+ | ~g g~   | ~consult-goto-line~          | Goto line           |
+ | ~g o~   | ~consult-outline~            | Outline             |
+ | ~g i~   | ~consult-imenu~              | Imenu               |
+ | ~g I~   | ~consult-imenu-multi~        | Imenu multi-buffer  |
+ | ~g m~   | ~consult-mark~               | Marks               |
+ | ~g M~   | ~consult-global-mark~        | Global marks        |
+ | ~g e~   | ~consult-compile-error~      | Compile errors      |
+ | ~g f~   | ~consult-flymake~            | Flymake errors      |
+ | ~g d~   | ~consult-xref-stack-backward~| Xref back           |
+
+***** ~SPC p~ — Project
+
+ | Key     | Command                            | Description         |
+ |---------+------------------------------------+---------------------|
+ | ~p p~   | ~project-prefix-map~               | Project commands    |
+ | ~p d~   | ~flymake-show-project-diagnostics~ | Project diagnostics |
+ | ~p m~   | ~sn/project-menu~                  | Project menu        |
+
+***** ~SPC n~ — Notes (org-roam)
+
+ | Key     | Command                              | Description       |
+ |---------+--------------------------------------+-------------------|
+ | ~n f~   | ~org-roam-node-find~                 | Find node         |
+ | ~n i~   | ~org-roam-node-insert~               | Insert node link  |
+ | ~n n~   | ~org-roam-buffer-display-dedicated~  | Roam buffer       |
+ | ~n g~   | ~org-roam-graph~                     | Graph             |
+ | ~n d~   | ~org-roam-dailies-goto-date~         | Daily by date     |
+ | ~n t~   | ~org-roam-dailies-goto-today~        | Today             |
+ | ~n y~   | ~org-roam-dailies-goto-yesterday~    | Yesterday         |
+ | ~n r~   | ~org-roam-dailies-goto-tomorrow~     | Tomorrow          |
+ | ~n c~   | ~org-roam-dailies-capture-today~     | Capture today     |
+ | ~n C~   | ~org-roam-dailies-capture-tomorrow~  | Capture tomorrow  |
+
+***** ~SPC o~ — Org
+
+ | Key     | Command           | Description    |
+ |---------+-------------------+----------------|
+ | ~o a~   | ~gtd~             | Agenda         |
+ | ~o c~   | ~org-capture~     | Capture        |
+ | ~o j~   | ~org-clock-goto~  | Clock goto     |
+ | ~o i~   | ~consult-clock-in~| Clock in       |
+ | ~o o~   | ~org-clock-out~   | Clock out      |
+ | ~o l~   | ~org-clock-in-last~ | Clock in last|
+
+***** ~SPC w~ — Window
+
+ | Key     | Command                                              | Description       |
+ |---------+------------------------------------------------------+-------------------|
+ | ~w w~   | ~ace-window~                                         | Ace window        |
+ | ~w o~   | ~switch-window~                                      | Switch window     |
+ | ~w 2~   | ~split-window-func-with-other-buffer-vertically~     | Split vertical    |
+ | ~w 3~   | ~split-window-func-with-other-buffer-horizontally~   | Split horizontal  |
+ | ~w 1~   | ~sn-toggle-delete-other-windows~                     | Toggle one window |
+ | ~w \vert~| ~split-window-horizontally-instead~                 | Swap to horiz     |
+ | ~w _~   | ~split-window-vertically-instead~                    | Swap to vert      |
+ | ~w d~   | ~sn-toggle-current-window-dedication~                | Dedicate window   |
+ | ~w s~   | ~sn-split-window~                                    | Smart split       |
+
+***** ~SPC r~ — Register / Yank
+
+ | Key     | Command                 | Description     |
+ |---------+-------------------------+-----------------|
+ | ~r r~   | ~consult-register~      | Registers       |
+ | ~r s~   | ~consult-register-store~| Store register  |
+ | ~r y~   | ~consult-yank-pop~      | Yank pop        |
+ | ~r m~   | ~consult-kmacro~        | Kmacro          |
+
+***** ~SPC t~ — Toggle / Tools
+
+ | Key     | Command                                        | Description          |
+ |---------+------------------------------------------------+----------------------|
+ | ~t d~   | ~docker~                                       | Docker               |
+ | ~t w~   | ~whisper-run~                                  | Whisper (speech)     |
+ | ~t f~   | ~treesit-fold-toggle~                          | Fold toggle          |
+ | ~t p~   | ~flymake-show-project-diagnostics~             | Project diagnostics  |
+ | ~t P~   | ~toggle-flymake-show-diagnostics-at-end-of-line~ | Inline diagnostics |
+ | ~t s~   | ~gptel-toggle-sidebar~                         | AI sidebar           |
+ | ~t e~   | ~er/expand-region~                             | Expand region        |
+ | ~t m~   | ~lasgun-transient~                             | Multi-cursor         |
+
+***** ~SPC x~ — Execute
+
+ | Key     | Command               | Description     |
+ |---------+-----------------------+-----------------|
+ | ~x x~   | ~consult-taskfile~    | Taskfile        |
+ | ~x c~   | ~taskfile~            | Taskfile menu   |
+ | ~x m~   | ~consult-mode-command~| Mode command    |
+ | ~x M~   | ~consult-man~         | Man pages       |
+ | ~x i~   | ~consult-info~        | Info            |
+ | ~x h~   | ~consult-history~     | History         |
+ | ~x e~   | ~gptel-menu~          | AI/gptel menu   |
+
+***** ~SPC c~ — Code / LSP
+
+ | Key     | Command                              | Description       |
+ |---------+--------------------------------------+-------------------|
+ | ~c f~   | ~consult-eglot-symbols~              | Symbols           |
+ | ~c r~   | ~eglot-rename~                       | Rename symbol     |
+ | ~c a~   | ~eglot-code-actions~                 | Code actions      |
+ | ~c q~   | ~eglot-code-action-quickfix~         | Quickfix          |
+ | ~c i~   | ~eglot-find-implementation~          | Find impl         |
+ | ~c t~   | ~eglot-find-typeDefinition~          | Find type def     |
+ | ~c o~   | ~eglot-code-action-organize-imports~ | Organize imports  |
+
  #+begin_src emacs-lisp
+;; Leader sub-maps — defined eagerly so packages can :bind into them
+(defvar my-leader-map   (make-sparse-keymap) "Top-level leader keymap (SPC).")
+(defvar my-search-map   (make-sparse-keymap) "SPC s — search.")
+(defvar my-file-map     (make-sparse-keymap) "SPC f — file.")
+(defvar my-buffer-map   (make-sparse-keymap) "SPC b — buffer/bookmark.")
+(defvar my-goto-map     (make-sparse-keymap) "SPC g — goto/navigation.")
+(defvar my-project-map  (make-sparse-keymap) "SPC p — project.")
+(defvar my-notes-map    (make-sparse-keymap) "SPC n — org-roam/notes.")
+(defvar my-org-map      (make-sparse-keymap) "SPC o — org.")
+(defvar my-window-map   (make-sparse-keymap) "SPC w — window.")
+(defvar my-register-map (make-sparse-keymap) "SPC r — register/yank.")
+(defvar my-toggle-map   (make-sparse-keymap) "SPC t — toggles/tools.")
+(defvar my-execute-map  (make-sparse-keymap) "SPC x — execute.")
+(defvar my-code-map     (make-sparse-keymap) "SPC c — code/LSP.")
+(define-key my-leader-map "s" my-search-map)
+(define-key my-leader-map "f" my-file-map)
+(define-key my-leader-map "b" my-buffer-map)
+(define-key my-leader-map "g" my-goto-map)
+(define-key my-leader-map "p" my-project-map)
+(define-key my-leader-map "n" my-notes-map)
+(define-key my-leader-map "o" my-org-map)
+(define-key my-leader-map "w" my-window-map)
+(define-key my-leader-map "r" my-register-map)
+(define-key my-leader-map "t" my-toggle-map)
+(define-key my-leader-map "x" my-execute-map)
+(define-key my-leader-map "c" my-code-map)
+
 (use-package meow
   :demand t
-	:bind ("M-j" . meow-comment)
     :config
     (setq meow-replace-state-name-list
 		 '((normal . "🟢")
@@ -984,17 +1158,14 @@ Call a second time to restore the original window configuration."
     (add-to-list 'meow-mode-state-list '(eat-mode . insert))
     (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
     (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+    (add-to-list 'meow-mode-state-list '(agent-shell-mode . insert))
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
     (meow-motion-overwrite-define-key
-	;; Use e to move up, n to move down.
-	;; Since special modes usually use n to move down, we only overwrite e here.
+	;; Use e to move up. Since special modes usually use n to move down,
+	;; we only overwrite e here.
 	'("e" . meow-prev)
 	'("<escape>" . ignore))
     (meow-leader-define-key
-	'("?" . meow-cheatsheet)
-	;; To execute the originally e in MOTION state, use SPC e.
-	'("e" . "H-e")
-	'("o" . switch-window)
 	'("1" . meow-digit-argument)
 	'("2" . meow-digit-argument)
 	'("3" . meow-digit-argument)
@@ -1005,7 +1176,8 @@ Call a second time to restore the original window configuration."
 	'("8" . meow-digit-argument)
 	'("9" . meow-digit-argument)
 	'("0" . meow-digit-argument)
-	'("f ." . find-file-at-point))
+	;; Motion-state e escape hatch
+	'("e" . "H-e"))
     (meow-normal-define-key
 	'("0" . meow-expand-0)
 	'("1" . meow-expand-1)
@@ -1065,7 +1237,116 @@ Call a second time to restore the original window configuration."
 	'("z" . meow-pop-selection)
 	'("'" . repeat)
 	'("<escape>" . ignore))
-	(meow-global-mode 1))
+  ;; ── Top-level single-key shortcuts ───────────────────────────────
+  (define-key my-leader-map " "  #'consult-buffer)           ; SPC SPC — buffer switcher
+  (define-key my-leader-map "/"  #'consult-ripgrep)          ; SPC /   — ripgrep
+  (define-key my-leader-map "j"  #'meow-comment)             ; SPC j   — comment
+  (define-key my-leader-map "a"  #'agent-shell)              ; SPC a   — AI chat
+  (define-key my-leader-map "?"  #'meow-cheatsheet)          ; SPC ?   — cheatsheet
+  (define-key my-leader-map "i"  #'consult-imenu)            ; SPC i   — imenu
+  (define-key my-leader-map "y"  #'consult-yank-pop)         ; SPC y   — yank ring
+  ;; ── SPC s — Search ───────────────────────────────────────────────
+  (define-key my-search-map "s"  #'consult-line)             ; SPC s s — line search
+  (define-key my-search-map "S"  #'consult-line-multi)       ; SPC s S — multi-buffer
+  (define-key my-search-map "r"  #'consult-ripgrep)          ; SPC s r — ripgrep
+  (define-key my-search-map "g"  #'consult-grep)             ; SPC s g — grep
+  (define-key my-search-map "G"  #'consult-git-grep)         ; SPC s G — git grep
+  (define-key my-search-map "d"  #'consult-find)             ; SPC s d — find by name
+  (define-key my-search-map "c"  #'consult-locate)           ; SPC s c — locate
+  (define-key my-search-map "k"  #'consult-keep-lines)       ; SPC s k — keep lines
+  (define-key my-search-map "u"  #'consult-focus-lines)      ; SPC s u — focus lines
+  (define-key my-search-map "e"  #'consult-isearch-history)  ; SPC s e — isearch history
+  (define-key my-search-map "w"  #'google-this)              ; SPC s w — web search
+  (define-key my-search-map "D"  #'define-word-at-point)     ; SPC s D — define word
+  ;; ── SPC f — File ─────────────────────────────────────────────────
+  (define-key my-file-map "f"    #'find-file)                ; SPC f f — find file
+  (define-key my-file-map "."    #'find-file-at-point)       ; SPC f . — open at point
+  (define-key my-file-map "r"    #'consult-recent-file)      ; SPC f r — recent files
+  (define-key my-file-map "d"    #'consult-dir)              ; SPC f d — consult-dir
+  (define-key my-file-map "s"    #'yas-insert-snippet)       ; SPC f s — snippet
+  ;; ── SPC b — Buffer / Bookmark ────────────────────────────────────
+  (define-key my-buffer-map "b"  #'consult-buffer)           ; SPC b b — buffer list
+  (define-key my-buffer-map "o"  #'consult-buffer-other-window) ; SPC b o — other window
+  (define-key my-buffer-map "O"  #'consult-buffer-other-frame)  ; SPC b O — other frame
+  (define-key my-buffer-map "t"  #'consult-buffer-other-tab)    ; SPC b t — other tab
+  (define-key my-buffer-map "m"  #'consult-bookmark)         ; SPC b m — bookmarks
+  (define-key my-buffer-map "i"  #'ibuffer)                  ; SPC b i — ibuffer
+  ;; ── SPC g — Goto / Navigation ────────────────────────────────────
+  (define-key my-goto-map "g"    #'consult-goto-line)        ; SPC g g — goto line
+  (define-key my-goto-map "o"    #'consult-outline)          ; SPC g o — outline
+  (define-key my-goto-map "i"    #'consult-imenu)            ; SPC g i — imenu
+  (define-key my-goto-map "I"    #'consult-imenu-multi)      ; SPC g I — imenu multi
+  (define-key my-goto-map "m"    #'consult-mark)             ; SPC g m — marks
+  (define-key my-goto-map "M"    #'consult-global-mark)      ; SPC g M — global marks
+  (define-key my-goto-map "e"    #'consult-compile-error)    ; SPC g e — compile errors
+  (define-key my-goto-map "f"    #'consult-flymake)          ; SPC g f — flymake
+  (define-key my-goto-map "d"    #'consult-xref-stack-backward) ; SPC g d — xref back
+  ;; ── SPC p — Project ──────────────────────────────────────────────
+  (define-key my-project-map "p" project-prefix-map)         ; SPC p p — project map
+  (define-key my-project-map "d" #'flymake-show-project-diagnostics) ; SPC p d — diag
+  (define-key my-project-map "m" #'sn/project-menu)          ; SPC p m — project menu
+  ;; ── SPC n — Notes (org-roam) ─────────────────────────────────────
+  (define-key my-notes-map "f"   #'org-roam-node-find)       ; SPC n f — find node
+  (define-key my-notes-map "i"   #'org-roam-node-insert)     ; SPC n i — insert node
+  (define-key my-notes-map "n"   #'org-roam-buffer-display-dedicated) ; SPC n n
+  (define-key my-notes-map "g"   #'org-roam-graph)           ; SPC n g — graph
+  (define-key my-notes-map "d"   #'org-roam-dailies-goto-date)       ; SPC n d — date
+  (define-key my-notes-map "t"   #'org-roam-dailies-goto-today)      ; SPC n t — today
+  (define-key my-notes-map "y"   #'org-roam-dailies-goto-yesterday)  ; SPC n y — yesterday
+  (define-key my-notes-map "r"   #'org-roam-dailies-goto-tomorrow)   ; SPC n r — tomorrow
+  (define-key my-notes-map "c"   #'org-roam-dailies-capture-today)   ; SPC n c — capture
+  (define-key my-notes-map "C"   #'org-roam-dailies-capture-tomorrow) ; SPC n C
+  ;; ── SPC o — Org ──────────────────────────────────────────────────
+  (define-key my-org-map "a"     #'gtd)                      ; SPC o a — agenda
+  (define-key my-org-map "c"     #'org-capture)              ; SPC o c — capture
+  (define-key my-org-map "j"     #'org-clock-goto)           ; SPC o j — clock goto
+  (define-key my-org-map "i"     #'consult-clock-in)         ; SPC o i — clock in
+  (define-key my-org-map "o"     #'org-clock-out)            ; SPC o o — clock out
+  (define-key my-org-map "l"     #'org-clock-in-last)        ; SPC o l — clock in last
+  ;; ── SPC w — Window ───────────────────────────────────────────────
+  (define-key my-window-map "w"  #'ace-window)               ; SPC w w — ace-window
+  (define-key my-window-map "o"  #'switch-window)            ; SPC w o — switch-window
+  (define-key my-window-map "2"  #'split-window-func-with-other-buffer-vertically)
+  (define-key my-window-map "3"  #'split-window-func-with-other-buffer-horizontally)
+  (define-key my-window-map "1"  #'sn-toggle-delete-other-windows)
+  (define-key my-window-map "|"  #'split-window-horizontally-instead)
+  (define-key my-window-map "_"  #'split-window-vertically-instead)
+  (define-key my-window-map "d"  #'sn-toggle-current-window-dedication)
+  (define-key my-window-map "s"  #'sn-split-window)
+  ;; ── SPC r — Register / Yank ──────────────────────────────────────
+  (define-key my-register-map "r" #'consult-register)        ; SPC r r — registers
+  (define-key my-register-map "s" #'consult-register-store)  ; SPC r s — store
+  (define-key my-register-map "y" #'consult-yank-pop)        ; SPC r y — yank pop
+  (define-key my-register-map "m" #'consult-kmacro)          ; SPC r m — kmacro
+  ;; ── SPC t — Toggle / Tools ───────────────────────────────────────
+  (define-key my-toggle-map "d"  #'docker)                   ; SPC t d — docker
+  (define-key my-toggle-map "w"  #'whisper-run)              ; SPC t w — whisper
+  (define-key my-toggle-map "f"  #'treesit-fold-toggle)      ; SPC t f — fold
+  (define-key my-toggle-map "p"  #'flymake-show-project-diagnostics)
+  (define-key my-toggle-map "P"  #'toggle-flymake-show-diagnostics-at-end-of-line)
+  (define-key my-toggle-map "s"  #'gptel-toggle-sidebar)     ; SPC t s — AI sidebar
+  (define-key my-toggle-map "e"  #'er/expand-region)         ; SPC t e — expand region
+  (define-key my-toggle-map "m"  #'lasgun-transient)         ; SPC t m — multi-cursor
+  ;; ── SPC x — Execute ──────────────────────────────────────────────
+  (define-key my-execute-map "x" #'consult-taskfile)         ; SPC x x — taskfile
+  (define-key my-execute-map "c" #'taskfile)                 ; SPC x c — taskfile menu
+  (define-key my-execute-map "m" #'consult-mode-command)     ; SPC x m — mode command
+  (define-key my-execute-map "M" #'consult-man)              ; SPC x M — man pages
+  (define-key my-execute-map "i" #'consult-info)             ; SPC x i — info
+  (define-key my-execute-map "h" #'consult-history)          ; SPC x h — history
+  (define-key my-execute-map "e" #'gptel-menu)               ; SPC x e — gptel menu
+  ;; ── SPC c — Code (LSP) ───────────────────────────────────────────
+  (define-key my-code-map "f"    #'consult-eglot-symbols)    ; SPC c f — symbols
+  (define-key my-code-map "r"    #'eglot-rename)             ; SPC c r — rename
+  (define-key my-code-map "a"    #'eglot-code-actions)       ; SPC c a — code actions
+  (define-key my-code-map "q"    #'eglot-code-action-quickfix)       ; SPC c q — quickfix
+  (define-key my-code-map "i"    #'eglot-find-implementation)        ; SPC c i — impl
+  (define-key my-code-map "t"    #'eglot-find-typeDefinition)        ; SPC c t — type def
+  (define-key my-code-map "o"    #'eglot-code-action-organize-imports) ; SPC c o
+  (meow-global-mode 1)
+  ;; Bind SPC directly — meow-*-define-key rejects raw keymaps (not commandp)
+  (define-key meow-normal-state-keymap (kbd "SPC") my-leader-map)
+  (define-key meow-motion-state-keymap (kbd "SPC") my-leader-map))
  #+end_src
 
 **** meow treesitter
@@ -1165,9 +1446,8 @@ Call a second time to restore the original window configuration."
 #+begin_src emacs-lisp
 (use-package transient
   :bind
-  ("C-x g" . sn/project-menu)
   (:map isearch-mode-map
-		("C-t" . sn/isearch-menu))
+	("C-t" . sn/isearch-menu))
   :config
   (transient-define-prefix sn/project-menu ()
 	"Project Actions"
@@ -1306,8 +1586,7 @@ This Emacs Lisp code block configures the =whole-line-or-region= package, enabli
 (use-package ace-window
   :custom
   (aw-keys '(?a ?r ?s ?d ?t ?n ?e ?i ?o))
-  (aw-ignore-current t)
-  :bind ("M-o" . ace-window))
+  (aw-ignore-current t))
  #+end_src
 
 *** Swap Windows
@@ -1542,44 +1821,7 @@ Otherwise, it centers the posframe in the frame."
 (use-package consult
   :after vertico
   :bind
-  ("C-s" . consult-line)
-  ("C-r" . consult-ripgrep)
-  ("M-S" . consult-line-multi)
-  ("C-c M-x" . consult-mode-command)
-  ("C-c h" . consult-history)
-  ("C-c k" . consult-kmacro)
-  ("C-c m" . consult-man)
-  ("C-c i" . consult-info)
   ([remap Info-search] . consult-info)
-  ("C-x M-:" . consult-complex-command)
-  ("C-x f" . consult-buffer-other-window)
-  ("C-x 5 b" . consult-buffer-other-frame)
-  ("C-x t b" . consult-buffer-other-tab)
-  ("C-x r b" . consult-bookmark)
-  ("M-\"" . consult-register)
-  ("M-'" . consult-register-store)
-  ("C-M-'" . consult-register)
-  ("M-y" . consult-yank-pop)
-  ("M-SPC e" . consult-compile-error)
-  ("M-g g" . consult-goto-line)
-  ("M-g M-g" . consult-goto-line)
-  ("M-g o" . consult-outline)
-  ("M-SPC m" . consult-mark)
-  ("M-SPC g" . consult-global-mark)
-  ("M-g i" . consult-imenu)
-  ("M-g I" . consult-imenu-multi)
-  ;; M-s bindings in `search-map'
-  ("M-s d" . consult-find)                  ;; Alternative: consult-fd
-  ("M-s c" . consult-locate)
-  ("M-s g" . consult-grep)
-  ("M-s G" . consult-git-grep)
-  ("M-s r" . consult-ripgrep)
-  ("M-s l" . consult-line)
-  ("M-s L" . consult-line-multi)
-  ("M-s k" . consult-keep-lines)
-  ("M-s u" . consult-focus-lines)
-  ;; Isearch integration
-  ("M-s e" . consult-isearch-history)
   (:map isearch-mode-map
 	("M-e" . consult-isearch-history)
 	("M-s e" . consult-isearch-history)
@@ -1723,8 +1965,7 @@ Otherwise, it centers the posframe in the frame."
     #+begin_src emacs-lisp
     (use-package consult-xref-stack
       :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
-      :bind
-      ("C-," . consult-xref-stack-backward))
+      )
     #+end_src
 
 ** Embark
@@ -1734,11 +1975,7 @@ Otherwise, it centers the posframe in the frame."
 #+begin_src emacs-lisp
 (use-package embark
   :bind
-  ("M-SPC SPC" . embark-act)
-  ("C-;" . embark-dwim)
   ("C-h B" . embark-bindings)
-  (:map minibuffer-mode-map
-	("M-SPC" . embark-act))
   (:map embark-region-map
 	("w" . google-this)
 	("g" . gptel)
@@ -1764,7 +2001,6 @@ Otherwise, it centers the posframe in the frame."
 #+begin_src emacs-lisp
 (use-package project
   :ensure nil
-  :bind-keymap ("C-c p". project-prefix-map)
   :custom (project-vc-extra-root-markers '("go.mod")))
 #+end_src
 
@@ -1777,17 +2013,12 @@ Otherwise, it centers the posframe in the frame."
   :ensure (:host github :repo "nehrbash/protogg")
   :demand t
   :custom (protogg-minibuffer-toggle-key "M-g")
-  :bind (("M-SPC c" . protogg-compile)
-		 ([remap dired] . protogg-dired) ;; C-x d
-		 ;; ("C-c e" . protogg-eshell)
-		 ("M-s d" . protogg-find-dired)
-		 ([remap find-file] . protogg-find-file) ;; C-x C-f
-		 ([remap list-buffers] . protogg-list-buffers) ;; type C-x C-b
-		 ;; note these are not interactive so they won't toggle.
-		 ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
-		 ([remap shell-command] . protogg-shell-command) ;; M-!
-		 ([remap switch-to-buffer] . sn/consult-buffer)
-		 ("M-s i" . sn/imenu))
+  :bind (([remap dired] . protogg-dired)
+		 ([remap find-file] . protogg-find-file)
+		 ([remap list-buffers] . protogg-list-buffers)
+		 ([remap async-shell-command] . protogg-async-shell-command)
+		 ([remap shell-command] . protogg-shell-command)
+		 ([remap switch-to-buffer] . sn/consult-buffer))
   :config
   (protogg-define 'consult-project-buffer 'consult-buffer sn/consult-buffer)
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
@@ -1946,7 +2177,7 @@ To show candidate overlays it is no longer mandatory to utilize  'corfu-candidat
   :hook ((text-mode
 		  prog-mode
 		  conf-mode) . yas-minor-mode-on)
-  :bind ("C-c s" . yas-insert-snippet)
+
   :custom
   (yas-verbosity 1)
   (yas-snippet-dir "~/.config/emacs/snippets")
@@ -2052,10 +2283,9 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package consult-dir
   :after consult
   :bind
-  ("C-x C-d" . consult-dir)
   (:map vertico-map
-		("C-x C-d" . consult-dir)
-		("C-x C-j" . consult-dir-jump-file))
+	("C-x C-d" . consult-dir)
+	("C-x C-j" . consult-dir-jump-file))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
@@ -2090,10 +2320,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
 (use-package org
   :ensure nil
   :bind
-  ("C-c a" .  gtd)
-  ("C-c c" . org-capture)
   (:map org-mode-map
-    ( "C-M-<up>" . org-up-element)
+    ("C-M-<up>" . org-up-element)
     ("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
@@ -2176,6 +2404,13 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
     "Tangle Org file without asking for confirmation."
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle)))
+  (defun sn/tangle-emacs-org ()
+    "Tangle Emacs.org to init.el."
+    (interactive)
+    (let ((org-confirm-babel-evaluate nil)
+          (org-file (expand-file-name "Emacs.org" (file-name-directory (or load-file-name buffer-file-name user-init-file)))))
+      (org-babel-tangle-file org-file)
+      (message "Tangled %s → init.el" org-file)))
   (org-babel-do-load-languages
     'org-babel-load-languages
     `((dot . t)
@@ -2344,13 +2579,7 @@ Only clock in/out when needed, and always save all Org buffers."
 (add-hook 'org-clock-in-hook  #'sn/org-clock-in-set-state)
 (add-hook 'org-clock-out-hook #'sn/org-clock-out-set-state)
 
-  :bind-keymap ("C-o" . org-clock-map)
-  :bind (:map org-clock-map
-          ("j" . org-clock-goto)
-          ("l" . org-clock-in-last)
-          ("r" . org-resolve-clocks)
-          ("i" . consult-clock-in)
-          ("o" . org-clock-out))
+
   :config
   (defun consult-clock-in ()
     "Clock into an Org agenda heading."
@@ -2683,19 +2912,8 @@ Only clock in/out when needed, and always save all Org buffers."
 		"* %?"
 		:target (file+head "%<%Y-%m-%d>.org"
 				  "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n f" . org-roam-node-find)
-		  ("C-c n d" . org-roam-dailies-goto-date)
-		  ("C-c n n" . org-roam-buffer-display-dedicated)
-		  ("C-c n c" . org-roam-dailies-capture-today)
-		  ("C-c n C" . org-roam-dailies-capture-tomorrow)
-		  ("C-c n t" . org-roam-dailies-goto-today)
-		  ("C-c n y" . org-roam-dailies-goto-yesterday)
-		  ("C-c n r" . org-roam-dailies-goto-tomorrow)
-		  ("C-c n G" . org-roam-graph)
-		  :map org-mode-map
-		  (("C-c n i" . org-roam-node-insert))))
+  )
 (use-package consult-org-roam
-  :bind ("C-c n g" . org-roam-node-find)
   :after org-roam)
 #+end_src
 
@@ -3169,10 +3387,7 @@ The exact color values are taken from the active Ef theme."
   (flymake-no-changes-timeout 2)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'fancy)
-  :bind
-  ("M-g f" . consult-flymake)
-  ("M-SPC p" . flymake-show-project-diagnostics)
-  ("M-SPC M-p" . toggle-flymake-show-diagnostics-at-end-of-line)
+
   :config
   (defun toggle-flymake-show-diagnostics-at-end-of-line ()
   "Toggle 'flymake-show-diagnostics-at-end-of-line' between 'fancy and nil."
@@ -3203,7 +3418,7 @@ The exact color values are taken from the active Ef theme."
 #+begin_src emacs-lisp
 (use-package treesit-fold
   :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
-  :bind ("M-SPC f" . treesit-fold-toggle)
+
   :custom (treesit-fold-summary-max-length 80)
   :init
   (global-treesit-fold-mode))
@@ -3310,7 +3525,7 @@ Copy paste form here https://robert.kra.hn/posts/2021-02-07_rust-with-emacs/.
 
 #+begin_src emacs-lisp
 (use-package docker
-  :bind ("M-SPC d" . docker))
+  )
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 #+end_src
@@ -3485,7 +3700,6 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 #+begin_src emacs-lisp
 (use-package whisper
   :ensure (:host github :repo "natrys/whisper.el")
-  :bind ("M-SPC w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
 		whisper-model "base"
@@ -3503,10 +3717,8 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 (use-package gptel
   :after vterm
   :bind
-  ("<f5>" . gptel-toggle-sidebar)
   (:map vterm-mode-map
 	("<f5>" . gptel-toggle-sidebar))
-  ("C-<f5>" . gptel-menu)
   :hook
   (org-mode . gptel-activate-if-model-exists)
   :custom
@@ -3610,8 +3822,8 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 #+end_src
 
 #+begin_src emacs-lisp
-(use-package eca
-  :bind ("M-SPC a" . eca-chat-toggle-window))
+(use-package agent-shell
+  :ensure (:host github :repo "xenodium/agent-shell"))
 #+end_src
 
 #+begin_src emacs-lisp
@@ -3634,15 +3846,13 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
    (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
  #+end_src
 
-*** Aider
 
 ** Google This
 
    dwin like google thing.
 
 #+begin_src emacs-lisp
-(use-package google-this
-  :bind ("M-s w" . google-this))
+(use-package google-this)
 #+end_src
 
 ** Emacs Everywhere
@@ -3650,18 +3860,13 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 bound to key ~$Mod n~q . modified version of https://github.com/psibi/emacs-everywhere
 
 #+begin_src emacs-lisp
-(use-package ea
-  :load-path "~/.config/emacs/lisp")
+(use-package ea :load-path "~/.config/emacs/lisp")
 #+end_src
 
 ** Go Taskfile
 
 #+begin_src emacs-lisp
-(use-package consult-taskfile
-  :load-path "~/.config/emacs/lisp/consult-taskfile"
-  :bind
-  ("M-SPC x" . consult-taskfile)
-  ("M-SPC c" . taskfile))
+(use-package consult-taskfile :load-path "~/.config/emacs/lisp/consult-taskfile")
 #+end_src
 
 * Inspiration

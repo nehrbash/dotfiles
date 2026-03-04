@@ -1,7 +1,6 @@
 (define-module (home services activation)
   #:use-module (gnu home services)
   #:use-module (gnu packages)
-  #:use-module (gnu packages node)
   #:use-module (gnu packages glib)
   #:use-module (gnu packages curl)
   #:use-module (guix gexp)
@@ -52,6 +51,18 @@
                          "com.discordapp.Discord"
                          "com.valvesoftware.Steam"))
 
+                      ;; Ensure ~/.config/quickshell is a real directory, not a
+                      ;; symlink to the repo root (qs ignores named configs when
+                      ;; shell.qml exists directly under quickshell/).
+                      (let ((qs-dir (string-append (getenv "HOME") "/.config/quickshell")))
+                        (when (and (false-if-exception
+                                    (eq? 'symlink (stat:type (lstat qs-dir))))
+                                   ;; Only replace if it's pointing at the old repo root
+                                   (string-suffix? "files/quickshell"
+                                                   (readlink qs-dir)))
+                          (delete-file qs-dir)
+                          (mkdir qs-dir)))
+
                       ;; Symlink ~/.config dirs/files directly from dotfiles
                       (let* ((home (getenv "HOME"))
                              (dots #$dotfiles-dir)
@@ -68,13 +79,23 @@
                            ("files/cava" . "cava")
                            ("files/direnv" . "direnv")
                            ("files/mise" . "mise")
-                           ("files/nyxt" . "nyxt")
-                           ("files/paru" . "paru")
-                           ("files/quickshell" . "quickshell")
-                           ("files/xdg-desktop-portal" . "xdg-desktop-portal")))
+                           ("files/quickshell" . "quickshell/caelestia")
+                           ("files/xdg-desktop-portal" . "xdg-desktop-portal")
+                           ;; Emacs — symlinked so edits take effect without reconfigure
+                           ("files/emacs/lisp" . "emacs/lisp")
+                           ("files/emacs/snippets" . "emacs/snippets")
+                           ("files/emacs/img" . "emacs/img")))
+                        ;; Claude Code skills — direct symlink so edits take effect immediately
+                        (ensure-symlink (string-append dots "/files/claude-skills")
+                                        (string-append home "/.claude/skills"))
                         ;; Wallpaper symlink for hyprpaper (doesn't expand env vars)
                         (ensure-symlink (string-append dots "/pictures/wallpaper")
                                         (string-append home "/.local/share/wallpaper"))
+                        ;; Expose Guix fonts to Flatpak apps via ~/.local/share/fonts
+                        (ensure-symlink (string-append home
+                                          "/.guix-home/profile/share/fonts/truetype")
+                                        (string-append home
+                                          "/.local/share/fonts/guix-truetype"))
                         ;; Individual file symlinks
                         (for-each
                          (lambda (pair)
@@ -86,7 +107,9 @@
                            ("files/zsh/aliasrc" . "zsh/aliasrc")
                            ("files/zsh/emacs_functions" . "zsh/emacs_functions")
                            ("files/zsh/functions" . "zsh/functions")
-                           ))
+                           ;; Emacs individual files
+                           ("files/emacs/init.el" . "emacs/init.el")
+                           ("files/emacs/early-init.el" . "emacs/early-init.el")))
 
                         ;; SSH config — copied as a real file so bind-mounts
                         ;; into containers work (symlinks to the store don't
@@ -103,14 +126,6 @@
                             (delete-file target))
                           (copy-file source target)
                           (chmod target #o600)))
-
-                      ;; claude-code: install via npm if missing
-                      (let ((bin (string-append (getenv "HOME") "/.local/share/npm/bin/claude")))
-                        (unless (file-exists? bin)
-                          (setenv "npm_config_prefix"
-                                  (string-append (getenv "HOME") "/.local/share/npm"))
-                          (system* #$(file-append node "/bin/npm")
-                                   "install" "-g" "@anthropic-ai/claude-code")))
 
                       ;; caelestia-cli: install via uv tool if missing.
                       ;; Requires Python >=3.13; uv uses its managed CPython download.
@@ -251,36 +266,68 @@
                               (call-with-output-file sentinel
                                 (lambda (p) (display new-ver p)))
 
-                              ;; --- 3. Configure and apply spicetify ---
-                              ;; The wrapper script (scripts/spotify) passes:
-                              ;;   flatpak run --app-path=app-rw --filesystem=spot-rw
-                              ;; so the patched files at spot-rw are visible inside
-                              ;; the bwrap sandbox at their host absolute path.
+                              ;; Fresh overlay needs a backup before applying
                               (when (file-exists? spice-bin)
-                                (setenv "PATH"
-                                        (string-append home "/.spicetify:"
-                                                       (getenv "PATH")))
-                                ;; Paths
-                                (system* spice-bin "config"
-                                         "spotify_path" spot-rw)
-                                (system* spice-bin "config"
-                                         "prefs_path"
-                                         (string-append home
-                                           "/.var/app/com.spotify.Client"
-                                           "/config/spotify/prefs"))
-                                ;; caelestia theme — user.css lives in dotfiles,
-                                ;; color.ini is written dynamically by caelestia CLI
-                                (ensure-symlink
-                                 (string-append #$dotfiles-dir
-                                                "/files/spicetify/Themes/caelestia/user.css")
-                                 (string-append home
-                                                "/.config/spicetify/Themes/caelestia/user.css"))
-                                (system* spice-bin "config"
-                                         "current_theme" "caelestia")
-                                (system* spice-bin "config"
-                                         "color_scheme" "caelestia")
-                                (system* spice-bin "backup" "apply")
-                                (system* spice-bin "apply"))))))
+                                (system* spice-bin "backup" "apply")))))
+
+                        ;; --- 3. Configure and apply spicetify ---
+                        ;; Runs on every reconfigure so theme config is never lost.
+                        (when (and (file-exists? spice-bin)
+                                   (file-exists? spot-rw))
+                          (setenv "PATH"
+                                  (string-append home "/.spicetify:"
+                                                 (getenv "PATH")))
+                          (system* spice-bin "config"
+                                   "spotify_path" spot-rw)
+                          (system* spice-bin "config"
+                                   "prefs_path"
+                                   (string-append home
+                                     "/.var/app/com.spotify.Client"
+                                     "/config/spotify/prefs"))
+                          ;; caelestia theme — user.css lives in dotfiles,
+                          ;; color.ini is written dynamically by caelestia CLI
+                          (ensure-symlink
+                           (string-append #$dotfiles-dir
+                                          "/files/spicetify/Themes/caelestia/user.css")
+                           (string-append home
+                                          "/.config/spicetify/Themes/caelestia/user.css"))
+                          (system* spice-bin "config"
+                                   "current_theme" "caelestia")
+                          (system* spice-bin "config"
+                                   "color_scheme" "caelestia")
+                          (system* spice-bin "apply")))
+
+                      ;; Zen Browser — symlink caelestia-generated userChrome.css
+                      ;; Find the default profile path from profiles.ini
+                      (let* ((home (getenv "HOME"))
+                             (zen-dir (string-append
+                                       home "/.var/app/app.zen_browser.zen/.zen"))
+                             (profiles-ini (string-append
+                                            zen-dir "/profiles.ini")))
+                        (when (file-exists? profiles-ini)
+                          ;; Scan for Default= inside [Install...] section
+                          (let ((profile-rel
+                                 (call-with-input-file profiles-ini
+                                   (lambda (p)
+                                     (let loop ((in-install? #f))
+                                       (let ((l (read-line p)))
+                                         (cond
+                                          ((eof-object? l) #f)
+                                          ((string-prefix? "[Install" l)
+                                           (loop #t))
+                                          ((and in-install? (string-prefix? "[" l))
+                                           #f)
+                                          ((and in-install? (string-prefix? "Default=" l))
+                                           (substring l (string-length "Default=")))
+                                          (else (loop in-install?)))))))))
+                            (when profile-rel
+                              (let ((zen-chrome (string-append
+                                                  zen-dir "/" profile-rel "/chrome")))
+                                (when (file-exists? zen-chrome)
+                                  (ensure-symlink
+                                   (string-append home
+                                     "/.local/state/caelestia/theme/zen-userChrome.css")
+                                   (string-append zen-chrome "/userChrome.css"))))))))
 
                       ;; Set GTK icon/theme via dconf (settings.ini is overridden by dconf)
                       (system* #$(file-append (specification->package "dconf") "/bin/dconf")

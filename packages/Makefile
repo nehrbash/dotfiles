@@ -2,15 +2,8 @@ PACKAGES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 UPDATE       := $(PACKAGES_DIR)update-pkg.sh
 
 .PHONY: update-all
-update-all: update-emacs-eca update-emacs-gptel-git update-emacs-gptel-agent update-font-rubik
+update-all: update-emacs-gptel-git update-emacs-gptel-agent update-font-rubik
 	@echo "==> done"
-
-.PHONY: update-emacs-eca
-update-emacs-eca:
-	@echo "==> emacs-eca"
-	@bash $(UPDATE) \
-	  $(PACKAGES_DIR)emacs-eca.scm \
-	  https://github.com/editor-code-assistant/eca-emacs
 
 .PHONY: update-emacs-gptel-git
 update-emacs-gptel-git:
@@ -37,7 +30,6 @@ update-font-rubik:
 status:
 	@echo "==> checking for updates (no changes made)"
 	@for entry in \
-	  "emacs-eca.scm|https://github.com/editor-code-assistant/eca-emacs" \
 	  "emacs-gptel-git.scm|https://github.com/karthink/gptel" \
 	  "emacs-gptel-agent.scm|https://github.com/karthink/gptel-agent" \
 	  "fonts.scm|https://github.com/googlefonts/rubik"; do \
@@ -56,7 +48,6 @@ status:
 help:
 	@echo "Targets:"
 	@echo "  update-all               update all git-fetched packages"
-	@echo "  update-emacs-eca         update emacs-eca"
 	@echo "  update-emacs-gptel-git   update emacs-gptel-git"
 	@echo "  update-emacs-gptel-agent update emacs-gptel-agent"
 	@echo "  update-font-rubik        update font-rubik"

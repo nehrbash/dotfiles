@@ -8,6 +8,7 @@
   #:use-module (gnu services cups)
   #:use-module (gnu services xorg)
   #:use-module (gnu services linux)
+  #:use-module (gnu packages base)
   #:use-module (gnu packages shells)
   #:use-module (guix gexp)
   #:export (%base-packages-extra
@@ -17,8 +18,6 @@
 
 (define %substitute-urls
   '("https://bordeaux-us-east-mirror.cbaines.net"
-    "https://bordeaux.guix.gnu.org"
-    "https://ci.guix.gnu.org"
     "https://substitutes.nonguix.org"))
 
 ;; Authorized substitute signing keys
@@ -35,6 +34,9 @@
 ;; Note: network-manager, wpa-supplicant, and ntp are already in %desktop-services.
 (define %base-services-extra
   (list
+   ;; Provide /lib64/ld-linux-x86-64.so.2 so foreign binaries (Bun, etc.) work.
+   (extra-special-file "/lib64/ld-linux-x86-64.so.2"
+                       (file-append glibc "/lib/ld-linux-x86-64.so.2"))
    (service openssh-service-type
             (openssh-configuration
              (permit-root-login 'prohibit-password)))

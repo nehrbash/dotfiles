@@ -22,7 +22,9 @@
 - [[#spicetify][Spicetify]]
 - [[#slack][Slack]]
 - [[#emacs][Emacs]]
-- [[#eca][ECA]]
+- [[#agent-shell][Agent Shell]]
+  - [[#mcp-servers][MCP Servers]]
+  - [[#skills][Skills]]
 - [[#references][References]]
 
 * Setup
@@ -186,11 +188,9 @@ spicetify apply
 
    Run =M-x package-upgrade-all= after first launch to finish installing packages.
 
-* ECA
+* Agent Shell
 
-   [[https://eca.dev][ECA]] (Editor Code Assistant) is an AI-powered pair-programming client. It runs as an external server process and integrates with Emacs via the =emacs-eca= package (defined in =packages/emacs-eca.scm=).
-
-   Config is at =files/eca/config.json= → =~/.config/eca/config.json=.
+   [[https://github.com/xenodium/agent-shell][agent-shell]] is a native Emacs buffer to interact with LLM agents (Claude Code, Gemini CLI, etc.) via the Agent Client Protocol (ACP).
 
 ** MCP Servers
 
@@ -216,3 +216,4 @@ spicetify apply
 - https://github.com/fufexan/dotfiles
 - https://github.com/Axarva/dotfiles-2.0
 - https://github.com/caelestia-dots/shell
+ 

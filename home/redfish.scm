@@ -18,6 +18,7 @@
              (gnu packages ssh)
              (gnu packages admin)
              (gnu packages terminals)
+             (gnu packages ncurses)
              (gnu packages video)
              (gnu packages fonts)
              (gnu packages aspell)
@@ -39,16 +40,16 @@
              (gnu packages gnome)
              (gnu packages gnome-xyz)
              (gnu packages pkg-config)
-             (gnu packages music)
              (gnu packages mail)
              (gnu packages texlive)
-             (gnu packages haskell-apps)
              (gnu packages tex)
+             (gnu packages cdrom)
              (gnu packages compression)
              (gnu packages wget)
              (gnu packages dns)
              (gnu packages web)
              (gnu packages node)
+             (packages gpu-screen-recorder)
              (gnu packages freedesktop)
              (gnu packages polkit)
              (gnu packages python)
@@ -75,9 +76,11 @@
              (packages quickshell)
              (packages libcava)
              (packages glab)
+             (packages mise)
              (packages slack)
              (packages vscode)
-             (packages emacs-eca)
+             (packages claude-code)
+             (packages claude-agent-acp)
              (nongnu packages editors)
              (home services quickshell)
              (home services shepherd)
@@ -89,6 +92,7 @@
   (list
    ;; Core tools
    git
+   git-lfs
    curl
    wget
    ripgrep
@@ -109,10 +113,23 @@
    starship
    zsh-autosuggestions
    zsh-syntax-highlighting
+   zsh-completions
+   zsh-autopair
+   zsh-history-substring-search
+   fzf
+   fzf-tab
+   ncurses
+   (specification->package "file")
+   (specification->package "tree")
+   (specification->package "lsof")
+   (specification->package "strace")
+   (specification->package "zip")
+   (specification->package "unzip")
+   (specification->package "pv")
+   (specification->package "bc")
 
    ;; Editor
    emacs-next-pgtk
-   emacs-eca
 
    ;; Fonts
    font-iosevka
@@ -128,16 +145,26 @@
    ;; Wayland / Hyprland
    hyprpolkitagent
    hyprland
+   libnotify
    xdg-desktop-portal-hyprland
    xdg-desktop-portal-gtk
    wl-clipboard
    grim
+   slurp
+   swappy
+   hyprpicker
+   fuzzel
+   cliphist
+   (list glib "bin")                    ; provides gdbus (used by caelestia notify)
    playerctl
    brightnessctl
    wlr-randr
    quickshell-caelestia-plugin
    qtwayland
    ddcutil
+
+   ;; Screen recording (caelestia record)
+   gpu-screen-recorder
 
    ;; Audio
    pavucontrol
@@ -165,6 +192,8 @@
    python
 	rust
 	node
+   claude-code
+   claude-agent-acp
    (list rust "cargo")
 
    ;; Go tools
@@ -188,6 +217,9 @@
    tree-sitter-typescript
    tree-sitter-yaml
 
+   ;; Sass compiler (caelestia scheme/discord theming uses 'sass' command)
+   sassc
+
    ;; System monitors
    htop
    atop
@@ -195,6 +227,7 @@
    xkeyboard-config
 
    xdg-utils
+   xorriso
 
    ;; Podman
    podman
@@ -210,6 +243,7 @@
    ;; Dev tools
    shellcheck
    glab
+   mise
    uv
 
    ;; SSH / YubiKey
@@ -242,25 +276,12 @@
                ,(local-file "../share/applications/emacsclient.desktop"))
               (".face"
                ,(local-file "../files/emacs/img/sloth-head.jpg" "face"))
-              (".claude/skills"
-               ,(local-file "../files/claude-skills" #:recursive? #t))
+
 ))
 
    ;; XDG config files (~/.config/)
    (service home-xdg-configuration-files-service-type
-            `(("eca/config.json"
-               ,(local-file "../files/eca/config.json" "config.json"))
-              ("emacs/init.el"
-               ,(local-file "../files/emacs/init.el" "init.el"))
-              ("emacs/early-init.el"
-               ,(local-file "../files/emacs/early-init.el" "early-init.el"))
-              ("emacs/lisp"
-               ,(local-file "../files/emacs/lisp" #:recursive? #t))
-              ("emacs/snippets"
-               ,(local-file "../files/emacs/snippets" #:recursive? #t))
-              ("emacs/img"
-               ,(local-file "../files/emacs/img" #:recursive? #t))
-              ("uv/uv.toml"
+            `(("uv/uv.toml"
                ,(local-file "../files/uv/uv.toml" "uv.toml"))))
 
    ;; Other XDG config files are symlinked directly from dotfiles in the
@@ -286,25 +307,18 @@
                      ;; handle them).
                      ("SSH_ASKPASS" . "$HOME/.guix-home/profile/libexec/gcr-ssh-askpass")
                      ("KEYRING_SOCK" . "$XDG_RUNTIME_DIR/keyring")
-                     ("PKG_CONFIG_PATH" . "$HOME/.guix-home/profile/lib/pkgconfig:$PKG_CONFIG_PATH")
-                     ("C_INCLUDE_PATH" . "$HOME/.guix-home/profile/include")
-                     ("LIBRARY_PATH" . "$HOME/.guix-home/profile/lib")
-                     ("XDG_DATA_DIRS" . "$HOME/.guix-home/profile/share:$XDG_DATA_DIRS:$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share")
+                     ;; Flatpak dirs not covered by search-paths
+                     ("XDG_DATA_DIRS" . "$XDG_DATA_DIRS:$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share")
+                     ;; Emacs native-comp subdirs (distinct from search-path share/emacs/site-lisp)
                      ("EMACSLOADPATH" . "$HOME/.guix-home/profile/lib/emacs:")
-                     ;; NVIDIA/Wayland — needed before start-hyprland runs
+                     ;; NVIDIA driver selection (search-paths handle library discovery)
                      ("LIBVA_DRIVER_NAME" . "nvidia")
                      ("GBM_BACKEND" . "nvidia-drm")
                      ("__GLX_VENDOR_LIBRARY_NAME" . "nvidia")
-                     ("WLR_NO_HARDWARE_CURSORS" . "1")
-                     ("LD_LIBRARY_PATH" . "/run/current-system/profile/lib")
-                     ("__EGL_VENDOR_LIBRARY_DIRS" . "/run/current-system/profile/share/glvnd/egl_vendor.d")
-                     ("GBM_BACKENDS_PATH" . "/run/current-system/profile/lib/gbm")
-                     ("LIBGL_DRIVERS_PATH" . "/run/current-system/profile/lib/dri")
+                     ("LD_LIBRARY_PATH" . "/run/current-system/profile/lib:$HOME/.guix-home/profile/lib")
                      ;; Dev Containers: point to rootless podman socket
                      ("DOCKER_HOST" . "unix://$XDG_RUNTIME_DIR/podman/podman.sock")
                      ("DOCKER_API_VERSION" . "1.41")
-                     ;; Caelestia QML plugin
-                     ("QML_IMPORT_PATH" . "$HOME/.guix-home/profile/lib/qt6/qml")
                      ;; Caelestia XKB rules path (Guix has no /usr/share/X11)
                      ("CAELESTIA_XKB_RULES_PATH" . "$HOME/.guix-home/profile/share/X11/xkb/rules/base.lst")
                      ;; Wayland/Desktop session

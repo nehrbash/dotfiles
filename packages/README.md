@@ -23,10 +23,6 @@ Latest gptel (LLM client for Emacs) from git.
 
 gptel-agent extension for agentic tool-use in gptel.
 
-## emacs-eca
-
-Emacs Claude Agent (ECA) package.
-
 ## gruvbox
 
 Gruvbox GTK theme.
