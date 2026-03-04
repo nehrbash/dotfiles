@@ -43,6 +43,7 @@
              (gnu packages music)
              (gnu packages mail)
              (gnu packages texlive)
+             (gnu packages haskell-apps)
              (gnu packages tex)
              (gnu packages cdrom)
              (gnu packages compression)
