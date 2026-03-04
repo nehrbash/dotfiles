@@ -1,15 +1,4 @@
 #!/bin/zsh
-# Dependancies You Need for this Config
-# zsh-syntax-highlighting - syntax highlighting for ZSH in standard repos
-# zsh-autosuggestions - Suggestions based on your history
-
-# # very simple prompt for when zsh cacuse problems
-# [[ $TERM == "dumb" ]] && unsetopt zle && PS1='$ ' && return
-
-# Enable colors and change prompt:
-autoload -U colors && colors
-
-export PS1="> "
 
 # Starship Prompt
 eval "$(starship init zsh)"
@@ -17,9 +6,6 @@ eval "$(starship init zsh)"
 # Bash-like navigation
 autoload -U select-word-style
 select-word-style bash
-
-# highlight colors
-# syntax highlighting loaded from guix profile below
 
 ## History file configuration
 [ -z "$HISTFILE" ] && HISTFILE="${ZDOTDIR:-$HOME/.config/zsh}/history"
@@ -43,11 +29,11 @@ _comp_options+=(globdots)     # Include hidden files.
 
 bindkey "^[[3~" delete-char
 
-# Load plugins (Guix paths)
-source $HOME/.guix-home/profile/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh 2>/dev/null
-source $HOME/.guix-home/profile/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
+# Plugins sourced via mixed-text-file in home/redfish.scm
 
-# export variables are in $HOME/.zshenv
+# History substring search keybinds
+bindkey '^[[A' history-substring-search-up
+bindkey '^[[B' history-substring-search-down
 
 # Load aliases and shortcuts if existent.
 [ -f "$ZDOTDIR/aliasrc" ] && source "$ZDOTDIR/aliasrc"

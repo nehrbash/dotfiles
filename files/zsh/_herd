@@ -19,7 +19,7 @@ _herd_actions() {
 
 _herd_services() {
   local -a services
-  services=(${(f)"$(herd status 2>/dev/null | grep '^ [+*-] ' | sed 's/^ [+*-] //')"})
+  services=(${(f)"$(herd status 2>/dev/null | grep '^ [+*!-] ' | sed 's/^ [+*!-] //')"})
   _describe 'service' services
 }
 

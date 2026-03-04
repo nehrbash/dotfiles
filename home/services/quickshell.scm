@@ -98,7 +98,8 @@ Leave empty (the default) to use the default config at
                              home-quickshell-shepherd-service)
           (service-extension home-profile-service-type
                              home-quickshell-profile-service)))
-   (default-value (home-quickshell-configuration))
+   (default-value (home-quickshell-configuration
+                   (config "caelestia")))
    (description
     "Run a quickshell desktop shell configuration as a Shepherd service.
 The shell is (re)started automatically on login and respawned if it

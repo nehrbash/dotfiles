@@ -12,6 +12,7 @@
              (gnu services base)
              (gnu services containers)
              (gnu services pm)
+             (gnu services virtualization)
              (gnu services security-token)
              (gnu packages admin)
              (gnu packages wm)
@@ -22,7 +23,8 @@
              (nongnu system linux-initrd)
              (systems base-system)
              (gnu system privilege)
-             (srfi srfi-1))
+             (srfi srfi-1)
+             (packages gpu-screen-recorder))
 
 (define %redfish-services
   (append
@@ -40,6 +42,10 @@
                                          (start 100000)
                                          (count 65536))))))
    (service nvidia-service-type)
+   (service libvirt-service-type
+            (libvirt-configuration
+             (unix-sock-group "libvirt")))
+   (service virtlog-service-type)
    (service power-profiles-daemon-service-type)
    (service pcscd-service-type)
    (extra-special-file "/etc/dbus-1/system.d/increase-limits.conf"
@@ -79,6 +85,8 @@
   (firmware (list linux-firmware))
   (kernel-arguments '("modprobe.blacklist=nouveau"
                       "nvidia_drm.modeset=1"
+                      "mem_sleep_default=s2idle"
+                      "nvidia.NVreg_EnableS0ixPowerManagement=1"
                       "quiet" "loglevel=3"))
 
   (locale "en_US.utf8")
@@ -96,7 +104,8 @@
                   (home-directory "/home/nehrbash")
                   (shell (file-append zsh "/bin/zsh"))
                   (supplementary-groups '("wheel" "netdev" "audio" "video"
-                                          "input" "seat" "cgroup")))
+                                          "input" "seat" "cgroup"
+                                          "libvirt" "kvm")))
                 %base-user-accounts))
 
   (packages (append (list hyprland tuigreet)
@@ -105,11 +114,12 @@
 
   (services %redfish-services)
 
-  (privileged-programs %default-privileged-programs)
+  (privileged-programs
+   (cons* (privileged-program
+           (program (file-append gpu-screen-recorder "/bin/gsr-kms-server"))
+           (capabilities "cap_sys_admin+ep"))
+          %default-privileged-programs))
 
-  ;; WARNING: boot disk is nvme0n1, NOT nvme1n1. Do not change this.
-  ;; The root/boot filesystem lives on nvme0n1; nvme1n1 is a different
-  ;; physical disk — pointing GRUB there causes a cross-disk embed error.
   (bootloader (bootloader-configuration
                 (bootloader grub-bootloader)
                 (targets (list "/dev/nvme0n1"))
@@ -120,10 +130,6 @@
                                  "f1a2747c-5559-44c2-8951-1f48840b00ce")))))
 
   (file-systems (cons* (file-system
-                         (mount-point "/boot/efi")
-                         (device (uuid "D8EB-6158" 'fat32))
-                         (type "vfat"))
-                       (file-system
                          (mount-point "/")
                          (device (uuid
                                   "183ea0af-a5e2-4a04-bb79-6c94e36c7736"

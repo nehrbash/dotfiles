@@ -1,0 +1,11 @@
+#!/bin/sh
+# Shim for app2unit (systemd transient unit launcher).
+# Guix uses Shepherd, so just exec the command directly.
+while [ $# -gt 0 ]; do
+  case "$1" in
+    --) shift; break ;;
+    -*) shift ;;       # skip flags like -O
+    *)  break ;;
+  esac
+done
+exec "$@"

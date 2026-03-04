@@ -55,5 +55,5 @@ bindings = [
 ]
 
 [general]
-import = ["/home/nehrbash/.config/alacritty/ef.toml"]
+import = ["/home/nehrbash/.local/state/caelestia/theme/alacritty.toml"]
 

@@ -4,6 +4,7 @@
   #:use-module (gnu packages emacs)
   #:use-module (gnu packages ssh)
   #:use-module (gnu packages polkit)
+  #:use-module (gnu packages freedesktop)
   #:use-module (gnu packages wm)
   #:use-module (gnu packages qt)
   #:use-module (gnu packages containers)
@@ -21,16 +22,14 @@
     (provision '(emacs))
     (requirement '(wayland-compositor))
     (documentation "Run Emacs as a daemon.")
-    (start #~(make-forkexec-constructor
-              (list #$(file-append emacs-next-pgtk "/bin/emacs")
-                    "--fg-daemon")
-              #:environment-variables
-              (cons (string-append "WAYLAND_DISPLAY="
-                                   (or (getenv "WAYLAND_DISPLAY") "wayland-1"))
-                    (environ))
-              #:log-file
-              (string-append (getenv "XDG_STATE_HOME")
-                             "/log/emacs.log")))
+    (start #~(lambda _
+               ((make-forkexec-constructor
+                 (list #$(file-append emacs-next-pgtk "/bin/emacs")
+                       "--fg-daemon")
+                 #:environment-variables (environ)
+                 #:log-file
+                 (string-append (getenv "XDG_STATE_HOME")
+                                "/log/emacs.log")))))
     (stop #~(make-kill-destructor))
     (respawn? #t)
     (respawn-limit #~'(3 . 10))
@@ -139,6 +138,29 @@
     (respawn-limit #~'(5 . 30))
     (respawn-delay 5))
 
+   ;; xdg-desktop-portal-hyprland — the D-Bus .service file references
+   ;; systemd, which doesn't exist on Guix, so D-Bus activation fails.
+   ;; Run it explicitly as a shepherd service instead.
+   (shepherd-service
+    (provision '(xdg-desktop-portal-hyprland))
+    (requirement '(wayland-compositor))
+    (documentation "Run xdg-desktop-portal-hyprland for screen sharing.")
+    (start #~(lambda _
+               ((make-forkexec-constructor
+                 (list #$(file-append xdg-desktop-portal-hyprland
+                                      "/libexec/xdg-desktop-portal-hyprland"))
+                 #:environment-variables
+                 (filter (lambda (s)
+                           (not (string-prefix? "LD_LIBRARY_PATH=" s)))
+                         (environ))
+                 #:log-file
+                 (string-append (getenv "XDG_STATE_HOME")
+                                "/log/xdg-desktop-portal-hyprland.log")))))
+    (stop #~(make-kill-destructor))
+    (respawn? #t)
+    (respawn-limit #~'(3 . 10))
+    (respawn-delay 5))
+
    ;; Polkit authentication agent
    (shepherd-service
     (provision '(hyprpolkitagent))
@@ -188,14 +210,15 @@
    (shepherd-service
     (provision '(gnome-keyring))
     (documentation "Run gnome-keyring-daemon (secrets component only).")
-    (start #~(make-forkexec-constructor
-              (list #$(file-append gnome-keyring "/bin/gnome-keyring-daemon")
-                    "--start"
-                    "--foreground"
-                    "--components=secrets")
-              #:log-file
-              (string-append (getenv "XDG_STATE_HOME")
-                             "/log/gnome-keyring.log")))
+    (start #~(lambda _
+               ((make-forkexec-constructor
+                 (list #$(file-append gnome-keyring "/bin/gnome-keyring-daemon")
+                       "--start"
+                       "--foreground"
+                       "--components=secrets")
+                 #:log-file
+                 (string-append (getenv "XDG_STATE_HOME")
+                                "/log/gnome-keyring.log")))))
     (stop #~(make-kill-destructor))
     (respawn? #t)
     (respawn-limit #~'(3 . 10))
@@ -209,13 +232,14 @@
    (shepherd-service
     (provision '(ssh-agent))
     (documentation "Run ssh-agent.")
-    (start #~(make-forkexec-constructor
-              (list #$(file-append openssh "/bin/ssh-agent")
-                    "-D" "-a"
-                    (string-append (getenv "XDG_RUNTIME_DIR")
-                                   "/ssh-agent.socket")
-                    "-P" "/gnu/store/*/lib/libykcs11.so*")
-              #:log-file
-              (string-append (getenv "XDG_STATE_HOME")
-                             "/log/ssh-agent.log")))
+    (start #~(lambda _
+               ((make-forkexec-constructor
+                 (list #$(file-append openssh "/bin/ssh-agent")
+                       "-D" "-a"
+                       (string-append (getenv "XDG_RUNTIME_DIR")
+                                      "/ssh-agent.socket")
+                       "-P" "/gnu/store/*/lib/libykcs11.so*")
+                 #:log-file
+                 (string-append (getenv "XDG_STATE_HOME")
+                                "/log/ssh-agent.log")))))
     (stop #~(make-kill-destructor)))))

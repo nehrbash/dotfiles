@@ -8,7 +8,7 @@
 (define-public claude-agent-acp
   (package
     (name "claude-agent-acp")
-    (version "0.20.0")
+    (version "0.19.2")
     (source
      (origin
        (method url-fetch)
@@ -16,11 +16,12 @@
              "https://github.com/zed-industries/claude-agent-acp/releases/download/v"
              version "/claude-agent-acp-linux-x64.tar.gz"))
        (sha256
-        (base32 "0q2bha6jliisww2is9zhihlqfzch1ap3wkxajy759i91lp448zr3"))))
+        (base32 "09g69rz98jxbb4fp2grnx7pjrngqmgdfsm6bw8sh9x7ldzzxpkah"))))
     (supported-systems '("x86_64-linux"))
     (build-system copy-build-system)
     (arguments
      (list #:validate-runpath? #f
+           #:strip-binaries? #f
            #:install-plan
            #~'(("claude-agent-acp" "bin/claude-agent-acp"))))
     (home-page "https://github.com/zed-industries/claude-agent-acp")

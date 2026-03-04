@@ -494,7 +494,6 @@
 (with-eval-after-load 'browse-url
   (setq browse-url-browser-function #'browse-url-zen))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
-
 #+end_src
 
 ** Mouse
@@ -3823,7 +3822,10 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 
 #+begin_src emacs-lisp
 (use-package agent-shell
-  :ensure (:host github :repo "xenodium/agent-shell"))
+  :ensure (:host github :repo "xenodium/agent-shell")
+  :custom
+  (agent-shell-show-welcome-message nil)
+  (agent-shell-preferred-agent-config 'claude-code))
 #+end_src
 
 #+begin_src emacs-lisp

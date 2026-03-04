@@ -1,4 +1,4 @@
-.PHONY: all update-channels update-quickshell update-system update-home update
+.PHONY: all update-channels update-quickshell update-system update-home update update-quickshell-upstream
 
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 HOSTNAME     := $(shell hostname)
@@ -12,9 +12,19 @@ update: update-channels update-quickshell update-home
 update-channels:
 	guix pull -C $(DOTFILES_DIR)/channels.scm
 
-# 2. Pull latest quickshell source (used as local-file in packages/quickshell.scm)
+# 2. Update quickshell submodule (fetch + rebase personal commits onto upstream/main)
+update-quickshell-upstream:
+	git -C $(DOTFILES_DIR)/files/quickshell fetch upstream
+	git -C $(DOTFILES_DIR)/files/quickshell rebase upstream/main
+	git -C $(DOTFILES_DIR)/files/quickshell push --force-with-lease
+	git -C $(DOTFILES_DIR) add files/quickshell
+	git -C $(DOTFILES_DIR) commit -m "chore: update shell to latest upstream"
+
+# 2. Update quickshell submodule to the pinned commit (normal pull)
 update-quickshell:
-	git -C $(HOME)/src/quickshell pull
+	git -C $(DOTFILES_DIR) submodule update --remote --rebase files/quickshell
+	git -C $(DOTFILES_DIR) add files/quickshell
+	git -C $(DOTFILES_DIR) commit -m "chore: update quickshell submodule"
 
 # 3. Reconfigure Guix Home (rebuilds quickshell + caelestia-shell packages)
 update-home:

@@ -48,6 +48,7 @@
    use-package-always-ensure t
    warning-minimum-level :emergency
    native-comp-jit-compilation t
+   native-comp-async-report-warnings-errors 'silent
    byte-compile-docstring-max-column 120
    native-compile-prune-cache t)
 
@@ -207,9 +208,9 @@
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
-    (use-package display-fill-column-indicator
-      :ensure nil
-      :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
+(use-package display-fill-column-indicator
+  :ensure nil
+  :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
@@ -267,21 +268,11 @@
   goto-address-mail-face 'link
   goto-address-mail-mouse-face 'highlight)
 (global-goto-address-mode 1)
-(setq browse-url-firefox-program "zen-browser")
-(defun browse-url-zen (url &optional new-window)
+(defun browse-url-zen (url &optional _new-window)
+  "Open URL in Zen Browser via Flatpak."
   (interactive (browse-url-interactive-arg "URL: "))
   (setq url (browse-url-encode-url url))
-  (let* ((process-environment (browse-url-process-environment)))
-    (apply #'start-process
-      (concat "zen-browser " url) nil
-      browse-url-firefox-program
-      (append
-	browse-url-firefox-arguments
-	(if (browse-url-maybe-new-window new-window)
-		  (if browse-url-firefox-new-window-is-tab
-		    '("-new-tab")
-			'("-new-window")))
-	(list url)))))
+  (start-process "zen-browser" nil "flatpak" "run" "app.zen_browser.zen" url))
 (with-eval-after-load 'browse-url
   (setq browse-url-browser-function #'browse-url-zen))
 (global-unset-key (kbd "M-SPC")) ;; my second C-c binding
@@ -369,13 +360,13 @@
 		"\\*\\(Man\\|woman\\).*"))
 	 (display-buffer-same-window)))))
 
-  (use-package recentf
-    :ensure nil
+(use-package recentf
+  :ensure nil
 	:hook (elpaca-after-init . recentf-mode)
-    :custom
-    (recentf-auto-cleanup 300)
-    (recentf-max-saved-items 100)
-    (recentf-exclude
+  :custom
+  (recentf-auto-cleanup 300)
+  (recentf-max-saved-items 100)
+  (recentf-exclude
 	'(
 	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
 	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
@@ -384,7 +375,7 @@
 	   ))
 	:config
 	(setq backup-directory-alist
-      `((".*" . ,temporary-file-directory))))
+    `((".*" . ,temporary-file-directory))))
 
 (use-package files
   :ensure nil
@@ -427,7 +418,7 @@
   :config
   (setq history-length 25))
 
- (save-place-mode 1)
+(save-place-mode 1)
 
 (use-package anzu
   :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
@@ -556,13 +547,6 @@ This is useful when followed by an immediate kill."
 (use-package winner
   :ensure nil
   :init (winner-mode 1)
-  :bind (("C-x 2" . split-window-func-with-other-buffer-vertically)
-		 ("C-x 3" . split-window-func-with-other-buffer-horizontally)
-		 ("C-x 1" . sn-toggle-delete-other-windows)
-		 ("C-x |" . split-window-horizontally-instead)
-		 ("C-x _" . split-window-vertically-instead)
-		 ("<f7>" . sn-split-window)
-		 ("C-c <down>" . sn-toggle-current-window-dedication))
   :config
   (defun split-window-func-with-other-buffer-vertically ()
 	"Split this window vertically and switch to the new window."
@@ -629,9 +613,35 @@ Call a second time to restore the original window configuration."
 
 (setq confirm-kill-processes nil)
 
+;; Leader sub-maps — defined eagerly so packages can :bind into them
+(defvar my-leader-map   (make-sparse-keymap) "Top-level leader keymap (SPC).")
+(defvar my-search-map   (make-sparse-keymap) "SPC s — search.")
+(defvar my-file-map     (make-sparse-keymap) "SPC f — file.")
+(defvar my-buffer-map   (make-sparse-keymap) "SPC b — buffer/bookmark.")
+(defvar my-goto-map     (make-sparse-keymap) "SPC g — goto/navigation.")
+(defvar my-project-map  (make-sparse-keymap) "SPC p — project.")
+(defvar my-notes-map    (make-sparse-keymap) "SPC n — org-roam/notes.")
+(defvar my-org-map      (make-sparse-keymap) "SPC o — org.")
+(defvar my-window-map   (make-sparse-keymap) "SPC w — window.")
+(defvar my-register-map (make-sparse-keymap) "SPC r — register/yank.")
+(defvar my-toggle-map   (make-sparse-keymap) "SPC t — toggles/tools.")
+(defvar my-execute-map  (make-sparse-keymap) "SPC x — execute.")
+(defvar my-code-map     (make-sparse-keymap) "SPC c — code/LSP.")
+(define-key my-leader-map "s" my-search-map)
+(define-key my-leader-map "f" my-file-map)
+(define-key my-leader-map "b" my-buffer-map)
+(define-key my-leader-map "g" my-goto-map)
+(define-key my-leader-map "p" my-project-map)
+(define-key my-leader-map "n" my-notes-map)
+(define-key my-leader-map "o" my-org-map)
+(define-key my-leader-map "w" my-window-map)
+(define-key my-leader-map "r" my-register-map)
+(define-key my-leader-map "t" my-toggle-map)
+(define-key my-leader-map "x" my-execute-map)
+(define-key my-leader-map "c" my-code-map)
+
 (use-package meow
   :demand t
-	:bind ("M-j" . meow-comment)
     :config
     (setq meow-replace-state-name-list
 		 '((normal . "🟢")
@@ -643,17 +653,14 @@ Call a second time to restore the original window configuration."
     (add-to-list 'meow-mode-state-list '(eat-mode . insert))
     (add-to-list 'meow-mode-state-list '(vterm-mode . insert))
     (add-to-list 'meow-mode-state-list '(git-commit-mode . insert))
+    (add-to-list 'meow-mode-state-list '(agent-shell-mode . insert))
     (setq meow-cheatsheet-layout meow-cheatsheet-layout-colemak-dh)
     (meow-motion-overwrite-define-key
-	;; Use e to move up, n to move down.
-	;; Since special modes usually use n to move down, we only overwrite e here.
+	;; Use e to move up. Since special modes usually use n to move down,
+	;; we only overwrite e here.
 	'("e" . meow-prev)
 	'("<escape>" . ignore))
     (meow-leader-define-key
-	'("?" . meow-cheatsheet)
-	;; To execute the originally e in MOTION state, use SPC e.
-	'("e" . "H-e")
-	'("o" . switch-window)
 	'("1" . meow-digit-argument)
 	'("2" . meow-digit-argument)
 	'("3" . meow-digit-argument)
@@ -664,7 +671,8 @@ Call a second time to restore the original window configuration."
 	'("8" . meow-digit-argument)
 	'("9" . meow-digit-argument)
 	'("0" . meow-digit-argument)
-	'("f ." . find-file-at-point))
+	;; Motion-state e escape hatch
+	'("e" . "H-e"))
     (meow-normal-define-key
 	'("0" . meow-expand-0)
 	'("1" . meow-expand-1)
@@ -724,7 +732,116 @@ Call a second time to restore the original window configuration."
 	'("z" . meow-pop-selection)
 	'("'" . repeat)
 	'("<escape>" . ignore))
-	(meow-global-mode 1))
+  ;; ── Top-level single-key shortcuts ───────────────────────────────
+  (define-key my-leader-map " "  #'consult-buffer)           ; SPC SPC — buffer switcher
+  (define-key my-leader-map "/"  #'consult-ripgrep)          ; SPC /   — ripgrep
+  (define-key my-leader-map "j"  #'meow-comment)             ; SPC j   — comment
+  (define-key my-leader-map "a"  #'agent-shell)              ; SPC a   — AI chat
+  (define-key my-leader-map "?"  #'meow-cheatsheet)          ; SPC ?   — cheatsheet
+  (define-key my-leader-map "i"  #'consult-imenu)            ; SPC i   — imenu
+  (define-key my-leader-map "y"  #'consult-yank-pop)         ; SPC y   — yank ring
+  ;; ── SPC s — Search ───────────────────────────────────────────────
+  (define-key my-search-map "s"  #'consult-line)             ; SPC s s — line search
+  (define-key my-search-map "S"  #'consult-line-multi)       ; SPC s S — multi-buffer
+  (define-key my-search-map "r"  #'consult-ripgrep)          ; SPC s r — ripgrep
+  (define-key my-search-map "g"  #'consult-grep)             ; SPC s g — grep
+  (define-key my-search-map "G"  #'consult-git-grep)         ; SPC s G — git grep
+  (define-key my-search-map "d"  #'consult-find)             ; SPC s d — find by name
+  (define-key my-search-map "c"  #'consult-locate)           ; SPC s c — locate
+  (define-key my-search-map "k"  #'consult-keep-lines)       ; SPC s k — keep lines
+  (define-key my-search-map "u"  #'consult-focus-lines)      ; SPC s u — focus lines
+  (define-key my-search-map "e"  #'consult-isearch-history)  ; SPC s e — isearch history
+  (define-key my-search-map "w"  #'google-this)              ; SPC s w — web search
+  (define-key my-search-map "D"  #'define-word-at-point)     ; SPC s D — define word
+  ;; ── SPC f — File ─────────────────────────────────────────────────
+  (define-key my-file-map "f"    #'find-file)                ; SPC f f — find file
+  (define-key my-file-map "."    #'find-file-at-point)       ; SPC f . — open at point
+  (define-key my-file-map "r"    #'consult-recent-file)      ; SPC f r — recent files
+  (define-key my-file-map "d"    #'consult-dir)              ; SPC f d — consult-dir
+  (define-key my-file-map "s"    #'yas-insert-snippet)       ; SPC f s — snippet
+  ;; ── SPC b — Buffer / Bookmark ────────────────────────────────────
+  (define-key my-buffer-map "b"  #'consult-buffer)           ; SPC b b — buffer list
+  (define-key my-buffer-map "o"  #'consult-buffer-other-window) ; SPC b o — other window
+  (define-key my-buffer-map "O"  #'consult-buffer-other-frame)  ; SPC b O — other frame
+  (define-key my-buffer-map "t"  #'consult-buffer-other-tab)    ; SPC b t — other tab
+  (define-key my-buffer-map "m"  #'consult-bookmark)         ; SPC b m — bookmarks
+  (define-key my-buffer-map "i"  #'ibuffer)                  ; SPC b i — ibuffer
+  ;; ── SPC g — Goto / Navigation ────────────────────────────────────
+  (define-key my-goto-map "g"    #'consult-goto-line)        ; SPC g g — goto line
+  (define-key my-goto-map "o"    #'consult-outline)          ; SPC g o — outline
+  (define-key my-goto-map "i"    #'consult-imenu)            ; SPC g i — imenu
+  (define-key my-goto-map "I"    #'consult-imenu-multi)      ; SPC g I — imenu multi
+  (define-key my-goto-map "m"    #'consult-mark)             ; SPC g m — marks
+  (define-key my-goto-map "M"    #'consult-global-mark)      ; SPC g M — global marks
+  (define-key my-goto-map "e"    #'consult-compile-error)    ; SPC g e — compile errors
+  (define-key my-goto-map "f"    #'consult-flymake)          ; SPC g f — flymake
+  (define-key my-goto-map "d"    #'consult-xref-stack-backward) ; SPC g d — xref back
+  ;; ── SPC p — Project ──────────────────────────────────────────────
+  (define-key my-project-map "p" project-prefix-map)         ; SPC p p — project map
+  (define-key my-project-map "d" #'flymake-show-project-diagnostics) ; SPC p d — diag
+  (define-key my-project-map "m" #'sn/project-menu)          ; SPC p m — project menu
+  ;; ── SPC n — Notes (org-roam) ─────────────────────────────────────
+  (define-key my-notes-map "f"   #'org-roam-node-find)       ; SPC n f — find node
+  (define-key my-notes-map "i"   #'org-roam-node-insert)     ; SPC n i — insert node
+  (define-key my-notes-map "n"   #'org-roam-buffer-display-dedicated) ; SPC n n
+  (define-key my-notes-map "g"   #'org-roam-graph)           ; SPC n g — graph
+  (define-key my-notes-map "d"   #'org-roam-dailies-goto-date)       ; SPC n d — date
+  (define-key my-notes-map "t"   #'org-roam-dailies-goto-today)      ; SPC n t — today
+  (define-key my-notes-map "y"   #'org-roam-dailies-goto-yesterday)  ; SPC n y — yesterday
+  (define-key my-notes-map "r"   #'org-roam-dailies-goto-tomorrow)   ; SPC n r — tomorrow
+  (define-key my-notes-map "c"   #'org-roam-dailies-capture-today)   ; SPC n c — capture
+  (define-key my-notes-map "C"   #'org-roam-dailies-capture-tomorrow) ; SPC n C
+  ;; ── SPC o — Org ──────────────────────────────────────────────────
+  (define-key my-org-map "a"     #'gtd)                      ; SPC o a — agenda
+  (define-key my-org-map "c"     #'org-capture)              ; SPC o c — capture
+  (define-key my-org-map "j"     #'org-clock-goto)           ; SPC o j — clock goto
+  (define-key my-org-map "i"     #'consult-clock-in)         ; SPC o i — clock in
+  (define-key my-org-map "o"     #'org-clock-out)            ; SPC o o — clock out
+  (define-key my-org-map "l"     #'org-clock-in-last)        ; SPC o l — clock in last
+  ;; ── SPC w — Window ───────────────────────────────────────────────
+  (define-key my-window-map "w"  #'ace-window)               ; SPC w w — ace-window
+  (define-key my-window-map "o"  #'switch-window)            ; SPC w o — switch-window
+  (define-key my-window-map "2"  #'split-window-func-with-other-buffer-vertically)
+  (define-key my-window-map "3"  #'split-window-func-with-other-buffer-horizontally)
+  (define-key my-window-map "1"  #'sn-toggle-delete-other-windows)
+  (define-key my-window-map "|"  #'split-window-horizontally-instead)
+  (define-key my-window-map "_"  #'split-window-vertically-instead)
+  (define-key my-window-map "d"  #'sn-toggle-current-window-dedication)
+  (define-key my-window-map "s"  #'sn-split-window)
+  ;; ── SPC r — Register / Yank ──────────────────────────────────────
+  (define-key my-register-map "r" #'consult-register)        ; SPC r r — registers
+  (define-key my-register-map "s" #'consult-register-store)  ; SPC r s — store
+  (define-key my-register-map "y" #'consult-yank-pop)        ; SPC r y — yank pop
+  (define-key my-register-map "m" #'consult-kmacro)          ; SPC r m — kmacro
+  ;; ── SPC t — Toggle / Tools ───────────────────────────────────────
+  (define-key my-toggle-map "d"  #'docker)                   ; SPC t d — docker
+  (define-key my-toggle-map "w"  #'whisper-run)              ; SPC t w — whisper
+  (define-key my-toggle-map "f"  #'treesit-fold-toggle)      ; SPC t f — fold
+  (define-key my-toggle-map "p"  #'flymake-show-project-diagnostics)
+  (define-key my-toggle-map "P"  #'toggle-flymake-show-diagnostics-at-end-of-line)
+  (define-key my-toggle-map "s"  #'gptel-toggle-sidebar)     ; SPC t s — AI sidebar
+  (define-key my-toggle-map "e"  #'er/expand-region)         ; SPC t e — expand region
+  (define-key my-toggle-map "m"  #'lasgun-transient)         ; SPC t m — multi-cursor
+  ;; ── SPC x — Execute ──────────────────────────────────────────────
+  (define-key my-execute-map "x" #'consult-taskfile)         ; SPC x x — taskfile
+  (define-key my-execute-map "c" #'taskfile)                 ; SPC x c — taskfile menu
+  (define-key my-execute-map "m" #'consult-mode-command)     ; SPC x m — mode command
+  (define-key my-execute-map "M" #'consult-man)              ; SPC x M — man pages
+  (define-key my-execute-map "i" #'consult-info)             ; SPC x i — info
+  (define-key my-execute-map "h" #'consult-history)          ; SPC x h — history
+  (define-key my-execute-map "e" #'gptel-menu)               ; SPC x e — gptel menu
+  ;; ── SPC c — Code (LSP) ───────────────────────────────────────────
+  (define-key my-code-map "f"    #'consult-eglot-symbols)    ; SPC c f — symbols
+  (define-key my-code-map "r"    #'eglot-rename)             ; SPC c r — rename
+  (define-key my-code-map "a"    #'eglot-code-actions)       ; SPC c a — code actions
+  (define-key my-code-map "q"    #'eglot-code-action-quickfix)       ; SPC c q — quickfix
+  (define-key my-code-map "i"    #'eglot-find-implementation)        ; SPC c i — impl
+  (define-key my-code-map "t"    #'eglot-find-typeDefinition)        ; SPC c t — type def
+  (define-key my-code-map "o"    #'eglot-code-action-organize-imports) ; SPC c o
+  (meow-global-mode 1)
+  ;; Bind SPC directly — meow-*-define-key rejects raw keymaps (not commandp)
+  (define-key meow-normal-state-keymap (kbd "SPC") my-leader-map)
+  (define-key meow-motion-state-keymap (kbd "SPC") my-leader-map))
 
 (use-package meow-tree-sitter
   :after meow
@@ -809,9 +926,8 @@ Call a second time to restore the original window configuration."
 
 (use-package transient
   :bind
-  ("C-x g" . sn/project-menu)
   (:map isearch-mode-map
-		("C-t" . sn/isearch-menu))
+	("C-t" . sn/isearch-menu))
   :config
   (transient-define-prefix sn/project-menu ()
 	"Project Actions"
@@ -875,55 +991,54 @@ Call a second time to restore the original window configuration."
   (push-mark (point) t nil)
   (apply func args))
 
- (use-package move-dup
-   :bind(("M-<up>" . move-dup-move-lines-up)
+(use-package move-dup
+  :bind(("M-<up>" . move-dup-move-lines-up)
 		 ("M-<down>" . move-dup-move-lines-down)
 		 ("C-c d" . move-dup-duplicate-down)
 		 ("C-c u" . move-dup-duplicate-up)))
 
- (use-package whole-line-or-region
-   :config (whole-line-or-region-global-mode t))
+(use-package whole-line-or-region
+  :config (whole-line-or-region-global-mode t))
 
- (defun smarter-move-beginning-of-line (arg)
-   "Move point back to indentation of beginning of line.
+(defun smarter-move-beginning-of-line (arg)
+  "Move point back to indentation of beginning of line.
 
- Move point to the first non-whitespace character on this line.
- If point is already there, move to the beginning of the line.
- Effectively toggle between the first non-whitespace character and
- the beginning of the line.
+Move point to the first non-whitespace character on this line.
+If point is already there, move to the beginning of the line.
+Effectively toggle between the first non-whitespace character and
+the beginning of the line.
 
- If ARG is not nil or 1, move forward ARG - 1 lines first.  If
- point reaches the beginning or end of the buffer, stop there."
-   (interactive "^p")
-   (setq arg (or arg 1))
+If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+point reaches the beginning or end of the buffer, stop there."
+  (interactive "^p")
+  (setq arg (or arg 1))
 
-   ;; Move lines first
-   (when (/= arg 1)
+  ;; Move lines first
+  (when (/= arg 1)
 	 (let ((line-move-visual nil))
 	   (forward-line (1- arg))))
 
-   (let ((orig-point (point)))
+  (let ((orig-point (point)))
 	 (back-to-indentation)
 	 (when (= orig-point (point))
 	   (move-beginning-of-line 1))))
 
- ;; remap C-a to `smarter-move-beginning-of-line'
- (global-set-key [remap move-beginning-of-line]
+;; remap C-a to `smarter-move-beginning-of-line'
+(global-set-key [remap move-beginning-of-line]
 				 'smarter-move-beginning-of-line)
 
 (use-package ace-window
   :custom
   (aw-keys '(?a ?r ?s ?d ?t ?n ?e ?i ?o))
-  (aw-ignore-current t)
-  :bind ("M-o" . ace-window))
+  (aw-ignore-current t))
 
- (use-package windswap
-   :config
-   (windmove-default-keybindings 'control)
-   (windswap-default-keybindings 'shift 'control))
+(use-package windswap
+  :config
+  (windmove-default-keybindings 'control)
+  (windswap-default-keybindings 'shift 'control))
 
- (use-package sudo-edit
-   :commands (sudo-edit))
+(use-package sudo-edit
+  :commands (sudo-edit))
 
 (defun revert-all-buffers-no-confirm ()
   "Revert all buffers without confirmation."
@@ -1074,44 +1189,7 @@ Otherwise, it centers the posframe in the frame."
 (use-package consult
   :after vertico
   :bind
-  ("C-s" . consult-line)
-  ("C-r" . consult-ripgrep)
-  ("M-S" . consult-line-multi)
-  ("C-c M-x" . consult-mode-command)
-  ("C-c h" . consult-history)
-  ("C-c k" . consult-kmacro)
-  ("C-c m" . consult-man)
-  ("C-c i" . consult-info)
   ([remap Info-search] . consult-info)
-  ("C-x M-:" . consult-complex-command)
-  ("C-x f" . consult-buffer-other-window)
-  ("C-x 5 b" . consult-buffer-other-frame)
-  ("C-x t b" . consult-buffer-other-tab)
-  ("C-x r b" . consult-bookmark)
-  ("M-\"" . consult-register)
-  ("M-'" . consult-register-store)
-  ("C-M-'" . consult-register)
-  ("M-y" . consult-yank-pop)
-  ("M-SPC e" . consult-compile-error)
-  ("M-g g" . consult-goto-line)
-  ("M-g M-g" . consult-goto-line)
-  ("M-g o" . consult-outline)
-  ("M-SPC m" . consult-mark)
-  ("M-SPC g" . consult-global-mark)
-  ("M-g i" . consult-imenu)
-  ("M-g I" . consult-imenu-multi)
-  ;; M-s bindings in `search-map'
-  ("M-s d" . consult-find)                  ;; Alternative: consult-fd
-  ("M-s c" . consult-locate)
-  ("M-s g" . consult-grep)
-  ("M-s G" . consult-git-grep)
-  ("M-s r" . consult-ripgrep)
-  ("M-s l" . consult-line)
-  ("M-s L" . consult-line-multi)
-  ("M-s k" . consult-keep-lines)
-  ("M-s u" . consult-focus-lines)
-  ;; Isearch integration
-  ("M-s e" . consult-isearch-history)
   (:map isearch-mode-map
 	("M-e" . consult-isearch-history)
 	("M-s e" . consult-isearch-history)
@@ -1249,18 +1327,13 @@ Otherwise, it centers the posframe in the frame."
 	   consult-source-bookmark
 	   consult-source-project-recent-file)))
 
-    (use-package consult-xref-stack
-      :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
-      :bind
-      ("C-," . consult-xref-stack-backward))
+(use-package consult-xref-stack
+  :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
+  )
 
 (use-package embark
   :bind
-  ("M-SPC SPC" . embark-act)
-  ("C-;" . embark-dwim)
   ("C-h B" . embark-bindings)
-  (:map minibuffer-mode-map
-	("M-SPC" . embark-act))
   (:map embark-region-map
 	("w" . google-this)
 	("g" . gptel)
@@ -1278,24 +1351,18 @@ Otherwise, it centers the posframe in the frame."
 
 (use-package project
   :ensure nil
-  :bind-keymap ("C-c p". project-prefix-map)
   :custom (project-vc-extra-root-markers '("go.mod")))
 
 (use-package protogg
   :ensure (:host github :repo "nehrbash/protogg")
   :demand t
   :custom (protogg-minibuffer-toggle-key "M-g")
-  :bind (("M-SPC c" . protogg-compile)
-		 ([remap dired] . protogg-dired) ;; C-x d
-		 ;; ("C-c e" . protogg-eshell)
-		 ("M-s d" . protogg-find-dired)
-		 ([remap find-file] . protogg-find-file) ;; C-x C-f
-		 ([remap list-buffers] . protogg-list-buffers) ;; type C-x C-b
-		 ;; note these are not interactive so they won't toggle.
-		 ([remap async-shell-command] . protogg-async-shell-command) ;; M-&
-		 ([remap shell-command] . protogg-shell-command) ;; M-!
-		 ([remap switch-to-buffer] . sn/consult-buffer)
-		 ("M-s i" . sn/imenu))
+  :bind (([remap dired] . protogg-dired)
+		 ([remap find-file] . protogg-find-file)
+		 ([remap list-buffers] . protogg-list-buffers)
+		 ([remap async-shell-command] . protogg-async-shell-command)
+		 ([remap shell-command] . protogg-shell-command)
+		 ([remap switch-to-buffer] . sn/consult-buffer))
   :config
   (protogg-define 'consult-project-buffer 'consult-buffer sn/consult-buffer)
   (protogg-define 'consult-imenu-multi 'consult-imenu sn/imenu))
@@ -1433,7 +1500,7 @@ Otherwise, it centers the posframe in the frame."
   :hook ((text-mode
 		  prog-mode
 		  conf-mode) . yas-minor-mode-on)
-  :bind ("C-c s" . yas-insert-snippet)
+
   :custom
   (yas-verbosity 1)
   (yas-snippet-dir "~/.config/emacs/snippets")
@@ -1517,10 +1584,9 @@ Otherwise, it centers the posframe in the frame."
 (use-package consult-dir
   :after consult
   :bind
-  ("C-x C-d" . consult-dir)
   (:map vertico-map
-		("C-x C-d" . consult-dir)
-		("C-x C-j" . consult-dir-jump-file))
+	("C-x C-d" . consult-dir)
+	("C-x C-j" . consult-dir-jump-file))
   :config
   (add-to-list 'consult-dir-sources 'consult-dir--source-tramp-ssh t)
   (defun consult-dir--tramp-docker-hosts ()
@@ -1547,10 +1613,8 @@ Otherwise, it centers the posframe in the frame."
 (use-package org
   :ensure nil
   :bind
-  ("C-c a" .  gtd)
-  ("C-c c" . org-capture)
   (:map org-mode-map
-    ( "C-M-<up>" . org-up-element)
+    ("C-M-<up>" . org-up-element)
     ("C-c v" . wr-mode))
   :hook
   (org-mode . wr-mode)
@@ -1633,6 +1697,13 @@ Otherwise, it centers the posframe in the frame."
     "Tangle Org file without asking for confirmation."
     (let ((org-confirm-babel-evaluate nil))
       (org-babel-tangle)))
+  (defun sn/tangle-emacs-org ()
+    "Tangle Emacs.org to init.el."
+    (interactive)
+    (let ((org-confirm-babel-evaluate nil)
+          (org-file (expand-file-name "Emacs.org" (file-name-directory (or load-file-name buffer-file-name user-init-file)))))
+      (org-babel-tangle-file org-file)
+      (message "Tangled %s → init.el" org-file)))
   (org-babel-do-load-languages
     'org-babel-load-languages
     `((dot . t)
@@ -1708,12 +1779,12 @@ Otherwise, it centers the posframe in the frame."
 (use-package org-modern
   :config (global-org-modern-mode t))
 
-   (use-package org-appear
-     :ensure (:host github :repo "awth13/org-appear")
-     :hook (org-mode . org-appear-mode))
+(use-package org-appear
+  :ensure (:host github :repo "awth13/org-appear")
+  :hook (org-mode . org-appear-mode))
 
- (use-package org-fragtog
-   :hook (org-mode . org-fragtog-mode))
+(use-package org-fragtog
+  :hook (org-mode . org-fragtog-mode))
 
 (use-package org-clock
   :ensure nil
@@ -1770,13 +1841,7 @@ Only clock in/out when needed, and always save all Org buffers."
 (add-hook 'org-clock-in-hook  #'sn/org-clock-in-set-state)
 (add-hook 'org-clock-out-hook #'sn/org-clock-out-set-state)
 
-  :bind-keymap ("C-o" . org-clock-map)
-  :bind (:map org-clock-map
-          ("j" . org-clock-goto)
-          ("l" . org-clock-in-last)
-          ("r" . org-resolve-clocks)
-          ("i" . consult-clock-in)
-          ("o" . org-clock-out))
+
   :config
   (defun consult-clock-in ()
     "Clock into an Org agenda heading."
@@ -2072,19 +2137,8 @@ Only clock in/out when needed, and always save all Org buffers."
 		"* %?"
 		:target (file+head "%<%Y-%m-%d>.org"
 				  "#+title: %<%Y-%m-%d>\n"))))
-  :bind (("C-c n f" . org-roam-node-find)
-		  ("C-c n d" . org-roam-dailies-goto-date)
-		  ("C-c n n" . org-roam-buffer-display-dedicated)
-		  ("C-c n c" . org-roam-dailies-capture-today)
-		  ("C-c n C" . org-roam-dailies-capture-tomorrow)
-		  ("C-c n t" . org-roam-dailies-goto-today)
-		  ("C-c n y" . org-roam-dailies-goto-yesterday)
-		  ("C-c n r" . org-roam-dailies-goto-tomorrow)
-		  ("C-c n G" . org-roam-graph)
-		  :map org-mode-map
-		  (("C-c n i" . org-roam-node-insert))))
+  )
 (use-package consult-org-roam
-  :bind ("C-c n g" . org-roam-node-find)
   :after org-roam)
 
 (use-package org-roam-ui
@@ -2342,7 +2396,7 @@ The exact color values are taken from the active Ef theme."
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
-      (use-package magit-pretty-graph
+(use-package magit-pretty-graph
 	:ensure (:host github :repo "georgek/magit-pretty-graph")
 	:bind
 	)
@@ -2352,86 +2406,86 @@ The exact color values are taken from the active Ef theme."
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
-  (use-package svg-tag-mode)
-  (use-package vterm
-    :hook (vterm-mode . sn/setup-vterm)
-    :init
-    (defun sn/vterm-apply-theme ()
-  	"Apply current theme colors to vterm buffer."
-  	(modus-themes-with-colors
-  	  (let ((darker (sn-darken-color bg-main 0.7)))
-  		(face-remap-add-relative
-  		  'default
-  		  :background darker)
-  		(face-remap-set-base
-  		  'default
-  		  :background darker)
-  		(face-remap-add-relative
-  		  'fringe
-  		  :background darker))))
-    (defun sn/setup-vterm ()
-  	"Setup vterm buffer with custom font and theme colors."
-  	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
-  	(buffer-face-mode t)
-  	(setq-local left-margin-width 3
-  	  right-margin-width 3
-  	  cursor-type 'bar)
-  	(sn/vterm-apply-theme))
-    (defun sn/vterm-update-all-themes ()
-  	"Update theme colors in all vterm buffers."
-  	(dolist (buffer (buffer-list))
-  	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
-  		(with-current-buffer buffer
-  		  (sn/vterm-apply-theme)))))
-    :config
-    (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
-    (defun old-version-of-vterm--get-color (index &rest args)
-  	"This is the old version before it was broken by commit
-  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-  	(cond
-        ((and (>= index 0) (< index 16))
-  		(face-foreground
-  		  (elt vterm-color-palette index)
-  		  nil 'default))
-        ((= index -11)
-  		(face-foreground 'vterm-color-underline nil 'default))
-        ((= index -12)
-  		(face-background 'vterm-color-inverse-video nil 'default))
-        (t
-  		nil)))
-    (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
-    (defun my/vterm-standalone ()
-  	"Create a standalone vterm frame without modeline and minibuffer."
-  	(interactive)
-  	(let ((frame (make-frame '((name . "vterm-standalone")
-  								(minibuffer . nil)))))
-        (select-frame frame)
-        (let ((display-buffer-alist nil))
-  		(vterm))
-  	  (setq mode-line-format nil)))
-    )
-  (use-package svg-lib :ensure t)
-  (use-package svg-tabs
-    :load-path "~/.config/emacs/lisp"
-    :after svg-lib)
-  (use-package vterm-tabs
-    :load-path "~/.config/emacs/lisp"
-    :bind
-    (("<f6>" . vterm-tabs-toggle)
-  	:map vterm-mode-map
-  	("C-M-s" . consult-term)
-  	("M-w" . copy-region-as-kill)
-  	("C-y" . vterm-yank))
-    :custom
-    (vterm-buffer-maximum-size 800)
-    (vterm-tramp-shells
-  	'(("ssh" "/bin/bash")
-  	   ("docker" "/bin/bash")
-  	   ("sudo" "/bin/bash")))
-    (vterm-always-compile-module t)
-    :config
-    (global-vterm-tabs-mode 1))
+(use-package svg-tag-mode)
+(use-package vterm
+  :hook (vterm-mode . sn/setup-vterm)
+  :init
+  (defun sn/vterm-apply-theme ()
+	"Apply current theme colors to vterm buffer."
+	(modus-themes-with-colors
+	  (let ((darker (sn-darken-color bg-main 0.7)))
+		(face-remap-add-relative
+		  'default
+		  :background darker)
+		(face-remap-set-base
+		  'default
+		  :background darker)
+		(face-remap-add-relative
+		  'fringe
+		  :background darker))))
+  (defun sn/setup-vterm ()
+	"Setup vterm buffer with custom font and theme colors."
+	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
+	(buffer-face-mode t)
+	(setq-local left-margin-width 3
+	  right-margin-width 3
+	  cursor-type 'bar)
+	(sn/vterm-apply-theme))
+  (defun sn/vterm-update-all-themes ()
+	"Update theme colors in all vterm buffers."
+	(dolist (buffer (buffer-list))
+	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
+		(with-current-buffer buffer
+		  (sn/vterm-apply-theme)))))
+  :config
+  (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
+  (defun old-version-of-vterm--get-color (index &rest args)
+	"This is the old version before it was broken by commit
+https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+	(cond
+      ((and (>= index 0) (< index 16))
+		(face-foreground
+		  (elt vterm-color-palette index)
+		  nil 'default))
+      ((= index -11)
+		(face-foreground 'vterm-color-underline nil 'default))
+      ((= index -12)
+		(face-background 'vterm-color-inverse-video nil 'default))
+      (t
+		nil)))
+  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
+  (defun my/vterm-standalone ()
+	"Create a standalone vterm frame without modeline and minibuffer."
+	(interactive)
+	(let ((frame (make-frame '((name . "vterm-standalone")
+								(minibuffer . nil)))))
+      (select-frame frame)
+      (let ((display-buffer-alist nil))
+		(vterm))
+	  (setq mode-line-format nil)))
+  )
+(use-package svg-lib :ensure t)
+(use-package svg-tabs
+  :load-path "~/.config/emacs/lisp"
+  :after svg-lib)
+(use-package vterm-tabs
+  :load-path "~/.config/emacs/lisp"
+  :bind
+  (("<f6>" . vterm-tabs-toggle)
+	:map vterm-mode-map
+	("C-M-s" . consult-term)
+	("M-w" . copy-region-as-kill)
+	("C-y" . vterm-yank))
+  :custom
+  (vterm-buffer-maximum-size 800)
+  (vterm-tramp-shells
+	'(("ssh" "/bin/bash")
+	   ("docker" "/bin/bash")
+	   ("sudo" "/bin/bash")))
+  (vterm-always-compile-module t)
+  :config
+  (global-vterm-tabs-mode 1))
 
 (use-package makefile-runner
   :ensure (:host github :repo "danamlund/emacs-makefile-runner"))
@@ -2449,10 +2503,7 @@ The exact color values are taken from the active Ef theme."
   (flymake-no-changes-timeout 2)
   (flymake-fringe-indicator-position 'right-fringe)
   (flymake-show-diagnostics-at-end-of-line 'fancy)
-  :bind
-  ("M-g f" . consult-flymake)
-  ("M-SPC p" . flymake-show-project-diagnostics)
-  ("M-SPC M-p" . toggle-flymake-show-diagnostics-at-end-of-line)
+
   :config
   (defun toggle-flymake-show-diagnostics-at-end-of-line ()
   "Toggle 'flymake-show-diagnostics-at-end-of-line' between 'fancy and nil."
@@ -2474,7 +2525,7 @@ The exact color values are taken from the active Ef theme."
 
 (use-package treesit-fold
   :ensure (:host github :repo "emacs-tree-sitter/treesit-fold")
-  :bind ("M-SPC f" . treesit-fold-toggle)
+
   :custom (treesit-fold-summary-max-length 80)
   :init
   (global-treesit-fold-mode))
@@ -2536,7 +2587,7 @@ The exact color values are taken from the active Ef theme."
   :hook (yaml-ts-mode . goto-address-prog-mode))
 
 (use-package docker
-  :bind ("M-SPC d" . docker))
+  )
 (use-package docker-compose-mode
   :mode ("\docker-compose.yml\\'" . docker-compose-mode))
 
@@ -2655,7 +2706,6 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 
 (use-package whisper
   :ensure (:host github :repo "natrys/whisper.el")
-  :bind ("M-SPC w" . whisper-run)
   :config
   (setq whisper-install-directory "~/.cache/"
 		whisper-model "base"
@@ -2663,13 +2713,10 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 		whisper-translate nil))
 
 (use-package gptel
-  :ensure (:host github :repo "karthink/gptel")
   :after vterm
   :bind
-  ("<f5>" . gptel-toggle-sidebar)
   (:map vterm-mode-map
 	("<f5>" . gptel-toggle-sidebar))
-  ("C-<f5>" . gptel-menu)
   :hook
   (org-mode . gptel-activate-if-model-exists)
   :custom
@@ -2767,35 +2814,31 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
   (add-to-list 'gptel-post-response-functions #'gptel-save-if-file))
 
 (use-package gptel-agent
-  :ensure (:host github :repo "karthink/gptel-agent")
   :after gptel)
 
-(use-package eca
-  :bind ("M-SPC a" . eca-chat-toggle-window))
+(use-package agent-shell
+  :ensure (:host github :repo "xenodium/agent-shell")
+  :custom
+  (agent-shell-show-welcome-message nil)
+  (agent-shell-preferred-agent-config 'claude-code))
 
 (use-package mcp-server
   :ensure (:host github :repo "rhblind/emacs-mcp-server"
            :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh"))
   :hook (emacs-startup . mcp-server-start-unix))
 
- (use-package codeium
-   :ensure (:host github :repo "Exafunction/codeium.el")
-   :custom
-   (codeium-log-buffer nil)
-   :config
-   ;; modeline
-   (setq codeium-mode-line-enable
-     (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-   (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
+(use-package codeium
+  :ensure (:host github :repo "Exafunction/codeium.el")
+  :custom
+  (codeium-log-buffer nil)
+  :config
+  ;; modeline
+  (setq codeium-mode-line-enable
+    (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
 
-(use-package google-this
-  :bind ("M-s w" . google-this))
+(use-package google-this)
 
-(use-package ea
-  :load-path "~/.config/emacs/lisp")
+(use-package ea :load-path "~/.config/emacs/lisp")
 
-(use-package consult-taskfile
-  :load-path "~/.config/emacs/lisp/consult-taskfile"
-  :bind
-  ("M-SPC x" . consult-taskfile)
-  ("M-SPC c" . taskfile))
+(use-package consult-taskfile :load-path "~/.config/emacs/lisp/consult-taskfile")

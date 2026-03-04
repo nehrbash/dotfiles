@@ -297,7 +297,7 @@
                           (cons "GUIX_PACKAGE_PATH" %dotfiles-dir))
                     '(("EDITOR" . "emacs -nw")
                      ("TERM" . "xterm-256color")
-                     ("PATH" . "$PATH:$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.cargo/bin:$HOME/.local/share/go/bin:$HOME/.local/share/npm/bin")
+                     ("PATH" . "$PATH:$HOME/.local/bin:$HOME/.local/share/uv/bin:$HOME/.cargo/bin:$HOME/.local/share/go/bin")
                      ("GOPATH" . "$HOME/.local/share/go")
                      ("NPM_CONFIG_PREFIX" . "$HOME/.local/share/npm")
                      ("SSH_AUTH_SOCK" . "$XDG_RUNTIME_DIR/ssh-agent.socket")
@@ -352,7 +352,16 @@
              (zshenv
               (list (plain-file "zshenv" "setopt NULL_GLOB\n")))
              (zshrc
-              (list (local-file "../files/zsh/zshrc" "zshrc")))))
+              (list (mixed-text-file "zsh-plugins"
+                     "source " zsh-autosuggestions "/share/zsh/plugins/zsh-autosuggestions/zsh-autosuggestions.zsh\n"
+                     "source " zsh-autopair "/share/zsh/plugins/zsh-autopair/zsh-autopair.zsh\n"
+                     "source " zsh-history-substring-search "/share/zsh/plugins/zsh-history-substring-search/zsh-history-substring-search.zsh\n"
+                     ;; syntax-highlighting must be last
+                     "source " zsh-syntax-highlighting "/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh\n")
+                    (local-file "../files/zsh/zshrc" "zshrc")
+                    ;; fzf-tab must load after compinit (which runs in zshrc)
+                    (mixed-text-file "zsh-fzf-tab"
+                     "source " fzf-tab "/share/zsh/plugins/fzf-tab/fzf-tab.zsh\n")))))
 
    ;; Automated setup (idempotent, runs on every reconfigure)
    (post-setup-activation-service %dotfiles-dir)

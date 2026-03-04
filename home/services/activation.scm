@@ -109,7 +109,8 @@
                            ("files/zsh/functions" . "zsh/functions")
                            ;; Emacs individual files
                            ("files/emacs/init.el" . "emacs/init.el")
-                           ("files/emacs/early-init.el" . "emacs/early-init.el")))
+                           ("files/emacs/early-init.el" . "emacs/early-init.el")
+                           ("files/starship/starship.toml" . "starship.toml")))
 
                         ;; SSH config — copied as a real file so bind-mounts
                         ;; into containers work (symlinks to the store don't

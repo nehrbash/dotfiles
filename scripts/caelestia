@@ -1,0 +1,3 @@
+#!/bin/sh
+export LD_LIBRARY_PATH="$HOME/.guix-home/profile/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+exec "$HOME/.local/share/uv/bin/caelestia" "$@"
