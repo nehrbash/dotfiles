@@ -2,6 +2,7 @@
 
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 HOSTNAME     := $(shell hostname)
+CORES        := $(shell nproc)
 
 # Update everything in the correct order
 all: update
@@ -10,7 +11,7 @@ update: update-channels update-quickshell update-home
 
 # 1. Pull latest Guix channels
 update-channels:
-	guix pull -C $(DOTFILES_DIR)/channels.scm
+	guix pull -C $(DOTFILES_DIR)/channels.scm --cores=$(CORES)
 
 # 2. Update quickshell submodule (fetch + rebase personal commits onto upstream/main)
 update-quickshell-upstream:
@@ -24,12 +25,13 @@ update-quickshell-upstream:
 update-quickshell:
 	git -C $(DOTFILES_DIR) submodule update --remote --rebase files/quickshell
 	git -C $(DOTFILES_DIR) add files/quickshell
-	git -C $(DOTFILES_DIR) commit -m "chore: update quickshell submodule"
+	git -C $(DOTFILES_DIR) diff --cached --quiet files/quickshell || \
+		git -C $(DOTFILES_DIR) commit -m "chore: update quickshell submodule"
 
 # 3. Reconfigure Guix Home (rebuilds quickshell + caelestia-shell packages)
 update-home:
-	guix home reconfigure $(DOTFILES_DIR)/home/redfish.scm -L $(DOTFILES_DIR)
+	guix home reconfigure $(DOTFILES_DIR)/home/redfish.scm -L $(DOTFILES_DIR) --cores=$(CORES)
 
 # 4. Reconfigure Guix System (run as root)
 update-system:
-	sudo -E guix system reconfigure $(DOTFILES_DIR)/systems/$(HOSTNAME).scm
+	sudo -E guix system reconfigure $(DOTFILES_DIR)/systems/$(HOSTNAME).scm --cores=$(CORES)
