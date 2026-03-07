@@ -2,128 +2,57 @@
 
 (use-modules (gnu)
              (gnu system)
-             (gnu system shadow)
-             (gnu system accounts)
-             (guix)
              (guix gexp)
-             (gnu services desktop)
-             (gnu services xorg)
              (gnu services linux)
-             (gnu services base)
-             (gnu services containers)
-             (gnu services pm)
-             (gnu services virtualization)
-             (gnu services security-token)
-             (gnu packages admin)
-             (gnu packages wm)
-             (gnu packages shells)
+             (gnu services shepherd)
              (nongnu packages nvidia)
              (nongnu services nvidia)
              (nongnu packages linux)
              (nongnu system linux-initrd)
-             (systems base-system)
-             (gnu system privilege)
-             (srfi srfi-1)
-             (packages gpu-screen-recorder))
-
-(define %redfish-services
-  (append
-   %base-services-extra
-   (list
-    (service rootless-podman-service-type
-             (rootless-podman-configuration
-              (containers-registries
-               (plain-file "registries.conf"
-                           "unqualified-search-registries = ['docker.io']\n"))
-              (subuids (list (subid-range (name "nehrbash")
-                                         (start 100000)
-                                         (count 65536))))
-              (subgids (list (subid-range (name "nehrbash")
-                                         (start 100000)
-                                         (count 65536))))))
-   (service nvidia-service-type)
-   (service libvirt-service-type
-            (libvirt-configuration
-             (unix-sock-group "libvirt")))
-   (service virtlog-service-type)
-   (service power-profiles-daemon-service-type)
-   (service pcscd-service-type)
-   (extra-special-file "/etc/dbus-1/system.d/increase-limits.conf"
-                       (plain-file "increase-limits.conf"
-                                   "<busconfig>
-  <limit name=\"max_connections_per_user\">1024</limit>
-</busconfig>\n"))
-    (service greetd-service-type
-             (greetd-configuration
-              (greeter-supplementary-groups '("video" "input"))
-              (terminals
-               (list (greetd-terminal-configuration
-                      (terminal-vt "1")
-                      (terminal-switch #t)
-                      (default-session-command
-                        (greetd-user-session
-                         (command (file-append tuigreet "/bin/tuigreet"))
-                         (command-args
-                          (list "--time" "--remember" "--remember-session"
-                                "--sessions"
-                                "/run/current-system/profile/share/wayland-sessions"))))))))))
-   (remove (lambda (s)
-             (or (eq? (service-kind s) gdm-service-type)
-                 (and (eq? (service-kind s) mingetty-service-type)
-                      (string=? "tty1" (mingetty-configuration-tty
-                                         (service-parameters s))))))
-           (modify-services %desktop-services
-             (guix-service-type config =>
-                                (guix-configuration
-                                 (inherit config)
-                                 (substitute-urls %substitute-urls)
-                                 (authorized-keys %authorized-keys)))))))
+             (systems oceania)
+             (srfi srfi-1))
 
 (operating-system
+  (inherit %oceania-os)
   (kernel linux)
   (initrd microcode-initrd)
   (firmware (list linux-firmware))
   (kernel-arguments '("modprobe.blacklist=nouveau"
                       "nvidia_drm.modeset=1"
-                      "mem_sleep_default=s2idle"
-                      "nvidia.NVreg_EnableS0ixPowerManagement=1"
+                      "nvidia_modeset.vblank_sem_control=0"
+                      "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
+                      "nvidia.NVreg_TemporaryFilePath=/var/tmp"
+                      "resume=UUID=f1a2747c-5559-44c2-8951-1f48840b00ce"
                       "quiet" "loglevel=3"))
 
-  (locale "en_US.utf8")
-  (timezone "America/New_York")
-  (keyboard-layout (keyboard-layout "us"))
   (host-name "redfish")
 
-  (groups (cons* (user-group (name "seat"))
-                %base-groups))
-
-  (users (cons* (user-account
-                  (name "nehrbash")
-                  (comment "Stephen Nehrbass")
-                  (group "users")
-                  (home-directory "/home/nehrbash")
-                  (shell (file-append zsh "/bin/zsh"))
-                  (supplementary-groups '("wheel" "netdev" "audio" "video"
-                                          "input" "seat" "cgroup"
-                                          "libvirt" "kvm")))
-                %base-user-accounts))
-
-  (packages (append (list hyprland tuigreet)
-                    %base-packages-extra
-                    %base-packages))
-
-  (services %redfish-services)
-
-  (privileged-programs
-   (cons* (privileged-program
-           (program (file-append gpu-screen-recorder "/bin/gsr-kms-server"))
-           (capabilities "cap_sys_admin+ep"))
-          %default-privileged-programs))
+  (services (append
+             (list
+              (service nvidia-service-type)
+              (service kernel-module-loader-service-type '("nct6775"))
+              ;; Enable persistence mode so PreserveVideoMemoryAllocations works
+              (simple-service 'nvidia-persistence shepherd-root-service-type
+                (list (shepherd-service
+                        (provision '(nvidia-persistence))
+                        (requirement '(nvidia))
+                        (one-shot? #t)
+                        (start #~(lambda _
+                                   (zero? (system* #$(file-append nvda "/bin/nvidia-smi")
+                                                   "-pm" "1")))))))
+              (extra-special-file "/etc/elogind/system-sleep/nvidia"
+                                  (computed-file "nvidia-sleep"
+                                    #~(begin
+                                        (call-with-output-file #$output
+                                          (lambda (port)
+                                            (display "#!/bin/sh\ncase $1 in\n  pre)\n    case $2 in\n      suspend) echo suspend > /proc/driver/nvidia/suspend ;;\n      hibernate) echo hibernate > /proc/driver/nvidia/suspend ;;\n    esac\n    ;;\n  post)\n    echo resume > /proc/driver/nvidia/suspend\n    ;;\nesac\n" port)))
+                                        (chmod #$output #o755)))))
+             (operating-system-user-services %oceania-os)))
 
   (bootloader (bootloader-configuration
                 (bootloader grub-bootloader)
                 (targets (list "/dev/nvme0n1"))
-                (keyboard-layout keyboard-layout)))
+                (keyboard-layout (operating-system-keyboard-layout %oceania-os))))
 
   (swap-devices (list (swap-space
                         (target (uuid
@@ -140,5 +69,8 @@
                          (device (uuid
                                   "82ad9826-41b8-4b10-acc5-70093d02b41b"
                                   'btrfs))
-                         (type "btrfs"))
+                         (type "btrfs")
+                         (mount-may-fail? #t)
+                         (check? #f)
+                         (create-mount-point? #t))
                        %base-file-systems)))

@@ -2,6 +2,7 @@
 # On Guix, pre-built binaries link against /lib64/ which doesn't exist.
 # Disable tools already provided by Guix so mise doesn't try to install them.
 disable_tools = ["python", "node", "go", "jq", "ripgrep"]
+trusted_config_paths = ["~/src"]
 
 [tools]
 task = "latest"

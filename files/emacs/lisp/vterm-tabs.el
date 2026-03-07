@@ -3,7 +3,7 @@
 ;; Author: Stephen Nehrbass
 ;; Keywords: terminals, processes
 ;; Version: 2.0
-;; Package-Requires: ((emacs "31.1") (vterm "0.0.2"))
+;; Package-Requires: ((emacs "31.0") (vterm "0.0.2"))
 
 ;; This file is not part of GNU Emacs.
 ;;

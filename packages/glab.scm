@@ -1,5 +1,6 @@
 (define-module (packages glab)
   #:use-module (guix packages)
+  #:use-module (guix gexp)
   #:use-module (guix download)
   #:use-module (guix build-system copy)
   #:use-module ((guix licenses) #:prefix license:))
@@ -19,8 +20,7 @@
     (supported-systems '("x86_64-linux"))
     (build-system copy-build-system)
     (arguments
-     '(#:install-plan
-       '(("glab" "bin/glab"))))
+     (list #:install-plan #~'(("glab" "bin/glab"))))
     (home-page "https://gitlab.com/gitlab-org/cli")
     (synopsis "GitLab CLI tool")
     (description

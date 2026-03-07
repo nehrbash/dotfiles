@@ -2,15 +2,15 @@
 ;;; Commentary: Emacs Startup File, initialization for Emacs. DO NOT EDIT, auto tangled from Emacs.org.
 ;;; Code:
 
-(defvar elpaca-installer-version 0.11)
+(defvar elpaca-installer-version 0.12)
 (defvar elpaca-directory (expand-file-name "elpaca/" user-emacs-directory))
 (defvar elpaca-builds-directory (expand-file-name "builds/" elpaca-directory))
-(defvar elpaca-repos-directory (expand-file-name "repos/" elpaca-directory))
+(defvar elpaca-sources-directory (expand-file-name "sources/" elpaca-directory))
 (defvar elpaca-order '(elpaca :repo "https://github.com/progfolio/elpaca.git"
 			      :ref nil :depth 1 :inherit ignore
 			      :files (:defaults "elpaca-test.el" (:exclude "extensions"))
-			      :build (:not elpaca--activate-package)))
-(let* ((repo  (expand-file-name "elpaca/" elpaca-repos-directory))
+			      :build (:not elpaca-activate)))
+(let* ((repo  (expand-file-name "elpaca/" elpaca-sources-directory))
        (build (expand-file-name "elpaca/" elpaca-builds-directory))
        (order (cdr elpaca-order))
        (default-directory repo))
@@ -39,7 +39,6 @@
     (elpaca-generate-autoloads "elpaca" repo)
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
-(setq elpaca-order-defaults (list :protocol 'https :inherit t :depth 1))
 (elpaca `(,@elpaca-order))
   (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
@@ -56,17 +55,14 @@
   (let ((lock-file "~/.config/emacs/install_lock"))
     (unless (file-exists-p lock-file)
       (condition-case err
-	(all-the-icons-install-fonts)
-	(error (message "Error running all-the-icons-install-fonts: %s" err)))
+	(nerd-icons-install-fonts t)
+	(error (message "Error running nerd-icons-install-fonts: %s" err)))
       (condition-case err
 	(yas-reload-all)
 	(error (message "Error running yas-reload-all: %s" err)))
       (condition-case err
 	(recentf-cleanup)
 	(error (message "Error running recentf-cleanup: %s" err)))
-      (condition-case err
-	(nerd-icons-install-fonts)
-	(error (message "Error running nerd-icons-install-fonts: %s" err))) ;; commented as 'nerd-icons-install-fonts' function doesn't exist.
       (write-region "" nil lock-file))))
 
 (setq custom-file (expand-file-name "customs.el" user-emacs-directory))
@@ -163,7 +159,7 @@
         mode-line-right-align-edge 'right-margin)
 
 (use-package sn-modeline
-  :load-path "~/.config/emacs/lisp"
+  :ensure (sn-modeline :type file :main "~/.config/emacs/lisp/sn-modeline.el")
   :config
   (sn-modeline-mode 1))
 
@@ -1118,10 +1114,8 @@ point reaches the beginning or end of the buffer, stop there."
   :custom (marginalia-align 'right)
   :hook (elpaca-after-init . marginalia-mode))
 
-(use-package all-the-icons-completion
-  :custom
-  (all-the-icons-scale-factor 0.96)
-  :hook (marginalia-mode . all-the-icons-completion-marginalia-setup))
+(use-package nerd-icons-completion
+  :hook (marginalia-mode . nerd-icons-completion-marginalia-setup))
 
 (use-package vertico-posframe
   :custom
@@ -1566,9 +1560,9 @@ Otherwise, it centers the posframe in the frame."
 		  ("<tab>" . dired-subtree-toggle)
 		  ("<backtab>" . dired-subtree-cycle)))
 
-(use-package all-the-icons-dired
+(use-package nerd-icons-dired
   :after dired
-  :hook (dired-mode . all-the-icons-dired-mode))
+  :hook (dired-mode . nerd-icons-dired-mode))
 (use-package dired-collapse
   :after dired
   :hook  (dired-mode . dired-collapse-mode))
@@ -1624,9 +1618,7 @@ Otherwise, it centers the posframe in the frame."
     '(("" "xcolor")))
   (org-latex-todo-keyword-format
     "\\colorbox{%s!30}{\\textbf{%s}}")
-  (org-latex-preview-live t)
-  (org-latex-preview-numbered t)
-  (org-latex-preview-live-debounce 0.25)
+  (org-preview-latex-default-process 'dvisvgm)
   (org-todo-keywords
       '((sequence "TODO(t)" "NEXT(n)" "INPROGRESS(i)" "|" "DONE(d!)")
         (sequence "PROJECT(p)" "|" "DONE(d!)")
@@ -2467,10 +2459,10 @@ Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
   )
 (use-package svg-lib :ensure t)
 (use-package svg-tabs
-  :load-path "~/.config/emacs/lisp"
+  :ensure (svg-tabs :type file :main "~/.config/emacs/lisp/svg-tabs.el")
   :after svg-lib)
 (use-package vterm-tabs
-  :load-path "~/.config/emacs/lisp"
+  :ensure (vterm-tabs :type file :main "~/.config/emacs/lisp/vterm-tabs.el")
   :bind
   (("<f6>" . vterm-tabs-toggle)
 	:map vterm-mode-map
@@ -2839,6 +2831,6 @@ Otherwise, copy the absolute file path. Appends the line number at the end."
 
 (use-package google-this)
 
-(use-package ea :load-path "~/.config/emacs/lisp")
+(use-package ea :ensure (ea :type file :main "~/.config/emacs/lisp/ea.el"))
 
-(use-package consult-taskfile :load-path "~/.config/emacs/lisp/consult-taskfile")
+(use-package consult-taskfile :ensure (consult-taskfile :type file :main "~/.config/emacs/lisp/consult-taskfile/consult-taskfile.el"))

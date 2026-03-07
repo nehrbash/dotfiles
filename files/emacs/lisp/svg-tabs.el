@@ -3,7 +3,7 @@
 ;; Author: Stephen Nehrbass
 ;; Keywords: convenience, tabs
 ;; Version: 2.0
-;; Package-Requires: ((emacs "31.1") (svg-lib "0.3"))
+;; Package-Requires: ((emacs "31.0") (svg-lib "0.3"))
 
 ;; This file is not part of GNU Emacs.
 ;;

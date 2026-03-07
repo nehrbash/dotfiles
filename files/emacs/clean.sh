@@ -1,19 +1,21 @@
-#!/bin/bash
+#!/usr/bin/env bash
+# Clean Emacs config for a fresh elpaca rebuild.
+# Also removes the install_lock so first-run tasks re-execute.
 
-rm -rf "$HOME/.config/emacs/tramp"
-rm -rf "$HOME/.config/emacs/etc"
-rm -rf "$HOME/.config/emacs/elpa"
-rm -rf "$HOME/.config/emacs/elpaca"
-rm -rf "$HOME/.config/emacs/straight"
-rm -rf "$HOME/.config/emacs/var"
-# rm -rf "$HOME/.config/emacs/customs.el"
-rm -rf "$HOME/.config/emacs/eshell"
-rm -rf "$HOME/.config/emacs/org-roam.db"
-rm -rf "$HOME/.config/emacs/tree-sitter"
-rm -rf "$HOME/.config/emacs/persist"
-rm -rf "$HOME/.config/emacs/forg-database.sqlite"
-rm -rf "$HOME/.config/emacs/eln-cache"
-rm -rf "$HOME/.config/emacs/auto-save-list"
-rm -rf "$HOME/.config/emacs/package-quickstart.el"
-rm -rf "$HOME/.config/emacs/package-quickstart.elc"
-rm -rf "$HOME/.cache/org-persist"
+set -euo pipefail
+
+EMACS_DIR="${HOME}/.config/emacs"
+CACHE_DIR="${HOME}/.cache"
+
+rm -rf \
+  "${EMACS_DIR}/elpaca" \
+  "${EMACS_DIR}/eln-cache" \
+  "${EMACS_DIR}/tramp" \
+  "${EMACS_DIR}/auto-save-list" \
+  "${EMACS_DIR}/tree-sitter" \
+  "${EMACS_DIR}/persist" \
+  "${EMACS_DIR}/org-roam.db" \
+  "${EMACS_DIR}/install_lock" \
+  "${CACHE_DIR}/org-persist"
+
+echo "Emacs config cleaned. Restart Emacs to rebuild."

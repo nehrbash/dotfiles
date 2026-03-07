@@ -10,260 +10,34 @@
              (gnu home)
              (gnu home services)
              (gnu home services shells)
-             (gnu home services shepherd)
-             (gnu packages)
-             (gnu packages version-control)
-             (gnu packages emacs)
-             (gnu packages emacs-xyz)
-             (gnu packages ssh)
-             (gnu packages admin)
-             (gnu packages terminals)
-             (gnu packages ncurses)
-             (gnu packages video)
-             (gnu packages fonts)
-             (gnu packages aspell)
-             (gnu packages enchant)
-             (gnu packages text-editors)
-             (gnu packages rust)
-             (gnu packages rust-apps)
-             (gnu packages curl)
-             (gnu packages shellutils)
-             (gnu packages golang)
-             (gnu packages golang-apps)
-             (gnu packages golang-check)
-             (gnu packages golang-xyz)
-             (gnu packages tree-sitter)
-             (gnu packages wm)
-             (gnu packages xdisorg)
-             (gnu packages glib)
-             (gnu packages gtk)
-             (gnu packages gnome)
-             (gnu packages gnome-xyz)
-             (gnu packages pkg-config)
-             (gnu packages music)
-             (gnu packages mail)
-             (gnu packages texlive)
-             (gnu packages haskell-apps)
-             (gnu packages tex)
-             (gnu packages cdrom)
-             (gnu packages compression)
-             (gnu packages wget)
-             (gnu packages dns)
-             (gnu packages web)
-             (gnu packages node)
-             (packages gpu-screen-recorder)
-             (gnu packages freedesktop)
-             (gnu packages polkit)
-             (gnu packages python)
-             (gnu packages package-management)
-             (gnu packages image)
-             (gnu packages base)
-             (gnu packages autotools)
-             (gnu packages cmake)
-             (gnu packages ninja)
-             (gnu packages linux)
-             (gnu packages audio)
-             (gnu packages maths)
-             (gnu packages hardware)
-             (gnu packages security-token)
-             (gnu packages xorg)
-             (gnu packages qt)
-             (gnu packages containers)
-             (gnu packages pulseaudio)
+             (gnu home services xdg)
              (gnu home services desktop)
              (gnu home services sound)
+             (gnu packages shellutils)
              (guix gexp)
-             (packages gruvbox)
-             (packages fonts)
-             (packages quickshell)
-             (packages libcava)
-             (packages glab)
-             (packages mise)
-             (packages slack)
-             (packages vscode)
-             (packages claude-code)
-             (packages claude-agent-acp)
-             (nongnu packages editors)
+             (packages package-groups)
              (home services quickshell)
-             (home services shepherd)
-             (home services activation))
+             (home services wayland)
+             (home services emacs)
+             (home services caelestia)
+             (home services spicetify)
+             (home services portal)
+             (home services polkit)
+             (home services podman)
+             (home services keyring)
+             (home services ssh-agent)
+             (home services flatpak)
+             (home services uv-python)
+             (home services zen-browser)
+             (home services dotfiles-symlinks)
+             (home services dconf))
 
 (home-environment
 
  (packages
-  (list
-   ;; Core tools
-   git
-   git-lfs
-   curl
-   wget
-   ripgrep
-   jq
-   (specification->package "bind")
-   (specification->package "sqlite")
-   (specification->package "gcc-toolchain")
-   pkg-config
-   libtool
-   cmake
-   gnu-make
-   ninja
-
-   ;; Terminal & shell
-   libvterm
-   alacritty
-   eza
-   starship
-   zsh-autosuggestions
-   zsh-syntax-highlighting
-   zsh-completions
-   zsh-autopair
-   zsh-history-substring-search
-   fzf
-   fzf-tab
-   ncurses
-   (specification->package "file")
-   (specification->package "tree")
-   (specification->package "lsof")
-   (specification->package "strace")
-   (specification->package "zip")
-   (specification->package "unzip")
-   (specification->package "pv")
-   (specification->package "bc")
-
-   ;; Editor
-   emacs-next-pgtk
-
-   ;; Fonts
-   font-iosevka
-   font-iosevka-aile
-   font-awesome
-   font-google-material-design-icons
-   font-google-noto-emoji
-   font-rubik
-   font-caskaydia-cove-nf
-   font-iosevka-term-nf
-   font-material-symbols-rounded
-
-   ;; Wayland / Hyprland
-   hyprpolkitagent
-   hyprland
-   libnotify
-   xdg-desktop-portal-hyprland
-   xdg-desktop-portal-gtk
-   wl-clipboard
-   grim
-   slurp
-   swappy
-   hyprpicker
-   fuzzel
-   cliphist
-   (list glib "bin")                    ; provides gdbus (used by caelestia notify)
-   playerctl
-   brightnessctl
-   wlr-randr
-   quickshell-caelestia-plugin
-   qtwayland
-   ddcutil
-
-   ;; Screen recording (caelestia record)
-   gpu-screen-recorder
-
-   ;; Audio
-   pavucontrol
-   cava
-   aubio
-   libqalculate
-   libcava
-
-   ;; Video
-   vlc
-
-   ;; Spellcheck
-   aspell
-   aspell-dict-en
-   enchant
-
-   ;; Mail
-   isync
-
-   ;; TeX
-   texlive-scheme-full
-
-   ;; Languages
-	go
-   python
-	rust
-	node
-   claude-code
-   claude-agent-acp
-   (list rust "cargo")
-
-   ;; Go tools
-   gopls
-   gofumpt
-   go-staticcheck
-
-   ;; Rust tools
-   rust-analyzer
-
-   ;; Tree-sitter grammars
-   tree-sitter-css
-   tree-sitter-go
-   tree-sitter-html
-   tree-sitter-javascript
-   tree-sitter-json
-   tree-sitter-markdown
-   tree-sitter-python
-   tree-sitter-rust
-   tree-sitter-toml
-   tree-sitter-typescript
-   tree-sitter-yaml
-
-   ;; Sass compiler (caelestia scheme/discord theming uses 'sass' command)
-   sassc
-
-   ;; System monitors
-   htop
-   atop
-   lm-sensors
-   xkeyboard-config
-
-   xdg-utils
-   xorriso
-
-   ;; Podman
-   podman
-   (list podman "docker")
-   podman-compose
-
-   ;; Editors (proprietary)
-   vscode
-
-   ;; Chat
-   slack
-
-   ;; Dev tools
-   shellcheck
-   glab
-   mise
-   uv
-
-   ;; SSH / YubiKey
-   openssh
-   yubico-piv-tool
-
-   ;; Flatpak
-   flatpak
-
-   ;; Cursor theme
-   bibata-cursor-theme
-
-   ;; GTK theme + icons
-   gruvbox-dark-gtk
-   gruvbox-plus-icon-theme
-
-   ;; Keyring (secrets D-Bus API for VS Code, libsecret, devcontainers, etc.)
-   gnome-keyring))
+  (append %core-packages %terminal-packages %editor-packages
+          %font-packages %desktop-packages %media-packages
+          %texlive-packages %dev-packages %misc-packages))
 
  (services
   (list
@@ -281,10 +55,49 @@
 
 ))
 
+   ;; XDG MIME defaults & desktop entries
+   (service home-xdg-mime-applications-service-type
+            (home-xdg-mime-applications-configuration
+             (default '((inode/directory . emacsclient.desktop)
+                        (x-scheme-handler/http . app.zen_browser.zen.desktop)
+                        (x-scheme-handler/https . app.zen_browser.zen.desktop)
+                        (text/html . app.zen_browser.zen.desktop)
+                        (application/xhtml+xml . app.zen_browser.zen.desktop)
+                        (application/pdf . app.zen_browser.zen.desktop)
+                        (x-scheme-handler/slack . slack.desktop)))
+             (desktop-entries
+              (list
+               (xdg-desktop-entry
+                (file "app.zen_browser.zen")
+                (name "Zen Browser")
+                (type 'application)
+                (config
+                 '((exec . "flatpak run app.zen_browser.zen %u")
+                   (icon . "app.zen_browser.zen")
+                   (categories "Network" "WebBrowser")
+                   (mime-type "text/html" "text/xml" "application/xhtml+xml"
+                              "x-scheme-handler/http" "x-scheme-handler/https"
+                              "application/x-xpinstall" "application/pdf"
+                              "application/json")
+                   (startup-notify . #t)
+                   (startup-w-m-class . "zen")))
+                (actions
+                 (list
+                  (xdg-desktop-action
+                   (action 'new-window)
+                   (name "Open a New Window")
+                   (config '((exec . "flatpak run app.zen_browser.zen --new-window %u"))))
+                  (xdg-desktop-action
+                   (action 'new-private-window)
+                   (name "Open a New Private Window")
+                   (config '((exec . "flatpak run app.zen_browser.zen --private-window %u")))))))))))
+
    ;; XDG config files (~/.config/)
    (service home-xdg-configuration-files-service-type
             `(("uv/uv.toml"
-               ,(local-file "../files/uv/uv.toml" "uv.toml"))))
+               ,(local-file "../files/uv/uv.toml" "uv.toml"))
+              ("electron-flags.conf"
+               ,(local-file "../files/electron-flags.conf"))))
 
    ;; Other XDG config files are symlinked directly from dotfiles in the
    ;; activation gexp below so edits take effect immediately without reconfigure.
@@ -317,6 +130,8 @@
                      ("LIBVA_DRIVER_NAME" . "nvidia")
                      ("GBM_BACKEND" . "nvidia-drm")
                      ("__GLX_VENDOR_LIBRARY_NAME" . "nvidia")
+                     ("__GL_GSYNC_ALLOWED" . "1")
+                     ("__GL_VRR_ALLOWED" . "1")
                      ("LD_LIBRARY_PATH" . "/run/current-system/profile/lib:$HOME/.guix-home/profile/lib")
                      ;; Dev Containers: point to rootless podman socket
                      ("DOCKER_HOST" . "unix://$XDG_RUNTIME_DIR/podman/podman.sock")
@@ -364,7 +179,16 @@
                      "source " fzf-tab "/share/zsh/plugins/fzf-tab/fzf-tab.zsh\n")))))
 
    ;; Automated setup (idempotent, runs on every reconfigure)
-   (post-setup-activation-service %dotfiles-dir)
+   (home-dotfiles-symlinks-service %dotfiles-dir)
+
+   ;; GTK icon/theme via dconf (settings.ini is overridden by dconf)
+   (simple-service 'gtk-dconf home-dconf-service-type
+                   (list (dconf-entry
+                          (key "/org/gnome/desktop/interface/icon-theme")
+                          (value "'Gruvbox-Plus-Dark'"))
+                         (dconf-entry
+                          (key "/org/gnome/desktop/interface/gtk-theme")
+                          (value "'gruvbox-dark-gtk'"))))
 
    ;; D-Bus user session (required by PipeWire)
    (service home-dbus-service-type)
@@ -376,8 +200,20 @@
    (service home-quickshell-service-type)
 
    ;; Shepherd user services
-   (service home-shepherd-service-type
-            (home-shepherd-configuration
-             (services %shepherd-services)))
+   (service home-wayland-compositor-service-type)
+   (service home-emacs-daemon-service-type)
+   (service home-caelestia-resizer-service-type)
+   (service home-spicetify-setup-service-type %dotfiles-dir)
+   (service home-caelestia-spicetify-watcher-service-type)
+   (service home-xdph-service-type)
+   (service home-hyprpolkitagent-service-type)
+   (service home-podman-socket-service-type)
+   (service home-gnome-keyring-service-type)
+   (service home-ssh-agent-service-type)
+
+   ;; Activation services
+   (service home-flatpak-service-type)
+   (service home-uv-python-service-type)
+   (service home-zen-browser-service-type)
 
    )))

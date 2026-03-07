@@ -2,7 +2,7 @@
 
 ;; Author: nehrbash
 ;; Version: 1.0
-;; Package-Requires: ((emacs "31.1"))
+;; Package-Requires: ((emacs "31.0"))
 ;; Keywords: mode-line
 
 ;;; Commentary:

@@ -2,6 +2,7 @@
   #:use-module (gnu home services)
   #:use-module (gnu home services shepherd)
   #:use-module (gnu packages linux)        ; lm-sensors
+  #:use-module (gnu packages qt)           ; qtwayland
   #:use-module (gnu packages xorg)         ; xkeyboard-config
   #:use-module (gnu services configuration)
   #:use-module (guix gexp)
@@ -84,7 +85,8 @@ Leave empty (the default) to use the default config at
 ;;;
 
 (define (home-quickshell-profile-service config)
-  (list (home-quickshell-configuration-package config)))
+  (list (home-quickshell-configuration-package config)
+        quickshell-caelestia-plugin qtwayland))
 
 ;;;
 ;;; Service type.

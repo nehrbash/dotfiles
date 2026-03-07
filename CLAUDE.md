@@ -12,8 +12,8 @@ guix home reconfigure home/redfish.scm -L .        # home environment
 
 ## Structure
 
-- `systems/redfish.scm` — system config (NVIDIA, greetd, filesystems)
-- `systems/base-system.scm` — shared OS base
+- `systems/oceania.scm` — shared OS base (users, services, packages)
+- `systems/redfish.scm` — machine config (NVIDIA, bootloader, filesystems); inherits oceania
 - `home/redfish.scm` — home environment (packages, dotfiles, services, shell)
 - `packages/` — custom Guix package definitions
 - `channels.scm` — Guix + NonGuix channels
