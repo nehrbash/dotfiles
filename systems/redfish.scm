@@ -22,7 +22,8 @@
                       "nvidia_modeset.vblank_sem_control=0"
                       "nvidia.NVreg_PreserveVideoMemoryAllocations=1"
                       "nvidia.NVreg_TemporaryFilePath=/var/tmp"
-                      "resume=UUID=f1a2747c-5559-44c2-8951-1f48840b00ce"
+                      "resume=UUID=183ea0af-a5e2-4a04-bb79-6c94e36c7736"
+                      "resume_offset=68769792"
                       "quiet" "loglevel=3"))
 
   (host-name "redfish")
@@ -35,7 +36,7 @@
               (simple-service 'nvidia-persistence shepherd-root-service-type
                 (list (shepherd-service
                         (provision '(nvidia-persistence))
-                        (requirement '(nvidia))
+                        (requirement '(udev))
                         (one-shot? #t)
                         (start #~(lambda _
                                    (zero? (system* #$(file-append nvda "/bin/nvidia-smi")
@@ -55,8 +56,7 @@
                 (keyboard-layout (operating-system-keyboard-layout %oceania-os))))
 
   (swap-devices (list (swap-space
-                        (target (uuid
-                                 "f1a2747c-5559-44c2-8951-1f48840b00ce")))))
+                        (target "/swapfile"))))
 
   (file-systems (cons* (file-system
                          (mount-point "/")

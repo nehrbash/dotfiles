@@ -1,7 +1,7 @@
 ---
 name: guix
 description: Apply Guix workflow knowledge when helping with guix home reconfigure, guix system reconfigure, guix pull, channel updates, package definitions, or Guix config file changes in this dotfiles project
-user-invocable: false
+user-invocable: true
 ---
 
 # Guix Workflow Knowledge
@@ -36,7 +36,7 @@ After editing any file in `config/home/redfish.scm` or `config/packages/`, **run
 |------|---------|
 | `home/redfish.scm` | Home environment (packages, dotfiles, services, shell) |
 | `systems/redfish.scm` | System config (NVIDIA, greetd, filesystems) |
-| `systems/base-system.scm` | Shared OS base |
+| `systems/oceania.scm` | Shared OS base (users, services, packages) |
 | `channels.scm` | Guix + NonGuix channels |
 | `packages/` | Custom package definitions (loaded via `GUIX_PACKAGE_PATH`) |
 
@@ -107,6 +107,36 @@ Guix fails with `stat: No such file or directory` if a broken symlink exists at 
 
 ### Module not found
 If `guix home reconfigure` errors with "no code for module", check that `GUIX_PACKAGE_PATH` is set and the module file path matches the `(define-module ...)` declaration.
+
+## Channel Pinning & Pull Troubleshooting
+
+### Pinning channels to specific commits
+Add `(commit "abc123...")` to a channel definition in `channels.scm` to pin it. Pin both guix and nonguix together to ensure compatibility. Use `guix describe` to get current working commits.
+
+### Breaking changes after `guix pull`
+Channel updates (especially nonguix) can silently change service definitions. Common breakage:
+- Shepherd service provisions renamed or removed (e.g. `nvidia-service-type` dropped its shepherd extension, so `(requirement '(nvidia))` breaks)
+- Module imports changed or removed
+- Before upgrading, check nonguix git log: `git -C /tmp/nonguix-check log --oneline -20`
+- After a failed reconfigure, read the current service source to see what changed
+
+### "patch not found" errors during `guix pull`
+This happens when a channel references a patch file that was removed upstream. Solutions:
+1. Pin to a known-good commit (see above)
+2. If pinning doesn't help, the guix daemon may be too old — run `sudo guix pull` first to update the system daemon
+3. Use `--allow-downgrades` if rolling back to older commits
+
+### Bytecode version mismatch warnings
+`incompatible bytecode version` warnings during pull indicate the Guile version changed between daemon and client. Usually harmless (pull rebuilds everything), but if pull itself fails, the daemon needs updating first via `sudo guix pull`.
+
+### System vs user guix version mismatch
+The guix daemon runs from the *system* profile. If `guix-daemon --version` shows a much older version than `guix describe`, system reconfigure may fail. Update order: `sudo guix pull` → `sudo guix system reconfigure` → `guix pull` → `guix home reconfigure`.
+
+### Swap file for hibernation (ext4)
+- Swap file must be fully allocated (`dd if=/dev/zero`, NOT `fallocate`)
+- Kernel args need `resume=UUID=<root-partition-uuid>` and `resume_offset=<physical-offset>`
+- Get offset: `sudo filefrag -v /swapfile | head -4` (first `physical_offset` value)
+- NVIDIA VRAM is saved via `NVreg_TemporaryFilePath`, not swap — so swap only needs to cover RAM
 
 ## Git Identity
 

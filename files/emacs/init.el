@@ -40,6 +40,8 @@
     (let ((load-source-file-function nil)) (load "./elpaca-autoloads"))))
 (add-hook 'after-init-hook #'elpaca-process-queues)
 (elpaca `(,@elpaca-order))
+(setq elpaca-order-defaults '(:type git :protocol https :inherit t :depth 1))
+(cl-pushnew 'transient elpaca-ignored-dependencies)
   (elpaca elpaca-use-package
 		;; use-package enable :ensure keyword.
 		(elpaca-use-package-mode))
@@ -2317,7 +2319,6 @@ Only clock in/out when needed, and always save all Org buffers."
   (define-fringe-bitmap 'git-gutter-fr:deleted [128 192 224 240] nil nil 'bottom))
 
 (use-package magit
-  :ensure nil
   :after (transient git-timemachine)
   :config
   (require 'smerge-mode)
