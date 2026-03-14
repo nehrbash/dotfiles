@@ -40,10 +40,13 @@
                       ((and wl hypr)
                        (setenv "WAYLAND_DISPLAY" wl)
                        (setenv "HYPRLAND_INSTANCE_SIGNATURE" hypr)
-                       (setenv "DISPLAY" (or (getenv "DISPLAY") ":0"))
-                       (system* #$(file-append dbus "/bin/dbus-update-activation-environment")
-                                "DISPLAY" "WAYLAND_DISPLAY"
-                                "XDG_CURRENT_DESKTOP")
+                       (let ((display (getenv "DISPLAY")))
+                         (system* #$(file-append dbus "/bin/dbus-update-activation-environment")
+                                  "WAYLAND_DISPLAY"
+                                  "XDG_CURRENT_DESKTOP")
+                         (when display
+                           (system* #$(file-append dbus "/bin/dbus-update-activation-environment")
+                                    "DISPLAY")))
                        #t)
                       (else
                        (when (zero? (modulo n 120))

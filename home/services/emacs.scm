@@ -12,6 +12,8 @@
     'emacs
     #~(list #$(file-append emacs-next-pgtk "/bin/emacs") "--fg-daemon")
     #:requirement '(wayland-compositor)
+    #:environment-variables
+    #~(cons "GDK_BACKEND=wayland" (environ))
     #:documentation "Run Emacs as a daemon.")))
 
 (define (home-emacs-daemon-profile-service _)
