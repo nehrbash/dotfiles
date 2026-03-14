@@ -11,7 +11,7 @@
 (define-public mise
   (package
     (name "mise")
-    (version "2026.2.20")
+    (version "2026.3.9")
     (source
      (origin
        (method url-fetch)
@@ -19,7 +19,7 @@
              "https://github.com/jdx/mise/releases/download/v"
              version "/mise-v" version "-linux-x64.tar.gz"))
        (sha256
-        (base32 "0qpfdillakhr2f65jlf26if3fy47s5r2mr83ii3i5pr9bvib5k9a"))))
+        (base32 "1gxjl28nccd4b0l4zhlfsy2xkwyaxx3yhic23d3mnx95vc6qy7cl"))))
     (supported-systems '("x86_64-linux"))
     (build-system copy-build-system)
     (arguments

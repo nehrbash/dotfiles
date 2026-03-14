@@ -2,22 +2,8 @@ PACKAGES_DIR := $(dir $(abspath $(lastword $(MAKEFILE_LIST))))
 UPDATE       := $(PACKAGES_DIR)update-pkg.sh
 
 .PHONY: update-all
-update-all: update-emacs-gptel-git update-emacs-gptel-agent update-font-rubik
+update-all: update-font-rubik
 	@echo "==> done"
-
-.PHONY: update-emacs-gptel-git
-update-emacs-gptel-git:
-	@echo "==> emacs-gptel-git"
-	@bash $(UPDATE) \
-	  $(PACKAGES_DIR)emacs-gptel-git.scm \
-	  https://github.com/karthink/gptel
-
-.PHONY: update-emacs-gptel-agent
-update-emacs-gptel-agent:
-	@echo "==> emacs-gptel-agent"
-	@bash $(UPDATE) \
-	  $(PACKAGES_DIR)emacs-gptel-agent.scm \
-	  https://github.com/karthink/gptel-agent
 
 .PHONY: update-font-rubik
 update-font-rubik:
@@ -30,8 +16,6 @@ update-font-rubik:
 status:
 	@echo "==> checking for updates (no changes made)"
 	@for entry in \
-	  "emacs-gptel-git.scm|https://github.com/karthink/gptel" \
-	  "emacs-gptel-agent.scm|https://github.com/karthink/gptel-agent" \
 	  "fonts.scm|https://github.com/googlefonts/rubik"; do \
 	  file=$$(echo "$$entry" | cut -d'|' -f1); \
 	  url=$$(echo "$$entry" | cut -d'|' -f2); \
@@ -47,8 +31,6 @@ status:
 .PHONY: help
 help:
 	@echo "Targets:"
-	@echo "  update-all               update all git-fetched packages"
-	@echo "  update-emacs-gptel-git   update emacs-gptel-git"
-	@echo "  update-emacs-gptel-agent update emacs-gptel-agent"
-	@echo "  update-font-rubik        update font-rubik"
-	@echo "  status                   show which packages are behind upstream HEAD"
+	@echo "  update-all         update all git-fetched packages"
+	@echo "  update-font-rubik  update font-rubik"
+	@echo "  status             show which packages are behind upstream HEAD"

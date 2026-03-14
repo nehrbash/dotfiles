@@ -23,7 +23,7 @@
 (define-public gpu-screen-recorder
   (package
     (name "gpu-screen-recorder")
-    (version "5.12.3")
+    (version "5.12.5")
     (source
      (origin
        (method url-fetch)
@@ -31,7 +31,7 @@
              "https://dec05eba.com/snapshot/gpu-screen-recorder.git."
              version ".tar.gz"))
        (sha256
-        (base32 "1p9v41vaiif7hi0k5aqxvfh7ry8nig7qg6na40rhn7d723wq7d36"))))
+        (base32 "0yavw4b66vkmp666lsr21k784vr29qq90hjz8vgzhc6ifvwvw1rj"))))
     (build-system meson-build-system)
     (native-inputs
      (list meson

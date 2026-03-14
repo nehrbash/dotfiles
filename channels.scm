@@ -1,3 +1,4 @@
+(define-module (channels))
 (use-modules (guix channels))
 
 (list (channel

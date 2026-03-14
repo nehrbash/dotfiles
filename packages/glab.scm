@@ -8,7 +8,7 @@
 (define-public glab
   (package
     (name "glab")
-    (version "1.86.0")
+    (version "1.89.0")
     (source
      (origin
        (method url-fetch)
@@ -16,7 +16,7 @@
              "https://gitlab.com/gitlab-org/cli/-/releases/v"
              version "/downloads/glab_" version "_linux_amd64.tar.gz"))
        (sha256
-        (base32 "10f2dznd7w7nqqh7l14d1r044nqcvddhradyxl3h9rmc9rmv8apa"))))
+        (base32 "1jdgs10m2ivgnjd6h9zn25z438m7hb6037zfiy2vx20av2bxq7wl"))))
     (supported-systems '("x86_64-linux"))
     (build-system copy-build-system)
     (arguments

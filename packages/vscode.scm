@@ -24,7 +24,7 @@
 (define-public vscode
   (package
     (name "vscode")
-    (version "1.109.5")
+    (version "1.111.0")
     (source
      (origin
        (method url-fetch)
@@ -33,7 +33,7 @@
              version "/linux-deb-x64/stable"))
        (file-name (string-append "vscode-" version ".deb"))
        (sha256
-        (base32 "02jqmw82d0bbzf38zn7hd0k686cn2pjnl2dz7ajm47miis93ff0w"))))
+        (base32 "1i0awn32441iznpbgfisvh0sp62pnv0lbki0k7a4phbgkidim2rb"))))
     (supported-systems '("x86_64-linux"))
     (build-system chromium-binary-build-system)
     (arguments
