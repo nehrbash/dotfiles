@@ -51,3 +51,6 @@
 
 # Caelestia QML shell (cloned repo, not part of dotfiles)
 /files/caelestia/quickshell/
+
+# Agent shell
+.agent-shell/
