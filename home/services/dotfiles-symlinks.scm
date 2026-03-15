@@ -66,9 +66,15 @@
                            ("files/emacs/lisp" . "emacs/lisp")
                            ("files/emacs/snippets" . "emacs/snippets")
                            ("files/emacs/img" . "emacs/img")))
-                        ;; Claude Code skills — direct symlink so edits take effect immediately
+                        ;; Claude Code — symlinked so edits take effect immediately
                         (ensure-symlink (string-append dots "/files/claude-skills")
                                         (string-append home "/.claude/skills"))
+                        (ensure-symlink (string-append dots "/files/claude/CLAUDE.md")
+                                        (string-append home "/.claude/CLAUDE.md"))
+                        (ensure-symlink (string-append dots "/files/claude/settings.json")
+                                        (string-append home "/.claude/settings.json"))
+                        (ensure-symlink (string-append dots "/files/claude/rules")
+                                        (string-append home "/.claude/rules"))
                         ;; Wallpaper symlink for hyprpaper (doesn't expand env vars)
                         (ensure-symlink (string-append dots "/pictures/wallpaper")
                                         (string-append home "/.local/share/wallpaper"))

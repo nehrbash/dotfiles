@@ -1,0 +1,57 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(*)",
+      "Edit(*)",
+      "Write(*)",
+      "Read(*)",
+      "Glob(*)",
+      "Grep(*)",
+      "WebFetch(*)",
+      "WebSearch(*)",
+      "Task(*)"
+    ]
+  },
+  "hooks": {
+    "PostToolUse": [
+      {
+        "matcher": "Read|Grep|Glob",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sid=$(cat /dev/stdin | jq -r '.session_id // empty' 2>/dev/null); [ -z \"$sid\" ] && exit 0; f=\"/tmp/claude-reads-$sid\"; count=0; [ -f \"$f\" ] && count=$(cat \"$f\"); echo $((count + 1)) > \"$f\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "sid=$(cat /dev/stdin | jq -r '.session_id // empty' 2>/dev/null); [ -z \"$sid\" ] && exit 0; f=\"/tmp/claude-reads-$sid\"; count=0; [ -f \"$f\" ] && count=$(cat \"$f\"); rm -f \"$f\"; [ \"$count\" -ge 8 ] && echo '{\"decision\": \"block\", \"reason\": \"You read '\"$count\"' files this session. If you explored unfamiliar code without documenting findings, update ~/doc/projects/<name>/index.org now (Org-mode markup, no :ID: properties). If docs are already updated or reads were routine, continue.\"}' || echo '{}'"
+          }
+        ]
+      }
+    ],
+    "SessionStart": [
+      {
+        "matcher": "compact",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "echo 'Context was compacted. Reminder: Check ~/doc/projects/ for existing knowledge before re-exploring code. Read ~/doc/CLAUDE.md for knowledge base structure. This is a Guix dotfiles repo — see CLAUDE.md for structure.'"
+          }
+        ]
+      }
+    ]
+  },
+  "statusLine": {
+    "type": "command",
+    "command": "echo ''"
+  },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true
+  },
+  "bypassPermissions": true
+}
