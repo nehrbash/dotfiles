@@ -27,13 +27,24 @@ StyledClippingRect {
 
     property real blur: onSpecial ? 1 : 0
 
+    readonly property var monitorColors: [
+        Colours.palette.m3primary,
+        Colours.palette.m3secondary,
+        Colours.palette.m3tertiary,
+    ]
+
+    readonly property var otherMonitors: {
+        const thisMonName = Hypr.monitorFor(screen)?.name ?? "";
+        return Hypr.monitors.values.filter(m => m.name !== thisMonName);
+    }
+
     implicitWidth: Config.bar.sizes.innerWidth
-    implicitHeight: layout.implicitHeight + Appearance.padding.small * 2
+    implicitHeight: layout.implicitHeight + monitorIndicators.implicitHeight + Appearance.padding.small * 2 + (monitorIndicators.visible ? Appearance.spacing.small : 0)
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Appearance.rounding.full
     border.width: root.isFocusedMonitor ? 2 : 0
-    border.color: Colours.palette.m3primary
+    border.color: root.monitorColors[Hypr.monitors.values.indexOf(Hypr.monitorFor(screen)) % root.monitorColors.length] ?? Colours.palette.m3primary
 
     Item {
         anchors.fill: parent
@@ -64,7 +75,9 @@ StyledClippingRect {
         ColumnLayout {
             id: layout
 
-            anchors.centerIn: parent
+            anchors.top: parent.top
+            anchors.topMargin: Appearance.padding.small
+            anchors.horizontalCenter: parent.horizontalCenter
             spacing: Math.floor(Appearance.spacing.small / 2)
 
             Repeater {
@@ -89,6 +102,46 @@ StyledClippingRect {
                 activeWsId: root.activeWsId
                 workspaces: workspaces
                 mask: layout
+            }
+        }
+
+        Column {
+            id: monitorIndicators
+
+            anchors.top: layout.bottom
+            anchors.topMargin: Appearance.spacing.small
+            anchors.horizontalCenter: parent.horizontalCenter
+            spacing: Appearance.spacing.small / 2
+            visible: root.otherMonitors.length > 0
+
+            Repeater {
+                model: ScriptModel {
+                    values: root.otherMonitors
+                }
+
+                Row {
+                    required property var modelData
+                    readonly property int monIdx: Hypr.monitors.values.indexOf(modelData)
+                    readonly property color monColor: root.monitorColors[monIdx % root.monitorColors.length] ?? Colours.palette.m3secondary
+
+                    anchors.horizontalCenter: parent.horizontalCenter
+                    spacing: Appearance.spacing.small / 2
+
+                    Rectangle {
+                        width: 6
+                        height: 6
+                        radius: 3
+                        color: parent.monColor
+                        anchors.verticalCenter: parent.verticalCenter
+                    }
+
+                    StyledText {
+                        text: (modelData.activeWorkspace?.id ?? "?").toString()
+                        color: parent.monColor
+                        font.pixelSize: Appearance.font.size.smaller
+                        verticalAlignment: Qt.AlignVCenter
+                    }
+                }
             }
         }
 
