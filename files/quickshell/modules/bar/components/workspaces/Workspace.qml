@@ -16,6 +16,7 @@ ColumnLayout {
     required property int activeWsId
     required property var occupied
     required property int groupOffset
+    required property var otherMonitorWs
 
     readonly property bool isWorkspace: true // Flag for finding workspace children
     // Unanimated prop for others to use as reference
@@ -24,28 +25,46 @@ ColumnLayout {
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
     readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows
+    readonly property var otherMonOnThis: otherMonitorWs[ws] ?? null
 
     Layout.alignment: Qt.AlignHCenter
     Layout.preferredHeight: size
 
     spacing: 0
 
-    Image {
-        id: indicator
-
-        readonly property int slothNum: Math.min(root.ws, 8)
-
+    Item {
         Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
         Layout.preferredWidth: (Config.bar.sizes.innerWidth - Appearance.padding.small * 2) * 0.7
         Layout.preferredHeight: Layout.preferredWidth
 
-        source: `images/sloth${slothNum}.png`
-        fillMode: Image.PreserveAspectFit
-        smooth: true
-        opacity: root.activeWsId === root.ws ? 1.0 : root.isOccupied ? 0.7 : 0.3
+        Image {
+            id: indicator
 
-        Behavior on opacity {
-            Anim {}
+            readonly property int slothNum: Math.min(root.ws, 8)
+
+            anchors.fill: parent
+            source: `images/sloth${slothNum}.png`
+            fillMode: Image.PreserveAspectFit
+            smooth: true
+            opacity: root.activeWsId === root.ws ? 1.0 : root.isOccupied ? 0.7 : 0.3
+
+            Behavior on opacity {
+                Anim {}
+            }
+        }
+
+        Rectangle {
+            visible: root.otherMonOnThis !== null
+            anchors.right: parent.right
+            anchors.top: parent.top
+            width: 6
+            height: 6
+            radius: 3
+            color: root.otherMonOnThis ?? "transparent"
+
+            Behavior on visible {
+                Anim {}
+            }
         }
     }
 
@@ -56,7 +75,7 @@ ColumnLayout {
 
         Layout.alignment: Qt.AlignHCenter
         Layout.fillHeight: true
-        Layout.topMargin: -Config.bar.sizes.innerWidth / 10
+        Layout.topMargin: Appearance.spacing.small / 2
 
         visible: active
         active: root.hasWindows

@@ -17,10 +17,13 @@ StyledRect {
     readonly property alias items: iconColumn
 
     color: Colours.tPalette.m3surfaceContainer
-    radius: Appearance.rounding.full
+    topLeftRadius: 0
+    bottomLeftRadius: 0
+    topRightRadius: Appearance.rounding.full
+    bottomRightRadius: Appearance.rounding.full
 
     clip: true
-    implicitWidth: Config.bar.sizes.innerWidth
+    implicitWidth: Config.bar.sizes.innerWidth + Appearance.padding.small
     implicitHeight: iconColumn.implicitHeight + Appearance.padding.normal * 2 - (Config.bar.status.showLockStatus && !Hypr.capsLock && !Hypr.numLock ? iconColumn.spacing : 0)
 
     ColumnLayout {

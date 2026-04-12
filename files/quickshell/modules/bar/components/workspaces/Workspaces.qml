@@ -8,7 +8,7 @@ import qs.components
 import qs.services
 import qs.config
 
-StyledClippingRect {
+Rectangle {
     id: root
 
     required property ShellScreen screen
@@ -38,11 +38,27 @@ StyledClippingRect {
         return Hypr.monitors.values.filter(m => m.name !== thisMonName);
     }
 
-    implicitWidth: Config.bar.sizes.innerWidth
-    implicitHeight: layout.implicitHeight + monitorIndicators.implicitHeight + Appearance.padding.small * 2 + (monitorIndicators.visible ? Appearance.spacing.small : 0)
+    // Map workspace id -> color for workspaces active on other monitors
+    readonly property var otherMonitorWs: {
+        const map = {};
+        for (const mon of root.otherMonitors) {
+            const wsId = mon.activeWorkspace?.id;
+            const monIdx = Hypr.monitors.values.indexOf(mon);
+            if (wsId)
+                map[wsId] = root.monitorColors[monIdx % root.monitorColors.length] ?? Colours.palette.m3secondary;
+        }
+        return map;
+    }
 
+    implicitWidth: Config.bar.sizes.innerWidth + Appearance.padding.small
+    implicitHeight: layout.implicitHeight + Appearance.padding.small * 2
+
+    clip: true
     color: Colours.tPalette.m3surfaceContainer
-    radius: Appearance.rounding.full
+    topLeftRadius: 0
+    bottomLeftRadius: 0
+    topRightRadius: Appearance.rounding.full
+    bottomRightRadius: Appearance.rounding.full
     border.width: root.isFocusedMonitor ? 2 : 0
     border.color: root.monitorColors[Hypr.monitors.values.indexOf(Hypr.monitorFor(screen)) % root.monitorColors.length] ?? Colours.palette.m3primary
 
@@ -89,6 +105,7 @@ StyledClippingRect {
                     activeWsId: root.activeWsId
                     occupied: root.occupied
                     groupOffset: root.groupOffset
+                    otherMonitorWs: root.otherMonitorWs
                 }
             }
         }
@@ -102,46 +119,6 @@ StyledClippingRect {
                 activeWsId: root.activeWsId
                 workspaces: workspaces
                 mask: layout
-            }
-        }
-
-        Column {
-            id: monitorIndicators
-
-            anchors.top: layout.bottom
-            anchors.topMargin: Appearance.spacing.small
-            anchors.horizontalCenter: parent.horizontalCenter
-            spacing: Appearance.spacing.small / 2
-            visible: root.otherMonitors.length > 0
-
-            Repeater {
-                model: ScriptModel {
-                    values: root.otherMonitors
-                }
-
-                Row {
-                    required property var modelData
-                    readonly property int monIdx: Hypr.monitors.values.indexOf(modelData)
-                    readonly property color monColor: root.monitorColors[monIdx % root.monitorColors.length] ?? Colours.palette.m3secondary
-
-                    anchors.horizontalCenter: parent.horizontalCenter
-                    spacing: Appearance.spacing.small / 2
-
-                    Rectangle {
-                        width: 6
-                        height: 6
-                        radius: 3
-                        color: parent.monColor
-                        anchors.verticalCenter: parent.verticalCenter
-                    }
-
-                    StyledText {
-                        text: (modelData.activeWorkspace?.id ?? "?").toString()
-                        color: parent.monColor
-                        font.pixelSize: Appearance.font.size.smaller
-                        verticalAlignment: Qt.AlignVCenter
-                    }
-                }
             }
         }
 
