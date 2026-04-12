@@ -36,7 +36,7 @@ ColumnLayout {
         readonly property int slothNum: Math.min(root.ws, 8)
 
         Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-        Layout.preferredWidth: Config.bar.sizes.innerWidth - Appearance.padding.small * 2
+        Layout.preferredWidth: (Config.bar.sizes.innerWidth - Appearance.padding.small * 2) * 0.7
         Layout.preferredHeight: Layout.preferredWidth
 
         source: `images/sloth${slothNum}.png`
@@ -97,8 +97,7 @@ ColumnLayout {
                 IconImage {
                     required property var modelData
 
-                    implicitWidth: Config.bar.sizes.innerWidth / 3
-                    implicitHeight: implicitWidth
+                    implicitSize: Config.bar.sizes.innerWidth / 2.5
                     source: Icons.getAppIcon(modelData ?? "", "application-x-executable")
                     asynchronous: true
                 }
