@@ -100,6 +100,60 @@ Item {
         }
     }
 
+    // Canopy — leafy crown at top
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: -8
+        width: parent.width * 0.5
+        height: 18
+        radius: 9
+        color: "#2a4f2a"
+        opacity: 0.8
+    }
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        x: parent.width * 0.1
+        y: -4
+        width: parent.width * 0.85
+        height: 14
+        radius: 7
+        color: "#355e35"
+        opacity: 0.6
+    }
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: -1
+        width: parent.width * 0.4
+        height: 10
+        radius: 5
+        color: "#2a4f2a"
+        opacity: 0.5
+    }
+
+    // Roots at bottom
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: -6
+        y: parent.height - 2
+        width: 8
+        height: 12
+        radius: 3
+        rotation: -20
+        color: "#5c4333"
+        opacity: 0.7
+    }
+    Rectangle {
+        anchors.horizontalCenter: parent.horizontalCenter
+        anchors.horizontalCenterOffset: 6
+        y: parent.height - 2
+        width: 7
+        height: 10
+        radius: 3
+        rotation: 15
+        color: "#5c4333"
+        opacity: 0.6
+    }
+
     // Focused monitor glow
     Rectangle {
         visible: root.isFocusedMonitor
