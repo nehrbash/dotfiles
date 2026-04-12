@@ -3,13 +3,12 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
-import QtQuick.Shapes
 import Quickshell
 import qs.components
 import qs.services
 import qs.config
 
-Item {
+StyledClippingRect {
     id: root
 
     required property ShellScreen screen
@@ -52,57 +51,14 @@ Item {
 
     readonly property color containerColor: root.isFocusedMonitor ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainer
 
-    // Bark colors derived from theme
-    readonly property color barkDark: Qt.darker(Colours.palette.m3surfaceContainerHighest, 1.1)
-    readonly property color barkLight: Colours.palette.m3surfaceContainerHighest
-
-    readonly property real trunkWidth: 10
-    readonly property real trunkX: (implicitWidth - trunkWidth) / 2
-
     implicitWidth: Config.bar.sizes.innerWidth
-    implicitHeight: layout.implicitHeight + Appearance.padding.normal * 2
+    implicitHeight: layout.implicitHeight + Appearance.padding.small * 2
 
-    // Tree trunk — a narrow vertical strip with slight taper
-    Shape {
-        id: trunk
+    color: containerColor
+    radius: Appearance.rounding.full
 
-        anchors.fill: parent
-        preferredRendererType: Shape.CurveRenderer
-
-        ShapePath {
-            strokeWidth: -1
-            fillColor: root.barkDark
-
-            // Trunk tapers: wider at bottom, narrower at top
-            readonly property real topW: root.trunkWidth * 0.6
-            readonly property real botW: root.trunkWidth
-            readonly property real topX: (root.implicitWidth - topW) / 2
-            readonly property real botX: (root.implicitWidth - botW) / 2
-
-            startX: topX
-            startY: 0
-
-            PathLine { x: topX + topW; y: 0 }
-            PathLine { x: botX + botW; y: root.implicitHeight }
-            PathLine { x: botX; y: root.implicitHeight }
-        }
-    }
-
-    // Trunk highlight for focused monitor
-    Rectangle {
-        x: root.trunkX - 1
-        y: 0
-        width: root.trunkWidth + 2
-        height: parent.height
-        radius: root.trunkWidth / 2
-        color: "transparent"
-        border.width: root.isFocusedMonitor ? 1 : 0
-        border.color: Colours.palette.m3primary
-        opacity: 0.5
-
-        Behavior on border.width {
-            Anim {}
-        }
+    Behavior on color {
+        CAnim {}
     }
 
     Item {
@@ -117,11 +73,25 @@ Item {
             blurMax: 32
         }
 
+        Loader {
+            asynchronous: true
+            active: Config.bar.workspaces.occupiedBg
+
+            anchors.fill: parent
+            anchors.margins: Appearance.padding.small
+
+            sourceComponent: OccupiedBg {
+                workspaces: workspaces
+                occupied: root.occupied
+                groupOffset: root.groupOffset
+            }
+        }
+
         ColumnLayout {
             id: layout
 
             anchors.centerIn: parent
-            spacing: Appearance.spacing.small
+            spacing: Math.floor(Appearance.spacing.small / 2)
 
             Repeater {
                 id: workspaces
@@ -133,10 +103,19 @@ Item {
                     occupied: root.occupied
                     groupOffset: root.groupOffset
                     otherMonitorWs: root.otherMonitorWs
-                    trunkX: root.trunkX
-                    trunkWidth: root.trunkWidth
-                    barkColor: root.barkLight
                 }
+            }
+        }
+
+        Loader {
+            asynchronous: true
+            anchors.horizontalCenter: parent.horizontalCenter
+            active: Config.bar.workspaces.activeIndicator
+
+            sourceComponent: ActiveIndicator {
+                activeWsId: root.activeWsId
+                workspaces: workspaces
+                mask: layout
             }
         }
 
