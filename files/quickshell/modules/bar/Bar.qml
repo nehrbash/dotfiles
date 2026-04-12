@@ -150,31 +150,6 @@ ColumnLayout {
             z: 2; opacity: 0.95
         }
 
-        // Owl in hollow — positioned in middle of bar
-        Item {
-            parent: root
-            anchors.horizontalCenter: parent.horizontalCenter
-            y: parent.height * 0.42
-            width: 32; height: 38
-            z: 3
-
-            // Hollow background
-            Image {
-                anchors.fill: parent
-                anchors.margins: -4
-                source: "components/workspaces/images/hollow.svg"
-                opacity: 0.8
-            }
-
-            // Owl
-            Image {
-                anchors.centerIn: parent
-                width: 24; height: 28
-                source: "components/workspaces/images/owl.svg"
-                opacity: 0.85
-            }
-        }
-
         // Roots — large, extend beyond bar
         Image {
             parent: root
