@@ -126,7 +126,6 @@ ColumnLayout {
             DelegateChoice {
                 roleValue: "workspaces"
                 delegate: WrappedLoader {
-                    Layout.alignment: Qt.AlignLeft
                     sourceComponent: Workspaces {
                         screen: root.screen
                     }
@@ -157,7 +156,6 @@ ColumnLayout {
             DelegateChoice {
                 roleValue: "statusIcons"
                 delegate: WrappedLoader {
-                    Layout.alignment: Qt.AlignLeft
                     sourceComponent: StatusIcons {}
                 }
             }
