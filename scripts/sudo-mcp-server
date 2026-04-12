@@ -1,0 +1,158 @@
+#!/usr/bin/env python3
+"""Minimal MCP server that runs commands via sudo.
+
+Uses sudo -A with fuzzel --dmenu --password for the first invocation;
+sudo caches credentials for subsequent calls.
+"""
+
+import json
+import os
+import shutil
+import subprocess
+import sys
+import tempfile
+
+
+def write_askpass_script():
+    """Write a temporary askpass script that uses fuzzel."""
+    fuzzel = shutil.which("fuzzel")
+    if not fuzzel:
+        return None
+    fd, path = tempfile.mkstemp(prefix="sudo-askpass-", suffix=".sh")
+    with os.fdopen(fd, "w") as f:
+        f.write(f'#!/bin/sh\nexec {fuzzel} --dmenu --password --prompt="sudo: "\n')
+    os.chmod(path, 0o700)
+    return path
+
+
+ASKPASS_SCRIPT = write_askpass_script()
+
+
+def read_message():
+    header = ""
+    while True:
+        line = sys.stdin.readline()
+        if not line:
+            return None
+        header += line
+        if line == "\r\n" or line == "\n":
+            break
+    length = 0
+    for h in header.strip().split("\n"):
+        if h.lower().startswith("content-length:"):
+            length = int(h.split(":")[1].strip())
+    if length == 0:
+        return None
+    body = sys.stdin.read(length)
+    return json.loads(body)
+
+
+def send_message(msg):
+    body = json.dumps(msg)
+    sys.stdout.write(f"Content-Length: {len(body)}\r\n\r\n{body}")
+    sys.stdout.flush()
+
+
+def handle_request(req):
+    method = req.get("method", "")
+    rid = req.get("id")
+
+    if method == "initialize":
+        return {
+            "jsonrpc": "2.0",
+            "id": rid,
+            "result": {
+                "protocolVersion": "2024-11-05",
+                "capabilities": {"tools": {"listChanged": False}},
+                "serverInfo": {"name": "sudo-mcp", "version": "1.0.0"},
+            },
+        }
+
+    if method == "notifications/initialized":
+        return None
+
+    if method == "tools/list":
+        return {
+            "jsonrpc": "2.0",
+            "id": rid,
+            "result": {
+                "tools": [
+                    {
+                        "name": "sudo",
+                        "description": "Run a command with sudo privileges. Use for system administration tasks like guix system reconfigure.",
+                        "inputSchema": {
+                            "type": "object",
+                            "properties": {
+                                "command": {
+                                    "type": "string",
+                                    "description": "The command to run with sudo (without the 'sudo' prefix)",
+                                }
+                            },
+                            "required": ["command"],
+                        },
+                    }
+                ]
+            },
+        }
+
+    if method == "tools/call":
+        args = req.get("params", {}).get("arguments", {})
+        command = args.get("command", "")
+
+        env = os.environ.copy()
+        sudo_flags = ["-E"]
+        if ASKPASS_SCRIPT:
+            env["SUDO_ASKPASS"] = ASKPASS_SCRIPT
+            sudo_flags.insert(0, "-A")
+
+        try:
+            result = subprocess.run(
+                ["sudo", *sudo_flags, "sh", "-c", command],
+                capture_output=True,
+                text=True,
+                timeout=600,
+                env=env,
+            )
+            output = result.stdout
+            if result.stderr:
+                output += "\n" + result.stderr
+            is_error = result.returncode != 0
+        except subprocess.TimeoutExpired:
+            output = "Command timed out after 600 seconds"
+            is_error = True
+        except Exception as e:
+            output = str(e)
+            is_error = True
+
+        return {
+            "jsonrpc": "2.0",
+            "id": rid,
+            "result": {
+                "content": [{"type": "text", "text": output.strip()}],
+                "isError": is_error,
+            },
+        }
+
+    return {
+        "jsonrpc": "2.0",
+        "id": rid,
+        "error": {"code": -32601, "message": f"Unknown method: {method}"},
+    }
+
+
+def main():
+    try:
+        while True:
+            msg = read_message()
+            if msg is None:
+                break
+            resp = handle_request(msg)
+            if resp is not None:
+                send_message(resp)
+    finally:
+        if ASKPASS_SCRIPT and os.path.exists(ASKPASS_SCRIPT):
+            os.unlink(ASKPASS_SCRIPT)
+
+
+if __name__ == "__main__":
+    main()

@@ -1,0 +1,14 @@
+#!/bin/sh
+# Spotify wrapper: launches Flatpak Spotify using a writable app-path overlay
+# so spicetify patches survive Flatpak's read-only OSTree store.
+#
+# The overlay (~14 MB) is built by `guix home reconfigure` (activation script):
+#   ~/.local/share/spotify-app/   -- real copy of /app minus extra/share/spotify
+#   ~/.local/share/spotify/       -- writable patched copy (symlinked into overlay)
+#
+# Re-run `guix home reconfigure` after Spotify updates to rebuild the overlay.
+
+exec flatpak run \
+    --app-path="${HOME}/.local/share/spotify-app" \
+    --filesystem="${HOME}/.local/share/spotify" \
+    com.spotify.Client "$@"

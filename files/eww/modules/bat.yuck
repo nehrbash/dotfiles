@@ -1,0 +1,7 @@
+(defwidget bat []
+  (box
+	:class "module"
+	(label
+		  :class "battery-icon"
+		  :style "color: ${battery.color}"
+		  :text {battery.icon})))

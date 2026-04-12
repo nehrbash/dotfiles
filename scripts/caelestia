@@ -1,0 +1,24 @@
+#!/bin/sh
+export LD_LIBRARY_PATH="$HOME/.guix-home/profile/lib${LD_LIBRARY_PATH:+:$LD_LIBRARY_PATH}"
+
+# Intercept `caelestia shell <target> <method> [args...]` and route it
+# directly to `qs ipc` with --any-display. The upstream caelestia python
+# CLI hard-codes `qs -c caelestia ipc call ...` without --any-display, so
+# when quickshell-shepherd registers the running instance with a display
+# string that doesn't match the client's $WAYLAND_DISPLAY, every IPC call
+# fails with "No running instances". --any-display sidesteps the filter.
+if [ "$1" = "shell" ] && [ $# -ge 2 ]; then
+    case "$2" in
+        -*) : ;;  # flag form (-s/-k/--log/etc) — fall through to real CLI
+        *) shift; exec qs -c caelestia ipc --any-display call "$@" ;;
+    esac
+fi
+
+# uv tool install bin directory varies by host:
+#   - bluefish (Arch+Guix Home): ~/.local/bin (uv default)
+#   - redfish  (Guix System):    ~/.local/share/uv/bin (read-only ~/.local/bin)
+for cli in "$HOME/.local/share/uv/bin/caelestia" "$HOME/.local/bin/caelestia"; do
+    if [ -x "$cli" ]; then exec "$cli" "$@"; fi
+done
+echo "caelestia: CLI not found in ~/.local/share/uv/bin or ~/.local/bin" >&2
+exit 127

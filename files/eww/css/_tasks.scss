@@ -1,0 +1,81 @@
+.TODO, .INPROGRESS, .NEXT, .DONE, .PROJECT, .WAITING {
+	padding-right: 8px;
+}
+
+.TODO, .INPROGRESS, .NEXT {
+	color: $yellow-warmer;
+}
+
+.TODO {
+	color: $yellow-warmer;
+}
+
+.DONE {
+	// text-decoration: line-through;
+	color: $overlay0;
+}
+
+.PROJECT, .project {
+	font-size: 1.4rem;
+    margin-top: 15px;
+	margin-bottom: 5px;
+}
+.PROJECT {
+	color: $green;
+}
+
+.project {
+    color: $green-cooler;
+}
+.task {
+	@include hoverable;
+	&:hover {
+        background: $bg;
+    }
+	color:  $subtext1;
+
+}
+
+.task-label {
+	@include hoverable;
+	font-size: 1.2rem;
+	&:hover {
+        background: $bg;
+    }
+	// margin: 5px;
+
+	color: $cyan;
+	padding-right:  15px;
+	padding-left:  5px;
+}
+
+.task-row {
+	@include hoverable;
+	&:hover {
+        background: $bg;
+    }
+	// margin-top: 5px;
+	// margin-bottom:  5px;
+}
+
+.toggle-bg {
+	border-radius: 20;
+	background-color: $bg-dim;
+	color: $subtext1;
+}
+
+.toggle {
+	@include window;
+	border-radius: 20;
+	background-color: $cyan;
+	color: $bg;
+}
+
+.filler-sloth {
+	background-image: url('images/sleepy-sloth.png');
+	    background-position: center;
+    background-size: cover;
+    min-height: 150px;
+    margin: 30px;
+
+}

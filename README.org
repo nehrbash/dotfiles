@@ -1,0 +1,41 @@
+#+TITLE: Dotfiles
+
+Personal dotfiles managed by [[https://guix.gnu.org/][GNU Guix Home]]. Configs are deployed via =local-file= symlinks — no stow.
+
+* Structure
+
+| Path          | Purpose                                        |
+|---------------+------------------------------------------------|
+| =home/=         | Guix Home configs (per-machine)                |
+| =packages/=     | Custom Guix package definitions                |
+| =channels.scm=  | Guix + NonGuix channels                        |
+| =files/=        | Program configs (shell, editor, desktop, etc.) |
+| =scripts/=      | Scripts deployed to =~/.local/bin/=              |
+
+* Setup
+
+#+begin_src sh
+git clone https://github.com/nehrbash/dotfiles.git ~/src/dotfiles
+cd ~/src/dotfiles
+guix pull -C channels.scm
+guix home reconfigure home/<machine>.scm -L .
+#+end_src
+
+Or use the Makefile: =make update-home=.
+
+* Machines
+
+| Machine    | OS              | Config              | Notes                       |
+|------------+-----------------+---------------------+-----------------------------|
+| =redfish=  | Guix System     | =systems/redfish.scm= | NVIDIA RTX 3070 Ti, Hyprland |
+| =bluefish= | Arch + Guix Home | =home/bluefish.scm=  | Guix Home only, no system config |
+
+=systems/oceania.scm= is the shared OS base inherited by system configs.
+
+* Highlights
+
+- *Desktop:* [[https://github.com/hyprwm/Hyprland][Hyprland]] + [[https://github.com/caelestia-dots/shell][Caelestia]] shell (Quickshell)
+- *Editor:* Emacs — literate config at [[file:files/emacs/Emacs.org][files/emacs/Emacs.org]]
+- *Keyboard:* Charybdis 3x5 wireless, Colemak-DH — literate ZMK config at [[file:files/zmk/keymap.org][files/zmk/keymap.org]]
+- *Theme:* ef-melissa-dark, Bibata-Modern-Amber cursor
+- *Audio:* PipeWire + Easy Effects

@@ -1,0 +1,70 @@
+.weather-forecast-box {
+    @include rounding;
+    margin: 5px;
+    padding: 8px;
+    background: linear-gradient(45deg, $bg-alt 0%, $blue-cooler 100%);
+}
+
+.weather-date {
+    color: $bg-dim;
+    text-decoration: underline;
+}
+
+.weather-sep {
+    color: $bg-alt;
+    font-weight: bold;
+    text-decoration: underline;
+}
+
+.title-bar {
+    padding: 5px;
+    @include rounding;
+   background: linear-gradient(45deg, $blue-cooler 0%, $blue 25%, $cyan 50%, $blue 75%, $green-cooler 100% );
+}
+
+.weather-label {
+	font-family: Weather Icons;
+    color: $bg;
+    font-size: 1.2rem;
+}
+
+.moon-label {
+    color: $lavender;
+    font-weight: bold;
+}
+
+.weather-moon, .moon-label {
+    font-size: 1.5rem;
+}
+
+.active-moon {
+   padding: 10px;
+   background: radial-gradient($yellow, $bg-alt 65%);
+   border-radius: 50%;
+}
+
+.weather-icon {
+	font-family: Weather Icons;
+    font-size: 2rem;
+    padding-bottom: 5px;
+    margin-right: 0px;
+}
+
+.weather-max {
+    color: $yellow;
+    padding-left: 5px;
+}
+
+.weather-min {
+    color: $green-cooler;
+    padding-right: 5px;
+}
+
+.weather-min, .weather-max {
+    font-size: 0.9rem;
+}
+
+.weather-state {
+    font-size: 1.2rem;
+        color: $subtext1;
+}

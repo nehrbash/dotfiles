@@ -1,0 +1,28 @@
+.ct_box {
+    @include rounding;
+    @include window;
+    background-color: $bg-alt;
+    margin: 10px;
+    padding: 10px;
+}
+.clock {
+    @include hoverable;
+}
+
+.hour {
+  font-weight: bold;
+  margin-left: 5px;
+}
+
+
+.quote {
+    padding-top: 20px;
+    padding-left: 10px;
+    padding-right: 10px;
+    font-style: italic;
+    font-size: 1.5rem;
+}
+
+.author {
+    color: $yellow-faint;
+}

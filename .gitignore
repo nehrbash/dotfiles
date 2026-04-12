@@ -1,0 +1,67 @@
+# Emacs generated/state files
+/files/emacs/eln-cache/
+/files/emacs/*.elc
+*.elc
+
+# Zsh history
+/files/zsh/history
+
+# Machine-specific Hyprland config
+/files/hypr/monitors.conf
+/files/hypr/scheme/
+
+# Sptlrx config (contains personal tokens)
+/files/sptlrx/config.yaml
+
+# Org archives
+*.org_archive
+
+# Misc generated/ephemeral
+/last_try
+/test.org
+*.lock
+*.eld
+*.ics
+*.zst
+
+# Scripts/binaries not checked in
+/scripts/aider
+/scripts/roamui
+/scripts/eww-install
+
+# Eww generated/runtime
+/files/eww/scripts/eww-weather
+/files/eww/scripts/submap
+/files/eww/pkg/eww-weather/eww-weather
+
+# Systemd generated links
+/files/systemd/user/default.target.wants/
+*.wants/
+/files/systemd/user/pipewire-session-manager.service
+
+# Cargo
+/target
+
+# Aider
+.aider*
+
+# Custom Emacs module secrets
+/files/emacs/lisp/init-gcal.el
+/files/emacs/lisp/hotfuzz-module.so
+
+# Caelestia QML shell (cloned repo, not part of dotfiles)
+/files/caelestia/quickshell/
+
+# Caelestia-generated theme files (regenerated from wallpaper on each
+# `caelestia wallpaper` run; shouldn't be tracked).
+/files/cava/config
+/files/gtk/gtk-3.0/gtk.css
+/files/gtk/gtk-3.0/thunar.css
+/files/gtk/gtk-4.0/gtk.css
+/files/gtk/gtk-4.0/thunar.css
+
+# Agent shell
+.agent-shell/
+
+# Local caches (e.g. quickshell upstream tracking clone)
+/.cache/

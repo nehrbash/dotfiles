@@ -1,0 +1,189 @@
+version: '3'
+
+vars:
+  PROJECT_NAME: consult-taskfile
+  BUILD_DIR: ./build
+  TEST_DIR: ./test
+
+env:
+  NODE_ENV: development
+  DEBUG: "1"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+
+  build:
+    desc: Build the project
+    deps: [clean]
+    cmds:
+      - echo "Building {{.PROJECT_NAME}}..."
+      - mkdir -p {{.BUILD_DIR}}
+      - echo "Build completed!"
+    sources:
+      - "*.el"
+    generates:
+      - "{{.BUILD_DIR}}/consult-taskfile.elc"
+
+  test:
+    desc: Run ERT tests
+    deps: [build]
+    cmds:
+      - echo "Running tests..."
+      - emacs -batch -l ert -l consult-taskfile.el -l test-consult-taskfile.el -f ert-run-tests-batch-and-exit
+    sources:
+      - "*.el"
+      - "test/*.el"
+
+  test-watch:
+    desc: Run tests in watch mode
+    watch: true
+    sources:
+      - "*.el"
+      - "test/*.el"
+    cmds:
+      - task: test
+
+  lint:
+    desc: Lint Emacs Lisp code
+    cmds:
+      - echo "Linting code..."
+      - emacs -batch --eval "(progn (require 'package) (package-initialize) (package-install 'flycheck))" -l consult-taskfile.el --eval "(flycheck-mode 1)" --eval "(flycheck-buffer)"
+
+  format:
+    desc: Format Emacs Lisp code
+    cmds:
+      - echo "Formatting code..."
+      - emacs -batch -l consult-taskfile.el --eval "(indent-region (point-min) (point-max))" -f save-buffer
+
+  clean:
+    desc: Clean build artifacts
+    cmds:
+      - echo "Cleaning..."
+      - rm -rf {{.BUILD_DIR}}
+      - rm -f *.elc
+      - echo "Clean completed!"
+
+  install:
+    desc: Install package dependencies
+    cmds:
+      - echo "Installing dependencies..."
+      - emacs -batch --eval "(progn (require 'package) (add-to-list 'package-archives '(\"melpa\" . \"https://melpa.org/packages/\")) (package-initialize) (package-refresh-contents) (package-install 'consult) (package-install 'transient))"
+
+  package:
+    desc: Create package archive
+    deps: [clean, build, test]
+    cmds:
+      - echo "Creating package..."
+      - mkdir -p dist
+      - tar -czf dist/{{.PROJECT_NAME}}.tar.gz *.el README.md
+      - 'echo "Package created: dist/{{.PROJECT_NAME}}.tar.gz"'
+
+  deploy:
+    desc: Deploy to package repository
+    deps: [package]
+    cmds:
+      - echo "Deploying {{.PROJECT_NAME}}..."
+      - echo "This would upload to MELPA or similar"
+      - echo "Deploy completed!"
+
+  dev-setup:
+    desc: Setup development environment
+    cmds:
+      - task: install
+      - echo "Development environment ready!"
+
+  benchmark:
+    desc: Run performance benchmarks
+    cmds:
+      - echo "Running benchmarks..."
+      - emacs -batch -l consult-taskfile.el --eval "(benchmark-run 100 (consult-taskfile--get-tasks))"
+
+  docs:
+    desc: Generate documentation
+    cmds:
+      - echo "Generating documentation..."
+      - emacs -batch -l consult-taskfile.el --eval "(with-temp-file \"API.md\" (insert (documentation 'consult-taskfile)))"
+
+  release:
+    desc: Create a new release
+    deps: [clean, test, package]
+    cmds:
+      - echo "Creating release..."
+      - git tag -a v{{.CLI_ARGS}} -m "Release v{{.CLI_ARGS}}"
+      - echo "Release v{{.CLI_ARGS}} created!"
+
+  # Hidden tasks (no description)
+  _internal_task:
+    cmds:
+      - echo "This is an internal task"
+
+  _another_hidden:
+    cmds:
+      - echo "Another hidden task"
+
+  # Tasks with different statuses for testing
+  uptodate:
+    desc: A task that's up to date
+    status:
+      - test -f .uptodate
+    cmds:
+      - touch .uptodate
+      - echo "Task is now up to date"
+
+  outdated:
+    desc: A task that's always outdated
+    cmds:
+      - echo "This task is always outdated"
+      - sleep 1
+
+  # Task with environment variables
+  env-test:
+    desc: Test environment variables
+    env:
+      TEST_VAR: "test_value"
+      ANOTHER_VAR: "{{.PROJECT_NAME}}"
+    cmds:
+      - echo "TEST_VAR=$TEST_VAR"
+      - echo "ANOTHER_VAR=$ANOTHER_VAR"
+      - echo "NODE_ENV=$NODE_ENV"
+
+  # Task with complex dependencies
+  complex:
+    desc: Task with complex dependencies and conditions
+    deps:
+      - build
+      - test
+    preconditions:
+      - test -f consult-taskfile.el
+    cmds:
+      - echo "Running complex task..."
+      - echo "All dependencies satisfied!"
+
+  # Interactive task
+  interactive:
+    desc: Interactive task that prompts user
+    interactive: true
+    cmds:
+      - echo "This is an interactive task"
+      - 'read -p "Enter your name: " name && echo "Hello, $name!"'
+
+  # Task that runs in different directory
+  subdir:
+    desc: Task that runs in subdirectory
+    dir: ./test
+    cmds:
+      - pwd
+      - echo "Running in subdirectory"
+
+  # Task with multiple commands
+  multi:
+    desc: Task with multiple commands
+    cmds:
+      - echo "Command 1"
+      - echo "Command 2"
+      - cmd: echo "Command 3 with explicit cmd"
+      - task: _internal_task
+      - echo "Final command"

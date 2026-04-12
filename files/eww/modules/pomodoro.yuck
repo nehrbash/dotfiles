@@ -1,0 +1,65 @@
+(defwidget pomo []
+  (box
+    :space-evenly false
+    :class "module"
+    (box
+      :class "pomo-left"
+      (box
+        :class "pomo-left-in"
+        :width 15 ))
+    (label
+      :text " ${pomo.summary}"
+      :class "pomo" )
+    (box
+      :class "pomo-right"
+      (box
+        :class "pomo-right-in"
+        :width 15 ))))
+
+(defwidget pomodoro []
+  (box
+    :class "ct_box"
+    :orientation "v"
+    :space-evenly "false"
+    :hexpand "false"
+    :vexpand "false"
+    (box
+      :orientation "h"
+      :space-evenly "false"
+      :valign "center"
+	  (button
+		:onclick "scripts/tasks -b"
+		(circular-progress
+          :value {pomo.percent}
+          :class "pomo_circle"
+          :thickness 10
+          :clockwise false
+          :start-at 75
+          (label
+			:halign "center"
+			:valign "center"
+			:class "pomo_icon"
+			:style {pomo.time != "00:00" ? "background-image: url('images/tomatoe3.png');" : "background-image: url('images/tomatoe3-sad.png');"}
+			:wrap false)))
+      (box
+        :orientation "v"
+        :space-evenly "true"
+        :halign "center"
+        :valign "center"
+        (label
+          :class "pomo_time"
+          :text {pomo.time})))
+	(box
+	  :space-evenly "false"
+      (label
+		:hexpand "true"
+		:class "pomo_task"
+		:wrap true
+		:text {pomo.task})
+	  ;; (button
+	  ;; 	:onclick "scripts/tasks -d"
+	  ;; 	(label	  ;; 	  :class "pomo_task"
+	  ;; 	  :wrap true
+	  ;; 	  :text "✅"))
+	  )))
+

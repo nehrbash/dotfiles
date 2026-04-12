@@ -1,0 +1,3 @@
+https://ci.guix.gnu.org
+https://bordeaux-us-east-mirror.cbaines.net
+https://substitutes.nonguix.org
