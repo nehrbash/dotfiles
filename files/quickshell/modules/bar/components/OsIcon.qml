@@ -6,8 +6,8 @@ import qs.config
 Item {
     id: root
 
-    implicitWidth: Config.bar.sizes.innerWidth * 0.7
-    implicitHeight: implicitWidth
+    implicitWidth: Config.bar.sizes.innerWidth * 0.8
+    implicitHeight: implicitWidth * 1.2
 
     MouseArea {
         anchors.fill: parent
@@ -18,9 +18,20 @@ Item {
         }
     }
 
-    // Owl as launcher button
+    // Tree hollow behind the owl
     Image {
         anchors.fill: parent
+        anchors.margins: -4
+        source: "workspaces/images/hollow.svg"
+        fillMode: Image.Stretch
+        opacity: 0.85
+    }
+
+    // Owl
+    Image {
+        anchors.centerIn: parent
+        width: parent.width * 0.85
+        height: parent.height * 0.85
         source: "workspaces/images/owl.svg"
         fillMode: Image.PreserveAspectFit
         smooth: true
