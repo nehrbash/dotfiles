@@ -16,10 +16,17 @@ StyledRect {
     property color colour: "#c4a882"
     readonly property alias items: iconColumn
 
-    color: "#3d2b1f"
+    color: "transparent"
     radius: Appearance.rounding.normal
-    border.width: 1
-    border.color: "#5c4333"
+
+    // Tree hollow background
+    Image {
+        anchors.fill: parent
+        source: "workspaces/images/hollow.svg"
+        fillMode: Image.Stretch
+        opacity: 0.8
+        z: -1
+    }
 
     clip: true
     implicitWidth: Config.bar.sizes.innerWidth

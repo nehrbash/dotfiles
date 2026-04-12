@@ -3,7 +3,6 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
-import QtQuick.Shapes
 import Quickshell
 import qs.components
 import qs.services
@@ -51,119 +50,9 @@ Item {
     }
 
     implicitWidth: Config.bar.sizes.innerWidth
-    implicitHeight: layout.implicitHeight + Appearance.padding.normal * 2
+    implicitHeight: layout.implicitHeight + Appearance.padding.small * 2
 
-    // Bark trunk background — full width, organic feel
-    Rectangle {
-        id: barkBg
-        anchors.fill: parent
-        radius: Appearance.rounding.normal
-        gradient: Gradient {
-            GradientStop { position: 0.0; color: "#3d2b1f" }
-            GradientStop { position: 0.15; color: "#4a3425" }
-            GradientStop { position: 0.5; color: "#503a2a" }
-            GradientStop { position: 0.85; color: "#4a3425" }
-            GradientStop { position: 1.0; color: "#5c4333" }
-        }
-
-        // Bark grain lines
-        Repeater {
-            model: 5
-
-            Rectangle {
-                required property int index
-                x: 3 + index * (barkBg.width - 6) / 5 + (index % 2 ? 2 : -1)
-                y: index * 30 + 10
-                width: 1
-                height: barkBg.height - index * 60 - 20
-                color: "#5c4333"
-                opacity: 0.4
-                radius: 0.5
-            }
-        }
-
-        // Knots on trunk
-        Repeater {
-            model: 3
-
-            Rectangle {
-                required property int index
-                x: 8 + (index % 2) * (barkBg.width - 22)
-                y: barkBg.height * (0.2 + index * 0.3)
-                width: 6
-                height: 6
-                radius: 3
-                color: "#3d2b1f"
-                border.width: 1
-                border.color: "#5c4333"
-            }
-        }
-    }
-
-    // Canopy — leafy crown at top
-    Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: -8
-        width: parent.width * 0.5
-        height: 18
-        radius: 9
-        color: "#2a4f2a"
-        opacity: 0.8
-    }
-    Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        x: parent.width * 0.1
-        y: -4
-        width: parent.width * 0.85
-        height: 14
-        radius: 7
-        color: "#355e35"
-        opacity: 0.6
-    }
-    Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        y: -1
-        width: parent.width * 0.4
-        height: 10
-        radius: 5
-        color: "#2a4f2a"
-        opacity: 0.5
-    }
-
-    // Roots at bottom
-    Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: -6
-        y: parent.height - 2
-        width: 8
-        height: 12
-        radius: 3
-        rotation: -20
-        color: "#5c4333"
-        opacity: 0.7
-    }
-    Rectangle {
-        anchors.horizontalCenter: parent.horizontalCenter
-        anchors.horizontalCenterOffset: 6
-        y: parent.height - 2
-        width: 7
-        height: 10
-        radius: 3
-        rotation: 15
-        color: "#5c4333"
-        opacity: 0.6
-    }
-
-    // Focused monitor glow
-    Rectangle {
-        visible: root.isFocusedMonitor
-        anchors.fill: parent
-        radius: Appearance.rounding.normal
-        color: "transparent"
-        border.width: 1.5
-        border.color: "#8b7355"
-        opacity: 0.5
-    }
+    // No background — the full bar trunk provides it
 
     Item {
         anchors.fill: parent
@@ -212,29 +101,19 @@ Item {
             }
         }
 
-        Behavior on scale {
-            Anim {}
-        }
-
-        Behavior on opacity {
-            Anim {}
-        }
+        Behavior on scale { Anim {} }
+        Behavior on opacity { Anim {} }
     }
 
     Loader {
         id: specialWs
-
         asynchronous: true
         anchors.fill: parent
         anchors.margins: Appearance.padding.small
         active: opacity > 0
         scale: root.onSpecial ? 1 : 0.5
         opacity: root.onSpecial ? 1 : 0
-
-        sourceComponent: SpecialWorkspaces {
-            screen: root.screen
-        }
-
+        sourceComponent: SpecialWorkspaces { screen: root.screen }
         Behavior on scale { Anim {} }
         Behavior on opacity { Anim {} }
     }

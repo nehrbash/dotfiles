@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 30">
+  <!-- Main root spreading left -->
+  <path d="M18 0 C16 5, 10 10, 2 18 C1 20, 0 24, 2 26" stroke="#6b5040" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- Main root spreading right -->
+  <path d="M22 0 C24 5, 30 10, 38 18 C39 20, 40 24, 38 26" stroke="#6b5040" stroke-width="3.5" fill="none" stroke-linecap="round"/>
+  <!-- Center root -->
+  <path d="M20 0 C20 8, 19 16, 20 28" stroke="#6b5040" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <!-- Small root tendrils -->
+  <path d="M15 4 C12 8, 8 12, 5 14" stroke="#5c4333" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <path d="M25 4 C28 8, 32 12, 35 14" stroke="#5c4333" stroke-width="2" fill="none" stroke-linecap="round"/>
+  <!-- Tiny rootlets -->
+  <path d="M2 26 C0 28, -1 30, 0 30" stroke="#5c4333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M38 26 C40 28, 41 30, 40 30" stroke="#5c4333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M5 14 C3 16, 1 17, 0 18" stroke="#5c4333" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M35 14 C37 16, 39 17, 40 18" stroke="#5c4333" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+</svg>

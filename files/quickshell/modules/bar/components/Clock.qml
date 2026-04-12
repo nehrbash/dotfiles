@@ -14,10 +14,8 @@ StyledRect {
     implicitWidth: Config.bar.sizes.innerWidth
     implicitHeight: layout.implicitHeight + root.padding * 2
 
-    color: Config.bar.clock.background ? "#3d2b1f" : "transparent"
+    color: "transparent"
     radius: Appearance.rounding.normal
-    border.width: Config.bar.clock.background ? 1 : 0
-    border.color: "#5c4333"
 
     Column {
         id: layout

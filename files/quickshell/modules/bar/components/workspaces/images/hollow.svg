@@ -1,0 +1,9 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 50">
+  <!-- Tree hollow / knothole shape -->
+  <ellipse cx="18" cy="25" rx="16" ry="23" fill="#2a1f15"/>
+  <ellipse cx="18" cy="25" rx="14" ry="21" fill="#1f1610"/>
+  <!-- Rim highlight -->
+  <ellipse cx="18" cy="25" rx="16" ry="23" fill="none" stroke="#5c4333" stroke-width="2"/>
+  <!-- Inner shadow gradient effect -->
+  <ellipse cx="18" cy="22" rx="10" ry="14" fill="#161010" opacity="0.5"/>
+</svg>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 40 200" preserveAspectRatio="none">
+  <!-- Bark base -->
+  <rect width="40" height="200" fill="#4a3425"/>
+  <!-- Bark ridges - vertical grain lines with slight curves -->
+  <path d="M8 0 C7 40, 9 80, 8 120 C7 160, 9 200, 8 200" stroke="#3d2b1f" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M16 0 C17 50, 15 100, 16 150 C17 180, 15 200, 16 200" stroke="#3d2b1f" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M24 0 C23 30, 25 70, 24 110 C23 150, 25 190, 24 200" stroke="#3d2b1f" stroke-width="1.8" fill="none" opacity="0.45"/>
+  <path d="M32 0 C33 45, 31 90, 32 135 C33 170, 31 200, 32 200" stroke="#3d2b1f" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <!-- Lighter highlights -->
+  <path d="M12 0 C11 35, 13 75, 12 115 C11 155, 13 200, 12 200" stroke="#5c4333" stroke-width="1" fill="none" opacity="0.3"/>
+  <path d="M28 0 C29 25, 27 65, 28 105 C29 145, 27 185, 28 200" stroke="#5c4333" stroke-width="1" fill="none" opacity="0.3"/>
+  <!-- Knots -->
+  <circle cx="10" cy="50" r="3" fill="#3d2b1f" stroke="#5c4333" stroke-width="0.5" opacity="0.6"/>
+  <circle cx="30" cy="120" r="2.5" fill="#3d2b1f" stroke="#5c4333" stroke-width="0.5" opacity="0.5"/>
+  <circle cx="15" cy="170" r="2" fill="#3d2b1f" stroke="#5c4333" stroke-width="0.5" opacity="0.5"/>
+</svg>
