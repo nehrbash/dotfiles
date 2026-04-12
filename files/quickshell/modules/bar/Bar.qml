@@ -142,27 +142,7 @@ ColumnLayout {
             z: -1; opacity: 0.7
         }
 
-        // Canopy — centered on content, extends beyond
-        Image {
-            parent: root
-            source: "components/workspaces/images/canopy.svg"
-            anchors.top: parent.top
-            anchors.topMargin: -25
-            x: root.width / 2 - width / 2
-            width: root.width * 3; height: 70
-            z: 2; opacity: 0.95
-        }
-
-        // Roots — centered on content, extends beyond
-        Image {
-            parent: root
-            source: "components/workspaces/images/roots-large.svg"
-            anchors.bottom: parent.bottom
-            anchors.bottomMargin: -12
-            x: root.width / 2 - width / 2
-            width: root.width * 3; height: 55
-            z: 2; opacity: 0.9
-        }
+        // Canopy and roots are in BarWrapper.qml for proper positioning
     }
 
     Repeater {

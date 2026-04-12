@@ -85,4 +85,33 @@ Item {
             popouts: root.popouts // qmllint disable incompatible-type
         }
     }
+
+    // Tree decorations — positioned relative to BarWrapper (a regular Item)
+    // These extend beyond the bar width into the desktop
+
+    // Canopy at top
+    Image {
+        source: "components/workspaces/images/canopy.svg"
+        anchors.top: parent.top
+        anchors.topMargin: -20
+        anchors.horizontalCenter: content.horizontalCenter
+        width: root.contentWidth * 3
+        height: 70
+        visible: root.visible
+        z: 2
+        opacity: 0.95
+    }
+
+    // Roots at bottom
+    Image {
+        source: "components/workspaces/images/roots-large.svg"
+        anchors.bottom: parent.bottom
+        anchors.bottomMargin: -10
+        anchors.horizontalCenter: content.horizontalCenter
+        width: root.contentWidth * 3
+        height: 55
+        visible: root.visible
+        z: 2
+        opacity: 0.9
+    }
 }
