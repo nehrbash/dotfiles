@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Layouts
 import Quickshell
+import Quickshell.Widgets
 import qs.components
 import qs.services
 import qs.config
@@ -29,29 +30,23 @@ ColumnLayout {
 
     spacing: 0
 
-    StyledText {
+    Image {
         id: indicator
 
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-        Layout.preferredHeight: Config.bar.sizes.innerWidth - Appearance.padding.small * 2
+        readonly property int slothNum: Math.min(root.ws, 8)
 
-        animate: true
-        text: {
-            const ws = Hypr.workspaces.values.find(w => w.id === root.ws);
-            const wsName = !ws || ws.name == root.ws ? root.ws : ws.name[0];
-            let displayName = wsName.toString();
-            if (Config.bar.workspaces.capitalisation.toLowerCase() === "upper") {
-                displayName = displayName.toUpperCase();
-            } else if (Config.bar.workspaces.capitalisation.toLowerCase() === "lower") {
-                displayName = displayName.toLowerCase();
-            }
-            const label = Config.bar.workspaces.label || displayName;
-            const occupiedLabel = Config.bar.workspaces.occupiedLabel || label;
-            const activeLabel = Config.bar.workspaces.activeLabel || (root.isOccupied ? occupiedLabel : label);
-            return root.activeWsId === root.ws ? activeLabel : root.isOccupied ? occupiedLabel : label;
+        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
+        Layout.preferredWidth: Config.bar.sizes.innerWidth - Appearance.padding.small * 2
+        Layout.preferredHeight: Layout.preferredWidth
+
+        source: `images/sloth${slothNum}.png`
+        fillMode: Image.PreserveAspectFit
+        smooth: true
+        opacity: root.activeWsId === root.ws ? 1.0 : root.isOccupied ? 0.7 : 0.3
+
+        Behavior on opacity {
+            Anim {}
         }
-        color: Config.bar.workspaces.occupiedBg || root.isOccupied || root.activeWsId === root.ws ? Colours.palette.m3onSurface : Colours.layer(Colours.palette.m3outlineVariant, 2)
-        verticalAlignment: Qt.AlignVCenter
     }
 
     Loader {
@@ -99,12 +94,13 @@ ColumnLayout {
                     }
                 }
 
-                MaterialIcon {
+                IconImage {
                     required property var modelData
 
-                    grade: 0
-                    text: Icons.getAppCategoryIcon(modelData ?? "", "terminal")
-                    color: Colours.palette.m3onSurfaceVariant
+                    implicitWidth: Config.bar.sizes.innerWidth / 3
+                    implicitHeight: implicitWidth
+                    source: Icons.getAppIcon(modelData ?? "", "application-x-executable")
+                    asynchronous: true
                 }
             }
         }

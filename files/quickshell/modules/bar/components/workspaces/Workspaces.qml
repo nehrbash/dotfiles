@@ -15,6 +15,7 @@ StyledClippingRect {
 
     readonly property bool onSpecial: (Config.bar.workspaces.perMonitorWorkspaces ? Hypr.monitorFor(screen) : Hypr.focusedMonitor)?.lastIpcObject.specialWorkspace?.name !== ""
     readonly property int activeWsId: Config.bar.workspaces.perMonitorWorkspaces ? (Hypr.monitorFor(screen).activeWorkspace?.id ?? 1) : Hypr.activeWsId
+    readonly property bool isFocusedMonitor: Hypr.focusedMonitor === Hypr.monitorFor(screen)
 
     readonly property var occupied: {
         const occ = {};
@@ -31,6 +32,8 @@ StyledClippingRect {
 
     color: Colours.tPalette.m3surfaceContainer
     radius: Appearance.rounding.full
+    border.width: root.isFocusedMonitor ? 2 : 0
+    border.color: Colours.palette.m3primary
 
     Item {
         anchors.fill: parent
@@ -93,10 +96,14 @@ StyledClippingRect {
             anchors.fill: layout
             onClicked: event => {
                 const ws = (layout.childAt(event.x, event.y) as Workspace)?.ws;
-                if (Hypr.activeWsId !== ws)
+                if (!ws) return;
+                const monName = Hypr.monitorFor(root.screen)?.name ?? "";
+                if (Hypr.activeWsId !== ws) {
+                    Hypr.dispatch(`moveworkspacetomonitor ${ws} ${monName}`);
                     Hypr.dispatch(`workspace ${ws}`);
-                else
+                } else {
                     Hypr.dispatch("togglespecialworkspace special");
+                }
             }
         }
 
@@ -132,6 +139,12 @@ StyledClippingRect {
 
         Behavior on opacity {
             Anim {}
+        }
+    }
+
+    Behavior on border.width {
+        Anim {
+            duration: Appearance.anim.durations.small
         }
     }
 
