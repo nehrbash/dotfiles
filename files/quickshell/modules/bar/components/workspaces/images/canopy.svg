@@ -1,23 +1,40 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 35">
-  <!-- Dense leaf clusters forming canopy -->
-  <!-- Background layer -->
-  <ellipse cx="30" cy="20" rx="28" ry="16" fill="#2a4a2a" opacity="0.8"/>
-  <ellipse cx="20" cy="18" rx="18" ry="14" fill="#2d5a2d" opacity="0.7"/>
-  <ellipse cx="40" cy="18" rx="18" ry="14" fill="#2d5a2d" opacity="0.7"/>
-  <!-- Mid layer -->
-  <ellipse cx="30" cy="16" rx="22" ry="12" fill="#355e35" opacity="0.8"/>
-  <ellipse cx="15" cy="14" rx="14" ry="10" fill="#3a6b3a" opacity="0.6"/>
-  <ellipse cx="45" cy="14" rx="14" ry="10" fill="#3a6b3a" opacity="0.6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 60">
+  <!-- Large organic canopy mass - multiple irregular blobs -->
+
+  <!-- Deepest shadow layer -->
+  <path d="M50 55 C30 55, 5 45, 3 30 C1 20, 8 10, 20 8 C25 6, 30 4, 38 5 C42 3, 47 2, 50 2 C53 2, 58 3, 62 5 C70 4, 75 6, 80 8 C92 10, 99 20, 97 30 C95 45, 70 55, 50 55Z" fill="#1e3a1e"/>
+
+  <!-- Mid shadow -->
+  <path d="M50 50 C32 52, 10 42, 8 28 C6 18, 14 10, 25 9 C30 6, 40 4, 50 5 C60 4, 70 6, 75 9 C86 10, 94 18, 92 28 C90 42, 68 52, 50 50Z" fill="#264a26"/>
+
+  <!-- Main foliage mass -->
+  <path d="M48 48 C35 49, 14 40, 12 28 C10 19, 18 12, 28 11 C33 8, 42 6, 50 7 C58 6, 67 8, 72 11 C82 12, 90 19, 88 28 C86 40, 65 49, 52 48Z" fill="#2d5a2d"/>
+
+  <!-- Lighter patches -->
+  <path d="M35 42 C22 40, 16 32, 18 24 C20 18, 26 14, 35 13 C40 10, 48 9, 50 10 C45 12, 38 16, 32 22 C26 28, 28 38, 35 42Z" fill="#3a6b3a" opacity="0.7"/>
+  <path d="M65 42 C78 40, 84 32, 82 24 C80 18, 74 14, 65 13 C60 10, 52 9, 50 10 C55 12, 62 16, 68 22 C74 28, 72 38, 65 42Z" fill="#3a6b3a" opacity="0.7"/>
+
   <!-- Top highlights -->
-  <ellipse cx="30" cy="12" rx="16" ry="8" fill="#4a7a4a" opacity="0.5"/>
-  <ellipse cx="22" cy="10" rx="10" ry="6" fill="#4a7a4a" opacity="0.4"/>
-  <ellipse cx="38" cy="10" rx="10" ry="6" fill="#4a7a4a" opacity="0.4"/>
-  <!-- Individual leaf accents -->
-  <ellipse cx="10" cy="16" rx="4" ry="6" fill="#3d6b3d" opacity="0.7" transform="rotate(-20 10 16)"/>
-  <ellipse cx="50" cy="16" rx="4" ry="6" fill="#3d6b3d" opacity="0.7" transform="rotate(20 50 16)"/>
-  <ellipse cx="30" cy="8" rx="5" ry="3" fill="#5a8a5a" opacity="0.4"/>
-  <!-- Light dappling -->
-  <circle cx="25" cy="14" r="2" fill="#6a9a6a" opacity="0.3"/>
-  <circle cx="35" cy="12" r="1.5" fill="#6a9a6a" opacity="0.25"/>
-  <circle cx="18" cy="18" r="1.5" fill="#6a9a6a" opacity="0.2"/>
+  <path d="M50 12 C42 10, 30 14, 28 20 C32 16, 40 13, 50 12Z" fill="#4a7a4a" opacity="0.5"/>
+  <path d="M50 12 C58 10, 70 14, 72 20 C68 16, 60 13, 50 12Z" fill="#4a7a4a" opacity="0.5"/>
+  <path d="M40 8 C44 5, 50 4, 56 5 C60 8, 55 10, 50 9 C45 10, 40 10, 40 8Z" fill="#4a804a" opacity="0.4"/>
+
+  <!-- Leaf cluster details on edges -->
+  <path d="M8 30 C4 28, 2 24, 5 20 C3 22, 4 27, 8 30Z" fill="#2d5a2d" opacity="0.8"/>
+  <path d="M92 30 C96 28, 98 24, 95 20 C97 22, 96 27, 92 30Z" fill="#2d5a2d" opacity="0.8"/>
+
+  <!-- Small bump clusters along the crown edge for leafy silhouette -->
+  <circle cx="15" cy="22" r="6" fill="#264a26" opacity="0.6"/>
+  <circle cx="25" cy="14" r="5" fill="#2d5a2d" opacity="0.5"/>
+  <circle cx="38" cy="8" r="4" fill="#2d5a2d" opacity="0.5"/>
+  <circle cx="50" cy="5" r="5" fill="#355e35" opacity="0.5"/>
+  <circle cx="62" cy="8" r="4" fill="#2d5a2d" opacity="0.5"/>
+  <circle cx="75" cy="14" r="5" fill="#2d5a2d" opacity="0.5"/>
+  <circle cx="85" cy="22" r="6" fill="#264a26" opacity="0.6"/>
+
+  <!-- Dappled light spots -->
+  <circle cx="35" cy="25" r="2" fill="#5a8a5a" opacity="0.2"/>
+  <circle cx="55" cy="20" r="1.5" fill="#5a8a5a" opacity="0.2"/>
+  <circle cx="45" cy="35" r="2" fill="#5a8a5a" opacity="0.15"/>
+  <circle cx="65" cy="30" r="1.5" fill="#5a8a5a" opacity="0.15"/>
 </svg>

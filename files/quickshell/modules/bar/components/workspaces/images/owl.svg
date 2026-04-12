@@ -1,27 +1,52 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <!-- Owl body -->
-  <ellipse cx="12" cy="14" rx="8" ry="9" fill="#6b5040"/>
-  <!-- Belly -->
-  <ellipse cx="12" cy="16" rx="5" ry="6" fill="#8a7060"/>
-  <!-- Belly feather pattern -->
-  <path d="M9 13 Q12 14 15 13 M8.5 15 Q12 16 15.5 15 M9 17 Q12 18 15 17 M9.5 19 Q12 20 14.5 19" stroke="#6b5040" stroke-width="0.5" fill="none" opacity="0.6"/>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 30 35">
+  <!-- Owl sitting in hollow - more detailed and natural -->
+
+  <!-- Body -->
+  <path d="M15 32 C10 32, 6 28, 6 22 C6 16, 8 12, 15 10 C22 12, 24 16, 24 22 C24 28, 20 32, 15 32Z" fill="#8a7060"/>
+
+  <!-- Belly feathers -->
+  <path d="M15 30 C11 30, 9 26, 9 22 C9 18, 11 15, 15 14 C19 15, 21 18, 21 22 C21 26, 19 30, 15 30Z" fill="#a89080"/>
+  <!-- Feather lines on belly -->
+  <path d="M11 20 Q15 21 19 20" stroke="#8a7060" stroke-width="0.4" fill="none" opacity="0.5"/>
+  <path d="M10.5 23 Q15 24 19.5 23" stroke="#8a7060" stroke-width="0.4" fill="none" opacity="0.5"/>
+  <path d="M11 26 Q15 27 19 26" stroke="#8a7060" stroke-width="0.4" fill="none" opacity="0.5"/>
+  <path d="M12 29 Q15 29.5 18 29" stroke="#8a7060" stroke-width="0.4" fill="none" opacity="0.5"/>
+
   <!-- Head -->
-  <circle cx="12" cy="7" r="6" fill="#7a6050"/>
+  <path d="M15 14 C10 14, 6 10, 6 6 C6 2, 10 0, 15 0 C20 0, 24 2, 24 6 C24 10, 20 14, 15 14Z" fill="#9a8070"/>
+
   <!-- Ear tufts -->
-  <path d="M7 3 L5 0 L8 3" fill="#6b5040"/>
-  <path d="M17 3 L19 0 L16 3" fill="#6b5040"/>
+  <path d="M8 3 C7 0, 5 -2, 4 -2 C5 0, 7 2, 8 3Z" fill="#8a7060"/>
+  <path d="M22 3 C23 0, 25 -2, 26 -2 C25 0, 23 2, 22 3Z" fill="#8a7060"/>
+
+  <!-- Facial disc -->
+  <path d="M15 12 C11 12, 8 9, 8 6 C8 3, 11 1, 15 1 C19 1, 22 3, 22 6 C22 9, 19 12, 15 12Z" fill="#c4b090"/>
+
   <!-- Eye rings -->
-  <circle cx="9.5" cy="7" r="3" fill="#c4a882"/>
-  <circle cx="14.5" cy="7" r="3" fill="#c4a882"/>
+  <circle cx="11.5" cy="6" r="3.2" fill="#ddd0b0"/>
+  <circle cx="18.5" cy="6" r="3.2" fill="#ddd0b0"/>
+
+  <!-- Irises -->
+  <circle cx="11.5" cy="6" r="2.2" fill="#443322"/>
+
+  <circle cx="18.5" cy="6" r="2.2" fill="#443322"/>
+
   <!-- Pupils -->
-  <circle cx="9.5" cy="7" r="1.5" fill="#1a1210"/>
-  <circle cx="14.5" cy="7" r="1.5" fill="#1a1210"/>
+  <circle cx="11.5" cy="5.8" r="1.2" fill="#1a1008"/>
+  <circle cx="18.5" cy="5.8" r="1.2" fill="#1a1008"/>
+
   <!-- Eye shine -->
-  <circle cx="10" cy="6.3" r="0.5" fill="#fff" opacity="0.7"/>
-  <circle cx="15" cy="6.3" r="0.5" fill="#fff" opacity="0.7"/>
+  <circle cx="12.2" cy="5.2" r="0.6" fill="#fff" opacity="0.8"/>
+  <circle cx="19.2" cy="5.2" r="0.6" fill="#fff" opacity="0.8"/>
+
   <!-- Beak -->
-  <path d="M11 9 L12 11 L13 9" fill="#c4a050"/>
+  <path d="M14 8 C14.5 8.5, 15 10, 15 10 C15 10, 15.5 8.5, 16 8 C15.5 8.2, 14.5 8.2, 14 8Z" fill="#c4a050"/>
+
+  <!-- Wing hints -->
+  <path d="M6 18 C5 16, 5 14, 6 12" stroke="#7a6050" stroke-width="0.8" fill="none" opacity="0.5"/>
+  <path d="M24 18 C25 16, 25 14, 24 12" stroke="#7a6050" stroke-width="0.8" fill="none" opacity="0.5"/>
+
   <!-- Feet -->
-  <path d="M9 22 L7 23 M9 22 L9 23 M9 22 L11 23" stroke="#8a7060" stroke-width="0.8" fill="none" stroke-linecap="round"/>
-  <path d="M15 22 L13 23 M15 22 L15 23 M15 22 L17 23" stroke="#8a7060" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M12 31 C11 33, 10 33, 9 33 M12 31 C12 33, 12 33, 11 34 M12 31 C13 33, 13 34, 12 34" stroke="#7a6050" stroke-width="0.7" fill="none" stroke-linecap="round"/>
+  <path d="M18 31 C17 33, 16 33, 15 33 M18 31 C18 33, 18 33, 17 34 M18 31 C19 33, 19 34, 18 34" stroke="#7a6050" stroke-width="0.7" fill="none" stroke-linecap="round"/>
 </svg>

@@ -1,0 +1,25 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 50">
+  <!-- Thick organic roots spreading from trunk base -->
+
+  <!-- Trunk base / root flare -->
+  <path d="M40 0 L38 8 C36 12, 30 16, 22 22 C18 26, 12 30, 6 35 C3 38, 0 42, 0 45 L0 50 L100 50 L100 45 C100 42, 97 38, 94 35 C88 30, 82 26, 78 22 C70 16, 64 12, 62 8 L60 0Z" fill="#5c4333"/>
+
+  <!-- Root texture / depth -->
+  <path d="M42 0 L40 6 C38 10, 34 14, 28 20 C24 24, 18 28, 12 33 C8 36, 4 40, 2 44" stroke="#4a3728" stroke-width="2" fill="none" opacity="0.5"/>
+  <path d="M58 0 L60 6 C62 10, 66 14, 72 20 C76 24, 82 28, 88 33 C92 36, 96 40, 98 44" stroke="#4a3728" stroke-width="2" fill="none" opacity="0.5"/>
+
+  <!-- Individual root fingers -->
+  <path d="M22 22 C16 20, 8 24, 2 30" stroke="#6b5040" stroke-width="3" fill="none" stroke-linecap="round"/>
+  <path d="M78 22 C84 20, 92 24, 98 30" stroke="#6b5040" stroke-width="3" fill="none" stroke-linecap="round"/>
+
+  <!-- Thin root tendrils -->
+  <path d="M28 20 C22 18, 14 20, 6 25" stroke="#5c4333" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+  <path d="M72 20 C78 18, 86 20, 94 25" stroke="#5c4333" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.7"/>
+
+  <!-- Ground line texture -->
+  <path d="M0 45 C10 43, 20 46, 30 44 C40 42, 50 45, 60 43 C70 41, 80 44, 90 42 C95 41, 98 43, 100 45" stroke="#4a3728" stroke-width="1" fill="none" opacity="0.4"/>
+
+  <!-- Highlight on root tops -->
+  <path d="M40 2 C42 6, 38 10, 34 14" stroke="#6b5040" stroke-width="1.5" fill="none" opacity="0.4"/>
+  <path d="M60 2 C58 6, 62 10, 66 14" stroke="#6b5040" stroke-width="1.5" fill="none" opacity="0.4"/>
+</svg>

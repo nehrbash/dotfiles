@@ -139,29 +139,51 @@ ColumnLayout {
             z: -1; opacity: 0.7
         }
 
-        // Placeholder slots for canopy/roots artwork
-        // Replace these SVGs with proper illustrated PNGs for best results
-
-        // Canopy — extends beyond bar
+        // Canopy — large, extends well beyond bar
         Image {
             parent: root
             source: "components/workspaces/images/canopy.svg"
             anchors.top: parent.top
-            anchors.topMargin: -15
+            anchors.topMargin: -25
             anchors.horizontalCenter: parent.horizontalCenter
-            width: root.width * 2; height: 50
-            z: 1; opacity: 0.9
+            width: root.width * 3; height: 70
+            z: 2; opacity: 0.95
         }
 
-        // Roots — extend beyond bar
+        // Owl in hollow — positioned in middle of bar
+        Item {
+            parent: root
+            anchors.horizontalCenter: parent.horizontalCenter
+            y: parent.height * 0.42
+            width: 32; height: 38
+            z: 3
+
+            // Hollow background
+            Image {
+                anchors.fill: parent
+                anchors.margins: -4
+                source: "components/workspaces/images/hollow.svg"
+                opacity: 0.8
+            }
+
+            // Owl
+            Image {
+                anchors.centerIn: parent
+                width: 24; height: 28
+                source: "components/workspaces/images/owl.svg"
+                opacity: 0.85
+            }
+        }
+
+        // Roots — large, extend beyond bar
         Image {
             parent: root
-            source: "components/workspaces/images/roots.svg"
+            source: "components/workspaces/images/roots-large.svg"
             anchors.bottom: parent.bottom
-            anchors.bottomMargin: -8
+            anchors.bottomMargin: -12
             anchors.horizontalCenter: parent.horizontalCenter
-            width: root.width * 2; height: 40
-            z: 1; opacity: 0.85
+            width: root.width * 3; height: 55
+            z: 2; opacity: 0.9
         }
     }
 
