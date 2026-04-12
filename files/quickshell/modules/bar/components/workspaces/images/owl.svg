@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!-- Owl body -->
+  <ellipse cx="12" cy="14" rx="8" ry="9" fill="#6b5040"/>
+  <!-- Belly -->
+  <ellipse cx="12" cy="16" rx="5" ry="6" fill="#8a7060"/>
+  <!-- Belly feather pattern -->
+  <path d="M9 13 Q12 14 15 13 M8.5 15 Q12 16 15.5 15 M9 17 Q12 18 15 17 M9.5 19 Q12 20 14.5 19" stroke="#6b5040" stroke-width="0.5" fill="none" opacity="0.6"/>
+  <!-- Head -->
+  <circle cx="12" cy="7" r="6" fill="#7a6050"/>
+  <!-- Ear tufts -->
+  <path d="M7 3 L5 0 L8 3" fill="#6b5040"/>
+  <path d="M17 3 L19 0 L16 3" fill="#6b5040"/>
+  <!-- Eye rings -->
+  <circle cx="9.5" cy="7" r="3" fill="#c4a882"/>
+  <circle cx="14.5" cy="7" r="3" fill="#c4a882"/>
+  <!-- Pupils -->
+  <circle cx="9.5" cy="7" r="1.5" fill="#1a1210"/>
+  <circle cx="14.5" cy="7" r="1.5" fill="#1a1210"/>
+  <!-- Eye shine -->
+  <circle cx="10" cy="6.3" r="0.5" fill="#fff" opacity="0.7"/>
+  <circle cx="15" cy="6.3" r="0.5" fill="#fff" opacity="0.7"/>
+  <!-- Beak -->
+  <path d="M11 9 L12 11 L13 9" fill="#c4a050"/>
+  <!-- Feet -->
+  <path d="M9 22 L7 23 M9 22 L9 23 M9 22 L11 23" stroke="#8a7060" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+  <path d="M15 22 L13 23 M15 22 L15 23 M15 22 L17 23" stroke="#8a7060" stroke-width="0.8" fill="none" stroke-linecap="round"/>
+</svg>

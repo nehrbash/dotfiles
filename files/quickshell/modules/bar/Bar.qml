@@ -103,63 +103,122 @@ ColumnLayout {
 
     spacing: Appearance.spacing.normal
 
-    // Full-height tree trunk background
-    Image {
-        anchors.fill: parent
-        source: "images/bark.svg"
-        fillMode: Image.Stretch
-        opacity: 0.9
-        z: -1
-    }
+    // Tree decorations — zero-size container so it doesn't affect layout
+    Item {
+        Layout.preferredWidth: 0
+        Layout.preferredHeight: 0
 
-    // Canopy at top
-    Image {
-        source: "components/workspaces/images/leaf3.svg"
-        x: parent.width / 2 - 10; y: 4
-        width: 20; height: 20
-        z: -1; opacity: 0.8
-    }
-    Image {
-        source: "components/workspaces/images/leaf1.svg"
-        x: 2; y: 8
-        width: 16; height: 16
-        rotation: -20; z: -1; opacity: 0.7
-    }
-    Image {
-        source: "components/workspaces/images/leaf2.svg"
-        x: parent.width - 16; y: 6
-        width: 14; height: 14
-        rotation: 25; z: -1; opacity: 0.7
-    }
+        // Full-height bark background
+        Image {
+            parent: root
+            anchors.fill: parent
+            source: "images/bark.svg"
+            fillMode: Image.Stretch
+            opacity: 0.9
+            z: -2
+        }
 
-    // Scattered leaves along trunk
-    Image {
-        source: "components/workspaces/images/leaf2.svg"
-        x: parent.width - 14; y: parent.height * 0.25
-        width: 12; height: 12
-        rotation: 40; z: -1; opacity: 0.35
-    }
-    Image {
-        source: "components/workspaces/images/leaf1.svg"
-        x: -2; y: parent.height * 0.45
-        width: 11; height: 11
-        rotation: -35; z: -1; opacity: 0.3
-    }
-    Image {
-        source: "components/workspaces/images/leaf3.svg"
-        x: parent.width - 12; y: parent.height * 0.7
-        width: 10; height: 10
-        rotation: 50; z: -1; opacity: 0.25
-    }
+        // Bark edge — left
+        Image {
+            parent: root
+            source: "components/workspaces/images/bark-edge.svg"
+            x: -3; y: 0
+            width: 6; height: root.height
+            fillMode: Image.Stretch
+            z: -1; opacity: 0.7
+        }
 
-    // Roots at bottom
-    Image {
-        source: "components/workspaces/images/roots.svg"
-        anchors.bottom: parent.bottom
-        anchors.horizontalCenter: parent.horizontalCenter
-        width: parent.width
-        height: 30
-        z: -1; opacity: 0.8
+        // Bark edge — right
+        Image {
+            parent: root
+            source: "components/workspaces/images/bark-edge.svg"
+            x: root.width - 3; y: 0
+            width: 6; height: root.height
+            fillMode: Image.Stretch
+            mirror: true
+            z: -1; opacity: 0.7
+        }
+
+        // Branches at top
+        Image {
+            parent: root
+            source: "components/workspaces/images/branches.svg"
+            anchors.top: parent.top
+            anchors.topMargin: 5
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: root.width * 1.5; height: 30
+            z: -1; opacity: 0.8
+        }
+
+        // Canopy
+        Image {
+            parent: root
+            source: "components/workspaces/images/canopy.svg"
+            anchors.top: parent.top
+            anchors.topMargin: -14
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: root.width * 1.6; height: 38
+            z: 1; opacity: 0.9
+        }
+
+        // Leaf accents in canopy
+        Image {
+            parent: root
+            source: "components/workspaces/images/leaf1.svg"
+            anchors.top: parent.top
+            anchors.topMargin: 14
+            x: 0; width: 14; height: 14
+            rotation: -15; z: 1; opacity: 0.7
+        }
+        Image {
+            parent: root
+            source: "components/workspaces/images/leaf2.svg"
+            anchors.top: parent.top
+            anchors.topMargin: 16
+            x: root.width - 14; width: 13; height: 13
+            rotation: 20; z: 1; opacity: 0.65
+        }
+        Image {
+            parent: root
+            source: "components/workspaces/images/leaf3.svg"
+            anchors.top: parent.top
+            anchors.topMargin: 10
+            x: root.width / 2 - 7; width: 14; height: 14
+            z: 1; opacity: 0.6
+        }
+
+        // Scattered leaves on trunk
+        Image {
+            parent: root
+            source: "components/workspaces/images/leaf2.svg"
+            x: root.width - 10; y: root.height * 0.3
+            width: 10; height: 10; rotation: 40; z: 1; opacity: 0.3
+        }
+        Image {
+            parent: root
+            source: "components/workspaces/images/leaf1.svg"
+            x: -2; y: root.height * 0.5
+            width: 9; height: 9; rotation: -30; z: 1; opacity: 0.25
+        }
+
+        // Owl peeking from hollow
+        Image {
+            parent: root
+            source: "components/workspaces/images/owl.svg"
+            x: root.width / 2 - 11; y: root.height * 0.6
+            width: 22; height: 22; z: 1; opacity: 0.7
+        }
+
+        // Roots at bottom
+        Image {
+            parent: root
+            source: "components/workspaces/images/roots.svg"
+            anchors.bottom: parent.bottom
+            anchors.bottomMargin: -8
+            anchors.horizontalCenter: parent.horizontalCenter
+            width: root.width * 1.3; height: 35
+            z: 1; opacity: 0.85
+        }
     }
 
     Repeater {

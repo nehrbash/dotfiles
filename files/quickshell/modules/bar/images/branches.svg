@@ -1,0 +1,70 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 80 40" width="80" height="40">
+  <!-- Main branch extending left -->
+  <path d="M40,22 C36,21 30,18 24,15 C20,13 14,12 8,13
+           C7,13.5 7,14.5 8,15 C14,15 20,16 24,18
+           C30,21 36,23 40,24Z"
+        fill="#5c4333"/>
+  <!-- Left branch bark texture -->
+  <path d="M30,17 C26,15.5 22,14.5 18,14
+           C18,14.8 22,16 26,17.5 C30,19 34,20 36,21
+           C34,19.5 32,18 30,17Z"
+        fill="#6b5040" opacity="0.6"/>
+
+  <!-- Small sub-branch off left branch going up -->
+  <path d="M22,16 C20,13 17,10 15,8
+           C14.5,7.8 14.2,8.2 14.5,8.5
+           C16,11 19,14 22,17Z"
+        fill="#5c4333"/>
+
+  <!-- Main branch extending right -->
+  <path d="M40,18 C44,16 50,13 56,11 C62,9 68,9 74,10
+           C75,10.5 75,11.5 74,12 C68,12 62,12 56,14
+           C50,16 44,19 40,20Z"
+        fill="#5c4333"/>
+  <!-- Right branch bark texture -->
+  <path d="M52,13 C56,11.5 60,10.8 64,10.5
+           C64,11.3 60,12.5 56,14 C52,15.5 48,17 46,18
+           C48,16.5 50,14.5 52,13Z"
+        fill="#6b5040" opacity="0.6"/>
+
+  <!-- Small sub-branch off right branch going down -->
+  <path d="M60,11.5 C62,14 65,18 67,22
+           C67.5,22.2 67.8,21.8 67.5,21.5
+           C66,18 63,14 60,12.5Z"
+        fill="#5c4333"/>
+
+  <!-- Smaller branch going upper-right -->
+  <path d="M42,19 C45,15 49,11 53,8 C55,6 58,5 60,5
+           C60.3,5.5 60,6 59.5,6.2 C57,7 55,8 53,10
+           C49,13 45,17 42,20Z"
+        fill="#6b5040"/>
+
+  <!-- Leaves at left branch tip -->
+  <path d="M8,12 C5,10 3,8 4,6 C5,5 7,5 8,7 C9,5 11,5 11,7
+           C12,5 14,6 12,8 C14,7 15,9 13,10 C10,12 8,12 8,12Z"
+        fill="#3d6b3d"/>
+  <path d="M10,14 C8,13 6,11 7,10 C8,11 10,12 12,13 C10,13 10,14 10,14Z"
+        fill="#4a7a4a"/>
+
+  <!-- Leaves at right branch tip -->
+  <path d="M74,8 C76,6 78,5 78,7 C79,5 80,6 79,8
+           C80,7 80,9 78,9 C76,10 74,10 74,8Z"
+        fill="#3d6b3d"/>
+  <path d="M72,11 C74,9 76,9 76,11 C74,12 72,12 72,11Z"
+        fill="#4a7a4a"/>
+
+  <!-- Leaves at upper-right sub-branch tip -->
+  <path d="M59,4 C58,2 59,1 60,2 C61,1 62,2 61,3
+           C62,2 63,3 62,4 C61,5 59,5 59,4Z"
+        fill="#3d6b3d"/>
+
+  <!-- Leaves at left sub-branch tip -->
+  <path d="M14,7 C12,5 13,3 14,4 C15,3 16,4 15,5
+           C16,4 17,5 16,6 C15,7 14,7 14,7Z"
+        fill="#4a7a4a"/>
+
+  <!-- Leaves at right downward sub-branch tip -->
+  <path d="M67,22 C66,24 67,26 69,25 C70,26 71,25 70,24
+           C71,24 70,22 68,23Z"
+        fill="#3d6b3d"/>
+</svg>

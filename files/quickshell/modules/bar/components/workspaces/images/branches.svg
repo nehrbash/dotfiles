@@ -1,0 +1,17 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 60 40">
+  <!-- Main branch going left -->
+  <path d="M30 35 C28 30, 20 25, 8 20 C4 18, 0 16, -2 15" stroke="#6b5040" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Main branch going right -->
+  <path d="M30 35 C32 30, 40 25, 52 20 C56 18, 60 16, 62 15" stroke="#6b5040" stroke-width="4" fill="none" stroke-linecap="round"/>
+  <!-- Smaller branches -->
+  <path d="M15 22 C12 18, 8 14, 4 10" stroke="#5c4333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <path d="M45 22 C48 18, 52 14, 56 10" stroke="#5c4333" stroke-width="2.5" fill="none" stroke-linecap="round"/>
+  <!-- Twigs -->
+  <path d="M20 24 C18 20, 14 17, 10 14" stroke="#5c4333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M40 24 C42 20, 46 17, 50 14" stroke="#5c4333" stroke-width="1.5" fill="none" stroke-linecap="round"/>
+  <path d="M8 20 C5 22, 2 20, 0 18" stroke="#5c4333" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <path d="M52 20 C55 22, 58 20, 60 18" stroke="#5c4333" stroke-width="1.2" fill="none" stroke-linecap="round"/>
+  <!-- Tiny twig ends -->
+  <path d="M4 10 C2 8, 0 6, -1 4" stroke="#4a3728" stroke-width="1" fill="none" stroke-linecap="round"/>
+  <path d="M56 10 C58 8, 60 6, 61 4" stroke="#4a3728" stroke-width="1" fill="none" stroke-linecap="round"/>
+</svg>

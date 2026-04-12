@@ -27,7 +27,7 @@ Item {
     readonly property var otherMonOnThis: otherMonitorWs[ws] ?? null
     readonly property bool isActive: activeWsId === ws
 
-    readonly property real slothSize: Config.bar.sizes.innerWidth - Appearance.padding.small * 2
+    readonly property real slothSize: Config.bar.sizes.innerWidth
 
     Layout.alignment: Qt.AlignHCenter
     Layout.preferredHeight: size
@@ -70,18 +70,17 @@ Item {
         Behavior on scale { Anim { easing.bezierCurve: Appearance.anim.curves.standardDecel } }
     }
 
-    // Other monitor dot — looks like a small berry
-    Rectangle {
+    // Other monitor indicator — a colored leaf
+    Image {
         visible: root.otherMonOnThis !== null
         anchors.right: parent.right
         anchors.top: parent.top
-        anchors.margins: 4
-        width: 7
-        height: 7
-        radius: 3.5
-        color: root.otherMonOnThis ?? "transparent"
-        border.width: 1
-        border.color: Qt.darker(root.otherMonOnThis ?? "transparent", 1.3)
+        anchors.margins: 2
+        width: 12
+        height: 12
+        source: "images/leaf1.svg"
+        rotation: 30
+        opacity: 0.9
     }
 
     // App icons — small icons below sloth
