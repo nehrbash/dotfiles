@@ -108,7 +108,10 @@ ColumnLayout {
         Layout.preferredWidth: 0
         Layout.preferredHeight: 0
 
-        // Full-height bark background
+        readonly property real iw: Config.bar.sizes.innerWidth
+        readonly property real cx: root.width / 2  // center x of bar
+
+        // Full-height bark background — fills entire bar
         Image {
             parent: root
             anchors.fill: parent
@@ -139,24 +142,24 @@ ColumnLayout {
             z: -1; opacity: 0.7
         }
 
-        // Canopy — large, extends well beyond bar
+        // Canopy — centered on content, extends beyond
         Image {
             parent: root
             source: "components/workspaces/images/canopy.svg"
             anchors.top: parent.top
             anchors.topMargin: -25
-            anchors.horizontalCenter: parent.horizontalCenter
+            x: root.width / 2 - width / 2
             width: root.width * 3; height: 70
             z: 2; opacity: 0.95
         }
 
-        // Roots — large, extend beyond bar
+        // Roots — centered on content, extends beyond
         Image {
             parent: root
             source: "components/workspaces/images/roots-large.svg"
             anchors.bottom: parent.bottom
             anchors.bottomMargin: -12
-            anchors.horizontalCenter: parent.horizontalCenter
+            x: root.width / 2 - width / 2
             width: root.width * 3; height: 55
             z: 2; opacity: 0.9
         }
