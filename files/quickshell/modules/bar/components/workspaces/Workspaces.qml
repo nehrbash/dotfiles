@@ -50,14 +50,15 @@ Item {
         return map;
     }
 
-    readonly property real filletR: Config.border.rounding
+    readonly property real rounding: Config.border.rounding
     readonly property real contentHeight: layout.implicitHeight + Appearance.padding.small * 2
     readonly property color containerColor: root.isFocusedMonitor ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainer
 
     implicitWidth: Config.bar.sizes.innerWidth + Appearance.padding.small
-    implicitHeight: contentHeight + filletR * 2
+    implicitHeight: contentHeight + rounding * 2
 
-    // Shape background with inverse curves on the right side
+    // Shape background — modeled on popout Background.qml
+    // Inverse curves on LEFT connecting to bar edge, normal corners on RIGHT
     Shape {
         anchors.fill: parent
         preferredRendererType: Shape.CurveRenderer
@@ -66,41 +67,56 @@ Item {
             strokeWidth: -1
             fillColor: root.containerColor
 
+            // Start above content area on the left edge
             startX: 0
-            startY: root.filletR
+            startY: 0
 
-            // Top edge: left to right
-            PathLine {
-                x: root.implicitWidth - root.filletR
-                y: root.filletR
-            }
-            // Top-right inverse curve: right and up
+            // Top-left inverse curve: right and down into content
             PathArc {
-                x: root.implicitWidth
-                y: 0
-                radiusX: root.filletR
-                radiusY: root.filletR
-                direction: PathArc.Clockwise
+                relativeX: root.rounding
+                relativeY: root.rounding
+                radiusX: root.rounding
+                radiusY: root.rounding
+                direction: PathArc.Counterclockwise
             }
-            // Right edge: top to bottom
+            // Top edge
             PathLine {
-                x: root.implicitWidth
-                y: root.implicitHeight
+                relativeX: root.implicitWidth - root.rounding * 2
+                relativeY: 0
             }
-            // Bottom-right inverse curve: left and up
+            // Top-right normal corner
             PathArc {
-                x: root.implicitWidth - root.filletR
-                y: root.filletR + root.contentHeight
-                radiusX: root.filletR
-                radiusY: root.filletR
-                direction: PathArc.Clockwise
+                relativeX: root.rounding
+                relativeY: root.rounding
+                radiusX: root.rounding
+                radiusY: root.rounding
             }
-            // Bottom edge: right to left
+            // Right edge
             PathLine {
-                x: 0
-                y: root.filletR + root.contentHeight
+                relativeX: 0
+                relativeY: root.contentHeight - root.rounding * 2
             }
-            // Left edge closes back to start
+            // Bottom-right normal corner
+            PathArc {
+                relativeX: -root.rounding
+                relativeY: root.rounding
+                radiusX: root.rounding
+                radiusY: root.rounding
+            }
+            // Bottom edge
+            PathLine {
+                relativeX: -(root.implicitWidth - root.rounding * 2)
+                relativeY: 0
+            }
+            // Bottom-left inverse curve: left and down away from content
+            PathArc {
+                relativeX: -root.rounding
+                relativeY: root.rounding
+                radiusX: root.rounding
+                radiusY: root.rounding
+                direction: PathArc.Counterclockwise
+            }
+            // Left edge closes implicitly back to (0, 0)
 
             Behavior on fillColor {
                 CAnim {}
@@ -113,7 +129,7 @@ Item {
         id: contentArea
 
         x: 0
-        y: root.filletR
+        y: root.rounding
         width: parent.width
         height: root.contentHeight
         clip: true
