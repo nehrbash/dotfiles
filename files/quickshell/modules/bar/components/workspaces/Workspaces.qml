@@ -55,11 +55,11 @@ Item {
     implicitWidth: Config.bar.sizes.innerWidth + Appearance.padding.small
     implicitHeight: container.height + filletR * 2
 
-    // Top-left fillet curve
+    // Top-right fillet curve
     Item {
         width: root.filletR
         height: root.filletR
-        x: 0
+        x: container.width - root.filletR
         y: 0
         clip: true
 
@@ -68,16 +68,16 @@ Item {
             height: root.filletR * 2
             radius: root.filletR
             color: root.containerColor
-            anchors.right: parent.right
+            anchors.left: parent.left
             anchors.bottom: parent.bottom
         }
     }
 
-    // Bottom-left fillet curve
+    // Bottom-right fillet curve
     Item {
         width: root.filletR
         height: root.filletR
-        x: 0
+        x: container.width - root.filletR
         y: container.y + container.height
         clip: true
 
@@ -86,7 +86,7 @@ Item {
             height: root.filletR * 2
             radius: root.filletR
             color: root.containerColor
-            anchors.right: parent.right
+            anchors.left: parent.left
             anchors.top: parent.top
         }
     }
