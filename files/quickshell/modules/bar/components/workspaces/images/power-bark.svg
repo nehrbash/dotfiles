@@ -1,21 +1,13 @@
 <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
-  <!-- Power symbol - lighter bark texture to show on dark trunk -->
-  <!-- The arc -->
-  <path d="M5.5 7 C3.5 9, 2.5 11.5, 2.5 14 C2.5 19, 6.5 22.5, 12 22.5 C17.5 22.5, 21.5 19, 21.5 14 C21.5 11.5, 20.5 9, 18.5 7"
-    stroke="#8a7060" stroke-width="3" fill="none" stroke-linecap="round"/>
-  <!-- Highlight -->
-  <path d="M5.5 7 C3.5 9, 2.5 11.5, 2.5 14 C2.5 19, 6.5 22.5, 12 22.5 C17.5 22.5, 21.5 19, 21.5 14 C21.5 11.5, 20.5 9, 18.5 7"
-    stroke="#a89078" stroke-width="1.5" fill="none" stroke-linecap="round" opacity="0.6"/>
-  <!-- Grain on arc -->
-  <path d="M4 10 C3.2 12, 3 14, 3.5 16" stroke="#6b5040" stroke-width="0.5" fill="none" opacity="0.6"/>
-  <path d="M20 10 C20.8 12, 21 14, 20.5 16" stroke="#6b5040" stroke-width="0.5" fill="none" opacity="0.6"/>
+  <!-- Power symbol carved into bark — light cream like carved wood -->
+  <!-- Arc -->
+  <path d="M5.5 7.5 C3.5 9.5, 2.5 12, 2.5 14.5 C2.5 19, 6.5 22, 12 22 C17.5 22, 21.5 19, 21.5 14.5 C21.5 12, 20.5 9.5, 18.5 7.5"
+    stroke="#c4a882" stroke-width="2.8" fill="none" stroke-linecap="round"/>
+  <!-- Inner grain -->
+  <path d="M6 8 C4.2 10, 3.2 12.5, 3.2 14.5 C3.2 18.5, 7 21.3, 12 21.3 C17 21.3, 20.8 18.5, 20.8 14.5 C20.8 12.5, 19.8 10, 18 8"
+    stroke="#a08060" stroke-width="0.6" fill="none" stroke-linecap="round" opacity="0.5"/>
 
-  <!-- The stem -->
-  <path d="M12 2 L12 12" stroke="#8a7060" stroke-width="3" stroke-linecap="round"/>
-  <path d="M12 2 L12 12" stroke="#a89078" stroke-width="1.5" stroke-linecap="round" opacity="0.6"/>
-  <!-- Grain on stem -->
-  <path d="M11.3 3 L11.3 11" stroke="#6b5040" stroke-width="0.4" fill="none" opacity="0.5"/>
-
-  <!-- Knot -->
-  <circle cx="12" cy="7" r="0.8" fill="#6b5040" opacity="0.6"/>
+  <!-- Stem -->
+  <path d="M12 2.5 L12 12" stroke="#c4a882" stroke-width="2.8" stroke-linecap="round"/>
+  <path d="M11.3 3 L11.3 11.5" stroke="#a08060" stroke-width="0.4" fill="none" opacity="0.5"/>
 </svg>
