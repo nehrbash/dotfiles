@@ -3,6 +3,7 @@ pragma ComponentBehavior: Bound
 import QtQuick
 import QtQuick.Effects
 import QtQuick.Layouts
+import QtQuick.Shapes
 import Quickshell
 import qs.components
 import qs.services
@@ -49,61 +50,73 @@ Item {
         return map;
     }
 
-    readonly property real filletR: Appearance.rounding.normal
-    readonly property color containerColor: root.isFocusedMonitor ? Colours.tPalette.m3surfaceContainerHigh : Colours.tPalette.m3surfaceContainer
+    readonly property real filletR: Config.border.rounding
+    readonly property real contentHeight: layout.implicitHeight + Appearance.padding.small * 2
+    readonly property color containerColor: root.isFocusedMonitor ? Colours.palette.m3surfaceContainerHigh : Colours.palette.m3surfaceContainer
 
     implicitWidth: Config.bar.sizes.innerWidth + Appearance.padding.small
-    implicitHeight: container.height + filletR * 2
+    implicitHeight: contentHeight + filletR * 2
 
-    // Top-right fillet curve
-    Item {
-        width: root.filletR
-        height: root.filletR
-        x: container.width - root.filletR
-        y: 0
-        clip: true
+    // Shape background with inverse curves on the right side
+    Shape {
+        anchors.fill: parent
+        preferredRendererType: Shape.CurveRenderer
 
-        Rectangle {
-            width: root.filletR * 2
-            height: root.filletR * 2
-            radius: root.filletR
-            color: root.containerColor
-            anchors.left: parent.left
-            anchors.bottom: parent.bottom
+        ShapePath {
+            strokeWidth: -1
+            fillColor: root.containerColor
+
+            startX: 0
+            startY: root.filletR
+
+            // Top edge: left to right
+            PathLine {
+                x: root.implicitWidth - root.filletR
+                y: root.filletR
+            }
+            // Top-right inverse curve: right and up
+            PathArc {
+                x: root.implicitWidth
+                y: 0
+                radiusX: root.filletR
+                radiusY: root.filletR
+                direction: PathArc.Clockwise
+            }
+            // Right edge: top to bottom
+            PathLine {
+                x: root.implicitWidth
+                y: root.implicitHeight
+            }
+            // Bottom-right inverse curve: left and up
+            PathArc {
+                x: root.implicitWidth - root.filletR
+                y: root.filletR + root.contentHeight
+                radiusX: root.filletR
+                radiusY: root.filletR
+                direction: PathArc.Clockwise
+            }
+            // Bottom edge: right to left
+            PathLine {
+                x: 0
+                y: root.filletR + root.contentHeight
+            }
+            // Left edge closes back to start
+
+            Behavior on fillColor {
+                CAnim {}
+            }
         }
     }
 
-    // Bottom-right fillet curve
+    // Content area
     Item {
-        width: root.filletR
-        height: root.filletR
-        x: container.width - root.filletR
-        y: container.y + container.height
-        clip: true
+        id: contentArea
 
-        Rectangle {
-            width: root.filletR * 2
-            height: root.filletR * 2
-            radius: root.filletR
-            color: root.containerColor
-            anchors.left: parent.left
-            anchors.top: parent.top
-        }
-    }
-
-    Rectangle {
-        id: container
-
+        x: 0
         y: root.filletR
         width: parent.width
-        height: layout.implicitHeight + Appearance.padding.small * 2
-
+        height: root.contentHeight
         clip: true
-        color: root.containerColor
-        topLeftRadius: 0
-        bottomLeftRadius: 0
-        topRightRadius: Appearance.rounding.full
-        bottomRightRadius: Appearance.rounding.full
 
         Item {
             anchors.fill: parent
@@ -213,10 +226,6 @@ Item {
             Behavior on opacity {
                 Anim {}
             }
-        }
-
-        Behavior on color {
-            CAnim {}
         }
     }
 
