@@ -8,14 +8,16 @@ import qs.config
 StyledRect {
     id: root
 
-    readonly property color colour: Colours.palette.m3tertiary
+    readonly property color colour: "#c4a882"
     readonly property int padding: Config.bar.clock.background ? Appearance.padding.normal : Appearance.padding.small
 
     implicitWidth: Config.bar.sizes.innerWidth
     implicitHeight: layout.implicitHeight + root.padding * 2
 
-    color: Qt.alpha(Colours.tPalette.m3surfaceContainer, Config.bar.clock.background ? Colours.tPalette.m3surfaceContainer.a : 0)
-    radius: Appearance.rounding.full
+    color: Config.bar.clock.background ? "#3d2b1f" : "transparent"
+    radius: Appearance.rounding.normal
+    border.width: Config.bar.clock.background ? 1 : 0
+    border.color: "#5c4333"
 
     Column {
         id: layout

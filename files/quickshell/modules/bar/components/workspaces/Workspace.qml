@@ -9,7 +9,7 @@ import qs.services
 import qs.config
 import qs.utils
 
-ColumnLayout {
+Item {
     id: root
 
     required property int index
@@ -18,90 +18,86 @@ ColumnLayout {
     required property int groupOffset
     required property var otherMonitorWs
 
-    readonly property bool isWorkspace: true // Flag for finding workspace children
-    // Unanimated prop for others to use as reference
-    readonly property int size: implicitHeight + (hasWindows ? Appearance.padding.small : 0)
+    readonly property bool isWorkspace: true
+    readonly property int size: implicitHeight + (hasWindows ? windowLoader.height + 2 : 0)
 
     readonly property int ws: groupOffset + index + 1
     readonly property bool isOccupied: occupied[ws] ?? false
     readonly property bool hasWindows: isOccupied && Config.bar.workspaces.showWindows
     readonly property var otherMonOnThis: otherMonitorWs[ws] ?? null
+    readonly property bool isActive: activeWsId === ws
+
+    readonly property real slothSize: Config.bar.sizes.innerWidth - Appearance.padding.small * 2
 
     Layout.alignment: Qt.AlignHCenter
     Layout.preferredHeight: size
 
-    spacing: 0
+    implicitWidth: Config.bar.sizes.innerWidth
+    implicitHeight: slothSize
 
-    Item {
-        Layout.alignment: Qt.AlignHCenter | Qt.AlignTop
-        Layout.preferredWidth: (Config.bar.sizes.innerWidth - Appearance.padding.small * 2) * 0.7
-        Layout.preferredHeight: Layout.preferredWidth
+    // Active workspace — warm carved glow
+    Rectangle {
+        anchors.fill: parent
+        anchors.margins: 2
+        radius: Appearance.rounding.small
+        color: root.isActive ? "#6b4c2a" : "transparent"
+        opacity: root.isActive ? 0.6 : 0
+        border.width: root.isActive ? 1 : 0
+        border.color: "#9b7b4a"
 
-        Image {
-            id: indicator
-
-            readonly property int slothNum: Math.min(root.ws, 8)
-
-            anchors.fill: parent
-            source: `images/sloth${slothNum}.png`
-            fillMode: Image.PreserveAspectFit
-            smooth: true
-            opacity: root.activeWsId === root.ws ? 1.0 : root.isOccupied ? 0.7 : 0.3
-
-            Behavior on opacity {
-                Anim {}
-            }
-        }
-
-        Rectangle {
-            visible: root.otherMonOnThis !== null
-            anchors.right: parent.right
-            anchors.top: parent.top
-            width: 6
-            height: 6
-            radius: 3
-            color: root.otherMonOnThis ?? "transparent"
-
-            Behavior on visible {
-                Anim {}
-            }
-        }
+        Behavior on color { CAnim {} }
+        Behavior on opacity { Anim {} }
     }
 
+    // Sloth image — centered, full size
+    Image {
+        id: indicator
+
+        readonly property int slothNum: Math.min(root.ws, 8)
+
+        anchors.centerIn: parent
+        width: root.slothSize
+        height: root.slothSize
+        source: `images/sloth${slothNum}.png`
+        fillMode: Image.PreserveAspectFit
+        smooth: true
+        opacity: root.isActive ? 1.0 : root.isOccupied ? 0.75 : 0.3
+
+        // Slight scale bump for active
+        scale: root.isActive ? 1.05 : 1.0
+
+        Behavior on opacity { Anim {} }
+        Behavior on scale { Anim { easing.bezierCurve: Appearance.anim.curves.standardDecel } }
+    }
+
+    // Other monitor dot — looks like a small berry
+    Rectangle {
+        visible: root.otherMonOnThis !== null
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.margins: 4
+        width: 7
+        height: 7
+        radius: 3.5
+        color: root.otherMonOnThis ?? "transparent"
+        border.width: 1
+        border.color: Qt.darker(root.otherMonOnThis ?? "transparent", 1.3)
+    }
+
+    // App icons — small icons below sloth
     Loader {
-        id: windows
+        id: windowLoader
 
         asynchronous: true
 
-        Layout.alignment: Qt.AlignHCenter
-        Layout.fillHeight: true
-        Layout.topMargin: Appearance.spacing.small / 2
+        anchors.horizontalCenter: parent.horizontalCenter
+        y: root.slothSize
 
         visible: active
         active: root.hasWindows
 
-        sourceComponent: Column {
-            spacing: 0
-
-            add: Transition {
-                Anim {
-                    properties: "scale"
-                    from: 0
-                    to: 1
-                    easing.bezierCurve: Appearance.anim.curves.standardDecel
-                }
-            }
-
-            move: Transition {
-                Anim {
-                    properties: "scale"
-                    to: 1
-                    easing.bezierCurve: Appearance.anim.curves.standardDecel
-                }
-                Anim {
-                    properties: "x,y"
-                }
-            }
+        sourceComponent: Row {
+            spacing: 1
 
             Repeater {
                 model: ScriptModel {
@@ -116,7 +112,7 @@ ColumnLayout {
                 IconImage {
                     required property var modelData
 
-                    implicitSize: Config.bar.sizes.innerWidth / 2.5
+                    implicitSize: Config.bar.sizes.innerWidth / 3.5
                     source: Icons.getAppIcon(modelData ?? "", "application-x-executable")
                     asynchronous: true
                 }

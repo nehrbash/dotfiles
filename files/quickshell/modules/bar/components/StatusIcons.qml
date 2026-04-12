@@ -13,11 +13,13 @@ import qs.utils
 StyledRect {
     id: root
 
-    property color colour: Colours.palette.m3secondary
+    property color colour: "#c4a882"
     readonly property alias items: iconColumn
 
-    color: Colours.tPalette.m3surfaceContainer
-    radius: Appearance.rounding.full
+    color: "#3d2b1f"
+    radius: Appearance.rounding.normal
+    border.width: 1
+    border.color: "#5c4333"
 
     clip: true
     implicitWidth: Config.bar.sizes.innerWidth
