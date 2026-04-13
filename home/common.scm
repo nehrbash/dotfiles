@@ -131,7 +131,6 @@ service (uv, electron)."
     ("KEYRING_SOCK" . "$XDG_RUNTIME_DIR/keyring")
     ("XDG_DATA_DIRS" .
      "$XDG_DATA_DIRS:$HOME/.local/share/flatpak/exports/share:/var/lib/flatpak/exports/share")
-    ("DOCKER_HOST" . "unix://$XDG_RUNTIME_DIR/podman/podman.sock")
     ("DOCKER_API_VERSION" . "1.41")))
 
 (define %common-wayland-env-vars

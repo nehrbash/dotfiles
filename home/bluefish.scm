@@ -38,6 +38,7 @@
  ;; them as gexp dependencies) plus the full Caelestia/Hyprland desktop
  ;; stack from (desktop caelestia).
  (packages (append
+            %core-packages
             (list alacritty
                   zsh-autosuggestions zsh-autopair
                   zsh-history-substring-search zsh-syntax-highlighting

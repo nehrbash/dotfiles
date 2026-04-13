@@ -101,6 +101,11 @@
                            ("files/emacs/clean.sh" . "emacs/clean.sh")
                            ("files/starship/starship.toml" . "starship.toml"))))
 
-                      ;; Reload Hyprland config if running in a session
+                      ;; Reload Hyprland config if running in a session,
+                      ;; preserving disabled monitor state (e.g. lid closed).
                       (when (getenv "HYPRLAND_INSTANCE_SIGNATURE")
-                        (system* "hyprctl" "reload")))))
+                        (let ((edp-was-off?
+                               (not (zero? (system "hyprctl monitors | grep -q 'Monitor eDP-1'")))))
+                          (system* "hyprctl" "reload")
+                          (when edp-was-off?
+                            (system* "hyprctl" "keyword" "monitor" "eDP-1, disable")))))))

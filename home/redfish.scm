@@ -42,6 +42,7 @@
     ("__GL_GSYNC_ALLOWED" . "1")
     ("__GL_VRR_ALLOWED" . "1")
     ("NVD_BACKEND" . "direct")
+    ("DOCKER_HOST" . "unix://$XDG_RUNTIME_DIR/podman/podman.sock")
     ;; Global LD_LIBRARY_PATH is needed here so Hyprland / Quickshell /
     ;; Qt applications pick up the nongnu NVIDIA driver libs installed
     ;; into /run/current-system/profile/lib.  Do NOT replicate this on
