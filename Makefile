@@ -1,11 +1,15 @@
 .PHONY: all update-channels update-system update-home update \
-        update-home-bluefish update-bluefish \
         quickshell-upstream-fetch quickshell-upstream-log quickshell-upstream-diff \
         quickshell-upstream-show quickshell-upstream-bump
 
 DOTFILES_DIR := $(shell dirname $(realpath $(firstword $(MAKEFILE_LIST))))
 HOSTNAME     := $(shell hostname)
 CORES        := $(shell nproc)
+
+# Map hostnames to config names (add new machines here).
+HOST_MAP_redfish     := redfish
+HOST_MAP_dell-nehrbash := bluefish
+HOST_CONFIG := $(or $(HOST_MAP_$(HOSTNAME)),$(HOSTNAME))
 
 # Substitute URLs read from substitute-urls.txt (one per line, # comments ok).
 # Edit that file to add/remove mirrors — applies on the very next make target,
@@ -22,19 +26,13 @@ update: update-channels update-home
 update-channels:
 	guix pull -C $(DOTFILES_DIR)/channels.scm --cores=$(CORES) $(SUB_FLAG)
 
-# 2. Reconfigure Guix Home (rebuilds quickshell + caelestia-shell packages)
+# 2. Reconfigure Guix Home (uses HOST_CONFIG mapping)
 update-home:
-	guix home reconfigure $(DOTFILES_DIR)/home/redfish.scm -L $(DOTFILES_DIR) --cores=$(CORES) --fallback $(SUB_FLAG)
+	guix home reconfigure $(DOTFILES_DIR)/home/$(HOST_CONFIG).scm -L $(DOTFILES_DIR) --cores=$(CORES) --fallback $(SUB_FLAG)
 
 # 3. Reconfigure Guix System (run as root)
 update-system:
-	sudo -E guix system reconfigure $(DOTFILES_DIR)/systems/$(HOSTNAME).scm --cores=$(CORES) --fallback $(SUB_FLAG)
-
-# Arch Linux (bluefish) targets
-update-home-bluefish:
-	guix home reconfigure $(DOTFILES_DIR)/home/bluefish.scm -L $(DOTFILES_DIR) --cores=$(CORES) --fallback $(SUB_FLAG)
-
-update-bluefish: update-channels update-home-bluefish
+	sudo -E guix system reconfigure $(DOTFILES_DIR)/systems/$(HOST_CONFIG).scm --cores=$(CORES) --fallback $(SUB_FLAG)
 
 # ---------------------------------------------------------------------------
 # Quickshell upstream tracking

@@ -53,10 +53,10 @@
     (common-gtk-dconf-service)
     (common-spicetify-service)
 
-    ;; Host services.  NOTE: dbus, pipewire, podman, gnome-keyring,
-    ;; polkit, xdph are omitted — systemd owns them on Arch, so we
-    ;; splice in %caelestia-home-services only (not the extra
-    ;; %caelestia-guix-session-services).
+    ;; Host services.  dbus, pipewire, gnome-keyring, polkit stay with
+    ;; systemd on Arch.  xdph runs under shepherd since Hyprland comes
+    ;; from Guix (Arch's xdph package is tied to Arch's hyprland).
+    (service home-xdph-service-type)
     (service home-emacs-daemon-service-type)
     (service home-ssh-agent-service-type
              (home-ssh-agent-configuration

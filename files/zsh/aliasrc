@@ -40,14 +40,11 @@ alias ...='cd ../../../'
 alias ....='cd ../../../../'
 alias .....='cd ../../../../'
 
-if [ -f /etc/arch-release ]; then
-    # bluefish: Arch + Guix Home (no guix system)
-    alias update-home="make -C \$DOTFILES_DIR update-home-bluefish"
-    alias update="make -C \$DOTFILES_DIR update-bluefish"
-else
+alias update-home="make -C \$DOTFILES_DIR update-home"
+alias update="make -C \$DOTFILES_DIR update"
+if [ ! -f /etc/arch-release ]; then
+    # Guix System only (not Arch)
     alias update-system="make -C \$DOTFILES_DIR update-system"
-    alias update-home="make -C \$DOTFILES_DIR update-home"
-    alias update="make -C \$DOTFILES_DIR update"
 fi
 alias update-channels="make -C \$DOTFILES_DIR update-channels"
 alias update-quickshell="make -C \$DOTFILES_DIR update-quickshell"
