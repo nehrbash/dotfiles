@@ -8,7 +8,9 @@
 
 (use-modules (gnu home)
              (gnu services)
+             (gnu packages enchant)
              (gnu packages shellutils)
+             (gnu packages terminals)
              (guix gexp)
              (desktop caelestia)
              (home common)
@@ -16,7 +18,8 @@
              (home services ssh-agent)
              (home services flatpak)
              (home services zen-browser)
-             (home services dotfiles-symlinks))
+             (home services dotfiles-symlinks)
+             (packages package-groups))
 
 ;; Host-specific env vars layered on top of %common-*-env-vars.
 ;; Arch differences: $HOME/.local/share/bin in PATH, UV_TOOL_BIN_DIR,
@@ -35,9 +38,11 @@
  ;; them as gexp dependencies) plus the full Caelestia/Hyprland desktop
  ;; stack from (desktop caelestia).
  (packages (append
-            (list zsh-autosuggestions zsh-autopair
+            (list alacritty
+                  zsh-autosuggestions zsh-autopair
                   zsh-history-substring-search zsh-syntax-highlighting
-                  fzf-tab)
+                  fzf-tab enchant)
+            %font-packages
             %caelestia-desktop-packages))
 
  (services
