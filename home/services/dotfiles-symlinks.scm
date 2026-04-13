@@ -61,6 +61,7 @@
                            ("files/direnv" . "direnv")
                            ("files/mise" . "mise")
                            ("files/quickshell" . "quickshell/caelestia")
+                           ("files/caelestia-templates" . "caelestia/templates")
                            ("files/xdg-desktop-portal" . "xdg-desktop-portal")
                            ;; Spicetify caelestia theme
                            ("files/spicetify/Themes/caelestia"

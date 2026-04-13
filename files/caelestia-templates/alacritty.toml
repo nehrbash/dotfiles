@@ -1,0 +1,31 @@
+[colors.primary]
+background = "#{{ surface.hex }}"
+foreground = "#{{ onSurface.hex }}"
+
+[colors.cursor]
+cursor = "#{{ secondary.hex }}"
+text = "#{{ onSecondary.hex }}"
+
+[colors.selection]
+background = "#{{ secondary.hex }}"
+text = "#{{ onSecondary.hex }}"
+
+[colors.normal]
+black = "#{{ term0.hex }}"
+red = "#{{ term1.hex }}"
+green = "#{{ term2.hex }}"
+yellow = "#{{ term3.hex }}"
+blue = "#{{ term4.hex }}"
+magenta = "#{{ term5.hex }}"
+cyan = "#{{ term6.hex }}"
+white = "#{{ term7.hex }}"
+
+[colors.bright]
+black = "#{{ term8.hex }}"
+red = "#{{ term9.hex }}"
+green = "#{{ term10.hex }}"
+yellow = "#{{ term11.hex }}"
+blue = "#{{ term12.hex }}"
+magenta = "#{{ term13.hex }}"
+cyan = "#{{ term14.hex }}"
+white = "#{{ term15.hex }}"
