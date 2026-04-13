@@ -103,47 +103,8 @@ ColumnLayout {
 
     spacing: Appearance.spacing.normal
 
-    // Tree decorations — zero-size container so it doesn't affect layout
-    Item {
-        Layout.preferredWidth: 0
-        Layout.preferredHeight: 0
-
-        readonly property real iw: Config.bar.sizes.innerWidth
-        readonly property real cx: root.width / 2  // center x of bar
-
-        // Full-height bark background — fills entire bar
-        Image {
-            parent: root
-            anchors.fill: parent
-            source: "images/bark.svg"
-            fillMode: Image.Stretch
-            opacity: 0.9
-            z: -2
-        }
-
-        // Bark edge — left
-        Image {
-            parent: root
-            source: "components/workspaces/images/bark-edge.svg"
-            x: -3; y: 0
-            width: 6; height: root.height
-            fillMode: Image.Stretch
-            z: -1; opacity: 0.7
-        }
-
-        // Bark edge — right
-        Image {
-            parent: root
-            source: "components/workspaces/images/bark-edge.svg"
-            x: root.width - 3; y: 0
-            width: 6; height: root.height
-            fillMode: Image.Stretch
-            mirror: true
-            z: -1; opacity: 0.7
-        }
-
-        // Canopy and roots are in BarWrapper.qml for proper positioning
-    }
+    // Tree decorations are in BarWrapper.qml to avoid interfering
+    // with childAt() popout detection in checkPopout()
 
     Repeater {
         id: repeater

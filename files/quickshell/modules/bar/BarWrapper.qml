@@ -86,8 +86,39 @@ Item {
         }
     }
 
-    // Tree decorations — positioned relative to BarWrapper (a regular Item)
-    // These extend beyond the bar width into the desktop
+    // Tree decorations — all in BarWrapper to avoid breaking
+    // Bar.qml's childAt() popout detection
+
+    // Full-height bark background
+    Image {
+        anchors.fill: content
+        source: "images/bark.svg"
+        fillMode: Image.Stretch
+        visible: root.visible
+        opacity: 0.9
+        z: -1
+    }
+
+    // Bark edge — left
+    Image {
+        source: "components/workspaces/images/bark-edge.svg"
+        x: content.x - 3; y: 0
+        width: 6; height: root.height
+        fillMode: Image.Stretch
+        visible: root.visible
+        z: -1; opacity: 0.7
+    }
+
+    // Bark edge — right
+    Image {
+        source: "components/workspaces/images/bark-edge.svg"
+        x: content.x + content.width - 3; y: 0
+        width: 6; height: root.height
+        fillMode: Image.Stretch
+        mirror: true
+        visible: root.visible
+        z: -1; opacity: 0.7
+    }
 
     // Canopy at top
     Image {
