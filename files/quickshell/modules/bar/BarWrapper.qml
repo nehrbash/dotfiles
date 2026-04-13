@@ -133,16 +133,16 @@ Item {
         opacity: 0.95
     }
 
-    // Roots at bottom
+    // Roots at bottom — z: -1 so they don't cover the power button
     Image {
         source: "components/workspaces/images/roots-large.svg"
         anchors.bottom: parent.bottom
-        anchors.bottomMargin: -10
+        anchors.bottomMargin: -15
         anchors.horizontalCenter: content.horizontalCenter
         width: root.contentWidth * 3
         height: 55
         visible: root.visible
-        z: 2
+        z: -1
         opacity: 0.9
     }
 }

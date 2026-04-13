@@ -16,7 +16,7 @@ ColumnLayout {
     required property ShellScreen screen
     required property DrawerVisibilities visibilities
     required property BarPopouts.Wrapper popouts
-    readonly property int vPadding: Appearance.padding.large + 15
+    readonly property int vPadding: Appearance.padding.large + 30
 
     function closeTray(): void {
         if (!Config.bar.tray.compact)
