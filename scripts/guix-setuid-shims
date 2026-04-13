@@ -1,0 +1,45 @@
+#!/bin/sh
+# Create /run/setuid-programs/ symlinks so Guix-built binaries (Quickshell,
+# polkit) can find the setuid helpers they expect on a non-Guix host (Arch).
+#
+# Guix patches pam_unix.so and libpolkit to look for helpers under
+# /run/setuid-programs/ — on Guix System these are provided by the
+# setuid-programs service; on Arch we bridge to the native binaries.
+#
+# Run once per boot (or install the tmpfiles snippet below).
+
+set -eu
+
+DEST=/run/setuid-programs
+
+# Map: target name -> system binary
+SHIMS="
+unix_chkpwd:/usr/bin/unix_chkpwd
+polkit-agent-helper-1:/usr/lib/polkit-1/polkit-agent-helper-1
+"
+
+if [ "$(id -u)" -ne 0 ]; then
+    echo "error: must be run as root" >&2
+    exit 1
+fi
+
+mkdir -p "$DEST"
+
+for entry in $SHIMS; do
+    name="${entry%%:*}"
+    src="${entry#*:}"
+    dst="$DEST/$name"
+
+    if [ ! -e "$src" ]; then
+        echo "skip: $src not found" >&2
+        continue
+    fi
+
+    if [ -L "$dst" ] && [ "$(readlink "$dst")" = "$src" ]; then
+        echo "ok:   $dst -> $src (already exists)"
+        continue
+    fi
+
+    ln -sf "$src" "$dst"
+    echo "link: $dst -> $src"
+done
