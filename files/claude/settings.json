@@ -50,14 +50,18 @@
     "type": "command",
     "command": "echo ''"
   },
+  "enabledPlugins": {
+    "rust-analyzer-lsp@claude-plugins-official": true,
+    "web@it-marketplace": true,
+    "jdx@it-marketplace": true
+  },
   "mcpServers": {
     "sudo": {
       "command": "python3",
-      "args": ["/home/nehrbash/.local/bin/sudo-mcp-server"]
+      "args": [
+        "/home/nehrbash/.local/bin/sudo-mcp-server"
+      ]
     }
-  },
-  "enabledPlugins": {
-    "rust-analyzer-lsp@claude-plugins-official": true
   },
   "bypassPermissions": true
 }

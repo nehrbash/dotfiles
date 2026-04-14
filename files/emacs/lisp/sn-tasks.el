@@ -221,6 +221,15 @@ If FILTER is supplied, update the persisted filter first."
   t)
 
 ;;;###autoload
+(defun sn-tasks/end-break ()
+  "End the current type-break rest period immediately."
+  (when type-break-mode
+    (setq type-break-time-last-break
+      (time-subtract nil
+        (+ type-break-good-break-interval 1))))
+  t)
+
+;;;###autoload
 (defun sn-tasks/type-break-toggle ()
   "Toggle type-break-mode."
   (if type-break-mode (type-break-mode -1) (type-break-mode 1))

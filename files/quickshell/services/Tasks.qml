@@ -64,6 +64,10 @@ Singleton {
         runSideEffect("(sn-tasks/type-break-toggle)");
     }
 
+    function endBreak(): void {
+        runSideEffect("(sn-tasks/end-break)");
+    }
+
     function runSideEffect(sexp: string): void {
         sideProc.command = ["timeout", "5", "emacsclient", "-e", sexp];
         sideProc.running = false;
