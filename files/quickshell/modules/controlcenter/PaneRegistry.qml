@@ -47,12 +47,6 @@ QtObject {
             readonly property string label: "dashboard"
             readonly property string icon: "dashboard"
             readonly property string component: "dashboard/DashboardPane.qml"
-        },
-        QtObject {
-            readonly property string id: "tasks"
-            readonly property string label: "tasks"
-            readonly property string icon: "checklist"
-            readonly property string component: "tasks/TasksPane.qml"
         }
     ]
 

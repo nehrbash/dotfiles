@@ -7,7 +7,6 @@ import "appearance"
 import "taskbar"
 import "launcher"
 import "dashboard"
-import "tasks"
 import QtQuick
 import QtQuick.Layouts
 import Quickshell.Widgets
