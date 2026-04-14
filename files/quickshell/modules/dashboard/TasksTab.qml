@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell.Widgets
 import qs.components
 import qs.components.containers
 import qs.components.controls
@@ -11,7 +12,7 @@ import qs.config
 Item {
     id: root
 
-    implicitWidth: 840
+    implicitWidth: 960
     implicitHeight: layout.implicitHeight + Appearance.padding.large * 2
 
     Component.onCompleted: {
@@ -202,33 +203,46 @@ Item {
                         elide: Text.ElideRight
                         font.weight: modelData.state === "PROJECT" ? 500 : 400
                     }
+
+                    Repeater {
+                        model: modelData.tags ?? []
+
+                        delegate: StyledRect {
+                            required property string modelData
+
+                            radius: Appearance.rounding.full
+                            color: Colours.layer(Colours.palette.m3surfaceContainer, 2)
+                            implicitHeight: tagText.implicitHeight + Appearance.padding.small
+                            implicitWidth: tagText.implicitWidth + Appearance.padding.normal
+
+                            StyledText {
+                                id: tagText
+
+                                anchors.centerIn: parent
+                                text: modelData
+                                font.pointSize: Appearance.font.size.small
+                                color: Colours.palette.m3onSurfaceVariant
+                            }
+                        }
+                    }
                 }
             }
         }
 
         // Reports
-        GridLayout {
+        ReportBlock {
             Layout.fillWidth: true
             Layout.topMargin: Appearance.spacing.normal
-            columns: 2
-            columnSpacing: Appearance.spacing.normal
-            rowSpacing: Appearance.spacing.small
+            title: qsTr("Today")
+            body: Tasks.dailyReport
+            onRefresh: Tasks.fetchReport("today")
+        }
 
-            ReportBlock {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignTop
-                title: qsTr("Today")
-                body: Tasks.dailyReport
-                onRefresh: Tasks.fetchReport("today")
-            }
-
-            ReportBlock {
-                Layout.fillWidth: true
-                Layout.alignment: Qt.AlignTop
-                title: qsTr("This week")
-                body: Tasks.weeklyReport
-                onRefresh: Tasks.fetchReport("thisweek")
-            }
+        ReportBlock {
+            Layout.fillWidth: true
+            title: qsTr("This week")
+            body: Tasks.weeklyReport
+            onRefresh: Tasks.fetchReport("thisweek")
         }
     }
 
@@ -390,23 +404,31 @@ Item {
             }
         }
 
-        StyledRect {
+        ClippingRectangle {
             Layout.fillWidth: true
-            Layout.fillHeight: true
             color: Colours.layer(Colours.palette.m3surfaceContainer, 1)
             radius: Appearance.rounding.normal
             implicitHeight: bodyText.implicitHeight + Appearance.padding.large * 2
 
-            StyledText {
-                id: bodyText
+            Flickable {
+                id: bodyFlick
 
                 anchors.fill: parent
                 anchors.margins: Appearance.padding.large
-                text: block.body || qsTr("No data")
-                wrapMode: Text.NoWrap
-                font.family: Config.appearance.font.family.mono
-                font.pointSize: Appearance.font.size.small
-                textFormat: Text.PlainText
+                contentWidth: bodyText.implicitWidth
+                contentHeight: bodyText.implicitHeight
+                flickableDirection: Flickable.HorizontalFlick
+                clip: true
+
+                StyledText {
+                    id: bodyText
+
+                    text: block.body || qsTr("No data")
+                    wrapMode: Text.NoWrap
+                    font.family: Config.appearance.font.family.mono
+                    font.pointSize: Appearance.font.size.small
+                    textFormat: Text.PlainText
+                }
             }
         }
     }
