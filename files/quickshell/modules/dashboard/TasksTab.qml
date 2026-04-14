@@ -2,6 +2,7 @@ pragma ComponentBehavior: Bound
 
 import QtQuick
 import QtQuick.Layouts
+import Quickshell
 import Quickshell.Widgets
 import qs.components
 import qs.components.containers
@@ -48,8 +49,8 @@ Item {
                 spacing: Appearance.spacing.normal
 
                 Item {
-                    Layout.preferredWidth: 80
-                    Layout.preferredHeight: 80
+                    Layout.preferredWidth: 96
+                    Layout.preferredHeight: 96
 
                     CircularProgress {
                         anchors.fill: parent
@@ -59,10 +60,21 @@ Item {
                         bgColour: Colours.palette.m3secondaryContainer
                     }
 
-                    StyledText {
+                    Image {
                         anchors.centerIn: parent
+                        width: 56
+                        height: 56
+                        source: Quickshell.shellPath(root._remaining > 0 ? "assets/images/tomato.png" : "assets/images/tomato-sad.png")
+                        fillMode: Image.PreserveAspectFit
+                        smooth: true
+                    }
+
+                    StyledText {
+                        anchors.horizontalCenter: parent.horizontalCenter
+                        anchors.bottom: parent.bottom
+                        anchors.bottomMargin: -4
                         text: root.displayTime
-                        font.pointSize: Appearance.font.size.normal
+                        font.pointSize: Appearance.font.size.small
                         font.weight: 500
                     }
                 }

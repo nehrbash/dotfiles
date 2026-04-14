@@ -36,12 +36,13 @@ Singleton {
         })
 
     function refresh(): void {
-        snapshotProc.running = false;
+        if (snapshotProc.running)
+            return;
         snapshotProc.running = true;
     }
 
     function setFilter(tag: string): void {
-        snapshotProc.command = ["emacsclient", "-e", `(sn-tasks/snapshot "${tag}")`];
+        snapshotProc.command = ["timeout", "5", "emacsclient", "-e", `(sn-tasks/snapshot "${tag}")`];
         snapshotProc.running = false;
         snapshotProc.running = true;
     }
@@ -64,17 +65,19 @@ Singleton {
     }
 
     function runSideEffect(sexp: string): void {
-        sideProc.command = ["emacsclient", "-e", sexp];
+        sideProc.command = ["timeout", "5", "emacsclient", "-e", sexp];
         sideProc.running = false;
         sideProc.running = true;
     }
 
     function fetchReport(period: string): void {
         if (period === "today") {
-            dailyProc.running = false;
+            if (dailyProc.running)
+                return;
             dailyProc.running = true;
         } else {
-            weeklyProc.running = false;
+            if (weeklyProc.running)
+                return;
             weeklyProc.running = true;
         }
     }
@@ -104,7 +107,7 @@ Singleton {
     Process {
         id: snapshotProc
 
-        command: ["emacsclient", "-e", "(sn-tasks/snapshot)"]
+        command: ["timeout", "5", "emacsclient", "-e", "(sn-tasks/snapshot)"]
         running: true
 
         stdout: StdioCollector {
@@ -122,7 +125,7 @@ Singleton {
     Process {
         id: dailyProc
 
-        command: ["emacsclient", "-e", "(sn-tasks/report \"today\")"]
+        command: ["timeout", "10", "emacsclient", "-e", "(sn-tasks/report \"today\")"]
         stdout: StdioCollector {
             onStreamFinished: {
                 root.dailyReport = root._unquoteElisp(text);
@@ -134,7 +137,7 @@ Singleton {
     Process {
         id: weeklyProc
 
-        command: ["emacsclient", "-e", "(sn-tasks/report \"thisweek\")"]
+        command: ["timeout", "10", "emacsclient", "-e", "(sn-tasks/report \"thisweek\")"]
         stdout: StdioCollector {
             onStreamFinished: {
                 root.weeklyReport = root._unquoteElisp(text);
