@@ -84,6 +84,15 @@
        (clocked-in . ,(if clocked-in t :json-false))
        (percent . ,percent)
        (time . ,formatted-time)
+       (remaining-seconds
+         . ,(cond
+              (on-break (max 0 (- type-break-good-break-interval
+                                 break-time-difference)))
+              (time-difference (max 0 time-difference))
+              (t 0)))
+       (total-seconds . ,(if on-break
+                           type-break-good-break-interval
+                           type-break-interval))
        (task . ,task-text)
        (summary . ,(concat task-text " " formatted-time))
        (keystrokes-target . ,(if type-break-mode
