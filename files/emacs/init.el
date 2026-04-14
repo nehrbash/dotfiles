@@ -1811,21 +1811,40 @@ Only clock in/out when needed, and always save all Org buffers."
 	(pcase org-state
       ("INPROGRESS"
 		(unless (and (org-clock-is-active)
-                  (equal (org-clock-marker) (point-marker)))
+                  (equal org-clock-marker (point-marker)))
 		  (org-clock-in))
 		(type-break-mode 1))
       ((or "DONE" "DELEGATED" "CANCELLED")
 		(when (and (org-clock-is-active)
-                (equal (org-clock-marker) (point-marker)))
+                (equal org-clock-marker (point-marker)))
 		  (org-clock-out))
 		(org-archive-subtree)))
 	;; Always save all Org buffers regardless of state
 	(org-save-all-org-buffers))
 
+  (defun sn/org-demote-other-inprogress ()
+  "Demote every other INPROGRESS task back to NEXT.
+Only the currently clocked task should carry the INPROGRESS state."
+  (let* ((clocked (and (org-clocking-p) org-clock-hd-marker))
+          (clocked-buf (and clocked (marker-buffer clocked)))
+          (clocked-pos (and clocked (marker-position clocked))))
+    (dolist (file (org-agenda-files))
+      (when (file-exists-p file)
+        (with-current-buffer (find-file-noselect file)
+          (org-with-wide-buffer
+            (goto-char (point-min))
+            (while (re-search-forward org-heading-regexp nil t)
+              (let ((heading-pos (save-excursion (org-back-to-heading t) (point))))
+                (when (and (string= (org-get-todo-state) "INPROGRESS")
+                        (not (and (eq clocked-buf (current-buffer))
+                               (= heading-pos clocked-pos))))
+                  (org-todo "NEXT"))))))))))
+
   (defun sn/org-clock-in-set-state ()
-  "Switch task to INPROGRESS when clocking in."
+  "Switch task to INPROGRESS when clocking in, demoting any others."
   (unless (string= (org-get-todo-state) "INPROGRESS")
-    (org-todo "INPROGRESS")))
+    (org-todo "INPROGRESS"))
+  (sn/org-demote-other-inprogress))
 
 (defun sn/org-clock-out-set-state ()
   "Switch task to NEXT when clocking out, unless the task is DONE."
