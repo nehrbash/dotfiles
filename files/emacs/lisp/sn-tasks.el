@@ -94,8 +94,15 @@
 
 ;;; Agenda snapshot
 
+(defun sn-tasks--tag-matches-p (filter tags)
+  "Return non-nil when FILTER matches TAGS.
+Accepts either `tag' or `@tag' forms in either FILTER or TAGS."
+  (let ((candidates (list filter (concat "@" filter)
+                     (replace-regexp-in-string "^@" "" filter))))
+    (seq-some (lambda (c) (member c tags)) candidates)))
+
 (defun sn-tasks--agenda-rows (tag)
-  "Return a list of plists for agenda entries matching +TAG."
+  "Return a list of plists for agenda entries matching TAG."
   (let ((org-todo-keywords sn-tasks-todo-keywords)
          (org-agenda-files sn-tasks-agenda-files)
          (rows '()))
@@ -105,12 +112,13 @@
           (org-with-wide-buffer
             (goto-char (point-min))
             (while (re-search-forward org-heading-regexp nil t)
-              (let ((todo (org-get-todo-state))
-                     (tags (org-get-tags)))
-                (when (and todo
-                        (member tag tags)
+              (let* ((todo (substring-no-properties (or (org-get-todo-state) "")))
+                      (tags (mapcar #'substring-no-properties (org-get-tags))))
+                (when (and (not (string-empty-p todo))
+                        (sn-tasks--tag-matches-p tag tags)
                         (not (member "ARCHIVE" tags)))
-                  (push (list :title (org-get-heading t t t t)
+                  (push (list :title (substring-no-properties
+                                       (org-get-heading t t t t))
                           :state todo
                           :tags tags
                           :marker (point-marker))
