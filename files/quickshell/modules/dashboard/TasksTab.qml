@@ -13,7 +13,9 @@ import qs.config
 Item {
     id: root
 
-    implicitWidth: 960
+    property string subTab: "tasks"
+
+    implicitWidth: 760
     implicitHeight: layout.implicitHeight + Appearance.padding.large * 2
 
     Component.onCompleted: {
@@ -34,7 +36,78 @@ Item {
 
         spacing: Appearance.spacing.normal
 
-        // Pomodoro card
+        // Sub-tab selector
+        RowLayout {
+            Layout.fillWidth: true
+            spacing: Appearance.spacing.small
+
+            SubTabPill {
+                label: qsTr("Tasks")
+                active: root.subTab === "tasks"
+                onActivated: root.subTab = "tasks"
+            }
+            SubTabPill {
+                label: qsTr("Today")
+                active: root.subTab === "today"
+                onActivated: {
+                    root.subTab = "today";
+                    Tasks.fetchReport("today");
+                }
+            }
+            SubTabPill {
+                label: qsTr("This week")
+                active: root.subTab === "thisweek"
+                onActivated: {
+                    root.subTab = "thisweek";
+                    Tasks.fetchReport("thisweek");
+                }
+            }
+            Item {
+                Layout.fillWidth: true
+            }
+        }
+
+        // Report body (only when sub-tab is today/thisweek)
+        ClippingRectangle {
+            Layout.fillWidth: true
+            visible: root.subTab !== "tasks"
+            color: Colours.layer(Colours.palette.m3surfaceContainer, 1)
+            radius: Appearance.rounding.normal
+            implicitHeight: 440
+
+            Flickable {
+                id: reportFlick
+
+                anchors.fill: parent
+                anchors.margins: Appearance.padding.large
+                contentWidth: reportText.implicitWidth
+                contentHeight: reportText.implicitHeight
+                flickableDirection: Flickable.HorizontalAndVerticalFlick
+                clip: true
+
+                StyledScrollBar.vertical: StyledScrollBar {
+                    flickable: reportFlick
+                }
+                StyledScrollBar.horizontal: StyledScrollBar {
+                    flickable: reportFlick
+                }
+
+                StyledText {
+                    id: reportText
+
+                    text: {
+                        const r = root.subTab === "today" ? Tasks.dailyReport : Tasks.weeklyReport;
+                        return r && r.length > 0 ? r : qsTr("No data");
+                    }
+                    wrapMode: Text.NoWrap
+                    font.family: Config.appearance.font.family.mono
+                    font.pointSize: Appearance.font.size.small
+                    textFormat: Text.PlainText
+                }
+            }
+        }
+
+        // Pomodoro card (only on Tasks sub-tab)
         StyledRect {
             Layout.fillWidth: true
             color: Colours.layer(Colours.palette.m3surfaceContainer, 1)
@@ -129,6 +202,7 @@ Item {
         // Filter + title row
         RowLayout {
             Layout.fillWidth: true
+            visible: root.subTab === "tasks"
             spacing: Appearance.spacing.small
 
             StyledText {
@@ -155,7 +229,7 @@ Item {
 
         // Task list
         Repeater {
-            model: Tasks.tasks
+            model: root.subTab === "tasks" ? Tasks.tasks : []
 
             delegate: StyledRect {
                 required property var modelData
@@ -241,21 +315,6 @@ Item {
             }
         }
 
-        // Reports
-        ReportBlock {
-            Layout.fillWidth: true
-            Layout.topMargin: Appearance.spacing.normal
-            title: qsTr("Today")
-            body: Tasks.dailyReport
-            onRefresh: Tasks.fetchReport("today")
-        }
-
-        ReportBlock {
-            Layout.fillWidth: true
-            title: qsTr("This week")
-            body: Tasks.weeklyReport
-            onRefresh: Tasks.fetchReport("thisweek")
-        }
     }
 
     // Locally ticked pomodoro countdown — keeps the ring live between 5-min syncs.
@@ -369,79 +428,34 @@ Item {
         }
     }
 
-    component ReportBlock: ColumnLayout {
-        id: block
+    component SubTabPill: StyledRect {
+        id: subpill
 
-        property string title
-        property string body
+        property string label
+        property bool active
 
-        signal refresh
+        signal activated
 
-        spacing: Appearance.spacing.smaller
+        radius: Appearance.rounding.full
+        color: subpill.active ? Colours.palette.m3primaryContainer : "transparent"
+        implicitHeight: subText.implicitHeight + Appearance.padding.normal * 2
+        implicitWidth: subText.implicitWidth + Appearance.padding.large * 2
 
-        RowLayout {
-            Layout.fillWidth: true
-
-            StyledText {
-                text: block.title
-                font.weight: 500
-            }
-
-            Item {
-                Layout.fillWidth: true
-            }
-
-            StyledRect {
-                radius: Appearance.rounding.full
-                color: refreshMa.containsMouse ? Colours.layer(Colours.palette.m3surfaceContainer, 2) : "transparent"
-                implicitHeight: refreshIcon.implicitHeight + Appearance.padding.small * 2
-                implicitWidth: implicitHeight
-
-                MouseArea {
-                    id: refreshMa
-
-                    anchors.fill: parent
-                    hoverEnabled: true
-                    cursorShape: Qt.PointingHandCursor
-                    onClicked: block.refresh()
-                }
-
-                MaterialIcon {
-                    id: refreshIcon
-
-                    anchors.centerIn: parent
-                    text: "refresh"
-                    font.pointSize: Appearance.font.size.normal
-                }
-            }
+        MouseArea {
+            anchors.fill: parent
+            hoverEnabled: true
+            cursorShape: Qt.PointingHandCursor
+            onClicked: subpill.activated()
         }
 
-        ClippingRectangle {
-            Layout.fillWidth: true
-            color: Colours.layer(Colours.palette.m3surfaceContainer, 1)
-            radius: Appearance.rounding.normal
-            implicitHeight: bodyText.implicitHeight + Appearance.padding.large * 2
+        StyledText {
+            id: subText
 
-            Flickable {
-                id: bodyFlick
-
-                anchors.fill: parent
-                anchors.margins: Appearance.padding.large
-                contentWidth: bodyText.implicitWidth
-                contentHeight: bodyText.implicitHeight
-                flickableDirection: Flickable.HorizontalFlick
-                clip: true
-
-                StyledText {
-                    id: bodyText
-
-                    text: block.body || qsTr("No data")
-                    wrapMode: Text.NoWrap
-                    font.family: Config.appearance.font.family.mono
-                    font.pointSize: Appearance.font.size.small
-                    textFormat: Text.PlainText
-                }
-            }
+            anchors.centerIn: parent
+            text: subpill.label
+            font.weight: subpill.active ? 500 : 400
+            color: subpill.active ? Colours.palette.m3onPrimaryContainer : Colours.palette.m3onSurface
         }
     }
+
 }

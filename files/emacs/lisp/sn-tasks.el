@@ -122,12 +122,15 @@ Accepts either `tag' or `@tag' forms in either FILTER or TAGS."
             (goto-char (point-min))
             (while (re-search-forward org-heading-regexp nil t)
               (let* ((todo (substring-no-properties (or (org-get-todo-state) "")))
-                      (tags (mapcar #'substring-no-properties (org-get-tags))))
+                      (tags (mapcar #'substring-no-properties (org-get-tags)))
+                      (title (string-trim
+                               (substring-no-properties
+                                 (or (org-get-heading t t t t) "")))))
                 (when (and (not (string-empty-p todo))
+                        (not (string-empty-p title))
                         (sn-tasks--tag-matches-p tag tags)
                         (not (member "ARCHIVE" tags)))
-                  (push (list :title (substring-no-properties
-                                       (org-get-heading t t t t))
+                  (push (list :title title
                           :state todo
                           :tags tags
                           :marker (point-marker))
@@ -192,18 +195,27 @@ If FILTER is supplied, update the persisted filter first."
 
 ;;;###autoload
 (defun sn-tasks/clock-in-by-title (title)
-  "Clock into the first agenda entry whose heading matches TITLE."
-  (catch 'done
-    (dolist (file sn-tasks-agenda-files)
-      (when (file-exists-p (expand-file-name file))
-        (with-current-buffer (find-file-noselect (expand-file-name file))
-          (org-with-wide-buffer
-            (goto-char (point-min))
-            (while (re-search-forward org-heading-regexp nil t)
-              (when (string= (org-get-heading t t t t) title)
-                (org-clock-in)
-                (throw 'done t)))))))
-    nil))
+  "Clock into the first agenda entry whose heading matches TITLE.
+Resolves any open clock first so we never block on the resolve prompt."
+  (let ((org-clock-resolve-expert t)
+         (org-clock-in-resume nil)
+         (target (string-trim title)))
+    (when (org-clocking-p)
+      (ignore-errors (org-clock-out nil t)))
+    (catch 'done
+      (dolist (file sn-tasks-agenda-files)
+        (when (file-exists-p (expand-file-name file))
+          (with-current-buffer (find-file-noselect (expand-file-name file))
+            (org-with-wide-buffer
+              (goto-char (point-min))
+              (while (re-search-forward org-heading-regexp nil t)
+                (when (string= (string-trim
+                                 (substring-no-properties
+                                   (or (org-get-heading t t t t) "")))
+                        target)
+                  (org-clock-in)
+                  (throw 'done t)))))))
+      nil)))
 
 ;;;###autoload
 (defun sn-tasks/clock-out ()

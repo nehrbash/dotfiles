@@ -81,15 +81,31 @@ Scope {
                 anchors.right: true
 
                 Rectangle {
+                    id: dim
+
                     anchors.fill: parent
                     color: Qt.rgba(0, 0, 0, 0.55)
                     focus: true
 
-                    Keys.onEscapePressed: root.manuallyOpen = false
+                    Component.onCompleted: forceActiveFocus()
+                    onVisibleChanged: if (visible)
+                        forceActiveFocus()
+
+                    Keys.onEscapePressed: {
+                        if (Tasks.onBreak)
+                            return;
+                        root.manuallyOpen = false;
+                        root.deferred = true;
+                    }
 
                     MouseArea {
                         anchors.fill: parent
-                        onClicked: root.manuallyOpen = false
+                        onClicked: {
+                            if (Tasks.onBreak)
+                                return;
+                            root.manuallyOpen = false;
+                            root.deferred = true;
+                        }
                     }
 
                     StyledRect {

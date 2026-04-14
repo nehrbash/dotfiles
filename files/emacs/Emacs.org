@@ -2522,6 +2522,8 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   :custom
   (org-clock-in-resume t)
   (org-clock-persist t)
+  (org-clock-persist-query-resume nil)
+  (org-clock-persist-query-save nil)
   (org-clock-into-drawer t)
   (org-log-into-drawer "LOGBOOK")
   (org-log-done 'time)
@@ -2530,12 +2532,12 @@ This config block sets up the =define-word= package and =flyspell-correct= packa
   (org-clock-clocked-in-display nil)
   (org-clock-idle-time 25)
   (org-clock-auto-clockout-timer )
-  (org-clock-auto-clock-resolution 'always)
+  (org-clock-auto-clock-resolution nil)
   (org-clock-report-include-clocking-task t)
   (org-clock-out-remove-zero-time-clocks t)
   (org-pretty-entities t)
   (org-clock-resolve-expert t)
-  :hook (org-after-todo-state-change . sn/org-clock-in-if-inprogress)
+  :hook (org-after-todo-state-change . sn/org-clock-in-if-active)
   :init
   (defvar org-clock-map (make-sparse-keymap)
     "Keymap for org-clock commands.")
