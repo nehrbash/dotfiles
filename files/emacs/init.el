@@ -1622,12 +1622,12 @@ Otherwise, it centers the posframe in the frame."
     "\\colorbox{%s!30}{\\textbf{%s}}")
   (org-preview-latex-default-process 'dvisvgm)
   (org-todo-keywords
-      '((sequence "TODO(t)" "NEXT(n)" "INPROGRESS(i)" "|" "DONE(d!)")
+      '((sequence "TODO(t)" "ACTIVE(a)" "|" "DONE(d!)")
         (sequence "PROJECT(p)" "|" "DONE(d!)")
-        (sequence "WAITING(w@/!)" "HOLD(h@/!)" "|" "DELEGATED(e@)" "CANCELLED(c@)")))
-  (org-todo-repeat-to-state "NEXT")
+        (sequence "HOLD(h@/!)" "|" "DELEGATED(e@)" "CANCELLED(c@)")))
+  (org-todo-repeat-to-state "TODO")
   (org-todo-keyword-faces
-    (quote (("NEXT" :inherit warning)
+    (quote (("ACTIVE" :inherit warning)
      		 ("PROJECT" :inherit font-lock-string-face))))
   (org-adapt-indentation t)
   (org-auto-align-tags nil)
@@ -1661,8 +1661,8 @@ Otherwise, it centers the posframe in the frame."
     `(("t" "Tasks")
        ("tt" "Todo" entry (file+headline "~/doc/inbox.org" "Inbox")
      	 "* TODO %?\nOn %U\While Editing %a\n" :clock-keep t)
-       ("ti" "Inprogress" entry (file+headline "~/doc/inbox.org" "Inprogress")
-     	 "* INPROGRESS %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
+       ("ta" "Active" entry (file+headline "~/doc/inbox.org" "Active")
+     	 "* ACTIVE %?\nSCHEDULED: %t\nOn %U\While Editing %a\n" :clock-keep t :clock-in t)
        ("p" "New Project")
        ("pp" "Personal Project" entry (file+headline "~/doc/projects.org" "Things I Want Done")
      	 "* PROJECT %?\n" :clock-keep t)
@@ -1804,12 +1804,11 @@ Otherwise, it centers the posframe in the frame."
   :init
   (defvar org-clock-map (make-sparse-keymap)
     "Keymap for org-clock commands.")
-  (defun sn/org-clock-in-if-inprogress ()
+  (defun sn/org-clock-in-if-active ()
 	"Handle clocking and archiving based on the task state.
-Clock in if state is INPROGRESS, clock out and archive if DONE.
-Only clock in/out when needed, and always save all Org buffers."
+Clock in if state is ACTIVE, clock out and archive if DONE."
 	(pcase org-state
-      ("INPROGRESS"
+      ("ACTIVE"
 		(unless (and (org-clock-is-active)
                   (equal org-clock-marker (point-marker)))
 		  (org-clock-in))
@@ -1819,12 +1818,11 @@ Only clock in/out when needed, and always save all Org buffers."
                 (equal org-clock-marker (point-marker)))
 		  (org-clock-out))
 		(org-archive-subtree)))
-	;; Always save all Org buffers regardless of state
 	(org-save-all-org-buffers))
 
-  (defun sn/org-demote-other-inprogress ()
-  "Demote every other INPROGRESS task back to NEXT.
-Only the currently clocked task should carry the INPROGRESS state."
+  (defun sn/org-demote-other-active ()
+  "Demote every other ACTIVE task back to TODO.
+Only the currently clocked task should carry the ACTIVE state."
   (let* ((clocked (and (org-clocking-p) org-clock-hd-marker))
           (clocked-buf (and clocked (marker-buffer clocked)))
           (clocked-pos (and clocked (marker-position clocked))))
@@ -1835,21 +1833,21 @@ Only the currently clocked task should carry the INPROGRESS state."
             (goto-char (point-min))
             (while (re-search-forward org-heading-regexp nil t)
               (let ((heading-pos (save-excursion (org-back-to-heading t) (point))))
-                (when (and (string= (org-get-todo-state) "INPROGRESS")
+                (when (and (string= (org-get-todo-state) "ACTIVE")
                         (not (and (eq clocked-buf (current-buffer))
                                (= heading-pos clocked-pos))))
-                  (org-todo "NEXT"))))))))))
+                  (org-todo "TODO"))))))))))
 
   (defun sn/org-clock-in-set-state ()
-  "Switch task to INPROGRESS when clocking in, demoting any others."
-  (unless (string= (org-get-todo-state) "INPROGRESS")
-    (org-todo "INPROGRESS"))
-  (sn/org-demote-other-inprogress))
+  "Switch task to ACTIVE when clocking in, demoting any others."
+  (unless (string= (org-get-todo-state) "ACTIVE")
+    (org-todo "ACTIVE"))
+  (sn/org-demote-other-active))
 
 (defun sn/org-clock-out-set-state ()
-  "Switch task to NEXT when clocking out, unless the task is DONE."
+  "Switch task to TODO when clocking out, unless the task is DONE."
   (unless (string= (org-get-todo-state) "DONE")
-    (org-todo "NEXT")))
+    (org-todo "TODO")))
 
 (add-hook 'org-clock-in-hook  #'sn/org-clock-in-set-state)
 (add-hook 'org-clock-out-hook #'sn/org-clock-out-set-state)
@@ -1972,7 +1970,7 @@ Only the currently clocked task should carry the INPROGRESS state."
   (setq-default org-agenda-clockreport-parameter-plist '(:link t :maxlevel 3))
   ;; Set active-project-match
   (let ((active-project-match "-INBOX/PROJECT"))
-	(setq org-stuck-projects `(,active-project-match ("NEXT" "INPROGRESS"))
+	(setq org-stuck-projects `(,active-project-match ("TODO" "ACTIVE"))
 		  org-agenda-compact-blocks t
 		  org-agenda-sticky t
 		  org-agenda-start-on-weekday nil
@@ -2005,8 +2003,8 @@ Only the currently clocked task should carry the INPROGRESS state."
 						  (org-agenda-todo-ignore-scheduled 'future)
 						  (org-agenda-skip-function
 						   '(lambda ()
-							  (or (org-agenda-skip-subtree-if 'todo '("HOLD" "WAITING"))
-								  (org-agenda-skip-entry-if 'nottodo '("NEXT" "INPROGRESS")))))
+							  (or (org-agenda-skip-subtree-if 'todo '("HOLD"))
+								  (org-agenda-skip-entry-if 'nottodo '("TODO" "ACTIVE")))))
 						  (org-tags-match-list-sublevels t)
 						  (org-agenda-sorting-strategy '(todo-state-down effort-up category-keep))))
 			  (stuck nil
@@ -2020,16 +2018,10 @@ Only the currently clocked task should carry the INPROGRESS state."
 						  (org-agenda-todo-ignore-scheduled 'future)
 						  (org-agenda-skip-function
 						   '(lambda ()
-							  (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "WAITING" "DELEGATED"))
+							  (or (org-agenda-skip-subtree-if 'todo '("PROJECT" "HOLD" "DELEGATED"))
 								  (org-agenda-skip-subtree-if 'nottodo '("TODO")))))
 						  (org-tags-match-list-sublevels t)
 						  (org-agenda-sorting-strategy '(category-keep))))
-			  (tags-todo "/WAITING"
-						 ((org-agenda-overriding-header "Waiting")
-						  (org-agenda-tags-todo-honor-ignore-options t)
-						  (org-agenda-todo-ignore-scheduled 'future)
-						  (org-agenda-sorting-strategy
-						   '(category-keep))))
 			  (tags-todo "/DELEGATED"
 						 ((org-agenda-overriding-header "Delegated")
 						  (org-agenda-tags-todo-honor-ignore-options t)
@@ -2039,8 +2031,7 @@ Only the currently clocked task should carry the INPROGRESS state."
 						 ((org-agenda-overriding-header "On Hold")
 						  (org-agenda-skip-function
 						   '(lambda ()
-							  (or (org-agenda-skip-subtree-if 'todo '("WAITING"))
-								  (org-agenda-skip-entry-if 'nottodo '("HOLD")))))
+							  (org-agenda-skip-entry-if 'nottodo '("HOLD"))))
 						  (org-tags-match-list-sublevels nil)
 						  (org-agenda-sorting-strategy '(category-keep))))))))))
 
@@ -2355,7 +2346,7 @@ The exact color values are taken from the active Ef theme."
       (setq hl-todo-keyword-faces
 			`(("HOLD" . ,yellow-warmer)
 	      ("TODO" . ,red)
-	      ("NEXT" . ,blue)
+	      ("ACTIVE" . ,blue)
 	      ("THEM" . ,magenta)
 	      ("PROG" . ,cyan-warmer)
 	      ("OKAY" . ,green-warmer)

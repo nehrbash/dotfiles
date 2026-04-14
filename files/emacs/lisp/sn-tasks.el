@@ -26,9 +26,9 @@
   :type 'integer)
 
 (defcustom sn-tasks-todo-keywords
-  '((sequence "TODO(t)" "NEXT(n/!)" "INPROGRESS(i/!)" "|" "DONE(d!/!)")
+  '((sequence "TODO(t)" "ACTIVE(a/!)" "|" "DONE(d!/!)")
     (sequence "PROJECT(p)" "|" "DONE(d!/!)" "CANCELLED(c@/!)")
-    (sequence "WAITING(w@/!)" "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))
+    (sequence "DELEGATED(e!)" "HOLD(h)" "|" "CANCELLED(c@/!)"))
   "Todo keyword sequences used when producing the snapshot."
   :type 'sexp)
 

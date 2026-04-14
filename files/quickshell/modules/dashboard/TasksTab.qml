@@ -194,14 +194,14 @@ Item {
                         Layout.preferredWidth: 96
                         color: {
                             switch (modelData.state) {
-                            case "INPROGRESS":
+                            case "ACTIVE":
                                 return Colours.palette.m3primary;
-                            case "NEXT":
+                            case "TODO":
                                 return Colours.palette.m3tertiary;
                             case "PROJECT":
                                 return Colours.palette.m3secondary;
-                            case "WAITING":
                             case "HOLD":
+                            case "DELEGATED":
                                 return Colours.palette.m3outline;
                             default:
                                 return Colours.palette.m3onSurface;
