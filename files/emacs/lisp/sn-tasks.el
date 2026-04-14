@@ -59,7 +59,13 @@
           (break-time-difference
             (when type-break-mode
               (type-break-time-difference type-break-time-last-break nil)))
+          ;; On break only when the scheduled next-break has already passed
+          ;; AND the rest period hasn't fully elapsed yet.  Without the
+          ;; time-difference<=0 guard we'd report "on break" the instant
+          ;; type-break-mode turns on (last-break defaults to now).
           (on-break (and type-break-mode
+                      time-difference
+                      (<= time-difference 0)
                       break-time-difference
                       (< break-time-difference type-break-good-break-interval)))
           (formatted-time
