@@ -1867,49 +1867,16 @@ Only clock in/out when needed, and always save all Org buffers."
   (type-break-demo-functions '(type-break-demo-boring))
   (type-break-demo-boring-stats t)
   :init
-  (defun sn/type-break-toggle ()
-	(interactive)
-	(if type-break-mode
-	  (type-break-mode -1)
-	  (type-break-mode 1)))
   (defun sn/type-break-query (a &rest b)
 	"Auto say yes and ask to quit type break."
 	(if (>= (type-break-time-difference
 			  type-break-interval-start
 			  type-break-time-last-break) 0)
 	  (y-or-n-p "Do you want to continue type-break? ")
-	  t))
-  (defun type-break-json-data ()
-	"Prints type break data used in eww bar."
-	(let* ((time-difference
-			 (when type-break-mode (type-break-time-difference nil type-break-time-next-break)))
-			(break-time-difference
-			  (when type-break-mode (type-break-time-difference type-break-time-last-break nil)))
-			(on-break (and type-break-mode
-						break-time-difference
-						(< break-time-difference type-break-good-break-interval)))
-			(formatted-time
-			  (cond
-				(on-break (format-seconds "%02m:%02s" (- type-break-good-break-interval break-time-difference)))
-				(time-difference (format-seconds "%02m:%02s" time-difference))
-				(t "00:00")))
-			(percent
-			  (if type-break-mode
-				(number-to-string (/ (* 100.0 time-difference) type-break-interval))
-				"0"))
-			(task-text
-			  (cond
-				(on-break "Take a break - relax your hands")
-				((string-empty-p org-clock-heading) "No Active Task")
-				(t org-clock-heading)))
-			(json-data
-			  `(:percent ,percent
-				 :time ,formatted-time
-				 :task ,task-text
-				 :summary ,(concat task-text " " formatted-time)
-				 :keystroke ,(if type-break-mode (cdr type-break-keystroke-threshold) "none")
-				 :keystroke-count ,(if type-break-mode type-break-keystroke-count 0))))
-      (json-encode json-data))))
+	  t)))
+
+(use-package sn-tasks
+  :ensure (sn-tasks :type file :main "~/.config/emacs/lisp/sn-tasks.el"))
 
 (defun toggle-org-pdf-export-on-save ()
   (interactive)
@@ -2599,10 +2566,6 @@ The exact color values are taken from the active Ef theme."
   :custom (lisp-indent-offset 2)
   (elisp-fontify-semantically t))
 
-(use-package yuck-mode
-  :mode ("\\.yuck\\'" . yuck-mode)
-  :hook (yuck-mode . (lambda () (setq-local lisp-indent-offset 2))))
-
 (use-package markdown-mode
   :mode ("\\.md\\'" . markdown-mode))
 
@@ -2900,6 +2863,12 @@ doesn't start with that identity."
   (agent-shell-anthropic-claude-environment
    (list (concat "CLAUDE_CODE_EXECUTABLE="
                  (or (executable-find "claude") "claude")))))
+
+(use-package agent-shell-dispatch
+  :ensure (:host github :repo "cassandracomar/agent-shell-dispatch")
+  :after agent-shell
+  :config
+  (agent-shell-dispatch-global-mode 1))
 
 (use-package mcp-server
   :ensure (:host github :repo "rhblind/emacs-mcp-server"
