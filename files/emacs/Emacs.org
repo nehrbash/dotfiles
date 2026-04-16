@@ -2597,11 +2597,24 @@ Only the currently clocked task should carry the ACTIVE state."
     (save-window-excursion
       (consult-org-agenda)
       (org-clock-in)))
-  
+
   (consult-customize consult-clock-in
     :prompt "Clock in: "
     :preview-key "M-.")
-  
+
+  (defun sn/org-clock-load-silent (orig-fn &rest args)
+    "Run `org-clock-load' non-interactively.
+Daemon startup must never block on clock-resume, stale-lock, or
+\"file changed on disk\" prompts — Shepherd spawns Emacs with no
+terminal, so any `yes-or-no-p' freezes the whole session and the
+Quickshell pomodoro/client IPC along with it."
+    (cl-letf (((symbol-function 'yes-or-no-p)         (lambda (&rest _) t))
+              ((symbol-function 'y-or-n-p)            (lambda (&rest _) t))
+              ((symbol-function 'ask-user-about-lock) (lambda (_f _o) t)))
+      (with-demoted-errors "org-clock-load: %S"
+        (apply orig-fn args))))
+  (advice-add 'org-clock-load :around #'sn/org-clock-load-silent)
+
   (org-clock-persistence-insinuate)
   (org-clock-auto-clockout-insinuate))
 #+end_src

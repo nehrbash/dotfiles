@@ -206,9 +206,9 @@
 (use-package rainbow-delimiters
   :hook ((prog-mode conf-mode) . rainbow-delimiters-mode))
 
-(use-package display-fill-column-indicator
-  :ensure nil
-  :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
+    (use-package display-fill-column-indicator
+      :ensure nil
+      :hook ((prog-mode conf-mode) . display-fill-column-indicator-mode))
 
 (use-package olivetti
   :hook (markdown-mode . olivetti-mode)
@@ -358,13 +358,13 @@
 		"\\*\\(Man\\|woman\\).*"))
 	 (display-buffer-same-window)))))
 
-(use-package recentf
-  :ensure nil
+  (use-package recentf
+    :ensure nil
 	:hook (elpaca-after-init . recentf-mode)
-  :custom
-  (recentf-auto-cleanup 300)
-  (recentf-max-saved-items 100)
-  (recentf-exclude
+    :custom
+    (recentf-auto-cleanup 300)
+    (recentf-max-saved-items 100)
+    (recentf-exclude
 	'(
 	   ".*!\\([^!]*!\\).*" ;; matches any string with more than one exclamation mark
 	   "/\\.cache.*/.*"    ;; matches any string that includes a directory named .cache
@@ -373,7 +373,7 @@
 	   ))
 	:config
 	(setq backup-directory-alist
-    `((".*" . ,temporary-file-directory))))
+      `((".*" . ,temporary-file-directory))))
 
 (use-package files
   :ensure nil
@@ -416,7 +416,7 @@
   :config
   (setq history-length 25))
 
-(save-place-mode 1)
+ (save-place-mode 1)
 
 (use-package anzu
   :bind (([remap query-replace-regexp] . anzu-query-replace-regexp)
@@ -989,40 +989,40 @@ Call a second time to restore the original window configuration."
   (push-mark (point) t nil)
   (apply func args))
 
-(use-package move-dup
-  :bind(("M-<up>" . move-dup-move-lines-up)
+ (use-package move-dup
+   :bind(("M-<up>" . move-dup-move-lines-up)
 		 ("M-<down>" . move-dup-move-lines-down)
 		 ("C-c d" . move-dup-duplicate-down)
 		 ("C-c u" . move-dup-duplicate-up)))
 
-(use-package whole-line-or-region
-  :config (whole-line-or-region-global-mode t))
+ (use-package whole-line-or-region
+   :config (whole-line-or-region-global-mode t))
 
-(defun smarter-move-beginning-of-line (arg)
-  "Move point back to indentation of beginning of line.
+ (defun smarter-move-beginning-of-line (arg)
+   "Move point back to indentation of beginning of line.
 
-Move point to the first non-whitespace character on this line.
-If point is already there, move to the beginning of the line.
-Effectively toggle between the first non-whitespace character and
-the beginning of the line.
+ Move point to the first non-whitespace character on this line.
+ If point is already there, move to the beginning of the line.
+ Effectively toggle between the first non-whitespace character and
+ the beginning of the line.
 
-If ARG is not nil or 1, move forward ARG - 1 lines first.  If
-point reaches the beginning or end of the buffer, stop there."
-  (interactive "^p")
-  (setq arg (or arg 1))
+ If ARG is not nil or 1, move forward ARG - 1 lines first.  If
+ point reaches the beginning or end of the buffer, stop there."
+   (interactive "^p")
+   (setq arg (or arg 1))
 
-  ;; Move lines first
-  (when (/= arg 1)
+   ;; Move lines first
+   (when (/= arg 1)
 	 (let ((line-move-visual nil))
 	   (forward-line (1- arg))))
 
-  (let ((orig-point (point)))
+   (let ((orig-point (point)))
 	 (back-to-indentation)
 	 (when (= orig-point (point))
 	   (move-beginning-of-line 1))))
 
-;; remap C-a to `smarter-move-beginning-of-line'
-(global-set-key [remap move-beginning-of-line]
+ ;; remap C-a to `smarter-move-beginning-of-line'
+ (global-set-key [remap move-beginning-of-line]
 				 'smarter-move-beginning-of-line)
 
 (use-package ace-window
@@ -1030,13 +1030,13 @@ point reaches the beginning or end of the buffer, stop there."
   (aw-keys '(?a ?r ?s ?d ?t ?n ?e ?i ?o))
   (aw-ignore-current t))
 
-(use-package windswap
-  :config
-  (windmove-default-keybindings 'control)
-  (windswap-default-keybindings 'shift 'control))
+ (use-package windswap
+   :config
+   (windmove-default-keybindings 'control)
+   (windswap-default-keybindings 'shift 'control))
 
-(use-package sudo-edit
-  :commands (sudo-edit))
+ (use-package sudo-edit
+   :commands (sudo-edit))
 
 (defun revert-all-buffers-no-confirm ()
   "Revert all buffers without confirmation."
@@ -1323,9 +1323,9 @@ Otherwise, it centers the posframe in the frame."
 	   consult-source-bookmark
 	   consult-source-project-recent-file)))
 
-(use-package consult-xref-stack
-  :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
-  )
+    (use-package consult-xref-stack
+      :ensure (:host github :repo "brett-lempereur/consult-xref-stack")
+      )
 
 (use-package embark
   :bind
@@ -1773,12 +1773,12 @@ Otherwise, it centers the posframe in the frame."
 (use-package org-modern
   :config (global-org-modern-mode t))
 
-(use-package org-appear
-  :ensure (:host github :repo "awth13/org-appear")
-  :hook (org-mode . org-appear-mode))
+   (use-package org-appear
+     :ensure (:host github :repo "awth13/org-appear")
+     :hook (org-mode . org-appear-mode))
 
-(use-package org-fragtog
-  :hook (org-mode . org-fragtog-mode))
+ (use-package org-fragtog
+   :hook (org-mode . org-fragtog-mode))
 
 (use-package org-clock
   :ensure nil
@@ -1862,11 +1862,24 @@ Only the currently clocked task should carry the ACTIVE state."
     (save-window-excursion
       (consult-org-agenda)
       (org-clock-in)))
-  
+
   (consult-customize consult-clock-in
     :prompt "Clock in: "
     :preview-key "M-.")
-  
+
+  (defun sn/org-clock-load-silent (orig-fn &rest args)
+    "Run `org-clock-load' non-interactively.
+Daemon startup must never block on clock-resume, stale-lock, or
+\"file changed on disk\" prompts — Shepherd spawns Emacs with no
+terminal, so any `yes-or-no-p' freezes the whole session and the
+Quickshell pomodoro/client IPC along with it."
+    (cl-letf (((symbol-function 'yes-or-no-p)         (lambda (&rest _) t))
+              ((symbol-function 'y-or-n-p)            (lambda (&rest _) t))
+              ((symbol-function 'ask-user-about-lock) (lambda (_f _o) t)))
+      (with-demoted-errors "org-clock-load: %S"
+        (apply orig-fn args))))
+  (advice-add 'org-clock-load :around #'sn/org-clock-load-silent)
+
   (org-clock-persistence-insinuate)
   (org-clock-auto-clockout-insinuate))
 
@@ -2368,7 +2381,7 @@ The exact color values are taken from the active Ef theme."
 (use-package magit-todos
   :init (magit-todos-mode 1))
 
-(use-package magit-pretty-graph
+      (use-package magit-pretty-graph
 	:ensure (:host github :repo "georgek/magit-pretty-graph")
 	:bind
 	)
@@ -2378,86 +2391,86 @@ The exact color values are taken from the active Ef theme."
   ("C-c g g" . browse-at-remote)
   ("C-c g k" . browse-at-remote-kill))
 
-(use-package svg-tag-mode)
-(use-package vterm
-  :hook (vterm-mode . sn/setup-vterm)
-  :init
-  (defun sn/vterm-apply-theme ()
-	"Apply current theme colors to vterm buffer."
-	(modus-themes-with-colors
-	  (let ((darker (sn-darken-color bg-main 0.7)))
-		(face-remap-add-relative
-		  'default
-		  :background darker)
-		(face-remap-set-base
-		  'default
-		  :background darker)
-		(face-remap-add-relative
-		  'fringe
-		  :background darker))))
-  (defun sn/setup-vterm ()
-	"Setup vterm buffer with custom font and theme colors."
-	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
-	(buffer-face-mode t)
-	(setq-local left-margin-width 3
-	  right-margin-width 3
-	  cursor-type 'bar)
-	(sn/vterm-apply-theme))
-  (defun sn/vterm-update-all-themes ()
-	"Update theme colors in all vterm buffers."
-	(dolist (buffer (buffer-list))
-	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
-		(with-current-buffer buffer
-		  (sn/vterm-apply-theme)))))
-  :config
-  (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
-  (defun old-version-of-vterm--get-color (index &rest args)
-	"This is the old version before it was broken by commit
-https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
-Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
-	(cond
-      ((and (>= index 0) (< index 16))
-		(face-foreground
-		  (elt vterm-color-palette index)
-		  nil 'default))
-      ((= index -11)
-		(face-foreground 'vterm-color-underline nil 'default))
-      ((= index -12)
-		(face-background 'vterm-color-inverse-video nil 'default))
-      (t
-		nil)))
-  (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
-  (defun my/vterm-standalone ()
-	"Create a standalone vterm frame without modeline and minibuffer."
-	(interactive)
-	(let ((frame (make-frame '((name . "vterm-standalone")
-								(minibuffer . nil)))))
-      (select-frame frame)
-      (let ((display-buffer-alist nil))
-		(vterm))
-	  (setq mode-line-format nil)))
-  )
-(use-package svg-lib :ensure t)
-(use-package svg-tabs
-  :ensure (svg-tabs :type file :main "~/.config/emacs/lisp/svg-tabs.el")
-  :after svg-lib)
-(use-package vterm-tabs
-  :ensure (vterm-tabs :type file :main "~/.config/emacs/lisp/vterm-tabs.el")
-  :bind
-  (("<f6>" . vterm-tabs-toggle)
-	:map vterm-mode-map
-	("C-M-s" . consult-term)
-	("M-w" . copy-region-as-kill)
-	("C-y" . vterm-yank))
-  :custom
-  (vterm-buffer-maximum-size 800)
-  (vterm-tramp-shells
-	'(("ssh" "/bin/bash")
-	   ("docker" "/bin/bash")
-	   ("sudo" "/bin/bash")))
-  (vterm-always-compile-module t)
-  :config
-  (global-vterm-tabs-mode 1))
+  (use-package svg-tag-mode)
+  (use-package vterm
+    :hook (vterm-mode . sn/setup-vterm)
+    :init
+    (defun sn/vterm-apply-theme ()
+  	"Apply current theme colors to vterm buffer."
+  	(modus-themes-with-colors
+  	  (let ((darker (sn-darken-color bg-main 0.7)))
+  		(face-remap-add-relative
+  		  'default
+  		  :background darker)
+  		(face-remap-set-base
+  		  'default
+  		  :background darker)
+  		(face-remap-add-relative
+  		  'fringe
+  		  :background darker))))
+    (defun sn/setup-vterm ()
+  	"Setup vterm buffer with custom font and theme colors."
+  	(set (make-local-variable 'buffer-face-mode-face) '(:family "IosevkaTerm Nerd Font"))
+  	(buffer-face-mode t)
+  	(setq-local left-margin-width 3
+  	  right-margin-width 3
+  	  cursor-type 'bar)
+  	(sn/vterm-apply-theme))
+    (defun sn/vterm-update-all-themes ()
+  	"Update theme colors in all vterm buffers."
+  	(dolist (buffer (buffer-list))
+  	  (when (eq (buffer-local-value 'major-mode buffer) 'vterm-mode)
+  		(with-current-buffer buffer
+  		  (sn/vterm-apply-theme)))))
+    :config
+    (add-hook 'modus-themes-post-load-hook #'sn/vterm-update-all-themes)
+    (defun old-version-of-vterm--get-color (index &rest args)
+  	"This is the old version before it was broken by commit
+  https://github.com/akermu/emacs-libvterm/commit/e96c53f5035c841b20937b65142498bd8e161a40.
+  Re-introducing the old version fixes auto-dim-other-buffers for vterm buffers."
+  	(cond
+        ((and (>= index 0) (< index 16))
+  		(face-foreground
+  		  (elt vterm-color-palette index)
+  		  nil 'default))
+        ((= index -11)
+  		(face-foreground 'vterm-color-underline nil 'default))
+        ((= index -12)
+  		(face-background 'vterm-color-inverse-video nil 'default))
+        (t
+  		nil)))
+    (advice-add 'vterm--get-color :override #'old-version-of-vterm--get-color)
+    (defun my/vterm-standalone ()
+  	"Create a standalone vterm frame without modeline and minibuffer."
+  	(interactive)
+  	(let ((frame (make-frame '((name . "vterm-standalone")
+  								(minibuffer . nil)))))
+        (select-frame frame)
+        (let ((display-buffer-alist nil))
+  		(vterm))
+  	  (setq mode-line-format nil)))
+    )
+  (use-package svg-lib :ensure t)
+  (use-package svg-tabs
+    :ensure (svg-tabs :type file :main "~/.config/emacs/lisp/svg-tabs.el")
+    :after svg-lib)
+  (use-package vterm-tabs
+    :ensure (vterm-tabs :type file :main "~/.config/emacs/lisp/vterm-tabs.el")
+    :bind
+    (("<f6>" . vterm-tabs-toggle)
+  	:map vterm-mode-map
+  	("C-M-s" . consult-term)
+  	("M-w" . copy-region-as-kill)
+  	("C-y" . vterm-yank))
+    :custom
+    (vterm-buffer-maximum-size 800)
+    (vterm-tramp-shells
+  	'(("ssh" "/bin/bash")
+  	   ("docker" "/bin/bash")
+  	   ("sudo" "/bin/bash")))
+    (vterm-always-compile-module t)
+    :config
+    (global-vterm-tabs-mode 1))
 
 (use-package makefile-runner
   :ensure (:host github :repo "danamlund/emacs-makefile-runner"))
@@ -2887,15 +2900,15 @@ doesn't start with that identity."
            :files ("*.el" "tools/*.el" "mcp-wrapper.py" "mcp-wrapper.sh"))
   :hook (emacs-startup . mcp-server-start-unix))
 
-(use-package codeium
-  :ensure (:host github :repo "Exafunction/codeium.el")
-  :custom
-  (codeium-log-buffer nil)
-  :config
-  ;; modeline
-  (setq codeium-mode-line-enable
-    (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
-  (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
+ (use-package codeium
+   :ensure (:host github :repo "Exafunction/codeium.el")
+   :custom
+   (codeium-log-buffer nil)
+   :config
+   ;; modeline
+   (setq codeium-mode-line-enable
+     (lambda (api) (not (memq api '(CancelRequest Heartbeat AcceptCompletion)))))
+   (add-to-list 'mode-line-format '(:eval (car-safe codeium-mode-line)) t))
 
 (use-package google-this)
 
