@@ -1880,6 +1880,21 @@ Quickshell pomodoro/client IPC along with it."
         (apply orig-fn args))))
   (advice-add 'org-clock-load :around #'sn/org-clock-load-silent)
 
+  (defun sn/org-clock-out-on-exit ()
+    "Close the running clock and save Org buffers before Emacs exits.
+Prefer writing the CLOCK: line back to disk over persisting a
+running clock: duration lands in the logbook immediately, the
+next daemon start has nothing to resolve, and Quickshell's
+pomodoro starts each session fresh."
+    (cl-letf (((symbol-function 'yes-or-no-p) (lambda (&rest _) t))
+              ((symbol-function 'y-or-n-p)    (lambda (&rest _) t)))
+      (when (org-clocking-p)
+        (with-demoted-errors "org-clock-out: %S"
+          (org-clock-out nil t)))
+      (with-demoted-errors "org-save-all-org-buffers: %S"
+        (org-save-all-org-buffers))))
+  (add-hook 'kill-emacs-hook #'sn/org-clock-out-on-exit)
+
   (org-clock-persistence-insinuate)
   (org-clock-auto-clockout-insinuate))
 
