@@ -87,6 +87,14 @@
                                     "<busconfig>
   <limit name=\"max_connections_per_user\">1024</limit>
 </busconfig>\n"))
+    (extra-special-file "/run/current-system/profile/share/wayland-sessions/hyprland.desktop"
+                        (plain-file "hyprland.desktop"
+                                    "[Desktop Entry]
+Name=Hyprland
+Comment=Hyprland from Guix Home profile
+Exec=start-hyprland
+Type=Application
+DesktopNames=Hyprland\n"))
     (service greetd-service-type
              (greetd-configuration
               (greeter-supplementary-groups '("video" "input"))
