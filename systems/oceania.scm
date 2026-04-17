@@ -155,7 +155,8 @@ DesktopNames=Hyprland\n"))
 
     (privileged-programs
      (cons* (privileged-program
-             (program (file-append gpu-screen-recorder "/bin/gsr-kms-server"))
+             (program (file-append gpu-screen-recorder
+                                   "/libexec/gpu-screen-recorder/gsr-kms-server"))
              (capabilities "cap_sys_admin+ep"))
             %default-privileged-programs))
 

@@ -72,7 +72,22 @@
           ;; (the first subdirectory), but meson.build is one level up.
           (add-after 'unpack 'fix-source-dir
             (lambda _
-              (chdir ".."))))))
+              (chdir "..")))
+          ;; gpu-screen-recorder resolves gsr-kms-server via dirname of
+          ;; /proc/self/exe first, and only falls back to PATH when no
+          ;; sibling is found.  On Guix the store bin/ is immutable so we
+          ;; can't grant cap_sys_admin there; instead we relocate the
+          ;; helper to libexec/ so PATH lookup wins and finds the
+          ;; capability-wrapped copy under /run/privileged/bin/ (installed
+          ;; via the system's privileged-programs declaration).
+          (add-after 'install 'relocate-kms-server
+            (lambda _
+              (let* ((bin (string-append #$output "/bin"))
+                     (libexec (string-append #$output
+                                             "/libexec/gpu-screen-recorder")))
+                (mkdir-p libexec)
+                (rename-file (string-append bin "/gsr-kms-server")
+                             (string-append libexec "/gsr-kms-server"))))))))
     (home-page "https://git.dec05eba.com/gpu-screen-recorder")
     (synopsis "Hardware-accelerated screen recorder for Linux")
     (description
