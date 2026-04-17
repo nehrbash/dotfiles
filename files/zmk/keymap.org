@@ -431,6 +431,16 @@ Balanced hold-tap for home row modifiers. Tuned for Colemak-DH:
             flavor = "balanced";
             tapping-term-ms = <200>;
             quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
+            bindings = <&mo>, <&kp>;
+        };
+        lti: layer_tap_idle {
+            compatible = "zmk,behavior-hold-tap";
+            #binding-cells = <2>;
+            flavor = "balanced";
+            tapping-term-ms = <200>;
+            quick-tap-ms = <175>;
+            require-prior-idle-ms = <150>;
             bindings = <&mo>, <&kp>;
         };
     }; /* end behaviors */
@@ -471,7 +481,7 @@ combos {
                 &kp Q       &kp W       &kp F        &kp P        &kp B          &kp J   &kp L        &kp U        &kp Y       &kp APOS
                 &hml LGUI A &hml LALT R &hml LCTRL S &hml LSHFT T &kp G          &kp M   &hmr RSHFT N &hmr RCTRL E &hmr LALT I &hmr RGUI O
                 &kp Z       &hml RALT X &kp C        &kp D        &kp V          &kp K   &kp H        &kp COMMA    &hmr RALT DOT &kp FSLH
-                                         &lt MEDIA ESC &ltr NAV SPACE &lt POINT TAB   &lt SYM ENTER &ltr NUM BSPC
+                                         &lt MEDIA ESC &ltr NAV SPACE &lt POINT TAB   &lti SYM ENTER &ltr NUM BSPC
             >;
         };
 #+END_SRC
