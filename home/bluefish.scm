@@ -30,7 +30,10 @@
      "$PATH:$HOME/.local/bin:$HOME/.local/share/bin:$HOME/.local/share/uv/bin:$HOME/.cargo/bin:$HOME/.local/share/go/bin")
     ("UV_TOOL_BIN_DIR" . "$HOME/.local/share/uv/bin")
     ("SSH_ASKPASS" . "/usr/lib/gcr-ssh-askpass")
-    ("CAELESTIA_XKB_RULES_PATH" . "/usr/share/X11/xkb/rules/base.lst")))
+    ("CAELESTIA_XKB_RULES_PATH" . "/usr/share/X11/xkb/rules/base.lst")
+    ;; Intel Iris Xe (Alder Lake) — use iHD VA-API driver for hw decode.
+    ("LIBVA_DRIVER_NAME" . "iHD")
+    ("VDPAU_DRIVER" . "va_gl")))
 
 (home-environment
  ;; On Arch most packages come from pacman/yay.  Guix supplies the zsh
