@@ -27,8 +27,9 @@ wait_for_windows() {
 }
 
 setup() {
-	hyprctl --batch "dispatch exec [workspace $WORKSPACE] spotify; dispatch layoutmsg preselect l"
+	hyprctl dispatch exec "[workspace $WORKSPACE] spotify"
 	wait_for_windows "Spotify" 1
+	hyprctl dispatch layoutmsg preselect l
 
 	hyprctl dispatch exec "[workspace $WORKSPACE] alacritty -o font.size=6 -e cava -p ~/.config/cava/left.conf"
 	wait_for_windows "Alacritty" 1
