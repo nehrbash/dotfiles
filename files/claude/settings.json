@@ -53,7 +53,8 @@
   "enabledPlugins": {
     "rust-analyzer-lsp@claude-plugins-official": true,
     "web@it-marketplace": true,
-    "jdx@it-marketplace": true
+    "jdx@it-marketplace": true,
+    "gopls-lsp@claude-plugins-official": true
   },
   "mcpServers": {
     "sudo": {
