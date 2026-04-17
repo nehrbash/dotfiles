@@ -11,14 +11,14 @@
 (define-public claude-code
   (package
     (name "claude-code")
-    (version "2.1.97")
+    (version "2.1.112")
     (source
      (origin
        (method url-fetch)
        (uri (string-append gcs-bucket "/" version "/linux-x64/claude"))
        (file-name (string-append "claude-code-" version))
        (sha256
-        (base32 "1xkyg7amz4c0l7rr3k03swfc4586gxw1yfpgxrina8193p8zqhqd"))))
+        (base32 "0g8db1bkm8vnxpdr7v1haikrcr6xi1rbz417amcy5jp5sc399gjp"))))
     (supported-systems '("x86_64-linux"))
     (build-system copy-build-system)
     (arguments
