@@ -123,8 +123,8 @@
                    "-DDISTRIBUTOR_DEBUGINFO_AVAILABLE=NO"
                    ;; Newer upstream warns if this is unset.
                    "-DINSTALL_QMLDIR=lib/qt6/qml"
-                   ;; cpptrace isn't packaged for Guix.
-                   "-DCRASH_HANDLER=OFF")
+                   ;; breakpad isn't packaged for Guix.
+                   "-DCRASH_REPORTER=OFF")
            #:phases
            #~(modify-phases %standard-phases
                (replace 'build (lambda _ (invoke "cmake" "--build" ".")))
