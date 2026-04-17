@@ -1,25 +1,32 @@
-(define-module (home bluefish))
+(define-module (home bluefish)
+  #:use-module (gnu home)
+  #:use-module (gnu services)
+  #:use-module (gnu packages)
+  #:use-module (gnu packages curl)
+  #:use-module (gnu packages enchant)
+  #:use-module (gnu packages fonts)
+  #:use-module (gnu packages pkg-config)
+  #:use-module (gnu packages rust-apps)
+  #:use-module (gnu packages shellutils)
+  #:use-module (gnu packages terminals)
+  #:use-module (gnu packages version-control)
+  #:use-module (gnu packages web)
+  #:use-module (gnu packages wget)
+  #:use-module (guix gexp)
+  #:use-module (desktop caelestia)
+  #:use-module (home common)
+  #:use-module (home services emacs)
+  #:use-module (home services ssh-agent)
+  #:use-module (home services flatpak)
+  #:use-module (home services zen-browser)
+  #:use-module (home services dotfiles-symlinks)
+  #:use-module (packages fonts))
 
 ;; Resolve dotfiles root from this module's location on the load path.
 (define %dotfiles-dir
   (canonicalize-path
    (string-append (dirname (search-path %load-path "home/bluefish.scm"))
                   "/..")))
-
-(use-modules (gnu home)
-             (gnu services)
-             (gnu packages enchant)
-             (gnu packages shellutils)
-             (gnu packages terminals)
-             (guix gexp)
-             (desktop caelestia)
-             (home common)
-             (home services emacs)
-             (home services ssh-agent)
-             (home services flatpak)
-             (home services zen-browser)
-             (home services dotfiles-symlinks)
-             (packages package-groups))
 
 ;; Host-specific env vars layered on top of %common-*-env-vars.
 ;; Arch differences: $HOME/.local/share/bin in PATH, UV_TOOL_BIN_DIR,
@@ -41,12 +48,28 @@
  ;; them as gexp dependencies) plus the full Caelestia/Hyprland desktop
  ;; stack from (desktop caelestia).
  (packages (append
-            %core-packages
+            ;; Core CLI tools shared with redfish.
+            (list git git-lfs curl wget ripgrep jq
+                  (specification->package "bind")
+                  (specification->package "sqlite")
+                  (specification->package "gcc-toolchain")
+                  pkg-config
+                  (specification->package "file")
+                  (specification->package "tree")
+                  (specification->package "lsof")
+                  (specification->package "strace")
+                  (specification->package "zip")
+                  (specification->package "unzip")
+                  (specification->package "pv")
+                  (specification->package "bc"))
             (list alacritty
                   zsh-autosuggestions zsh-autopair
                   zsh-history-substring-search zsh-syntax-highlighting
                   fzf-tab enchant)
-            %font-packages
+            ;; General-purpose fonts.
+            (list font-iosevka font-iosevka-aile
+                  font-google-noto-sans-cjk font-google-noto-emoji
+                  font-iosevka-term-nf)
             %caelestia-desktop-packages))
 
  (services
